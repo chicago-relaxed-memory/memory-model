@@ -22,7 +22,8 @@ Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
 $\aLR$.
 Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions}, ranged over
 by $\aSub$ and $\bSub$.  We write substitutions
-$[\bExp_1/\aLR_1,\ldots, \bExp_n/\aLR_n]$.
+$[\bExp_1/\aLR_1,\ldots, \bExp_n/\aLR_n]$.  The empty substitution is written
+as $[\,]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
@@ -139,12 +140,12 @@ For example:
   \wk{rx1}{wx2}
 \end{tikzpicture}\]
 
-\section{Semantics of programs}
+\subsection{Semantics of programs}
 \label{sec:semantics}
 
 \begin{figure*}
 \begin{eqnarray*}
-  \sem{\SKIP} & = & \{ \emptyset \} \\
+  \sem{\SKIP} & = & [\,]\\
   \sem{\aLoc\GETS\aExp} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix [\aExp/\aLoc]\bigr) \\
   \sem{\aReg\GETS\aLoc} & = & [\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix [\aLoc/\aReg] \\
   \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
