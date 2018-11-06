@@ -1,0 +1,73 @@
+% 12 pages, excluding references, not anonymous
+
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[numbers]{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{hyperref}
+\newcommand{\email}[1]{\href{mailto:#1}{{\UrlFont #1}}}
+\usepackage{amsthm}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{makecell}
+\usepackage[T1]{fontenc}
+\usepackage{verbatim}
+% \makeatletter
+% \def\verbatim@font{\sffamily\upshape}
+% \makeatother
+
+\bibliographystyle{plainnat}
+\usepackage{macros}
+\newcommand{\ignore}[1]{}
+\newcommand{\todo}[1]{{\color{red}\textbf{\{#1\}}}}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\title{What, exactly, didn't happen?}
+
+\author{
+\IEEEauthorblockN{Radha Jagadeesan}
+\IEEEauthorblockA{\textit{DePaul University}\\
+  \email{rjagadeesan@cs.depaul.edu}}
+\and
+\IEEEauthorblockN{Alan Jeffrey}
+\IEEEauthorblockA{\textit{Mozilla Research}\\
+  \email{ajeffrey@mozilla.com}}
+\and
+\IEEEauthorblockN{James Riely}
+\IEEEauthorblockA{\textit{DePaul University}\\
+  \email{jriely@cs.depaul.edu}}
+}
+
+
+\maketitle
+
+\begin{abstract}
+A memory model, designed to be as weak as possible.
+\end{abstract}
+
+\input{intro}
+\input{model}
+\input{examples}
+\input{logic}
+\input{outro}
+
+\begin{small}
+\bibliography{bib}
+\end{small}
+\end{document}
+
+% Local Variables:
+% mode: latex
+% TeX-master: t
+% End:

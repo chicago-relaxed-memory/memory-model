@@ -1,0 +1,224 @@
+\section{Logic}
+\label{sec:logic}
+
+\newcommand{\closed}{\textsf{closed}}
+\newcommand{\pLTL}{\textsf{PLTL}}
+\newcommand{\once}{\Diamond^{-1}}
+\newcommand{\always}{\Box^{-1}}
+\newcommand{\afo}{\phi}
+\newcommand{\bfo}{\psi}
+\newcommand{\mods}{\textsf{Models}}
+
+In this section, we develop sufficient logical infrastructure to prove that
+our semantics disallows thin air executions.  We present a variant of the
+TAR-pit example from \S\ref{sec:relaxed-memory} which poses difficulties
+under many speculative semantics.
+
+We adapt past linear temporal logic (\pLTL)
+\cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
+instant operator and adopting strict versions of the temporal operators.
+The atoms of our logic are write and read events.
+% \begin{displaymath}
+%   \afo \QUAD::=\QUAD
+%   \DR{\aLoc}{\aVal}
+%   \mid
+%   \DW\aLoc\aVal
+%   \afo \wedge\bfo
+%   \mid \lnot \afo
+%   \once\afo
+%   \mid \always\afo
+% \end{displaymath}
+%\begin{definition} %[Satisfaction]
+  Given an pomset $\aPS$ and event $\aEv$, define:
+  \begin{displaymath}
+    \begin{array}{lrl}
+      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
+      \aPS,\aEv &\models& \TRUE\\
+      \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
+      %\aPS,\aEv &\models& \once\afo, \text{if } (\exists \bEv \le \aEv, \bEv\not=\aEv)  \aPS,\bEv \models \afo \\
+      \aPS,\aEv &\models& \always\afo, \text{ if } (\forall \bEv \le \aEv,\,  \bEv\not=\aEv)\; \aPS,\bEv \models \afo
+    \end{array} 
+  \end{displaymath}
+  Define $\aPS \models \afo$ if
+  $(\forall \aEv \in \Event) \;\aPS,\aEv \models\afo$ and $\aPSS\models \afo$
+  if $(\forall \aPS \in \aPSS)\; \aPS \models\afo$.
+%\end{definition}
+
+Let $\once\afo$ be defined as $\lnot(\always\lnot\afo)$. 
+In addition, let $\FALSE$, $\lor$ and $\Rightarrow$ be defined in the
+standard way.
+% $\afo\lor\bfo$ for $\lnot(\lnot \afo \land \lnot \bfo)$,
+% and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
+
+The past operators do not include the current instant, and thus 
+they do \emph{not} satisfy the rule
+\begin{math}
+  \always\afo\Rightarrow\once\afo.
+\end{math}
+However, they do satisfy:
+% \begin{align*}  
+%   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
+%   &&
+%   \frac{\aPS \models \always\afo \Rightarrow\afo}{\aPS \models \afo}\text{(Induction)}
+% \end{align*}
+\begin{gather*}
+  \tag{Coinduction}
+  (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+  \\
+  \tag{Induction}
+  (\always\afo \Rightarrow\afo) \Rightarrow\afo
+\end{gather*}
+% \begin{description}
+% \item[Coinduction.]
+%   \begin{math}
+%     (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+%   \end{math}
+% \item[Induction.] 
+%   \begin{math}
+%     (\always\afo \Rightarrow\afo) \Rightarrow\afo
+%   \end{math}
+% \end{description}
+Note that $\aPS \models \afo \land \always\afo$ whenever $\aPS \models \afo$.
+
+We now present two proof rules.  The first rule captures the semantics of
+local variables.  Define
+\begin{math}
+  \closed(\aLoc) = (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}).
+\end{math}
+Although this definition does not mention intervening writes, it is
+sufficient for our example.  It is straightforward to establish that
+following rule is sound:
+\begin{displaymath}
+  \tag{Closing $\aLoc$}
+  \frac{
+    \afo \text{ is independent of } \aLoc
+    \qquad
+    \aPS \models \closed(\aLoc) \Rightarrow \afo
+  }{
+    \nu \aLoc \st \aPS \models \afo
+  }
+\end{displaymath}
+
+The second rule describes composition, in the style of Abadi and
+Lamport~\cite{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
+consider the special case with a single invariant.
+% We view the
+% composition result as capturing key aspects of no-ThinAirRead, as will become
+% clearer in the examples below.
+In order to state the theorem, we generalize the satisfaction relation to
+include environment assumptions.  Let
+\begin{math}
+  \mods{(\afo)} = \{ \aPSS \mid \aPSS \models \afo \}
+\end{math}
+be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
+closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
+  $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
+  imply $\bEv\in\Event'$, and $(\labelling',\leq',\ltN')$ coincide with
+  $(\labelling,\leq,\ltN)$ for elements of $\Event'$.}.
+  % when $\aEv,\,\bEv\in\Event'$: $\labelling'(\aEv)=\labelling(\aEv)$,
+  % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\ltN'\bEv$ iff
+  % $\aEv\ltN\bEv$. 
+\begin{noenv}
+  Define
+  \begin{math}
+    \afo, \aPSS \models \bfo  \text{ if } \mods{(\afo)} \parallel \aPSS \models \bfo.
+  \end{math}
+\end{noenv}
+\begin{proposition}%[Composition]
+  Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
+  augmentation-closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
+ %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\ltN\bEv$
+ %   implies $\aEv\ltN'\bEv$, and
+ %   % $\labelling'(\aEv)=\labelling(\aEv)$
+ %   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
+ %   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+ %   $\bForm$.}
+  Then:
+  \begin{displaymath}
+    \tag{Composition}
+    \frac{
+      \afo, \aPSS_1 \models\afo
+      \qquad
+      \afo, \aPSS_2 \models\afo
+    }{\aPSS_1 \parallel \aPSS_2 \models \afo}
+  \end{displaymath}
+\end{proposition}
+\begin{proof}[Proof sketch]
+  We will show that all prefixes in the prefix closures of
+  $\aPSS_1 \parallel \aPSS_2$ satisfy the required property.  Proof proceeds
+  by induction on prefixes of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
+
+  The case for empty prefix  follows from assumption that  $\afo$ is prefix closed.  
+
+  For the inductive case, consider %$\aPS$ in the prefix closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
+  $\aPS \in \aPS_1 \parallel \aPS_2$ where
+  $\aPS_i \in \aPSS_i$.  Since $\aPSS_1$ and $\aPSS_2$ are augmentation
+  closed, we can assume that the restriction of $\aPS$ to the events of
+  $\aPS_i$ coincides with $\aPS_i$, for $i=1,2$.
+  %
+  Consider a prefix $\aPS'$ derived by removing a maximal element $\aEv$ from
+  $\aPS$.  Suppose $\aEv$ comes from $\aPS_1$ (the other case is
+  symmetric). Since $\aPS_2$ is a prefix of $\aPS'$ and $\aPS' \models \afo$
+  by induction hypothesis, we deduce that $\aPS_2 \models \afo$.
+  % Thus, $\aPS_2 \in \mods{(\afo)}$.
+  Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
+  deduce that $\aPS \models \afo$.
+\end{proof}
+
+We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
+\begin{multline*}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  \\[-.5ex] (
+    y\GETS x
+  \PAR
+    \IF(z)\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+  \PAR
+    z\GETS1
+  )
+\end{multline*}
+This program is allowed to write $1$ to $a$ under many speculative
+memory models
+\cite{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17},
+even though the read of $1$ from $y$ in the else branch of the second
+thread arises out of thin air.   In contrast, we prove the formula
+\begin{math}
+  \lnot\once(\DW{a}{1})
+\end{math}
+holds for the models of this program in our semantics.  We start with the following invariant,
+which holds for each of the three threads, and thus, by composition, for the
+aggregate program:
+\begin{align*}
+  &[\once(\DW{y}{1}) \Rightarrow \once(\DR{x}{1})]
+  \land\\[-.5ex]
+  &[\once(\DW{a}{1}) \Rightarrow (\once(\DR{y}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{y}{1})))]
+\end{align*}
+Closing $y$, we have,
+\begin{math}
+  \once(\DR{y}{1}) \Rightarrow \once(\DW{y}{1}) % \Rightarrow \once(\DR{x}{1})
+\end{math}
+which we substitute into the left conjunct to get:
+\begin{displaymath}
+  \once(\DR{y}{1}) \Rightarrow \once(\DR{x}{1})
+\end{displaymath}
+which in turn we substitute into the right conjunct to get:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DR{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{x}{1})))
+\end{displaymath}
+Closing $x$, we can replace $\once(\DR{x}{1})$ with $\once(\DW{x}{1})$:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DW{x}{1})))
+\end{displaymath}
+Applying coinduction to the right conjunct, we have:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\lnot \DW{x}{1}))
+\end{displaymath}
+Simplifying, we have, as required:  
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow \FALSE
+\end{displaymath}
+
+% Local Variables:
+% mode: latex
+% TeX-master: "paper"
+% End:

@@ -1,0 +1,191 @@
+\newcommand{\fork}{\setminus_{\mathsf{S}}}
+
+\newcommand{\refapp}[1]{Appendix~\ref{app:#1}}
+\def\ttdefault{cmss}
+
+\newenvironment{noenv}{\ignorespaces}{\ignorespacesafterend}
+\newcommand{\aCmd}{C}
+\newcommand{\bCmd}{D}
+
+\newcommand{\ifnotempty}[2]{\ifx\relax#1\relax\else#2\fi}
+\newcommand{\ifnotemptyelse}[3]{\ifx\relax#1\relax#3\else#2\fi}
+\newcommand{\ifemptyelse}[3]{\ifx\relax#1\relax#2\else#3\fi}
+
+\newcommand{\dontcare}{\texttt{\_}}
+\newcommand{\pair}[2]{\langle#1,\,#2\rangle}
+\newcommand{\freads}{\mathsf{reads}}
+\newcommand{\fwrites}{\mathsf{writes}}
+\newcommand{\rreads}{\mathsf{R}}
+\newcommand{\rwrites}{\mathsf{W}}
+
+\newcommand{\Sub}{\mathcal{S}}
+\newcommand{\aSub}{\sigma}
+\newcommand{\bSub}{\rho}
+
+\newcommand{\Reg}{\mathcal{R}}
+\newcommand{\aReg}{r}
+\newcommand{\bReg}{s}
+
+\newcommand{\LR}{\mathcal{L}}
+\newcommand{\aLR}{\ell}
+
+\newcommand{\Loc}{\mathcal{X}}
+\newcommand{\aLoc}{x}
+\newcommand{\bLoc}{y}
+\newcommand{\cLoc}{z}
+
+\newcommand{\LVal}{\mathcal{L}}
+\newcommand{\aLV}{\ell}
+\newcommand{\bLV}{k}
+
+\newcommand{\Val}{\mathcal{V}}
+\newcommand{\aVal}{v}
+\newcommand{\bVal}{w}
+
+\newcommand{\Exp}{\mathcal{E}}
+\newcommand{\aExp}{M}
+\newcommand{\bExp}{N}
+
+\newcommand{\Formulae}{\Phi}
+\newcommand{\aForm}{\phi}
+\newcommand{\bForm}{\psi}
+\newcommand{\cForm}{\chi}
+\newcommand{\dForm}{\xi}
+\newcommand{\TRUE}{\mathsf{true}}
+\newcommand{\FALSE}{\mathsf{false}}
+
+\newcommand{\Rel}{\mathsf{Rel}}
+\newcommand{\Acq}{\mathsf{Acq}}
+\newcommand{\Act}{\mathcal{A}}
+\newcommand{\aAct}{a}
+\newcommand{\bAct}{b}
+\newcommand{\cAct}{c}
+\newcommand{\dAct}{d}
+\newcommand{\DRAcq}[2]{\mathsf{Acq}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DWRel}[2]{\mathsf{Rel}\ifnotempty{#1}{\,#1\,#2}}
+% \newcommand{\DRAcq}[2]{\mathsf{R_{acq}}\ifnotempty{#1}{\,#1\,#2}}
+% \newcommand{\DWRel}[2]{\mathsf{W_{rel}}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DT}[1]{\mathsf{T}\ifnotempty{#1}{\,#1}}
+\newcommand{\DF}{\mathsf{F}}
+\newcommand{\DB}[1]{\mathsf{B}\ifnotempty{#1}{\,#1}}
+\newcommand{\DC}[1]{\mathsf{C}\ifnotempty{#1}{\,#1}}
+
+\newcommand{\EAct}{A}
+\newcommand{\ESub}{S}
+\newcommand{\Event}{E}
+\newcommand{\aEv}{e}
+\newcommand{\bEv}{d}
+\newcommand{\cEv}{c}
+\newcommand{\begEv}{b}
+\newcommand{\comEv}{c}
+\newcommand{\ltN}{\mathrel{\,\mid\!\!\!<}}
+\newcommand{\gtN}{\mathrel{\,\mid\!\!\!>}}
+
+\newcommand{\Alphabet}{\Sigma}
+\newcommand{\labelling}{\lambda}
+
+\newcommand{\RF}{\mathsf{RF}}
+
+\newcommand{\NEVER}[1]{\rlap{$\times$}#1}
+
+\newcommand{\partialfun}{\mathbin\rightharpoonup}
+\newcommand{\fun}{\mathbin\rightarrow}
+\newcommand{\prefix}{\mathbin\rightarrow}
+\newcommand{\sequence}{\mathbin;}
+\newcommand{\guard}{\mathbin\rhd}
+\newcommand{\st}{\mathbin.}
+
+\newcommand{\aPS}{P}
+\newcommand{\aPSS}{\mathcal{P}}
+
+\newcommand{\sem}[1]{\llbracket#1\rrbracket}
+\newcommand{\REL}{\mathsf{rel}\,}
+\newcommand{\ACQ}{\mathsf{acq}\,}
+%\newcommand{\FENCE}{\texttt{fence}}
+\newcommand{\BEGIN}{\texttt{begin}}
+\newcommand{\COMMIT}{\texttt{commit}}
+\newcommand{\RECOVERY}{\texttt{onabort}\,\{}
+\newcommand{\ENDREC}{\,\}}
+\newcommand{\BEGINVAL}{\BEGIN\,\aVal}
+\newcommand{\COMMITVAL}{\COMMIT\,\aVal}
+\newcommand{\RECOVERYVAL}{\texttt{onabort}\,\aVal\,\{\,}
+\newcommand{\END}{\texttt{end}}
+\newcommand{\SKIP}{\texttt{skip}}
+\newcommand{\GETS}{\texttt{:}\mkern-1mu\texttt{=}\,}
+\newcommand{\SEQ}{\texttt{;}\,}
+\newcommand{\SEMI}{\texttt{;}\,}
+\newcommand{\IF}{\texttt{if}\,}
+\newcommand{\WHILE}{\texttt{while}\,}
+\newcommand{\DO}[1]{\texttt{do}\,\{#1\}\,}
+\newcommand{\THEN}{\,\{\,}
+\newcommand{\ELSE}{\,\}\,\texttt{else}\,\{\,}
+\newcommand{\ELIF}{\,\}\,\texttt{else}\,\texttt{if}\,}
+\newcommand{\brELSE}{\,\}\\\texttt{else}\,\{\,}
+\newcommand{\brELIF}{\,\}\\\texttt{else}\,\texttt{if}\,}
+\newcommand{\FI}{\,\}}
+\newcommand{\PAR}{\,\mathbin{\rrceil}\,}
+\newcommand{\VAR}{\texttt{var}\,}
+\newcommand{\TOUCHED}{\texttt{touched}\,}
+
+\newcommand{\CANREAD}{\texttt{canRead}}
+\newcommand{\SEC}{\texttt{SECRET}}
+\newcommand{\RETURN}{\texttt{return}\,}
+
+\newcommand{\EQ}{\,\texttt{==}\,}
+\newcommand{\NOTEQ}{\,\texttt{!=}\,}
+
+\newcommand{\GCC}{\texttt{gcc}}
+\newcommand{\CLANG}{\texttt{clang}}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.misc}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{topaths}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{matrix}
+\usetikzlibrary{fit}
+\usetikzlibrary{calc}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+
+\pgfsetlayers{background,main,foreground}
+
+\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
+\tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]
+\tikzstyle{po} = [->]
+\tikzstyle{wk} = [->,dashed]
+\tikzstyle{lift} = [->,double]
+\tikzstyle{rf} = [->,thick,draw=black!50!green]
+
+\tikzset{
+    nonevent/.style={
+        event, 
+        append after command={
+            node [
+                fit=(\tikzlastnode),
+                draw=red!50!black,
+                thick,
+                inner sep=-2\pgflinewidth,
+                cross out
+            ] {}
+        }
+    }
+}
+
+
+\newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
+\newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
+\newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
+\newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
+\newcommand{\rf}[3][]{\draw[rf,#1](#2)to(#3);}
+\newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
+\newcommand{\rfx}[4][]{\draw[rf,#1](#2) edge node[above,text=black!50!green]{$#3$} (#4);}
+
+% Local Variables:
+% mode: latex
+% TeX-master: "paper"
+% End:
