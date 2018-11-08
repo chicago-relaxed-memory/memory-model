@@ -457,11 +457,11 @@ such that
   $\labelling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
   \begin{itemize}
   \item $\bForm'$ implies $\aForm$ and $\bForm\aSub$,
-  \item if $\aActSub$ is an acquire or $\bAct$ is a release then $\bEv <' \aEv$,
+  \item if $\aActSub$ is an acquire or $\bActSub$ is a release then $\bEv <' \aEv$,
   \item if $\aActSub$ is an acquire then $\bForm$ is independent of every $\bLoc$,
   \item if $\bEv \le_1 \cEv$ and $\bForm$ depends on $\aSub$ then $\bEv \le'
     \aEv$, and
-  \item if $\aActSub$ and $\bAct$ touch the same location and one is a write,
+  \item if $\aActSub$ and $\bActSub$ touch the same location and one is a write,
     then $\bEv \gtN' \aEv$.
   \end{itemize}
 \end{itemize}
