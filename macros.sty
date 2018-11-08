@@ -1,3 +1,4 @@
+\newcommand{\TIKZ}[2][]{\left\{\,\begin{tikzpicture}[baselinecenter,node distance=1em,#1]#2\end{tikzpicture}\,\right\}}
 \newcommand{\fork}{\setminus_{\mathsf{S}}}
 
 \newcommand{\refapp}[1]{Appendix~\ref{app:#1}}
@@ -57,6 +58,9 @@
 \newcommand{\Rel}{\mathsf{Rel}}
 \newcommand{\Acq}{\mathsf{Acq}}
 \newcommand{\Act}{\mathcal{A}}
+\newcommand{\aActSub}{\alpha}
+\newcommand{\bActSub}{\beta}
+
 \newcommand{\aAct}{a}
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
@@ -125,7 +129,7 @@
 \newcommand{\brELSE}{\,\}\\\texttt{else}\,\{\,}
 \newcommand{\brELIF}{\,\}\\\texttt{else}\,\texttt{if}\,}
 \newcommand{\FI}{\,\}}
-\newcommand{\PAR}{\,\mathbin{\rrceil}\,}
+\newcommand{\PAR}{\,\mathbin{\llceil}\,}
 \newcommand{\VAR}{\texttt{var}\,}
 \newcommand{\TOUCHED}{\texttt{touched}\,}
 
@@ -154,8 +158,11 @@
 
 \pgfsetlayers{background,main,foreground}
 
-\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
+%\tikzset{baselinecenter/.style= {baseline=([yshift=-1ex]current bounding box.west)} }
+\tikzstyle{baselinecenter} = [baseline={([yshift=-.5ex]current bounding box.west)}]
+%\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
 \tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]
+\tikzstyle{final} = [draw=black, fill=blue!10, rectangle, rounded corners, double, minimum size=3ex]
 \tikzstyle{po} = [->]
 \tikzstyle{wk} = [->,dashed]
 \tikzstyle{lift} = [->,double]
@@ -176,7 +183,7 @@
     }
 }
 
-
+\newcommand{\final}[3]{\node[final](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}

@@ -21,9 +21,12 @@ A \emph{data model} consists of:
 Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
 $\aLR$.
 Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions}, ranged over
-by $\aSub$ and $\bSub$.  We write substitutions
-$[\bExp_1/\aLR_1,\ldots, \bExp_n/\aLR_n]$.  The empty substitution is written
-as $[\,]$.
+by $\aSub$ and $\bSub$.
+We write substitutions
+$[\bExp_1/\aLR_1,\ldots, \bExp_n/\aLR_n]$.
+Let $\aActSub$ and $\bActSub$ range over $(\Act\cup\Sub)$.
+% The empty substitution is written
+% as $[\,]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
@@ -62,7 +65,7 @@ $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
 
 \begin{definition}
   A \emph{(3-valued) pomset} with alphabet $\Alphabet$ is tuple $(\Event,
-  {\le}, {\ltN}, \labelling)$, such that 
+  {\le}, {\gtN}, \labelling)$, such that 
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
@@ -74,11 +77,11 @@ $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
     %   \\(this follows from 5a and 5b)
     % \item if $\cEv \le \bEv \le \aEv$ then $\cEv \le \aEv$, and
     % \end{enumerate}
-  \item ${\ltN} \subseteq (\Event\times\Event)$ such that:
+  \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
     \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\aEv \ltN \bEv$,
-    \item\label{5b} if $\bEv \le \aEv$ and $\bEv \ltN \aEv$ then $\bEv = \aEv$,
-    \item if $\cEv \ge \bEv \ltN \aEv$ or $\cEv \ltN \bEv \ge \aEv$ then $\cEv \ltN \aEv$.
+    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \eEv$,
+    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
+    \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
     \end{itemize}
 \end{itemize}
 \end{definition}
@@ -98,9 +101,8 @@ if $\labelling(\aEv)=(\aForm\mid\aAct)$ then we say $\aEv$ is unsatisfiable
 whenever $\aForm$ is unsatisfiable, $\aEv$ writes $\aVal$ to $\aLoc$ whenever
 $\aAct$ writes $\aVal$ to $\aLoc$, and so forth.
 
-We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aAct)$ or
-$(\aForm \mid \aSub)$.
-We elide $\aForm$ when $\aForm$ is a tautology, and write $\aAct$ crossed-out ($\NEVER\aAct$)
+We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aActSub)$.
+We elide $\aForm$ when $\aForm$ is a tautology, and write $\aActSub$ crossed-out %($\NEVER\aAct$)
 when $\aForm$ is unsatisfiable.
 We visualize a pomset as a graph where the nodes are drawn from
 $\Event$, each node $\aEv$ is labelled with $\labelling(\aEv)$,
@@ -122,10 +124,10 @@ is a visualization of the pomset where:
   \labelling(1) = (\FALSE, \DW{\bLoc}{0}) \quad
   \labelling(2) = (\TRUE, \DW{\bLoc}{1}) \quad
 \end{array}\]
-We visualize $(\aEv \ltN \bEv)$ as a dashed
-arrow from $\bEv$ to $\aEv$ (note the change of direction).
+We visualize $(\bEv \gtN \aEv)$ as a dashed
+arrow from $\bEv$ to $\aEv$.
 We refer to edges introduced by $(\bEv < \aEv)$ as
-\emph{strong edges} and by $(\aEv \ltN \bEv)$
+\emph{strong edges} and by $(\bEv \gtN \aEv)$
 as \emph{weak edges}.
 For readability, we often highlight the reads-from edges as well.
 % for example:
@@ -145,13 +147,32 @@ For example:
 
 \begin{figure*}
 \begin{eqnarray*}
-  \sem{\SKIP} & = & [\,]\\
-  \sem{\aLoc\GETS\aExp} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix [\aExp/\aLoc]\bigr) \\
-  \sem{\aReg\GETS\aLoc} & = & [\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix [\aLoc/\aReg] \\
-  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
-  \sem{\aCmd \SEQ \bCmd} & = & \sem{\aCmd} \sequence \sem{\bCmd} \\
-  \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel (\sem{\bCmd}\fork) \\
-  \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
+  \sem{\SKIP}
+  & = & \TIKZ{\final{f}{}{}} 
+  \\
+  \sem{\aLoc\GETS\aExp}
+  & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
+  \\
+  \sem{\aLoc\GETS\aExp}
+  & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aVal/\aLoc}{right=of a}}
+  \\
+  \sem{\aReg\GETS\aLoc}
+  & = &
+  \TIKZ{\final{f}{\aLoc/\aReg}{}}
+  \cup
+  \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
+  \\
+  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI}
+  & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
+  \\
+  \sem{\aCmd \SEQ \bCmd}
+  & = & \sem{\aCmd} \sequence \sem{\bCmd}
+  \\
+  \sem{\aCmd \PAR \bCmd}
+  & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
+  \\
+  \sem{\VAR\aLoc\SEMI \aCmd}
+  & = & \nu \aLoc \st \sem{\aCmd}
 \end{eqnarray*}
 \caption{Semantics of a concurrent shared-memory language}
 \label{fig:programs}
@@ -168,7 +189,7 @@ augmentation, which may create additional order and strengthening
 preconditions:
 \begin{definition}
   $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
-  implies $\aEv\le'\bEv$, $\aEv\ltN\bEv$ implies $\aEv\ltN'\bEv$, and
+  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
   % $\labelling'(\aEv)=\labelling(\aEv)$
   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
@@ -180,8 +201,8 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 \begin{itemize}
 \item \emph{forking} $\aPSS\fork$, which removes final states from
   $\aPSS$, 
-\item \emph{substitution} $\aPSS[\aExp/\aLoc]$, which replaces $\aLoc$ with
-  $\aExp$ in every precondition of $\aPSS$,
+% \item \emph{substitution} $\aPSS[\aExp/\aLoc]$, which replaces $\aLoc$ with
+%   $\aExp$ in every precondition of $\aPSS$,
 \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
   keeping pomsets whose events have preconditions that imply $\aForm$,
 \item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
@@ -212,9 +233,10 @@ speculative evaluation.
 % We have completed the formal definition of our model of speculative
 % evaluation, and now turn to examples.
 
-\subsection{Forking and Substitution}
+\subsection{Forking and Guarding} % and Substitution}
 
-Forking and substitution each perform a simple transformation on each pomset
+Forking is %and substitution each perform
+a simple transformation on each pomset
 in a set of pomsets.
 
 \begin{definition}
@@ -222,47 +244,48 @@ Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \EAct$,
 ${\le'} = {\le}$, 
-${\ltN'} = {\ltN}$, and
+${\gtN'} = {\gtN}$, and
 \begin{itemize}
 \item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) =
   (\bForm\bSub \mid \aAct)$.
 \end{itemize}
 \end{definition}
 
-Substitution updates the preconditions in a pomset, thus we expect the number
-of pomsets to be unchanged; in addition, the number of events in each of the
-pomsets is unchanged.
-
-\begin{definition}
-Let $\aPSS\bSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that:
-$\Event' = \Event$,
-${\le'} = {\le}$, 
-${\ltN'} = {\ltN}$, 
-\begin{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) =
-  (\bForm\bSub \mid \aAct)$, and
-\item if $\labelling(\aEv) = (\bForm \mid \aSub)$ then $\labelling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
-\end{itemize}
-\end{definition}
-
-
-\subsection{Guarding and Restriction}
-\label{sec:restriction}
-
-Guarding and restriction filter the set of pomsets; we have
-$(\nu\aLoc\st\aPSS)\subseteq\aPSS$ and $(\aForm\guard\aPSS)\subseteq\aPSS$.
-
-The definition of guarding is straightforward:
+Guarding filters a set of pomsets; we have
+$(\aForm\guard\aPSS)\subseteq\aPSS$.
+The definition is straightforward:
 \begin{definition}
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever:
 \begin{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\aForm$ implies $\bForm$, and
-\item if $\labelling(\aEv) = (\bForm \mid \aSub)$ then $\aForm$ implies $\bForm$.
+\item if $\labelling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 \end{itemize}
 \end{definition}
 
-The definition of restriction is more complex.
+% Substitution updates the preconditions in a pomset, thus we expect the number
+% of pomsets to be unchanged; in addition, the number of events in each of the
+% pomsets is unchanged.
+
+% \begin{definition}
+% Let $\aPSS\bSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+% there is $\aPS\in\aPSS$ such that:
+% $\Event' = \Event$,
+% ${\le'} = {\le}$, 
+% ${\gtN'} = {\gtN}$, 
+% \begin{itemize}
+% \item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) =
+%   (\bForm\bSub \mid \aAct)$, and
+% \item if $\labelling(\aEv) = (\bForm \mid \aSub)$ then $\labelling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
+% \end{itemize}
+% \end{definition}
+
+
+\subsection{Restriction}
+\label{sec:restriction}
+
+Restriction also filters a set of pomsets; we have
+$(\nu\aLoc\st\aPSS)\subseteq\aPSS$.  The definition requires that we define
+when a read is possible.
+
 \begin{definition}\label{def:rf}
   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
   \begin{itemize}
@@ -271,7 +294,7 @@ The definition of restriction is more complex.
   \item $\bEv$ writes $\aVal$ to $\aLoc$,
     and $\aEv$ reads $\aVal$ from $\aLoc$, and
   \item if $\cEv$ writes to $\aLoc$
-    then either $\bEv \ltN \cEv$ or $\cEv \ltN \aEv$.
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 \end{definition}
 
@@ -288,7 +311,7 @@ The definition of restriction is more complex.
 \begin{definition}
   A 3-valued pomset is \emph{partially} (resp.~\emph{totally}) $\aLoc$-\emph{coherent}
   if, when restricted to events which touch $\aLoc$,
-  $\ltN$ forms a partial (resp.~total) order.
+  $\gtN$ forms a partial (resp.~total) order.
 \end{definition}
 
 \begin{definition}
@@ -321,29 +344,20 @@ then $\aPSS_1 \parallel \aPSS_2$ contains:
 \end{tikzpicture}\]
 
 \begin{definition}
-Let $\aPS_0 \in (\aPSS_1 \parallel \aPSS_2)$
+Let $\aPS' \in (\aPSS_1 \parallel \aPSS_2)$
 whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
 \begin{itemize}
-\item $\Event_0 = \Event_1 \cup \Event_2$,
-\item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le_0 \bEv$,
-\item if $\aEv \ltN_1 \bEv$ or $\aEv \ltN_2 \bEv$ then $\aEv \ltN_0 \bEv$,
-\item if $\labelling_0(\aEv) = (\aForm_0 \mid \aAct)$ then either:
+\item $\Event' = \Event_1 \cup \Event_2$,
+\item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le' \bEv$,
+\item if $\aEv \gtN_1 \bEv$ or $\aEv \gtN_2 \bEv$ then $\aEv \gtN' \bEv$,
+\item if $\labelling'(\aEv) = (\aForm' \mid \aActSub)$ then either:
   \begin{itemize}
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$
-    and $\aForm_0$ implies $\aForm_1 \lor \aForm_2$,
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\aEv \not\in \Event_2$
-    and $\aForm_0$ implies $\aForm_1$, or
-  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$ and $\aEv \not\in \Event_1$
-    and $\aForm_0$ implies $\aForm_2$.
-  \end{itemize}
-\item if $\labelling_0(\aEv) = (\aForm_0 \mid \aSub)$ then either:
-  \begin{itemize}
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aSub)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aSub)$
-    and $\aForm_0$ implies $\aForm_1 \lor \aForm_2$,
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aSub)$ and $\aEv \not\in \Event_2$
-    and $\aForm_0$ implies $\aForm_1$, or
-  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aSub)$ and $\aEv \not\in \Event_1$
-    and $\aForm_0$ implies $\aForm_2$.
+  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aActSub)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aActSub)$
+    and $\aForm'$ implies $\aForm_1 \lor \aForm_2$,
+  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aActSub)$ and $\aEv \not\in \Event_2$
+    and $\aForm'$ implies $\aForm_1$, or
+  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aActSub)$ and $\aEv \not\in \Event_1$
+    and $\aForm'$ implies $\aForm_2$.
   \end{itemize}
 \end{itemize}
 \end{definition}
@@ -403,6 +417,58 @@ then $\aAct\prefix\aPSS$ contains:
   \po{b}{c}
 \end{tikzpicture}\]
 
+% We say $\aEv$ \emph{depends on} $\cEv$ if
+% $\labelling(\aEv) = (\bForm \mid \dontcare)$,
+% $\labelling(\cEv) = (\dontcare \mid \aSub)$,
+% and $\bForm$ depends on $\aSub$.
+
+% We say $\aEv$ \emph{conflicts with}  $\bEv$ if
+% $\labelling(\aEv) = (\dontcare \mid \aAct)$,
+% $\labelling(\cEv) = (\dontcare \mid \bAct)$,
+% $\aAct$ and $\bAct$ touch the same location, and either
+% $\aAct$ or $\bAct$ is a write.
+
+We say that $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
+$f:\Event\fun\Event'$
+such that
+% \begin{itemize}
+% \item
+  $\labelling(\aEv)=\labelling'(f(\aEv))$,
+%\item
+  $\aEv\le\bEct$ iff $f(\aEv)\le'f(\bEv)$, and
+%\item
+  $\aEv\gtN\bEct$ iff $f(\aEv)\gtN'f(\bEv)$.
+%\end{itemize}
+
+\begin{definition}
+  \label{def:seq}
+  Let $\aPS' \in (\aPSS_1 \sequence \aPSS_2)$ whenever there are
+  $\aPS_1 \in \aPSS_1$, $\aPS_2 \in \aPSS_2$, and for every $\cEv\in\ESub_1$
+  there are isomorphisms $\aPS_{\cEv}$ of $\aPS_2$ such that:
+\begin{itemize}
+\item $\Event' = \EAct_1 \cup \bigcup_{\cEv}\Event_{\cEv}$,
+\item if $\bEv \le_1 \aEv$ or $\bEv\le_{\cEv} \aEv$ then $\bEv \le' \aEv$,
+\item if $\bEv \gtN_1 \aEv$ or $\bEv\gtN_{\cEv} \aEv$ then $\bEv \gtN' \aEv$,
+\item if $\bEv\in\EAct_1$ then $\labelling'(\bEv) = \labelling_1(\bEv)$
+\item if
+  $\labelling_1(\bEv) = (\dontcare {\mid} \aAct)$,
+  $\labelling_1(\cEv) = (\aForm {\mid} \aSub)$, and
+  $\labelling_{\cEv}(\aEv) = (\bForm {\mid} \bActSub)$ then
+  $\labelling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
+  \begin{itemize}
+  \item $\bForm'$ implies $\aForm$ and $\bForm\aSub$,
+  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv <' \aEv$,
+  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+  \item if $\bEv \le_1 \cEv$ and $\bForm$ depends on $\aSub$ then $\bEv \le'
+    \aEv$, and
+  \item if $\aAct$ and $\bAct$ touch the same location and one is a write,
+    then $\bEv \gtN' \aEv$.
+  \end{itemize}
+\end{itemize}
+\end{definition}
+
+\newpage
+
 \begin{definition}
   \label{def:prefix}
 Let $\aAct \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
@@ -415,7 +481,7 @@ there is $\aPS\in\aPSS$ such that:
 \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
   (\bForm' \mid \bAct)$, where:
   \begin{itemize}
-  \item $\cEv <' \aEv$ whenever $\aAct$ is an acquire or $\bAct$ is a release, 
+  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
     then $\cEv \gtN' \aEv$, and
@@ -430,11 +496,12 @@ there is $\aPS\in\aPSS$ such that:
   \end{itemize}
 \end{itemize}
 \end{definition}
+
+\begin{comment}
 The first constraint ensures that events are ordered before a release and
 after an acquire.  The second constraint ensures that thread-local reads do
 not cross acquire fences.
-
-\begin{comment}
+ 
 The second constraint prevents bad executions like the following:
    x=1; rel; acq; if (x) {y=1};  ||  acq; x=0; rel; 
 where the second thread is interleaved between the rel and acq of the first.
@@ -442,45 +509,6 @@ where the second thread is interleaved between the rel and acq of the first.
 Note that you cannot require that $\bForm'$ is independent of every $\bLoc$
 because then it's not augment closed.
 \end{comment}
-
-% Prefixing is used to define the semantics of reads and writes, and
-% adds a new event $\cEv$ with action $\aAct$.  As in the definition
-% of parallel composition, the definition allows the new event to overlap with
-% events in $\aPSS$ as long as they agree on the action.
-
-The tricky parts of the
-definition are the named cases, which place requirements on read
-dependencies.  If $\aAct$ reads $\aVal$ from $\aLoc$, we have to
-decide whether $\aEv$ depends on $\cEv$ for some $\aEv$ with old
-precondition $\bForm$ and new precondition $\bForm'$. The first case
-\textsc{[dependent read]} is that the dependency exists, in which case
-$\bForm'$ just has to imply $\bForm[\aVal/\aLoc]$. The more interesting 
-case is \textsc{[independent read]}, in which case $\bForm'$ has to imply
-$\bForm[\aVal/\aLoc]$ and $\bForm$. This corresponds to a case where
-$\aEv$ can be performed with or without $\cEv$.
-In particular, if $\bForm$ is independent of $\aLoc$ then we can pick
-$\bForm'$ to be $\bForm$, and the independent read case will apply.
-% For example,
-% if $\aAct$ and $\bAct$ write to the same location, $\aAct$ reads $\aVal$ from $\aLoc$, $\bForm$ is independent of $\aLoc$,
-% and
-% $\aPSS$ contains:
-% \[\begin{tikzpicture}[node distance=1em]
-%   \event{b}{\bForm \mid \bAct}{}
-%   \event{c}{\cForm \mid \cAct}{right=of b}
-%   \po{b}{c}
-% \end{tikzpicture}\]
-% then $\aAct\prefix\aPSS$ contains:
-% \[\begin{tikzpicture}[node distance=1em]
-%   \event{a}{\aForm \mid \aAct}{}
-%   \event{b}{\bForm \mid \bAct}{right=of a}
-%   \event{c}{\cForm[\vec\aVal/\vec\aLoc] \mid \cAct}{right=of b}
-%   \po[out=25,in=155]{a}{c}
-%   \wk{a}{b}
-%   \po{b}{c}
-% \end{tikzpicture}\]
-
-
-
 
 
 
