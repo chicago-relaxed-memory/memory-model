@@ -5,42 +5,48 @@
 
 A \emph{data model} consists of:
 \begin{itemize}
-\item a set of \emph{memory locations} $\Loc$, ranged over by
-  $\aLoc$ and $\bLoc$,
-\item a set of \emph{registers} $\Reg$, ranged over by
-  $\aReg$ and $\bReg$,
 \item a set of \emph{values} $\Val$, ranged over by
   $\aVal$ and $\bVal$,
+\item a set of \emph{registers} $\Reg$, ranged over by
+  $\aReg$ and $\bReg$,
 \item a set of \emph{expressions} $\Exp$, ranged over by
   $\aExp$ and $\bExp$,
+\item a set of \emph{memory locations} $\Loc$, ranged over by
+  $\aLoc$ and $\bLoc$,
 \item a set of \emph{logical formulae} $\Formulae$, ranged over by
   $\aForm$ and $\bForm$, and
+\item a set of \emph{substitutions} $\Sub$, ranged over by
+  $\aSub$ and $\bSub$,
 \item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$,
 \end{itemize}
-
-Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
-$\aLR$.
-Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions}, ranged over
-by $\aSub$ and $\bSub$.
-We write substitutions
-$[\bExp_1/\aLR_1,\ldots, \bExp_n/\aLR_n]$.
+% Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
+% $\aLR$.  Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions},
+% ranged over by $\aSub$ and $\bSub$.
 Let $\aActSub$ and $\bActSub$ range over $(\Act\cup\Sub)$.
-% The empty substitution is written
-% as $[\,]$.
+% The empty substitution is written as $[\,]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
 \item values include at least the constants $0$ and $1$,
 \item expressions include at least registers and values,
-\item expressions are closed under substitution,
-\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$ and $(\aLoc=\bExp)$,
+\item expressions do not include memory locations,
+\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$,
 \item formulae are closed under negation, conjunction, disjunction, and substitution,
 \item there is a relation $\vDash$ between formulae, 
+\item substitutions include at least $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$,
+\item substitutions are closed under composition,
 \item there are partial functions $\rreads$ and $\rwrites: \Act \fun (\Loc
   \times \Val)$, and
 \item there are sets $\Rel$ and $\Acq \subseteq\Act$.
 \end{itemize}
 
+By composition, it follows that substitutions must include $[\aExp/\aReg]$
+which is equal to $[\aLoc/\aReg][\aExp/\aLoc]$.  Since formulae are closed
+under substitution, they must include equalities of the form
+$(\aEExp=\bEExp)$, where $\aEExp$ and $\bEExp$ are \emph{extended
+  expressions} that include memory locations.  We elide the details.
+
+Note that 
 We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
 $\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
 \emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.  In examples,
@@ -79,7 +85,7 @@ $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
     % \end{enumerate}
   \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
     \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \eEv$,
+    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
     \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
     \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
     \end{itemize}
@@ -153,9 +159,6 @@ For example:
   \sem{\aLoc\GETS\aExp}
   & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
   \\
-  \sem{\aLoc\GETS\aExp}
-  & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aVal/\aLoc}{right=of a}}
-  \\
   \sem{\aReg\GETS\aLoc}
   & = &
   \TIKZ{\final{f}{\aLoc/\aReg}{}}
@@ -185,8 +188,21 @@ $\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
 expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
 $\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, the sets of
 pomsets given by our semantics \emph{are} closed with respect to
-augmentation, which may create additional order and strengthening
-preconditions:
+isomorphism and augmentation.
+\begin{definition}
+  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
+  $f:\Event\fun\Event'$ such that
+  % \begin{itemize}
+  % \item
+  $\labelling(\aEv)=\labelling'(f(\aEv))$,
+  % \item
+  $\aEv\le\bEv$ when $f(\aEv)\le'f(\bEv)$, and
+  % \item
+  $\aEv\gtN\bEv$ when $f(\aEv)\gtN'f(\bEv)$.
+  % \end{itemize}
+\end{definition}
+Augmentation may create additional order and strengthening
+preconditions.
 \begin{definition}
   $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
   implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
@@ -218,8 +234,6 @@ These operations are similar to those from models of concurrency such
 as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
 speculative evaluation.
 
-
-
 %% A write generates a write event that may be visible
 %% to other threads.  A read may see a
 %% thread-local value, or it may generate a read event that must be justified by
@@ -227,8 +241,6 @@ speculative evaluation.
 %% $\aLoc$ (rather than $\aVal$) to ensure that dependencies are tracked
 %% properly.  The subsequent substitution of $\aVal$ for $\aLoc$ occurs in
 %% Definition~\ref{def:prefix} of prefixing.
-
-
 
 % We have completed the formal definition of our model of speculative
 % evaluation, and now turn to examples.
@@ -243,12 +255,9 @@ in a set of pomsets.
 Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \EAct$,
-${\le'} = {\le}$, 
-${\gtN'} = {\gtN}$, and
-\begin{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) =
-  (\bForm\bSub \mid \aAct)$.
-\end{itemize}
+$\labelling'\subseteq\labelling$,
+$\aEv\le'\bEv$ whenever $\aEv\le\bEv$, and
+$\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
 \end{definition}
 
 Guarding filters a set of pomsets; we have
@@ -428,41 +437,36 @@ then $\aAct\prefix\aPSS$ contains:
 % $\aAct$ and $\bAct$ touch the same location, and either
 % $\aAct$ or $\bAct$ is a write.
 
-We say that $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-$f:\Event\fun\Event'$
-such that
-% \begin{itemize}
-% \item
-  $\labelling(\aEv)=\labelling'(f(\aEv))$,
-%\item
-  $\aEv\le\bEct$ iff $f(\aEv)\le'f(\bEv)$, and
-%\item
-  $\aEv\gtN\bEct$ iff $f(\aEv)\gtN'f(\bEv)$.
-%\end{itemize}
-
 \begin{definition}
   \label{def:seq}
   Let $\aPS' \in (\aPSS_1 \sequence \aPSS_2)$ whenever there are
-  $\aPS_1 \in \aPSS_1$, $\aPS_2 \in \aPSS_2$, and for every $\cEv\in\ESub_1$
-  there are isomorphisms $\aPS_{\cEv}$ of $\aPS_2$ such that:
+  $\aPS_1 \in \aPSS_1$ and $\aPS_{\cEv}\in\aPSS_2$, for every
+  $\cEv\in\ESub_1$, such that:
 \begin{itemize}
 \item $\Event' = \EAct_1 \cup \bigcup_{\cEv}\Event_{\cEv}$,
 \item if $\bEv \le_1 \aEv$ or $\bEv\le_{\cEv} \aEv$ then $\bEv \le' \aEv$,
 \item if $\bEv \gtN_1 \aEv$ or $\bEv\gtN_{\cEv} \aEv$ then $\bEv \gtN' \aEv$,
-\item if $\bEv\in\EAct_1$ then $\labelling'(\bEv) = \labelling_1(\bEv)$
-\item if
-  $\labelling_1(\bEv) = (\dontcare {\mid} \aActSub)$,
-  $\labelling_1(\cEv) = (\aForm {\mid} \aSub)$, and
-  $\labelling_{\cEv}(\aEv) = (\bForm {\mid} \bActSub)$ then
+\item if $\bEv\in\EAct_1$ then $\labelling'(\bEv) = \labelling_1(\bEv)$, and
+\item if $\labelling_1(\bEv) = (\dontcare \mid \aAct)$ and
+  $\labelling_{\cEv}(\aEv) = (\bForm \mid \bAct)$ then:
+  \begin{itemize}
+  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv <' \aEv$,
+  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+  \item if $\aAct$ and $\bAct$ touch the same location and one is a write,
+    then $\bEv \gtN' \aEv$, and
+  \end{itemize}
+\item 
+  if
+  $\labelling_1(\cEv) = (\dontcare \mid \aSub)$, and
+  $\labelling_{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
   $\labelling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
   \begin{itemize}
-  \item $\bForm'$ implies $\aForm$ and $\bForm\aSub$,
-  \item if $\aActSub$ is an acquire or $\bActSub$ is a release then $\bEv <' \aEv$,
-  \item if $\aActSub$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-  \item if $\bEv \le_1 \cEv$ and $\bForm$ depends on $\aSub$ then $\bEv \le'
-    \aEv$, and
-  \item if $\aActSub$ and $\bActSub$ touch the same location and one is a write,
-    then $\bEv \gtN' \aEv$.
+  \item $\bForm'$ implies
+    $\lor\{\aForm\mid\bEv\in\ESub_1 \land \aEv\in\aPS\!_{\bEv}
+    \land \labelling_1(\bEv)=(\aForm{\mid}\dontcare)\}$,
+  \item $\bForm'$ implies $\bForm\aSub$, and
+  \item either $\bForm'$ implies $\bForm$ or $\bEv<_1\cEv$ implies $\bEv<'\aEv$.
+    %$\bEv\in\EAct_1$ such that.
   \end{itemize}
 \end{itemize}
 \end{definition}
@@ -477,23 +481,40 @@ there is $\aPS\in\aPSS$ such that:
 \item $\Event' = \Event \cup \{\cEv\}$,
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
 \item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$,
-\item $\labelling'(\cEv) = (\aForm, \aAct)$, and
-\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
-  (\bForm' \mid \bAct)$, where:
+\item $\labelling'(\cEv) = (\aForm \mid \aAct)$, and
+\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then:
   \begin{itemize}
   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
     then $\cEv \gtN' \aEv$, and
-  \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
-    % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} & \textsc{[dependent read]} \\
-    % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
-    % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
-    \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
-    \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
-    \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
-  \end{array}\right.\)
   \end{itemize}
+\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
+  (\bForm' \mid \bAct)$, where:
+  \begin{itemize}
+  \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
+  \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
+    \begin{itemize}
+    \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
+    \item either $\bForm'$ implies $\bForm$ or $\cEv<'\aEv$.
+    \end{itemize}
+  \end{itemize}
+% \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
+%   (\bForm' \mid \bAct)$, where:
+%   \begin{itemize}
+%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
+%   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+%     then $\cEv \gtN' \aEv$, and
+%   \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
+%     % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} & \textsc{[dependent read]} \\
+%     % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
+%     % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
+%     \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
+%     \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
+%     \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
+%   \end{array}\right.\)
+%   \end{itemize}
 \end{itemize}
 \end{definition}
 
@@ -510,6 +531,123 @@ Note that you cannot require that $\bForm'$ is independent of every $\bLoc$
 because then it's not augment closed.
 \end{comment}
 
+
+% To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
+% consider example:
+% \begin{verbatim}
+% r=y; if (r) {x=r} else {x=r}; s=x; if (r==s) {z=1}
+% \end{verbatim}
+% or simplified:
+% \begin{verbatim}
+% r=y;x=r;s=x; if(s==r){z=1}
+% \end{verbatim}
+% If you read 37 for $y$, then the predicate on \texttt{Wz1} before the
+% read is either $r=r$ or $v=r$, where $v=37$, for example.  In one case you
+% get a dependency and in the other you do not.
+
+An example to show that we need $[\aExp/\aLoc]$ in the rule for write, rather
+than $[\aVal/\aLoc]$:
+
+$\sem{\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
+includes
+\[\begin{tikzpicture}[node distance=1em]
+  \event{c}{\bReg=\aReg \mid \DW\cLoc1}{}
+\end{tikzpicture}\]
+therefore
+$\sem{\bReg\GETS\aLoc\SEMI\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
+includes
+\[\begin{tikzpicture}[node distance=1em]
+  \event{c}{\aLoc=\aReg \mid \DW\cLoc1}{}
+\end{tikzpicture}\]
+and
+$\sem{\aLoc\GETS\aReg\SEMI\bReg\GETS\aLoc\SEMI\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
+includes
+\[\begin{tikzpicture}[node distance=1em]
+  \event{c}{\aReg=\aReg \mid \DW\cLoc1}{}
+\end{tikzpicture}\]
+which is independent of $\aReg$.
+
+If we took the semantics of write to use $[\aVal/\aLoc]$, then we would end
+up with pomsets of the form
+\[\begin{tikzpicture}[node distance=1em]
+  \event{c}{\aVal=\aReg \mid \DW\cLoc1}{}
+\end{tikzpicture}\]
+which depend on $\aReg$.
+
+To see why we don't mention dependency in sequential composition, consider
+$\sem{\IF(\aReg\leq1)\THEN \aLoc\GETS 2\FI}$ which includes
+\[\begin{tikzpicture}[node distance=1em]
+  \event{c}{\aReg\leq1 \mid \DW\aLoc2}{}
+\end{tikzpicture}\]
+which depends on $\aReg$.
+
+$\sem{\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN \aLoc\GETS 2\FI}$ includes
+\[\begin{tikzpicture}[node distance=1em]
+    \event{b}{\DR\bLoc1}{}
+    \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of b}
+\end{tikzpicture}\]
+which has no dependency between the read and write.
+
+$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN \aLoc\GETS
+  2\FI}$ discharges the precondition of the write, giving
+\[\begin{tikzpicture}[node distance=1em]
+    \event{a}{\DW\bLoc0}{}
+    \event{b}{\DR\bLoc1}{right=of a}
+    \event{c}{0\leq1 \mid \DW\aLoc2}{right=of b}
+\end{tikzpicture}\]
+which is simply:
+\[\begin{tikzpicture}[node distance=1em]
+    \event{a}{\DW\bLoc0}{}
+    \event{b}{\DR\bLoc1}{right=of a}
+    \event{c}{\DW\aLoc2}{right=of b}
+\end{tikzpicture}\]
+The semantics of this program also includes
+\[\begin{tikzpicture}[node distance=1em]
+    \event{a}{\DW\bLoc0}{}
+    \event{c}{\DW\aLoc2}{right=of a}
+\end{tikzpicture}\]
+
+A variant of this which indicates the branch taken:
+$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN
+  \aLoc\GETS2\SEMI\cLoc\GETS\aReg\FI}$
+includes
+\[\begin{tikzpicture}[node distance=1em]
+    \event{a}{\DW\bLoc0}{}
+    \event{b}{\DR\bLoc1}{right=of a}
+    \event{c}{\DW\aLoc2}{right=of b}
+    \event{d}{\DW\cLoc1}{right=of c}
+    \po[bend left]{b}{d}
+\end{tikzpicture}\]
+
+A program to witness this is
+\begin{displaymath}
+  \IF(\bLoc\EQ0)\THEN
+    \IF(\aLoc\EQ2)\THEN
+      \bLoc\GETS1\SEMI
+      \IF(\cLoc\EQ1)\THEN\PASS\FI
+    \FI
+  \FI
+\end{displaymath}
+
+Putting these in parallel gives you
+\[\begin{tikzpicture}[node distance=1em]
+    \event{a}{\DW\bLoc0}{}
+    \event{b}{\DR\bLoc1}{right=of a}
+    \event{c}{\DW\aLoc2}{right=of b}
+    \event{d}{\DW\cLoc1}{right=of c}
+    \po[bend left]{b}{d}
+    \event{a2}{\DR\bLoc0}{below=of a}
+    \event{b2}{\DR\aLoc2}{right=of a2}
+    \event{c2}{\DW\bLoc1}{right=of b2}
+    \event{d2}{\DR\cLoc1}{right=of c2}
+    \po{a2}{b2}
+    \po{b2}{c2}
+    \po[bend right]{b2}{d2}
+    \rf{a}{a2}
+    \rf{c}{b2}
+    \rf{c2}{b}
+    \rf{d}{d2}
+\end{tikzpicture}\]
 
 
 % Local Variables:
