@@ -7,7 +7,7 @@ Def: minimum model:
     (**) within thread is a subset of po
     (**) only edges out of writes are to release
          only edges into reads are from acquire/reads
-    (***) NO DANGLING READS
+    (***) NO DANGLING READS (ie no read that is strong arrow maximal)
 
 Assumptions.
 1. po;hbe;hbe = hbe
@@ -125,56 +125,30 @@ if (Ru1)         W_R(y1)       if (Rz1)
 if R_A(y1)
    Wz1
 
-L = {x,y}.  No L Data races
-But, no L-sequential execution
 
-However. 
-Def: An execution is L-valid if there is no information flow
-from L-locs to nonL-locs.
+Def: [no racy infoflow 1]
+   * no strong arrow from L-read to racing non-L write
 
-Example:
-  if (Ru1) Wy1;            acq;
-  Wx1;                ||    Wu1;
-  release;
+Thm 2' [ LDRF ==> LSEQ] when no racy infoflow1
+======
+Proof: Consider a simple cycle in L-po cup strong order.  
 
-Def of information flow:
-   (a) From reads to writes that depend on it.
-   (b) From writes to hbe dependent writes
-(eg) There is an information flow out of Wx1 to Wu1!
+  The cycle has to have at least  two L-events, say (e,f) in thread t, connected by po.
 
-Thm 2.  (LDRF ==> LSEQ)
-If a minimal, L-valid execution has no L-data races, then:
-               L-po cup strong order is acyclic.
-Proof [by contradiction]
-  Consider a simple cycle in L-po cup strong order.  
-  The cycle has to have at least one L event e.
-
-  Let cycle be e=f0 f1... fn 
-        where fi are in the same thread t.
-  Then, fn in L and fn is a write.
+     f is a write: next event is via hbe to a L-read  (no races on L)
+       removing f leaves the cycle intact. (since hbe;po subseteq hbe)
+ 
+     f is a read: last event in t is connected via hbe to the next thread 
+                        (no racy infoflow1)
+       removing f leaves the cycle intact. (since po;hbe subseteq hbe)
 
 
-  We prove by indn on length of seq |f0..fn| that if
-           f0 is a L-event
-          (OR) there is a strong arrow from an L-read into f0
- then fn in L.
-
-  Base.  n=0. By NO DANGLING, f0 is a write.  So, f0 in L (by info flow)
-
-  Induction. Consider f0...fn, where f0 in L.
-    If f0 is a write.
-        f0 f1 is a new L-po edge. (minimality)
-               So, f1 in L.  Indn on f1..fn
-    If f0 is a read. 
-        f0 in L: then, f1..fn satisfies IH.
-        f0 not in L:
-             then, by minimality, f0 is a read
-             f1..fn satisfies IH.
-   
+  
 
 Thm 3[Finding L-races by L-seq]
 ===============================
   Find minimal L-race (e,f).
+   
   Consider the strong prefix P of (e,f).
   By lemma 1, (e,f) are po-maximal.
   P can be extended to a L-sequential prefix P'.
