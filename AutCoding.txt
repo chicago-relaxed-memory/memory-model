@@ -18,16 +18,23 @@ Example.
  r1=x                               r2=y              
  y= r1+1                            x=r2
  u=y                                
-(x,y,u) aut: 
+(x,y,u) aut A: 
    000 --> 010 --> 011
    01* --> 11*
 
 Proof: We want to prove that u<=1 at the end.
 
-Consider prefixes of the two threads with no (W y v),(R x w) for v >=2, w >=1
-  The restriction of the prefixes to the individual threads satisfy the automaton.
-  So, the composition of the threads, say P, satisfy the automaton
+Consider PHI = [(W y 1) or (R y 0) or (R y 1)
+                or (R x 0) or (W x 0) or (W x 1)
+				or (W u 1) 
+			   ] 
+               and 
+			   A
 
-  So,   P |= closed(x,y) ==> u<=1
-  ===>  new xy. P |= u <=1
+PHI, T1 |= PHI   and PHI, T2 |= PHI.
+
+So:       T1 || T2 |= PHI
+    ====> T1 || T2 |= u<=1
+    ====> P |= closed(x,y) ==> u<=1
+    ====> new xy. P |= u <=1
         
