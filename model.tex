@@ -452,6 +452,8 @@ then $\aAct\prefix\aPSS$ contains:
   \begin{itemize}
   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv <' \aEv$,
   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+  \item either $\aAct$ and $\bAct$ are provably separable, or both are reads, or
+    $\bEv \gtN' \aEv$, and
   \item if $\aAct$ and $\bAct$ touch the same location and one is a write,
     then $\bEv \gtN' \aEv$, and
   \end{itemize}
