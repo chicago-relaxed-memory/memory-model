@@ -218,6 +218,18 @@ Simplifying, we have, as required:
   \once(\DW{a}{1}) \Rightarrow \FALSE
 \end{displaymath}
 
+
+\subsection{RNG example}
+\begin{verbatim}
+y=x+1; a=y || x=y
+prove a!=2
+
+Wyv_1 /\ Wyv_2 => v_1 == v_2 (and maybe v_1==0 \/ v_2==0)
+Wx1 => <>-1 Ry1
+Wy1 => <>-1 Rx1
+
+\end{verbatim}
+
 % Local Variables:
 % mode: latex
 % TeX-master: "paper"
