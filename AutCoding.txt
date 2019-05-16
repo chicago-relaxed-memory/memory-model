@@ -2,24 +2,10 @@ Def: e sees (W x v) if (W x v) precedes it and there is no
 intervening conflicting write to x.
 
 Def: Given P, e in P,
-     state(e) = {(W x v) | e sees (W x v), e does not see (W x v') for v'not= v}
+     state(e) = {(W x v) | e sees (W x v)}
 
 Def: An automaton is a labeled partial order.  The labels associated a 
 mapping of vars to value. We denote the labels of an element p by state(p).
-
-Def: A rooted automaton is an automaton with minimal elements
-Def: A discrete automaton is an automaton with a skeleton
-Def: L is a convex suborder of a partial order P if:
-         * L is a total order
-         * L is a convex subset of P, i.e. 
-               e <= f <= g, {e,g} subseteq L 
-                  ==> f in L
-
-Def: exists x. A is the automaton that just projects out x.
-
-Def: P\x is the x-closed pomset 
-        (acq; read vecx; P || vecx = vec0; release)
-  
 
 Def:Let A be an automaton.
       P |= A
@@ -27,41 +13,24 @@ if there is a monotone function f: P --> A such that
    * state(e) supseteq state(f(e)) 
    * e --> e' ===> f(e) <= f(e')
    
-Def: Let A be a rooted, discrete automaton.
-      P |= A
-if there is a monotone (in both --> and po) function f: P --> A such that
-   * state(e) supseteq state(f(e)) 
-   * for every total sub order L of P, f(L) is a total suborder of A
-   * f maps roots of P to roots of A
  
-Fact: Either notion of aut-satisfaction is a prefix closed property.
-Fact: Either notion of aut-satisfaction satisfies composition
+Fact: aut-satisfaction is a prefix closed property.
+Fact: aut-satisfaction satisfies composition
 
-     E, (P1, A)\vecx |= A          E, (A, P2)\vecx |= A
+     E, new vecx (P1, A) |= A          E, new vecx(A, P2) |= A
    ===============================================================
-         E, new vecx (P1 || P2) |= exists vecx. A
+         E, new vecx (P1 || P2) |= A
 
 
 Example.
  r1=x                               r2=y              
  y= r1+1                            x=r2
- u=y                                
-(x,y,u) aut A: 
-   Root: 000
+   
 
-   000 --> 010 --> 011
-   01x --> 11x 
-   110 --> 111
-
-
-Proof: We want to prove that u<=1 at the end.
-  Choose E = {epsilon}
-         A as above
-  Hypothesis of composition satisfied. 
-
-PHI, T1 |= PHI   and PHI, T2 |= PHI.
-
-So:       new x,y (T1 || T2) |= 
-    ====> P |= closed(x,y) ==> u<=1
-    ====> new xy. P |= u <=1
+Can prove that the composition satisfies x <=y  using 
+aut with states 
+   (u,v) u<=v
+   (u,v) --> (v,v)
+   (u,v) --> (u,v+1)
+   
         
