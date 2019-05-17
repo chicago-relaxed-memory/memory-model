@@ -1,0 +1,13 @@
+A. no PO out of W.
+B. PO out of R only if there is a data or control dependency 
+C. Reordering of independent statements
+
+1. Sequentialization by augmentation.
+2. Red load, Store Forwarding, Dead Store: reason with semantics
+3. Common subexp, Dead store, Loop invariant, Constant propagation
+               : exactly as LDRF because of reordering of ind statements 
+			   
+But also:
+  [r1 = a; b = c; a = r1]
+===⇒ [r1 = a; a = r1; b = c]
+===⇒ [r1 = a; b = c]
