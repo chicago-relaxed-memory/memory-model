@@ -1,117 +1,236 @@
 \section{Model}
 \label{sec:model}
+
+Our model is based on \emph{partially ordered multisets}~\cite{GISCHER1988199,Plotkin:1997:TSP:266557.266600}
+(``pomsets''), whose labels are given by read and write actions. These can be
+visualized as a graph where the edges indicate dependencies, for example
+$(\aReg\GETS\aLoc\SEMI \bLoc\GETS1\SEMI \cLoc\GETS\aReg+1)$
+has an execution modeled by the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
+  \event{wz2}{\DW{\cLoc}{2}}{right=of wy1}
+  \po[out=25,in=155]{rx1}{wz2}
+\end{tikzpicture}\]
+The edge from $(\DR{\aLoc}{1})$ to $(\DW{\cLoc}{2})$ indicates a
+data dependency. Since there is no dependency between
+$(\DW{\bLoc}{1})$ and $(\DW{\cLoc}{2})$, the write actions may
+take place in either order.  Such reorderings may arise in
+hardware (for example, caching) or in the compiler (for example,
+instruction reordering).
+
+The novel aspect of the model is that events have
+\emph{preconditions}, which give the thread-local view of memory. These are used in giving the
+semantics of conditionals and transactions, modeling failed branch
+prediction and aborted transactions. For example the program
+$(\IF(\aLoc)\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
+has an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
+  \nonevent{wy2}{\DW{\bLoc}{2}}{below=of wy1}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of wy1}
+  \po{rx1}{wy1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+The edges from $(\DR{\aLoc}{1})$ to $(\DW{\bLoc}{1})$ and
+$(\DW{\bLoc}{2})$ indicate control dependencies. The presence of
+a crossed out $(\DW{\bLoc}{2})$ indicates an event with an unsatisfiable precondition,
+modeling an unsuccessful speculation.
+Since the $(\DW{\cLoc}{1})$ action is performed on both branches of the conditional,
+there is no control dependency from $(\DR{\aLoc}{1})$.  
+
+We give the semantics of a program as a set of pomsets with event labels of the form
+$(\aForm \mid \aAct)$, where $\aForm$ is the event's precondition
+(such as $\aExp=\aVal$) and $\aAct$ is the event's action (such as $\DW\aLoc\aVal$).
+For example the semantics of the program $(\aLoc\GETS\aExp)$ includes the case
+where $\aExp$ is $\aVal$, which is written to $\aLoc$, and is captured
+by the one-event pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wxv}{\aExp=\aVal \mid \DW{\aLoc}{\aVal}}{}
+\end{tikzpicture}\]
+We make few requirements of the logic of preconditions, save that it
+includes equalities between expressions, is closed under substitution,
+and supports a notion of implication.
+
+% For example, the set of pomsets $\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1}$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{ry1}{\DR{\bLoc}{1}}{}
+%   \event{wx2}{\DW{\aLoc}{2}}{right=of ry1}
+%   \po{ry1}{wx2}
+% \end{tikzpicture}\]
+The semantics is defined compositionally. As an example, we show how to 
+construct one of the pomsets in
+$\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1}$.
+First, $\sem{\aLoc\GETS\aReg+1}$
+contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx2}{\aReg=1 \mid \DW{\aLoc}{2}}{}
+\end{tikzpicture}\]
+Next, we perform the substitution of $\aReg$ with $1$ in every precondition,
+to get that $\sem{\aLoc\GETS\aReg+1}[1/\aReg]$
+contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx2}{1=1 \mid \DW{\aLoc}{2}}{}
+\end{tikzpicture}\]
+and since $(1=1)$ is a tautology, we elide it:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx2}{\DW{\aLoc}{2}}{}
+\end{tikzpicture}\]
+This substitution is performed in defining
+$\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1}$, which contains
+the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of ry1}
+  \po{ry1}{wx2}
+\end{tikzpicture}\]
+There is an ordering $(\DR{\bLoc}{1}) < (\DW{\aLoc}{2})$ (represented pictorially as an arrow)
+because the precondition $(\aReg=1)$ depends on $\aReg$. If the precondition
+was independent of $\aReg$ then there would be no ordering, for example
+$\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1-\aReg}$ contains
+the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of ry1}
+\end{tikzpicture}\]
+since the precondition $(\aReg+1-\aReg=1)$ is independent of $\aReg$.
+
+The main novelty of our semantics is the use of preconditions, which allow us
+to provide an unusual model of conditionals. In most
+models, an execution of
+$\sem{\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI}$ would either be
+given by an execution from $\sem{\aCmd}$ or from $\sem{\bCmd}$, but not both.
+In our semantics, a pomset
+in $\sem{\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI}$ may include
+both a pomset from $\sem{\aCmd}$ \emph{and} a pomset from $\sem{\bCmd}$.
+For example, $\sem{\IF(\aExp)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
+  \event{wx2}{\aExp=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+\end{tikzpicture}\]
+that is we have behavior from both branches of execution.
+
+Moreover, two events representing the same action on both sides of a
+conditional can be merged, producing a single event.
+The precondition of the merged event is the disjunction of the preconditions
+of the original events.
+For example
+$\sem{\IF(\aExp)\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
+  \event{wx2}{\aExp=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{(\aExp\neq0) \lor (\aExp=0) \mid \DW{\bLoc}{3}}{below=3ex of $(wx1)!0.5!(wx2)$}
+\end{tikzpicture}\]
+and since $(\aExp\neq0) \lor (\aExp=0)$ is a tautology, this is:
+\[\begin{tikzpicture}[node distance=1em]1
+  \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
+  \event{wx2}{\aExp=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{\DW{\bLoc}{3}}{right=of wx2}
+\end{tikzpicture}\]
+
+Combining this model of conditionals with the previously discussed model of memory using substitutions
+gives that
+$\sem{\IF(\cLoc)\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{\cLoc}{1}}{}
+  \event{wx1}{1\neq0 \mid \DW{\aLoc}{1}}{right=of rz1}
+  \event{wx2}{1=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{\DW{\bLoc}{3}}{right=of wx2}
+  \po{rz1}{wx1}
+  \po[out=25,in=155]{rz1}{wx2}
+\end{tikzpicture}\]
+and we visualize unsatisfiable preconditions as crossed out:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{\cLoc}{1}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of rz1}
+  \nonevent{wx2}{\DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{\DW{\bLoc}{3}}{right=of wx2}
+  \po{rz1}{wx1}
+  \po[out=25,in=155]{rz1}{wx2}
+\end{tikzpicture}\]
+Note that this semantics captures control dependencies
+such as $(\DR\cLoc1)<(\DW\aLoc1)$, independencies
+such as $(\DR\cLoc1)\not<(\DW\bLoc3)$, and failed
+speculations such as the crossed out $(\DW\aLoc2)$.
+
+In summary, the features we need of the underlying data model are:
+\begin{itemize}
+\item \emph{actions}, which may read or write memory locations, and
+\item \emph{preconditions}, which are closed under substitution.
+\end{itemize}
+In rest of this section we make data models precise %in~\S\ref{sec:preliminaries},
+and define pomsets.  In the next section we give the semantics of a simple
+imperative language as sets of pomsets.
+% in \S\ref{sec:pomsets}.
+% In \refapp{sets-of-pomsets}, we define
+% operations on sets of pomsets, which are used in~\S\ref{sec:semantics}
+% to give a compositional semantics for
+% a simple imperative language.
+
 \subsection{Data models}
 \label{sec:preliminaries}
 
 A \emph{data model} consists of:
 \begin{itemize}
-\item a set of \emph{values} $\Val$, ranged over by
-  $\aVal$ and $\bVal$,
-\item a set of \emph{registers} $\Reg$, ranged over by
-  $\aReg$ and $\bReg$,
-\item a set of \emph{expressions} $\Exp$, ranged over by
-  $\aExp$ and $\bExp$,
 \item a set of \emph{memory locations} $\Loc$, ranged over by
   $\aLoc$ and $\bLoc$,
+\item a set of \emph{registers} $\Reg$, ranged over by
+  $\aReg$ and $\bReg$,
+\item a set of \emph{values} $\Val$, ranged over by
+  $\aVal$ and $\bVal$,
+\item a set of \emph{expressions} $\Exp$, ranged over by
+  $\aExp$ and $\bExp$,
 \item a set of \emph{logical formulae} $\Formulae$, ranged over by
   $\aForm$ and $\bForm$, and
-\item a set of \emph{substitutions} $\Sub$, ranged over by
-  $\aSub$ and $\bSub$,
 \item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$,
 \end{itemize}
-% Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
-% $\aLR$.  Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions},
-% ranged over by $\aSub$ and $\bSub$.
-Let $\aActSub$ and $\bActSub$ range over $(\Act\cup\Sub)$.
-% The empty substitution is written as $[\,]$.
-
-We require that data models satisfy the following:
+such that:
 \begin{itemize}
 \item values include at least the constants $0$ and $1$,
 \item expressions include at least registers and values,
-\item expressions do not include memory locations,
-\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$,
-\item formulae are closed under negation, conjunction, disjunction, and substitution,
-\item there is a relation $\vDash$ between formulae, 
-\item substitutions include at least $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$,
-\item substitutions are closed under composition,
-\item there are partial functions $\rreads$ and $\rwrites: \Act \fun (\Loc
-  \times \Val)$, and
-\item there are sets $\Rel$ and $\Acq \subseteq\Act$.
+\item expressions are closed under substitutions of the form $\aExp[\bExp/\aReg]$,
+\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$ and $(\aLoc=\bExp)$,
+\item formulae are closed under negation, conjunction, disjunction,
+\item formulae are closed under substitutions of the form $\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$,
+\item there is a relation $\vDash$ between formulae, and
+\item there are partial functions $\rreads$ and $\rwrites: \Act \fun (\Loc \times \Val)$.
 \end{itemize}
-
-By composition, it follows that substitutions must include $[\aExp/\aReg]$
-which is equal to $[\aLoc/\aReg][\aExp/\aLoc]$.  Since formulae are closed
-under substitution, they must include equalities of the form
-$(\aEExp=\bEExp)$, where $\aEExp$ and $\bEExp$ are \emph{extended
-  expressions} that include memory locations.  We elide the details.
-
-Note that 
-We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
-$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
-\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.  In examples,
-the actions are of the form $(\DR{\aLoc}{\aVal})$, which reads $\aVal$ from
-$\aLoc$, and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
-
-We say that $\aAct$ is a \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
-is an \emph{release} if $\aAct\in\Rel$.  In examples, the actions are of the
-form $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$ from
-$\aLoc$, and $(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$
-to $\aLoc$.
-
-We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
-that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
-$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$, and that
-$\aForm$ is \emph{independent of $\aLoc$} whenever
-$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
-
+We shall say $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
+$\rreads(\aAct) = (\aLoc,\aVal)$, and
+$\aAct$ \emph{writes} $\aVal$ \emph{to} $\aLoc$ whenever
+$\rwrites(\aAct) = (\aLoc,\aVal)$.
+We shall say $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
+$\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$,
+$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$, and
+$\aForm$ is \emph{independent of $\aLoc$} whenever $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
+In examples, the actions are of the form $(\DR{\aLoc}{\aVal})$, which reads $\aVal$ from $\aLoc$,
+and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
 
 \subsection{3-valued pomsets}
 \label{sec:pomsets}
 
+Recall the definition of a pomset from~\cite{GISCHER1988199}:
 \begin{definition}
-  A \emph{(3-valued) pomset} with alphabet $\Alphabet$ is tuple $(\Event,
-  {\le}, {\gtN}, \labelling)$, such that 
-  \begin{itemize}
-  \item $\Event$ is a set of \emph{states},
-  %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
-  \item $\labelling: \Event \fun \Alphabet$ is a \emph{labelling},
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
-    % \begin{enumerate}
-    % \item $\aEv \le \aEv$,
-    % \item if $\bEv \le \aEv$ and $\aEv \le \bEv$ then $\bEv = \aEv$,
-    %   \\(this follows from 5a and 5b)
-    % \item if $\cEv \le \bEv \le \aEv$ then $\cEv \le \aEv$, and
-    % \end{enumerate}
-  \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
-    \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
-    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
-    \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
-    \end{itemize}
-\end{itemize}
+  A \emph{pomset} $(\Event, {\le}, \labelling)$ with alphabet $\Alphabet$
+  is a partial order $(\Event, {\le})$ together with
+  $\labelling: \Event \fun \Alphabet$.
 \end{definition}
-In the remainder of the paper, we drop the prefix ``3-valued'', referring to
-3-valued pomsets simply as \emph{pomsets}.
-
-We fix the alphabet $\Alphabet=(\Formulae\times(\Act\cup\Sub))$.  With this
-alphabet, the labelling of a pomset determines two disjoint sets of events.
-We refer to those that map to actions $\Sub$ as \emph{final}, and those that
-map to substitutions $\Act$ as \emph{nonfinal}.
-When we need to distinguish these, we let the set of events
-$\Event=\EAct\uplus\ESub$, where $\EAct$ denotes the nonfinal events 
-and $\ESub$ denotes the final events.
-
-We lift terminology from logical formulae and actions to events, for example
-if $\labelling(\aEv)=(\aForm\mid\aAct)$ then we say $\aEv$ is unsatisfiable
-whenever $\aForm$ is unsatisfiable, $\aEv$ writes $\aVal$ to $\aLoc$ whenever
-$\aAct$ writes $\aVal$ to $\aLoc$, and so forth.
-
-We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aActSub)$.
-We elide $\aForm$ when $\aForm$ is a tautology, and write $\aActSub$ crossed-out %($\NEVER\aAct$)
+Going forward, we fix the alphabet $\Alphabet=(\Formulae\times\Act)$.
+We will write $(\aForm \mid \aAct)$ for the pair $(\aForm,\aAct)$,
+elide $\aForm$ when $\aForm$ is a tautology, and write $\aAct$ crossed-out ($\NEVER\aAct$)
 when $\aForm$ is unsatisfiable.
+We lift terminology from logical formulae and actions to events,
+for example if $\labelling(\aEv)=(\aForm\mid\aAct)$
+then we say
+$\aEv$ is unsatisfiable whenever $\aForm$ is unsatisfiable,
+$\aEv$ writes $\aVal$ to $\aLoc$ whenever $\aAct$ writes $\aVal$ to $\aLoc$, and
+so forth.
 We visualize a pomset as a graph where the nodes are drawn from
-$\Event$, each node $\aEv$ is labelled with $\labelling(\aEv)$,
+$\Event$, each node $\aEv$ is labeled with $\labelling(\aEv)$,
 and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
 $\bEv\le\aEv$. For example:
 \[\begin{tikzpicture}[node distance=1em]
@@ -130,14 +249,125 @@ is a visualization of the pomset where:
   \labelling(1) = (\FALSE, \DW{\bLoc}{0}) \quad
   \labelling(2) = (\TRUE, \DW{\bLoc}{1}) \quad
 \end{array}\]
-We visualize $(\bEv \gtN \aEv)$ as a dashed
-arrow from $\bEv$ to $\aEv$.
+
+We are building a compositional semantics of shared memory
+concurrency, which means we require a notion of when
+a read has a matching write. This is a property we require
+of closed programs, but \emph{not} of open programs.
+For example a program whose semantics includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{\aLoc}{1}}{}
+  \event{rx0}{\DR{\aLoc}{0}}{right=2.5em of wx1}
+  \event{wy0}{\DW{\bLoc}{0}}{right=of rx0}
+  \nonevent{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \po{rx0}{wy0}
+  \po[out=30,in=150]{rx0}{wy1}
+\end{tikzpicture}\]
+may be put in parallel
+with another program which writes $0$ to $\aLoc$.
+If the program is closed with respect to $\aLoc$ though, such an execution cannot exist,
+so we need each read of $\aLoc$ to have a matching write.
+This is captured by defining when $\aEv$ \emph{reads $\aLoc$ from} $\bEv$~\cite{alglave}.
+A preliminary definition (which, as we shall see, needs to be strengthened) is:
+\begin{itemize}
+\item $\bEv < \aEv$,
+\item $\aEv$ implies $\bEv$,
+\item $\bEv$ writes $\aVal$ to $\aLoc$,
+  and $\aEv$ reads $\aVal$ from $\aLoc$, and
+\item there is no $\bEv < \cEv < \aEv$ such that
+  $\cEv$ writes to $\aLoc$.
+\end{itemize}
+% In diagrams, for readability we often highlight the reads-from edges,
+% for example:
+%% We visualize rf-pomsets by drawing a dashed edge between nodes in $\RF$,
+%% labelled with the memory location,
+%% for example:
+%% \[\begin{tikzpicture}[node distance=1em]
+%%   \event{wx1}{\DW{\aLoc}{1}}{}
+%%   \event{x1}{\DR{\aLoc}{1}}{right=5em of wx1}
+%%   \nonevent{y0}{\DW{\bLoc}{0}}{below left=of x1}
+%%   \event{y1}{\DW{\bLoc}{1}}{below right=of x1}
+%%   \rfx{wx1}{x}{x1}
+%%   \po{x1}{y0}
+%%   \po{x1}{y1}
+%% \end{tikzpicture}\]
+%% In most cases, the memory location is obvious from context,
+%% so we elide it:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx1}{\DW{\aLoc}{1}}{}
+%   \event{x1}{\DR{\aLoc}{1}}{right=2.5em of wx1}
+%   \nonevent{y0}{\DW{\bLoc}{0}}{right=of x1}
+%   \event{y1}{\DW{\bLoc}{1}}{right=of y0}
+%   \rf{wx1}{x1}
+%   \po{x1}{y0}
+%   \po[out=30,in=150]{x1}{y1}
+% \end{tikzpicture}\]
+Unfortunately by itself, this is not enough. The problem is the final
+clause saying that there does not exist an $\aLoc$-\emph{blocking}
+event $\cEv$ between $\bEv$ and $\aEv$. Unfortunately, concurrency can
+turn events that were not $\aLoc$-blockers into an $\aLoc$-blocker,
+\emph{even if the new thread does not mention $\aLoc$.}
+We give an example to show this in \refapp{blockers}.
+This is a problem in that it means the preliminary model violates
+\emph{scope extrusion}~\cite{Milner:1999:CMS:329902},
+in that we can find programs $\aCmd$ and $\bCmd$ such that
+$\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is not the same as
+$\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
+
+There are a number of ways this can be addressed; for example,
+in models such as~\cite{Batty:2011:MCC:1926385.1926394} the reads-from relation is taken
+as a primitive. In this paper, we propose \emph{3-valued pomsets}
+as a solution. These are pomsets in which, in addition to positive statements
+$(\bEv < \aEv)$ (interpreted as $\aEv$ depends on $\bEv$),
+we also have negative statements $(\bEv \ltN \aEv)$
+(interpreted as $\aEv$ cannot depend on $\bEv$).
+
+\begin{definition}
+  A \emph{3-valued pomset} $(\Event, {\le}, {\ltN}, \labelling)$ 
+  is a \emph{pomset} $(\Event, {\le}, \labelling)$
+  together with ${\ltN} \subseteq (\Event\times\Event)$ such that:
+  \begin{itemize}
+  \item if $\bEv \le \aEv$ then $\aEv \ltN \bEv$,
+  \item if $\bEv \le \aEv$ and $\bEv \ltN \aEv$ then $\bEv = \aEv$,
+  \item if $\cEv \ge \bEv \ltN \aEv$ or $\cEv \ltN \bEv \ge \aEv$ then $\cEv \ltN \aEv$.
+  \end{itemize}
+\end{definition}
+
+% \begin{definition}
+%   A \emph{3-valued poset} $(\Event,{\le},{\ltN})$ is a poset $(\Event,{\le})$
+%   together with ${\ltN} \subseteq (\Event\times\Event)$ such that:
+%   \begin{itemize}
+%   \item if $\bEv \le \aEv$ then $\aEv \ltN \bEv$,
+%   \item if $\bEv \le \aEv$ and $\bEv \ltN \aEv$ then $\bEv = \aEv$,
+%   \item if $\cEv \ge \bEv \ltN \aEv$ or $\cEv \ltN \bEv \ge \aEv$ then $\cEv \ltN \aEv$.
+%   \end{itemize}
+% \end{definition}
+
+% \begin{definition}
+%   A \emph{3-valued pomset} $(\Event, {\le}, {\ltN}, \labelling)$
+%   is a 3-valued poset $(\Event, {\le}, {\ltN})$ and
+%   a pomset $(\Event, {\le}, \labelling)$.
+% \end{definition}
+
+Structures similar to 3-valued pomsets have come up in many guises, for example
+rough sets~\cite{Pawlak1982} or ultrametrics over
+$\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
+\emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
+They are the notion of pomset given by interpreting
+$\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
+
+In diagrams, we visualize $(\aEv \ltN \bEv)$ as a dashed
+arrow from $\bEv$ to $\aEv$ (note the change of direction).
 We refer to edges introduced by $(\bEv < \aEv)$ as
-\emph{strong edges} and by $(\bEv \gtN \aEv)$
+\emph{strong edges} and by $(\aEv \ltN \bEv)$
 as \emph{weak edges}.
 For readability, we often highlight the reads-from edges as well.
 % for example:
-For example:
+For example one execution of
+\(
+  (\aLoc\GETS0\SEMI\aLoc\GETS1) \PAR (\aLoc\GETS\aLoc+1)
+\)
+is:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wx0}{\DW{\aLoc}{0}}{}
   \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
@@ -147,226 +377,131 @@ For example:
   \wk{wx0}{wx1}
   \wk{rx1}{wx2}
 \end{tikzpicture}\]
-
-\subsection{Semantics of programs}
-\label{sec:semantics}
-
-\begin{figure*}
-\begin{eqnarray*}
-  \sem{\SKIP}
-  & = & \TIKZ{\final{f}{}{}} 
-  \\
-  \sem{\aLoc\GETS\aExp}
-  & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
-  \\
-  \sem{\aReg\GETS\aLoc}
-  & = &
-  \TIKZ{\final{f}{\aLoc/\aReg}{}}
-  \cup
-  \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
-  \\
-  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI}
-  & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
-  \\
-  \sem{\aCmd \SEQ \bCmd}
-  & = & \sem{\aCmd} \sequence \sem{\bCmd}
-  \\
-  \sem{\aCmd \PAR \bCmd}
-  & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
-  \\
-  \sem{\VAR\aLoc\SEMI \aCmd}
-  & = & \nu \aLoc \st \sem{\aCmd}
-\end{eqnarray*}
-\caption{Semantics of a concurrent shared-memory language}
-\label{fig:programs}
-\end{figure*}
-
-In Figure~\ref{fig:programs}, we give the semantics of a simple shared-memory
-concurrent language as sets of pomsets.  
-Each pomset
-$\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
-expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
-$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, the sets of
-pomsets given by our semantics \emph{are} closed with respect to
-isomorphism and augmentation.
-\begin{definition}
-  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that
-  % \begin{itemize}
-  % \item
-  $\labelling(\aEv)=\labelling'(f(\aEv))$,
-  % \item
-  $\aEv\le\bEv$ when $f(\aEv)\le'f(\bEv)$, and
-  % \item
-  $\aEv\gtN\bEv$ when $f(\aEv)\gtN'f(\bEv)$.
-  % \end{itemize}
-\end{definition}
-Augmentation may create additional order and strengthening
-preconditions.
-\begin{definition}
-  $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
-  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
-  % $\labelling'(\aEv)=\labelling(\aEv)$
-  if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
-  $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
-  $\bForm$.
-\end{definition}
-
-We give the semantics using combinators over sets of pomsets, defined below.
-Using $\aPSS$ to range over sets of pomsets, these are:
-\begin{itemize}
-\item \emph{forking} $\aPSS\fork$, which removes final states from
-  $\aPSS$, 
-% \item \emph{substitution} $\aPSS[\aExp/\aLoc]$, which replaces $\aLoc$ with
-%   $\aExp$ in every precondition of $\aPSS$,
-\item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
-  keeping pomsets whose events have preconditions that imply $\aForm$,
-\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
-  only pomsets where every event $\aEv$ that reads from $\aLoc$ \emph{can read} from some
-  $\bEv$, following Definition~\ref{def:rf},
-  and where no precondition can depend on $\aLoc$,
-\item \emph{composition} $\aPSS_1\parallel\aPSS_2$, which unions pomsets from
-  $\aPSS_1$ and $\aPSS_2$, allowing events to be merged, and
-\item \emph{sequencing} $\aPSS_1\sequence\aPSS_2$, which prepends
-  $\aPSS_1$ to $\aPSS_2$, calculating dependencies between the two.
-\end{itemize}
-These operations are similar to those from models of concurrency such
-as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
-speculative evaluation.
-
-%% A write generates a write event that may be visible
-%% to other threads.  A read may see a
-%% thread-local value, or it may generate a read event that must be justified by
-%% another thread.  In the latter case, occurrences of $\aReg$ are replaced with
-%% $\aLoc$ (rather than $\aVal$) to ensure that dependencies are tracked
-%% properly.  The subsequent substitution of $\aVal$ for $\aLoc$ occurs in
-%% Definition~\ref{def:prefix} of prefixing.
-
-% We have completed the formal definition of our model of speculative
-% evaluation, and now turn to examples.
-
-\subsection{Forking and Guarding} % and Substitution}
-
-Forking is %and substitution each perform
-a simple transformation on each pomset
-in a set of pomsets.
-
-\begin{definition}
-Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that:
-$\Event' = \EAct$,
-$\labelling'\subseteq\labelling$,
-$\aEv\le'\bEv$ whenever $\aEv\le\bEv$, and
-$\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
-\end{definition}
-
-Guarding filters a set of pomsets; we have
-$(\aForm\guard\aPSS)\subseteq\aPSS$.
-The definition is straightforward:
-\begin{definition}
-Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever:
-\begin{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
-\end{itemize}
-\end{definition}
-
-% Substitution updates the preconditions in a pomset, thus we expect the number
-% of pomsets to be unchanged; in addition, the number of events in each of the
-% pomsets is unchanged.
-
-% \begin{definition}
-% Let $\aPSS\bSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-% there is $\aPS\in\aPSS$ such that:
-% $\Event' = \Event$,
-% ${\le'} = {\le}$, 
-% ${\gtN'} = {\gtN}$, 
-% \begin{itemize}
-% \item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) =
-%   (\bForm\bSub \mid \aAct)$, and
-% \item if $\labelling(\aEv) = (\bForm \mid \aSub)$ then $\labelling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
-% \end{itemize}
-% \end{definition}
-
-
-\subsection{Restriction}
-\label{sec:restriction}
-
-Restriction also filters a set of pomsets; we have
-$(\nu\aLoc\st\aPSS)\subseteq\aPSS$.  The definition requires that we define
-when a read is possible.
-
+We strengthen the definition of reads-from to require not just that
+no blocker exists, but that any candidate blocker must either
+have $\bEv \ltN \cEv$ or $\cEv \ltN \aEv$. This ensures that any
+further concurrency cannot turn a non-blocker into a blocker.
 \begin{definition}\label{def:rf}
-  In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
+  In a 3-valued pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
   \begin{itemize}
   \item $\bEv < \aEv$,
   \item $\aEv$ implies $\bEv$,
   \item $\bEv$ writes $\aVal$ to $\aLoc$,
     and $\aEv$ reads $\aVal$ from $\aLoc$, and
   \item if $\cEv$ writes to $\aLoc$
-    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+    then either $\bEv \ltN \cEv$ or $\cEv \ltN \aEv$.
   \end{itemize}
 \end{definition}
+One of the requirements of closed programs is that
+every read event reads from a write event.
+
+In the remainder of the paper, we drop the prefix ``3-valued'', referring to
+3-valued pomsets simply as \emph{pomsets}.
+
+\section{Operations on sets of pomsets}
+\label{app:sets-of-pomsets}
+
+Here we give the formal definitions for the operations described at the
+beginning of \S\ref{sec:semantics}.
+
+In order to model speculation barriers in \citep{2019-sp},
+we partition the actions into \emph{mergeable} and \emph{unmergeable}.
+
+In transactional memory, begin and commit actions are memory fences: that is,
+they are a barrier to reordering memory accesses.  To capture this (and other
+memory barriers), we identify sets $\Rel$ and $\Acq \subseteq\Act$.  For
+transactions, we have $(\DB{\aVal})\in\Acq$ for begins,
+$(\DC{\aVal})\in \Rel$ for commits.  We say that $\aAct$ is a \emph{release}
+if $\aAct\in\Rel$ and $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$.
+% In a pomset, a release event is one
+% labelled with a release action, and an acquire event is one labelled by an
+% acquire action.  
 
 \begin{definition}
-\label{def:x-closed}
-  A 3-valued pomset is $\aLoc$-closed if,
-  for every $\aEv\in\Event$:
+  \label{def:prefix}
+Let $\aAct \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+\begin{itemize}
+\item $\Event' = \Event \cup \{\cEv\}$,
+\item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+\item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$,
+\item if $\cEv\in\Event$ then $\cEv$ is mergeable,
+\item $\labelling'(\cEv) = (\aForm, \aAct)$, and
+\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
+  (\bForm' \mid \bAct)$, where:
   \begin{itemize}
-  \item $\aEv$ is independent of $\aLoc$, and
-  \item if $\aEv$ reads from $\aLoc$, then there is a $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
+  \item $\cEv <' \aEv$ whenever $\aAct$ is an acquire or $\bAct$ is a release, 
+  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+  \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+    then $\cEv \gtN' \aEv$, and
+  \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
+    % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} & \textsc{[dependent read]} \\
+    % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
+    % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
+    \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
+    \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
+    \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
+  \end{array}\right.\)
   \end{itemize}
+\end{itemize}
 \end{definition}
+The first constraint ensures that events are ordered before a release and
+after an acquire.  The second constraint ensures that thread-local reads do
+not cross acquire fences.
+
+% Prefixing is used to define the semantics of reads and writes, and
+% adds a new event $\cEv$ with action $\aAct$.  As in the definition
+% of parallel composition, the definition allows the new event to overlap with
+% events in $\aPSS$ as long as they agree on the action.
+
+The tricky parts of the
+definition are the named cases, which place requirements on read
+dependencies.  If $\aAct$ reads $\aVal$ from $\aLoc$, we have to
+decide whether $\aEv$ depends on $\cEv$ for some $\aEv$ with old
+precondition $\bForm$ and new precondition $\bForm'$. The first case
+\textsc{[dependent read]} is that the dependency exists, in which case
+$\bForm'$ just has to imply $\bForm[\aVal/\aLoc]$. The more interesting 
+case is \textsc{[independent read]}, in which case $\bForm'$ has to imply
+$\bForm[\aVal/\aLoc]$ and $\bForm$. This corresponds to a case where
+$\aEv$ can be performed with or without $\cEv$.
+In particular, if $\bForm$ is independent of $\aLoc$ then we can pick
+$\bForm'$ to be $\bForm$, and the independent read case will apply.
+% For example,
+% if $\aAct$ and $\bAct$ write to the same location, $\aAct$ reads $\aVal$ from $\aLoc$, $\bForm$ is independent of $\aLoc$,
+% and
+% $\aPSS$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{b}{\bForm \mid \bAct}{}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{b}{c}
+% \end{tikzpicture}\]
+% then $\aAct\prefix\aPSS$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm \mid \bAct}{right=of a}
+%   \event{c}{\cForm[\vec\aVal/\vec\aLoc] \mid \cAct}{right=of b}
+%   \po[out=25,in=155]{a}{c}
+%   \wk{a}{b}
+%   \po{b}{c}
+% \end{tikzpicture}\]
+
 
 \begin{definition}
-  A 3-valued pomset is \emph{partially} (resp.~\emph{totally}) $\aLoc$-\emph{coherent}
-  if, when restricted to events which touch $\aLoc$,
-  $\gtN$ forms a partial (resp.~total) order.
-\end{definition}
-
-\begin{definition}
-Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-$\aPS$ is $\aLoc$-closed and partially $\aLoc$-coherent.
-\end{definition}
-
-
-\subsection{Composition}
-Composition is used in giving the semantics for conditionals and concurrency.
-$\aPSS_1 \parallel \aPSS_2$ contains the union of pomsets from $\aPSS_1$ and
-$\aPSS_2$, allowing overlap as long as they agree on actions. For example, if
-$\aPSS_1$ and $\aPSS_2$ contain:
-\[\begin{tikzpicture}[node distance=1em]
-  \event{a}{\aForm \mid \aAct}{}
-  \event{b}{\bForm_1 \mid \bAct}{right=of a}
-  \po{a}{b}
-\end{tikzpicture}\qquad\qquad\begin{tikzpicture}[node distance=1em]
-  \event{b}{\bForm_2 \mid \bAct}{}
-  \event{c}{\cForm \mid \cAct}{right=of b}
-  \wk{b}{c}
-\end{tikzpicture}\]
-then $\aPSS_1 \parallel \aPSS_2$ contains:
-\[\begin{tikzpicture}[node distance=1em]
-  \event{a}{\aForm \mid \aAct}{}
-  \event{b}{\bForm_1 \lor \bForm_2 \mid \bAct}{right=of a}
-  \event{c}{\cForm \mid \cAct}{right=of b}
-  \po{a}{b}
-  \wk{b}{c}
-\end{tikzpicture}\]
-
-\begin{definition}
-Let $\aPS' \in (\aPSS_1 \parallel \aPSS_2)$
+Let $\aPS_0 \in (\aPSS_1 \parallel \aPSS_2)$
 whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
 \begin{itemize}
-\item $\Event' = \Event_1 \cup \Event_2$,
-\item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le' \bEv$,
-\item if $\aEv \gtN_1 \bEv$ or $\aEv \gtN_2 \bEv$ then $\aEv \gtN' \bEv$,
-\item if $\labelling'(\aEv) = (\aForm' \mid \aActSub)$ then either:
+\item $\Event_0 = \Event_1 \cup \Event_2$,
+\item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le_0 \bEv$,
+\item if $\aEv \ltN_1 \bEv$ or $\aEv \ltN_2 \bEv$ then $\aEv \ltN_0 \bEv$,
+\item if $\aEv\in\Event_1\cap\Event_2$ then $\aEv$ is mergeable,
+\item if $\labelling_0(\aEv) = (\aForm_0 \mid \aAct)$ then either:
   \begin{itemize}
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aActSub)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aActSub)$
-    and $\aForm'$ implies $\aForm_1 \lor \aForm_2$,
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aActSub)$ and $\aEv \not\in \Event_2$
-    and $\aForm'$ implies $\aForm_1$, or
-  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aActSub)$ and $\aEv \not\in \Event_1$
-    and $\aForm'$ implies $\aForm_2$.
+  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$
+    and $\aForm_0$ implies $\aForm_1 \lor \aForm_2$,
+  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\aEv \not\in \Event_2$
+    and $\aForm_0$ implies $\aForm_1$, or
+  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$ and $\aEv \not\in \Event_1$
+    and $\aForm_0$ implies $\aForm_2$.
   \end{itemize}
 \end{itemize}
 \end{definition}
@@ -393,8 +528,182 @@ whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
 %   \wk{b}{c}
 % \end{tikzpicture}\]
 
+\begin{definition}
+Let $\aPSS[\aExp/\aLoc]$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+\begin{itemize}
+\item $\Event' = \Event$,
+\item if $\bEv \le \aEv$ then $\bEv \le' \aEv$, and
+\item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$, and
+\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) = (\bForm[\aExp/\aLoc] \mid \aAct)$.
+\end{itemize}
+and similarly for $\aPSS[\aLoc/\aReg]$.
+\end{definition}
 
-\subsection{Sequencing}
+\begin{definition}
+Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever:
+\begin{itemize}
+\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\aForm$ implies $\bForm$.
+\end{itemize}
+\end{definition}
+
+
+
+\begin{definition}
+\label{def:x-closed}
+  A 3-valued pomset is $\aLoc$-closed if,
+  for every $\aEv\in\Event$:
+  \begin{itemize}
+  \item $\aEv$ is independent of $\aLoc$, and
+  \item if $\aEv$ reads from $\aLoc$, then there is a $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
+  \end{itemize}
+\end{definition}
+
+The definitions as they stand allow cycles in weak edges. This is necessary for examples such
+as $(\aLoc\GETS\bLoc-1\SEMI \aLoc\GETS1 \PAR \bLoc\GETS\aLoc-1\SEMI\bLoc\GETS1)$
+which has execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wx0}{\DW{\aLoc}{0}}{right=of ry1}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
+  \event{rx1}{\DR{\aLoc}{1}}{right=2.5em of wx1}
+  \event{wy0}{\DW{\bLoc}{0}}{right=of rx1}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \wk{wx0}{wx1}
+  \wk{wy0}{wy1}
+  \po{ry1}{wx0}
+  \po{rx1}{wy0}
+  \rf{wx1}{rx1}
+  \rf[in=20,out=160]{wy1}{ry1}
+\end{tikzpicture}\]
+However, in order to model release/acquire fencing in transactions, we need to ban
+executions such as:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{\aLoc}{0}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{below=7ex of wx0}
+  \event{wy1}{\DC{}}{below right=of wx0}
+  \event{ry1}{\DB{}}{right=2.5em of wy1}
+  % \event{wy1}{\DWRel{\bLoc}{1}}{below right=of wx0}
+  % \event{ry1}{\DRAcq{\bLoc}{1}}{right=2.5em of wy1}
+  \event{rx0}{\DR{\aLoc}{0}}{above right=of ry1}
+  \event{rx1}{\DR{\aLoc}{1}}{below=7ex of rx0}
+  \wk[out=-75,in=75]{wx0}{wx1}
+  \wk[out=105,in=-105]{wx1}{wx0}
+  \po{wx0}{wy1}
+  \po{wx1}{wy1}
+  \po{ry1}{rx0}
+  \po{ry1}{rx1}
+  \rf{wy1}{ry1}
+  \rf{wx0}{rx0}
+  \rf{wx1}{rx1}
+\end{tikzpicture}\]
+The problem here is the weak cycle between $(\DW\aLoc0)$ and $(\DW\aLoc1)$,
+which according to Definition~\ref{def:rf}, allows both $(\DR\aLoc0)$ and
+$(\DR\aLoc1)$, even though one of them must be a stale value. This can be addressed by
+requiring $\ltN$ to form a \emph{per-location} partial order. This is a form
+of partial coherence, and can be strengthened to total coherence by requiring
+$\ltN$ to be a per-location total order.
+
+\begin{definition}
+  A 3-valued pomset is \emph{partially} (resp.~\emph{totally}) $\aLoc$-\emph{coherent}
+  if, when restricted to events which touch $\aLoc$,
+  $\ltN$ forms a partial (resp.~total) order.
+\end{definition}
+
+\begin{definition}
+Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+$\aPS$ is $\aLoc$-closed and partially $\aLoc$-coherent.
+\end{definition}
+
+\section{Semantics of programs}
+\label{sec:semantics}
+
+\begin{figure*}
+\begin{eqnarray*}
+  \sem{\SKIP} & = & \{ \emptyset \} \\
+  \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+  \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
+  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
+  \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel \sem{\bCmd} \\
+  \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
+\end{eqnarray*}
+\caption{Semantics of a concurrent shared-memory language}
+\label{fig:programs}
+\end{figure*}
+
+In Figure~\ref{fig:programs}, we give the semantics of a simple shared-memory
+concurrent language as sets of pomsets.  
+Each pomset
+$\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
+expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
+$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, the sets of
+pomsets given by our semantics \emph{are} closed with respect to
+augmentation, which may create additional order and strengthening
+preconditions:
+\begin{definition}
+  $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
+  implies $\aEv\le'\bEv$, $\aEv\ltN\bEv$ implies $\aEv\ltN'\bEv$, and
+  % $\labelling'(\aEv)=\labelling(\aEv)$
+  if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
+  $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+  $\bForm$.
+\end{definition}
+
+We give the semantics using combinators over sets of pomsets, defined in
+\refapp{sets-of-pomsets}.  Using $\aPSS$ to range over sets of pomsets, these
+are:
+\begin{itemize}
+\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
+  only pomsets where every event $\aEv$ that reads from $\aLoc$ \emph{can read} from some
+  $\bEv$, following Definition~\ref{def:rf},
+  and where no precondition can depend on $\aLoc$,
+
+\item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
+  keeping pomsets whose events have preconditions that imply $\aForm$,
+\item \emph{substitution} $\aPSS[\aExp/\aLoc]$, which replaces $\aLoc$ with
+  $\aExp$ in every precondition of $\aPSS$,
+\item \emph{composition} $\aPSS_1\parallel\aPSS_2$, which unions pomsets from
+  $\aPSS_1$ and $\aPSS_2$, allowing events to be merged, and
+\item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
+  $\aAct$ to pomsets in $\aPSS$, ordering $\aAct$ before any $\aEv$ whose predicate
+  depends on the value read by $\aAct$.
+\end{itemize}
+These operations are similar to those from models of concurrency such
+as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
+speculative evaluation.
+
+Restriction and guarding filter the set of pomsets; we have
+$(\nu\aLoc\st\aPSS)\subseteq\aPSS$ and $(\aForm\guard\aPSS)\subseteq\aPSS$.
+Substitution updates the preconditions in a pomset, thus we expect the number
+of pomsets to be unchanged; in addition, the number of events in each of the
+pomsets is unchanged.
+% : $|\aPSS[\aExp/\aLoc]|=|\aPSS|$
+The most interesting operators are composition and prefixing, which create
+larger pomsets from smaller ones.
+
+
+Composition is used in giving the semantics for conditionals and concurrency.
+$\aPSS_1 \parallel \aPSS_2$ contains the union of pomsets from $\aPSS_1$ and
+$\aPSS_2$, allowing overlap as long as they agree on actions. For example, if
+$\aPSS_1$ and $\aPSS_2$ contain:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm_1 \mid \bAct}{right=of a}
+  \po{a}{b}
+\end{tikzpicture}\qquad\qquad\begin{tikzpicture}[node distance=1em]
+  \event{b}{\bForm_2 \mid \bAct}{}
+  \event{c}{\cForm \mid \cAct}{right=of b}
+  \wk{b}{c}
+\end{tikzpicture}\]
+then $\aPSS_1 \parallel \aPSS_2$ contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm_1 \lor \bForm_2 \mid \bAct}{right=of a}
+  \event{c}{\cForm \mid \cAct}{right=of b}
+  \po{a}{b}
+  \wk{b}{c}
+\end{tikzpicture}\]
+
 Prefixing is used in giving the semantics of reads and writes.
 $\aAct\prefix\aPSS$ adds a new event $\cEv$ with action $\aAct$ to each
 pomset in $\aPSS$.  As in the definition of parallel composition, the
@@ -406,7 +715,7 @@ then prefixing introduces weak order between them: $\cEv \ltN \aEv$.  This
 ensures that these writes cannot be given the reverse order in an augmentation.
 
 If $\cEv$ reads from a location that occurs in the predicate of $\aEv$, then
-prefixing introduces order from $\cEv$ to $\aEv$.
+prefixing introduces order from $\cEv$ to any $\aEv$
 whose predicate depends on $\aLoc$. 
 For example, if $\aAct$ and $\bAct$ write to the same location, $\aAct$ reads
 $\aVal$ from $\aLoc$, $\bForm$ is independent of $\aLoc$, and $\aPSS$
@@ -426,233 +735,334 @@ then $\aAct\prefix\aPSS$ contains:
   \po{b}{c}
 \end{tikzpicture}\]
 
-% We say $\aEv$ \emph{depends on} $\cEv$ if
-% $\labelling(\aEv) = (\bForm \mid \dontcare)$,
-% $\labelling(\cEv) = (\dontcare \mid \aSub)$,
-% and $\bForm$ depends on $\aSub$.
-
-% We say $\aEv$ \emph{conflicts with}  $\bEv$ if
-% $\labelling(\aEv) = (\dontcare \mid \aAct)$,
-% $\labelling(\cEv) = (\dontcare \mid \bAct)$,
-% $\aAct$ and $\bAct$ touch the same location, and either
-% $\aAct$ or $\bAct$ is a write.
-
-\begin{definition}
-  \label{def:seq}
-  Let $\aPS' \in (\aPSS_1 \sequence \aPSS_2)$ whenever there are
-  $\aPS_1 \in \aPSS_1$ and $\aPS_{\cEv}\in\aPSS_2$, for every
-  $\cEv\in\ESub_1$, such that:
-\begin{itemize}
-\item $\Event' = \EAct_1 \cup \bigcup_{\cEv}\Event_{\cEv}$,
-\item if $\bEv \le_1 \aEv$ or $\bEv\le_{\cEv} \aEv$ then $\bEv \le' \aEv$,
-\item if $\bEv \gtN_1 \aEv$ or $\bEv\gtN_{\cEv} \aEv$ then $\bEv \gtN' \aEv$,
-\item if $\bEv\in\EAct_1$ then $\labelling'(\bEv) = \labelling_1(\bEv)$, and
-\item if $\labelling_1(\bEv) = (\dontcare \mid \aAct)$ and
-  $\labelling_{\cEv}(\aEv) = (\bForm \mid \bAct)$ then:
-  \begin{itemize}
-  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv <' \aEv$,
-  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-  \item either $\aAct$ and $\bAct$ are provably separable, or both are reads, or
-    $\bEv \gtN' \aEv$, and
-  \item if $\aAct$ and $\bAct$ touch the same location and one is a write,
-    then $\bEv \gtN' \aEv$, and
-  \end{itemize}
-\item 
-  if
-  $\labelling_1(\cEv) = (\dontcare \mid \aSub)$, and
-  $\labelling_{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
-  $\labelling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
-  \begin{itemize}
-  \item $\bForm'$ implies
-    $\lor\{\aForm\mid\bEv\in\ESub_1 \land \aEv\in\aPS\!_{\bEv}
-    \land \labelling_1(\bEv)=(\aForm{\mid}\dontcare)\}$,
-  \item $\bForm'$ implies $\bForm\aSub$, and
-  \item either $\bForm'$ implies $\bForm$ or $\bEv<_1\cEv$ implies $\bEv<'\aEv$.
-    %$\bEv\in\EAct_1$ such that.
-  \end{itemize}
-\end{itemize}
-\end{definition}
-
-\newpage
-
-\begin{definition}
-  \label{def:prefix}
-Let $\aAct \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that:
-\begin{itemize}
-\item $\Event' = \Event \cup \{\cEv\}$,
-\item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-\item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$,
-\item $\labelling'(\cEv) = (\aForm \mid \aAct)$, and
-\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then:
-  \begin{itemize}
-  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
-  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-  \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
-    then $\cEv \gtN' \aEv$, and
-  \end{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
-  (\bForm' \mid \bAct)$, where:
-  \begin{itemize}
-  \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
-  \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
-    \begin{itemize}
-    \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
-    \item either $\bForm'$ implies $\bForm$ or $\cEv<'\aEv$.
-    \end{itemize}
-  \end{itemize}
-% \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
-%   (\bForm' \mid \bAct)$, where:
-%   \begin{itemize}
-%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
-%   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
-%     then $\cEv \gtN' \aEv$, and
-%   \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
-%     % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} & \textsc{[dependent read]} \\
-%     % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
-%     % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
-%     \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
-%     \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
-%     \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
-%   \end{array}\right.\)
-%   \end{itemize}
-\end{itemize}
-\end{definition}
-
-\begin{comment}
-The first constraint ensures that events are ordered before a release and
-after an acquire.  The second constraint ensures that thread-local reads do
-not cross acquire fences.
- 
-The second constraint prevents bad executions like the following:
-   x=1; rel; acq; if (x) {y=1};  ||  acq; x=0; rel; 
-where the second thread is interleaved between the rel and acq of the first.
-
-Note that you cannot require that $\bForm'$ is independent of every $\bLoc$
-because then it's not augment closed.
-\end{comment}
+%% A write generates a write event that may be visible
+%% to other threads.  A read may see a
+%% thread-local value, or it may generate a read event that must be justified by
+%% another thread.  In the latter case, occurrences of $\aReg$ are replaced with
+%% $\aLoc$ (rather than $\aVal$) to ensure that dependencies are tracked
+%% properly.  The subsequent substitution of $\aVal$ for $\aLoc$ occurs in
+%% Definition~\ref{def:prefix} of prefixing.
 
 
-% To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
-% consider example:
-% \begin{verbatim}
-% r=y; if (r) {x=r} else {x=r}; s=x; if (r==s) {z=1}
-% \end{verbatim}
-% or simplified:
-% \begin{verbatim}
-% r=y;x=r;s=x; if(s==r){z=1}
-% \end{verbatim}
-% If you read 37 for $y$, then the predicate on \texttt{Wz1} before the
-% read is either $r=r$ or $v=r$, where $v=37$, for example.  In one case you
-% get a dependency and in the other you do not.
 
-An example to show that we need $[\aExp/\aLoc]$ in the rule for write, rather
-than $[\aVal/\aLoc]$:
+% We have completed the formal definition of our model of speculative
+% evaluation, and now turn to examples.
 
-$\sem{\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
-includes
+In the remainder of this section, we give examples to explain the semantics,
+concentrating on reads and conditionals.  Security-relevant examples begin in
+\S\ref{sec:examples}.
+
+\subsection{Sequential memory accesses}
+\label{sec:sequential-memory}
+
+In the semantics of memory, there are two very different ways memory can be
+accessed: sequentially or concurrently.  These are modeled differently, since
+hardware and compilers give very different guarantees about their behavior.
+In the semantics of $\sem{\aReg\GETS\aLoc\SEMI \aCmd}$, given in
+Figure~\ref{fig:programs}, these are found on left and right sides of the
+union operation.  In this section, we discuss the sequential semantics,
+$\sem{\aCmd}[\aLoc/\aReg]$, leaving the concurrent semantics to
+\S\ref{sec:concurrent-memory}.
+
+Consider the program $(\aLoc\GETS0\SEMI \bLoc\GETS\aLoc+1)$.  One execution of
+this program is where the write to $y$ uses the sequential value of
+$x$, which is $0$:
 \[\begin{tikzpicture}[node distance=1em]
-  \event{c}{\bReg=\aReg \mid \DW\cLoc1}{}
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy1}{\DW{y}{1}}{right=of wx0}
 \end{tikzpicture}\]
-therefore
-$\sem{\bReg\GETS\aLoc\SEMI\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
-includes
+To see how this execution is modeled, we first
+expand out the syntax sugar to get the program
+$(\aLoc\GETS0\SEMI \aReg\GETS\aLoc\SEMI \bLoc\GETS\aReg+1\SEMI\SKIP).$
+Now $\sem{\SKIP}$ is just $\{\emptyset\}$, and
+$\sem{y \GETS r+1\SEMI \SKIP}$ includes:
+\[
+   (r+1=1) \guard (\DW y1) \prefix \sem{\SKIP}[1/y]
+\]
+which contains the pomset:
 \[\begin{tikzpicture}[node distance=1em]
-  \event{c}{\aLoc=\aReg \mid \DW\cLoc1}{}
+  \event{wy1}{r+1=1 \mid \DW{y}{1}}{}
 \end{tikzpicture}\]
-and
-$\sem{\aLoc\GETS\aReg\SEMI\bReg\GETS\aLoc\SEMI\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
-includes
+expressing that this program can write $1$ to $y$,
+as long as the precondition $(r+1=1)$ is satisfied.
+Now $\sem{r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$
+has two cases, the sequential case
+(which does not introduce a read action)
+and the concurrent case (which does).
+For the moment, we are interested in the sequential case:
+\[
+   \sem{y \GETS r+1\SEMI \SKIP}[x/r]
+\]
+which contains the pomset:
 \[\begin{tikzpicture}[node distance=1em]
-  \event{c}{\aReg=\aReg \mid \DW\cLoc1}{}
+  \event{wy1}{x+1=1 \mid \DW{y}{1}}{}
 \end{tikzpicture}\]
-which is independent of $\aReg$.
+In this pomset, the precondition is $(x+1=1)$, which specifies a property
+of the thread-local value of $x$.
+Finally $\sem{x \GETS 0\SEMI r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ includes:
+\[
+   (0=0) \guard (\DW x0) \prefix \sem{r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}[0/x]
+\]
+which contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{0=0 \mid \DW{x}{0}}{}
+  \event{wy1}{0=0\land0+1=1 \mid \DW{y}{1}}{right=of wx0}
+\end{tikzpicture}\]
+all of whose preconditions are tautologies, so this has the expected behavior:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy1}{\DW{y}{1}}{right=of wx0}
+\end{tikzpicture}\]
+There is no dependency between $(\DW x0)$ and $(\DW y1)$,
+since $(0=0\land0+1=1)$ is independent of $\aLoc$.
 
-If we took the semantics of write to use $[\aVal/\aLoc]$, then we would end
-up with pomsets of the form
-\[\begin{tikzpicture}[node distance=1em]
-  \event{c}{\aVal=\aReg \mid \DW\cLoc1}{}
-\end{tikzpicture}\]
-which depend on $\aReg$.
+This example demonstrates how preconditions
+capture the sequential semantics of memory.
+In an execution containing an event with label
+$(\aForm \mid \aAct)$, one way the precondition $\aForm$
+can be discharged is by an assignment $\aLoc\GETS\aExp$,
+which performs a substitution $[\aExp/\aLoc]$.
+This is a variant of the Hoare semantics of
+assignment \cite{Hoare:1969:ABC:363235.363259}, where if $\aCmd$ has precondition $\aForm$
+then $\aLoc\GETS\aExp\SEMI\aCmd$ has precondition
+$\aForm[\aExp/\aLoc]$.
 
-To see why we don't mention dependency in sequential composition, consider
-$\sem{\IF(\aReg\leq1)\THEN \aLoc\GETS 2\FI}$ which includes
-\[\begin{tikzpicture}[node distance=1em]
-  \event{c}{\aReg\leq1 \mid \DW\aLoc2}{}
-\end{tikzpicture}\]
-which depends on $\aReg$.
+\subsection{Concurrent memory accesses}
+\label{sec:concurrent-memory}
 
-$\sem{\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN \aLoc\GETS 2\FI}$ includes
+We now turn to the case of concurrent accesses to memory.
+Consider the program %a concurrent version of the program from \S\ref{sec:sequential-memory}:
+$(\aLoc\GETS1 \PAR \bLoc\GETS\aLoc+1)$.
+In executions of this program, it is possible for the second thread to 
+perform a concurrent read of $x$:
 \[\begin{tikzpicture}[node distance=1em]
-    \event{b}{\DR\bLoc1}{}
-    \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of b}
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \po{rx1}{wy2}
 \end{tikzpicture}\]
-which has no dependency between the read and write.
-
-$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN \aLoc\GETS
-  2\FI}$ discharges the precondition of the write, giving
+To see how this execution is modeled, we first
+expand out the syntax sugar to get the program
+$(\aLoc\GETS1\SEMI\SKIP \PAR \aReg\GETS\aLoc\SEMI \bLoc\GETS\aReg+1\SEMI\SKIP).$
+As before, $\sem{y \GETS r+1\SEMI \SKIP}$ includes:
+\[
+   (r+1=2) \guard (\DW y2) \prefix \sem{\SKIP}[2/y]
+\]
+which contains the pomset:
 \[\begin{tikzpicture}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{0\leq1 \mid \DW\aLoc2}{right=of b}
+  \event{wy2}{r+1=2 \mid \DW{y}{2}}{}
 \end{tikzpicture}\]
-which is simply:
+As before, $\sem{r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ has two cases.
+We are now interested in the concurrent case, which includes:
+\[
+   (\DR x1) \prefix \sem{y \GETS r+1\SEMI \SKIP}[x/r]
+\]
+which contains the pomset:
 \[\begin{tikzpicture}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{\DW\aLoc2}{right=of b}
+  \event{rx1}{\DR{x}{1}}{}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \po{rx1}{wy2}
 \end{tikzpicture}\]
-The semantics of this program also includes
+Note that $(\DR x1)$ reads $1$ from $x$, and while
+$(x+1=2)[1/x]$ is a tautology,
+$(x+1=2)$ is not,
+and so there is a dependency
+$(\DR x1) < (\DW y2)$.
+
+Now, $\sem{x \GETS 1\SEMI \SKIP}$ includes the pomset:
 \[\begin{tikzpicture}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{c}{\DW\aLoc2}{right=of a}
+  \event{wx1}{\DW{x}{1}}{}
 \end{tikzpicture}\]
-
-A variant of this which indicates the branch taken:
-$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN
-  \aLoc\GETS2\SEMI\cLoc\GETS\aReg\FI}$
-includes
+and so $\sem{x \GETS 1\SEMI \SKIP \PAR r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ includes:
 \[\begin{tikzpicture}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{\DW\aLoc2}{right=of b}
-    \event{d}{\DW\cLoc1}{right=of c}
-    \po[bend left]{b}{d}
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \po{rx1}{wy2}
 \end{tikzpicture}\]
+as expected, including a reads-from dependency
+$(\DW x1) < (\DR x1)$.
 
-A program to witness this is
-\begin{displaymath}
-  \IF(\bLoc\EQ0)\THEN
-    \IF(\aLoc\EQ2)\THEN
-      \bLoc\GETS1\SEMI
-      \IF(\cLoc\EQ1)\THEN\PASS\FI
-    \FI
-  \FI
-\end{displaymath}
+This example demonstrates how read and write events
+capture the concurrent semantics of memory.
+In an execution containing an event with label
+$(\DR \aLoc\aVal)$, if the execution is
+$\aLoc$-closed, then there must be an event
+it reads from, for example one labeled
+$(\DW \aLoc\aVal)$.
 
-Putting these in parallel gives you
+\subsection{Control dependencies}
+\label{sec:control-dep}
+
+Conditionals introduce control dependencies, for example consider the program:
+\[
+  \aReg\GETS\cLoc\SEMI
+  \IF(\aReg)\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI
+\]
+This includes executions in which the false branch is taken:
 \[\begin{tikzpicture}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{\DW\aLoc2}{right=of b}
-    \event{d}{\DW\cLoc1}{right=of c}
-    \po[bend left]{b}{d}
-    \event{a2}{\DR\bLoc0}{below=of a}
-    \event{b2}{\DR\aLoc2}{right=of a2}
-    \event{c2}{\DW\bLoc1}{right=of b2}
-    \event{d2}{\DR\cLoc1}{right=of c2}
-    \po{a2}{b2}
-    \po{b2}{c2}
-    \po[bend right]{b2}{d2}
-    \rf{a}{a2}
-    \rf{c}{b2}
-    \rf{c2}{b}
-    \rf{d}{d2}
+  \event{rz0}{\DR{z}{0}}{}
+  \nonevent{wx1}{\DW{x}{1}}{right=of rz0}
+  \event{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz0}{wx1}
+  \po[out=30,in=150]{rz0}{wy2}
 \end{tikzpicture}\]
+and ones where the true branch is taken:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{z}{1}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz1}
+  \nonevent{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz1}{wx1}
+  \po[out=30,in=150]{rz1}{wy2}
+\end{tikzpicture}\]
+In both cases, we record the actions in the branch that was
+not taken. This is a novel feature of this model, and is
+intended to capture speculative evaluation. In \citep{2019-sp}
+we showed how this model captures Spectre-like information
+flow attacks, once the attacker is provided with the ability to
+observe such speculations.
 
+To see how these executions are modeled, consider the semantics of
+$\sem{x\GETS 1\SEMI\SKIP}$, which contains any pomset of the form:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\aForm \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+in particular it contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+Similarly $\sem{y\GETS 2\SEMI\SKIP}$ contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wy2}{r=0 \mid \DW{y}{2}}{}
+\end{tikzpicture}\]
+and so $\sem{\IF(r)\THEN x\GETS 1\SEMI\SKIP \ELSE y\GETS 2\SEMI\SKIP \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
+  \event{wy2}{r=0 \mid \DW{y}{2}}{right=of wx1}
+\end{tikzpicture}\]
+Now, the semantics of concurrent read performs substitutions, for example:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \event{wx1}{0\neq0 \mid \DW{x}{1}}{right=of rz0}
+  \event{wy2}{0=0 \mid \DW{y}{2}}{right=of wx1}
+  \po{rz0}{wx1}
+  \po[out=25,in=155]{rz0}{wy2}
+\end{tikzpicture}\]
+which gives the required pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \nonevent{wx1}{\DW{x}{1}}{right=of rz0}
+  \event{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz0}{wx1}
+  \po[out=30,in=150]{rz0}{wy2}
+\end{tikzpicture}\]
+Note that the precondition $r=0$ is dependent on $r$,
+and so there is a dependency $(\DR z0) < (\DW y2)$,
+modeling the control dependency introduced by the conditional.
 
-% Local Variables:
-% mode: latex
-% TeX-master: "paper"
-% End:
+\subsection{Control independencies}
+
+In most models of control dependencies, the dependency relation
+is syntactic, based on whether the action occurs syntactically
+inside a conditional. In contrast, the notion in this model is
+semantic: if an action can occur on both sides of a conditional,
+there is no control dependency. Consider a variant of the example
+from \S\ref{sec:control-dep}:
+\[
+  \aReg\GETS\cLoc\SEMI
+  \IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI
+\]
+This has the expected execution in which the control
+dependencies exist:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \nonevent{nwx1}{\DW{x}{1}}{right=of rz0}
+  \event{wx1}{\DW{x}{1}}{right=of nwx1}
+  \po{rz0}{nwx1}
+  \po[out=30,in=150]{rz0}{wx1}
+\end{tikzpicture}\]
+but it also has an execution in which the two writes
+of $1$ to $x$ are merged, resulting in no dependency:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz0}
+\end{tikzpicture}\]
+To see how this arises,
+consider the definition of $\sem{\IF(r)\THEN x\GETS1\SEMI\SKIP \ELSE x\GETS1\SEMI\SKIP \FI}$:
+\[\begin{array}{rl}
+   \aPSS_1 \parallel \aPSS_2 \quad\mbox{where}\quad&
+   \aPSS_1 = (r\neq 0) \guard \sem{x\GETS1\SEMI\SKIP} \\&
+   \aPSS_2 = (r=0) \guard \sem{x\GETS1\SEMI\SKIP}
+\end{array}\]
+Now, one pomset in $\aPSS_1$ is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+that is $\aPS_1$ where:
+\[
+  \Event_1 = \{\aEv\} \quad
+  \labelling_1(\aEv) = (r\neq 0, \DW x1)
+\]
+and similarly, one pomset in $\aPSS_2$ is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r=0 \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+that is $\aPS_2$ where:
+\[
+  \Event_2 = \{\aEv\} \quad
+  \labelling_2(\aEv) = (r= 0, \DW x1)
+\]
+Crucially, in the definition of $\aPSS_1 \parallel \aPSS_2$
+there is \emph{no} requirement that $\Event_1$ and $\Event_2$ are disjoint,
+and in this case they overlap at $\aEv$. As a result, one pomset in
+$\aPSS_1\parallel\aPSS_2$ is $\aPS_0$ where:
+\[
+  \Event_0 = \{\aEv\} \quad
+  \labelling_0(\aEv) = (r\neq0 \lor r=0, \DW x1)
+\]
+that is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+\end{tikzpicture}\]
+Note that this pomset has no precondition dependent on $r$,
+since $(r\neq0 \lor r=0)$ does not depend on $r$, which is why
+we end up with an execution without a control dependency:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz0}
+\end{tikzpicture}\]
+This semantics captures compiler optimizations which may, for example,
+merge code executed on both branches of a conditional, or hoist
+constant assignments out of loops.
+
+We can now see the counterintuitive behavior of conditionals
+in the presence of control dependencies.
+There are programs such as
+\(
+  (\IF(\cLoc)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)
+\)
+with executions in which  $(\DW x1)$ is independent of $(\DR z1)$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{z}{1}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz1}
+\end{tikzpicture}\]
+while programs such as
+\(
+  (\IF(\cLoc)\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI)
+\)
+only have executions in which $(\DW x1)$ is dependent on $(\DR z1)$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{z}{1}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz1}
+  \nonevent{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz1}{wx1}
+  \po[out=30,in=150]{rz1}{wy2}
+\end{tikzpicture}\]
+These programs have executions with different dependency relations, depending only
+on conditional branches that were \emph{not} taken. In \citep{2019-sp},
+we showed that this has security implications, since relaxed
+memory can observe dependency.
+
