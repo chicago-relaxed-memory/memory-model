@@ -1,12 +1,18 @@
+% \usepackage{amsmath}
+% \renewcommand{\arraystretch}{1}
+% \renewcommand{\arraycolsep}{0pt}
+
 \newcommand{\TIKZ}[2][]{\left\{\,\begin{tikzpicture}[baselinecenter,node distance=1em,#1]#2\end{tikzpicture}\,\right\}}
 \newcommand{\fork}{\setminus_{\mathsf{S}}}
 
 \newcommand{\refapp}[1]{Appendix~\ref{app:#1}}
 \def\ttdefault{cmss}
+\usepackage[T1]{fontenc}
 
 \newenvironment{noenv}{\ignorespaces}{\ignorespacesafterend}
 \newcommand{\aCmd}{C}
 \newcommand{\bCmd}{D}
+\newcommand{\eCmd}{E}
 
 \newcommand{\ifnotempty}[2]{\ifx\relax#1\relax\else#2\fi}
 \newcommand{\ifnotemptyelse}[3]{\ifx\relax#1\relax#3\else#2\fi}
@@ -16,8 +22,8 @@
 \newcommand{\pair}[2]{\langle#1,\,#2\rangle}
 \newcommand{\freads}{\mathsf{reads}}
 \newcommand{\fwrites}{\mathsf{writes}}
-\newcommand{\rreads}{\mathsf{R}}
-\newcommand{\rwrites}{\mathsf{W}}
+\newcommand{\rreads}{\mathsf{Rd}}
+\newcommand{\rwrites}{\mathsf{Wr}}
 
 \newcommand{\Sub}{\mathcal{S}}
 \newcommand{\aSub}{\sigma}
@@ -67,13 +73,14 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
-\newcommand{\DRAcq}[2]{\mathsf{Acq}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\DWRel}[2]{\mathsf{Rel}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DRAcq}[2]{\mathsf{R_A}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DWRel}[2]{\mathsf{W_R}\ifnotempty{#1}{\,#1\,#2}}
 % \newcommand{\DRAcq}[2]{\mathsf{R_{acq}}\ifnotempty{#1}{\,#1\,#2}}
 % \newcommand{\DWRel}[2]{\mathsf{W_{rel}}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DT}[1]{\mathsf{T}\ifnotempty{#1}{\,#1}}
+\newcommand{\DSB}{\mathsf{SB}}
 \newcommand{\DF}{\mathsf{F}}
 \newcommand{\DB}[1]{\mathsf{B}\ifnotempty{#1}{\,#1}}
 \newcommand{\DC}[1]{\mathsf{C}\ifnotempty{#1}{\,#1}}
@@ -110,7 +117,7 @@
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
 \newcommand{\REL}{\mathsf{rel}\,}
 \newcommand{\ACQ}{\mathsf{acq}\,}
-%\newcommand{\FENCE}{\texttt{fence}}
+\newcommand{\FENCE}{\texttt{fence}}
 \newcommand{\BEGIN}{\texttt{begin}}
 \newcommand{\COMMIT}{\texttt{commit}}
 \newcommand{\RECOVERY}{\texttt{onabort}\,\{}
@@ -133,13 +140,14 @@
 \newcommand{\brELSE}{\,\}\\\texttt{else}\,\{\,}
 \newcommand{\brELIF}{\,\}\\\texttt{else}\,\texttt{if}\,}
 \newcommand{\FI}{\,\}}
-\newcommand{\PAR}{\,\mathbin{\llceil}\,}
+\newcommand{\PAR}{\,\mathbin{\|}\,}
 \newcommand{\VAR}{\texttt{var}\,}
 \newcommand{\TOUCHED}{\texttt{touched}\,}
 
 \newcommand{\CANREAD}{\texttt{canRead}}
 \newcommand{\SEC}{\texttt{SECRET}}
 \newcommand{\RETURN}{\texttt{return}\,}
+\newcommand{\BARRIER}{\texttt{barrier}}
 
 \newcommand{\EQ}{\,\texttt{=}\,}
 \newcommand{\NOTEQ}{\,\texttt{!=}\,}
@@ -147,7 +155,11 @@
 \newcommand{\GCC}{\texttt{gcc}}
 \newcommand{\CLANG}{\texttt{clang}}
 
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{makecell}
 \usepackage{tikz}
+\usetikzlibrary{shapes}
 \usetikzlibrary{shapes.misc}
 \usetikzlibrary{shapes.geometric}
 \usetikzlibrary{topaths}
@@ -166,6 +178,7 @@
 \tikzstyle{baselinecenter} = [baseline={([yshift=-.5ex]current bounding box.west)}]
 %\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
 \tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]
+\tikzstyle{cloudy} = [draw=black, fill=blue!10, cloud, aspect=2]
 \tikzstyle{final} = [draw=black, fill=blue!10, rectangle, rounded corners, double, minimum size=3ex]
 \tikzstyle{po} = [->]
 \tikzstyle{wk} = [->,dashed]
@@ -190,6 +203,7 @@
 \newcommand{\final}[3]{\node[final](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
+\newcommand{\cloud}[3]{\node[cloudy](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
 \newcommand{\rf}[3][]{\draw[rf,#1](#2)to(#3);}

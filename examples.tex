@@ -183,20 +183,20 @@ which is a contradiction.
 % after an acquire.  The second constraint ensures that thread-local reads do
 % not cross acquire fences.
 
-We can develop a simple model of release/acquire synchronization using the
-following actions: % we will use
-% releasing writes and acquiring reads:
-\begin{itemize}
-\item $(\DWRel{\aLoc}{\aVal})$, a release action that writes $\aVal$ to $\aLoc$, and
-\item $(\DRAcq{\aLoc}{\aVal})$, an acquire action that reads $\aVal$ from $\aLoc$.
-\end{itemize}
-The semantics of programs with releasing write and acquiring read are similar
-to regular write and read, with $\DWRel\aLoc\aVal$ replacing
-$\DW\aLoc\aVal$ and $\DRAcq\aLoc\aVal$ replacing $\DR\aLoc\aVal$:
-\begin{eqnarray*}
-  \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
-  \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
-\end{eqnarray*}
+% We can develop a simple model of release/acquire synchronization using the
+% following actions: % we will use
+% % releasing writes and acquiring reads:
+% \begin{itemize}
+% \item $(\DWRel{\aLoc}{\aVal})$, a release action that writes $\aVal$ to $\aLoc$, and
+% \item $(\DRAcq{\aLoc}{\aVal})$, an acquire action that reads $\aVal$ from $\aLoc$.
+% \end{itemize}
+% The semantics of programs with releasing write and acquiring read are similar
+% to regular write and read, with $\DWRel\aLoc\aVal$ replacing
+% $\DW\aLoc\aVal$ and $\DRAcq\aLoc\aVal$ replacing $\DR\aLoc\aVal$:
+% \begin{eqnarray*}
+%   \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+%   \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+% \end{eqnarray*}
 
 To see the need for the first constraint on prefixing, consider the program:
 \[
