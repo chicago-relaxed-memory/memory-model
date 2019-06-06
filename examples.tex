@@ -92,10 +92,10 @@ read from $(\DW{\aLoc}{1})$.
 In the final definition of reads-from in \S\ref{sec:pomsets} we
 ruled out $\aLoc$-blockers by requiring that any
 event $\cEv$ that writes to $\aLoc$ has
-either $\bEv \ltN \cEv$ or $\cEv \ltN \aEv$.
+either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
 With this definition, in order for $(\DR{\aLoc}{1})$ to read from
-$(\DW{\aLoc}{1})$, we either need $(\DW{\aLoc}{1}) \ltN (\DW{\aLoc}{2})$
-or $(\DW{\aLoc}{2}) \ltN (\DR{\aLoc}{1})$, for example:
+$(\DW{\aLoc}{1})$, we either need $(\DW{\aLoc}{2}) \gtN (\DW{\aLoc}{1})$
+or $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$, for example:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wx1}{\DW{\aLoc}{1}}{}
   \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
@@ -149,7 +149,7 @@ then putting this in parallel as before results in:
   \wk[out=30,in=150]{wz1}{wz2}
 \end{tikzpicture}\]
 but this is \emph{not} a valid 3-valued pomset,
-since $(\DW{\aLoc}{2}) < (\DR{\aLoc}{1})$ but also $(\DW{\aLoc}{2}) \ltN (\DR{\aLoc}{1})$,
+since $(\DW{\aLoc}{2}) < (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
 which is a contradiction.
 
 

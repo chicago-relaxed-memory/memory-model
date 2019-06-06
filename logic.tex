@@ -115,11 +115,11 @@ include environment assumptions.  Let
 be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
 closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
-  imply $\bEv\in\Event'$, and $(\labelling',\leq',\ltN')$ coincide with
-  $(\labelling,\leq,\ltN)$ for elements of $\Event'$.}.
+  imply $\bEv\in\Event'$, and $(\labelling',\leq',\gtN')$ coincide with
+  $(\labelling,\leq,\gtN)$ for elements of $\Event'$.}.
   % when $\aEv,\,\bEv\in\Event'$: $\labelling'(\aEv)=\labelling(\aEv)$,
-  % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\ltN'\bEv$ iff
-  % $\aEv\ltN\bEv$. 
+  % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\gtN'\bEv$ iff
+  % $\aEv\gtN\bEv$. 
 \begin{noenv}
   Define
   \begin{math}
@@ -129,8 +129,8 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
 \begin{proposition}%[Composition]
   Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
   augmentation-closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
- %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\ltN\bEv$
- %   implies $\aEv\ltN'\bEv$, and
+ %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
+ %   implies $\aEv\gtN'\bEv$, and
  %   % $\labelling'(\aEv)=\labelling(\aEv)$
  %   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
  %   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies

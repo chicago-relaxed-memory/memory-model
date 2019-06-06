@@ -1,0 +1,4319 @@
+%  13 pages of text and up to 5 pages for references and appendices, totalling no more than 18 pages
+
+\documentclass[conference]{IEEEtran}
+
+\usepackage[numbers]{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+% For a version without hyperlinks, use the [draft] option.
+\usepackage{hyperref}
+\newcommand{\email}[1]{\href{mailto:#1}{{\UrlFont #1}}}
+\usepackage{amsthm}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+% \usepackage{verbatim}
+% \makeatletter
+% \def\verbatim@font{\sffamily\upshape}
+% \makeatother
+
+\bibliographystyle{plainnat}
+\usepackage{macros}
+\newcommand{\ignore}[1]{}
+\newcommand{\todo}[1]{{\color{red}\textbf{\{#1\}}}}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\title{The Code That Never Ran:\\Modeling Attacks on Speculative Evaluation}
+
+\author{
+\IEEEauthorblockN{Craig Disselkoen}
+\IEEEauthorblockA{\textit{University of California San Diego}\\
+  \textit{Mozilla Research Internship}\\
+  \email{cdisselk@cs.ucsd.edu}}
+\and
+\IEEEauthorblockN{Radha Jagadeesan}
+\IEEEauthorblockA{\textit{DePaul University}\\
+  \email{rjagadeesan@cs.depaul.edu}}
+\and
+\IEEEauthorblockN{Alan Jeffrey}
+\IEEEauthorblockA{\textit{Mozilla Research}\\
+  \email{ajeffrey@mozilla.com}}
+\and
+\IEEEauthorblockN{James Riely}
+\IEEEauthorblockA{\textit{DePaul University}\\
+  \email{jriely@cs.depaul.edu}}
+}
+
+
+\maketitle
+
+\begin{abstract}
+  This paper studies information flow caused by speculation mechanisms
+  in hardware and software.  The Spectre attack shows that there are
+  practical information flow attacks which use an interaction of
+  dynamic security checks, speculative evaluation and cache timing.
+  Previous formal models of program execution are designed to capture
+  computer architecture, rather than micro-architecture, 
+  % have not been designed to model speculative evaluation,
+  and so do not capture attacks such
+  as Spectre.  In this paper, we propose a model based on pomsets which
+  is designed to model speculative evaluation.  
+  % The model provides a
+  % compositional semantics for a simple shared-memory concurrent
+  % language, which captures features such as data and control
+  % dependencies, relaxed memory and transactions.
+  The model is abstract with respect to specific micro-architectural
+  features, such as caches and pipelines, yet is powerful enough to express
+  known attacks such as Spectre and \textsc{Prime+Abort},
+  and verify their countermeasures.
+  The model also allows for
+  the prediction of new information flow attacks.  We derive two such
+  attacks, which exploit compiler optimizations, and validate these
+  experimentally against gcc and clang.
+  % We provide models for  
+  % existing information flow attacks based on speculative evaluation
+  % and transactions.  We also model new information flow attacks based on compiler
+  % optimizations, which are experimentally validated against
+  % gcc and clang.
+\end{abstract}
+
+\section{Introduction}
+
+This paper is about some of the lies we tell when we talk about programs.
+
+An example lie (or to be more formal, a ``leaky abstraction'') is the order
+of reads and writes in a program. We pretend that these happen in the
+order specified by the program text, for example
+we think of the program
+\(( \aLoc\GETS0 \SEMI \aLoc\GETS1 \SEMI \bLoc\GETS2 )\)
+as having three sequentially ordered write events:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{\aLoc}{0}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
+  \event{wy2}{\DW{\bLoc}{2}}{right=of wx1}
+  \po{wx0}{wx1}
+  \po{wx1}{wy2}
+\end{tikzpicture}\]
+However, due to optimizations in hardware or compilers, instructions
+may be reordered, resulting in executions where the accesses of
+$\aLoc$ and $\bLoc$ are independent, and the hardware
+or compiler is free to reorder them:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{\aLoc}{0}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
+  \event{wy2}{\DW{\bLoc}{2}}{right=of wx1}
+  \po{wx0}{wx1}
+\end{tikzpicture}\]
+Instruction reordering optimizations are not problematic as long
+as they are not visible to user code, that is if programs
+are sequentially consistent. Unfortunately, multi-threaded
+programs can often observe reorderings. For example
+running the above writing thread concurrently with
+an observing thread \((\IF(\bLoc)\THEN \cLoc\GETS\aLoc \FI)\)
+can result in a sequentially inconsistent execution
+(where we highlight the matching write for each read):
+\[\begin{tikzpicture}[node distance=1em]
+  \node(th1){Writing thread:};
+  \event{wx0}{\DW{\aLoc}{0}}{right=of th1}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
+  \event{wy2}{\DW{\bLoc}{2}}{right=of wx1}
+  \po{wx0}{wx1}
+  \node(th2)[below=2.5ex of th1]{Observing thread:};
+  \event{ry2}{\DR{\bLoc}{2}}{below=of wx0}
+  \event{rx0}{\DR{\aLoc}{0}}{below=of wx1}
+  \event{wz0}{\DW{\cLoc}{0}}{below=of wy2}
+  \po{ry2}{rx0}
+  \po{rx0}{wz0}
+  \rf{wx0}{rx0}
+  \rf[out=210,in=35]{wy2}{ry2}
+\end{tikzpicture}\]
+
+This leaky abstraction has resulted in a literature
+of \emph{relaxed memory models}~\cite{Manson:2005:JMM:1047659.1040336,SevcikThesis,Jagadeesan:2010:GOS:2175486.2175503,DBLP:journals/toplas/Lochbihler13,DBLP:conf/esop/BattyMNPS15,DBLP:conf/lics/JeffreyR16,Kang-promising-2017},
+which try to state precisely the memory guarantees
+a compiler is expected to provide, without requiring the use of
+expensive memory barriers to ensure sequential consistency.
+
+Relaxed memory is an example of how simple models can become
+complex. Instruction reordering was originally intended to be
+visible only to the microarchitecture or compiler,
+not to the architecture or user code.
+Reordering optimizations are so important to the performance
+of modern systems that hardware and programming language designers
+have now accepted the complexity of relaxed memory models as the price
+that has to be paid for acceptable performance.
+
+This paper looks at another leaky abstraction:
+\emph{speculative evaluation}. This is similar to reordering,
+in that it is an optimization that was intended to be visible only to the microarchitecture,
+but the arrival of Spectre~\cite{DBLP:journals/corr/abs-1801-01203}
+shows that not only is speculation visible, it has serious
+security implications.
+
+The simplest example of speculative evaluation
+is branch prediction. The expected observable behavior of
+a conditional such as
+\(( \IF(\aLoc) \THEN \bLoc\GETS1 \ELSE \cLoc\GETS1 \FI )\)
+is that just one branch will execute, for example:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx0}{\DR{\aLoc}{0}}{}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of rx0}
+  \po{rx0}{wz1}
+\end{tikzpicture}\]
+To improve instruction throughput, hardware will often evaluate
+branches speculatively, and roll back any failed speculations. For example,
+hardware might incorrectly speculate that $\aLoc$ is
+nonzero, speculatively execute a write to $\bLoc$,
+but then roll it back and execute a write to $\cLoc$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx0}{\DR{\aLoc}{0}}{}
+  \nonevent{nwy1}{\DW{\bLoc}{1}}{right=of rx0}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of nwy1}
+  \po{rx0}{nwy1}
+  \po[out=30,in=150]{rx0}{wz1}
+\end{tikzpicture}\]
+Speculation is intended only to be visible at the microarchitectural
+level, but as Spectre shows, this abstraction is leaky, and in a way
+that allows side-channel attacks to be mounted.
+
+Instruction reordering and speculative evaluation are similar leaky abstractions.
+Both were intended originally not to
+be visible to user code, but both abstractions have leaked.
+This opens some possible areas of investigation:
+\begin{itemize}
+
+\item \emph{Using ideas from relaxed memory for speculation}.  There is a
+  significant literature showing how to build models of relaxed memory, for
+  use in validating compilers, or proving correctness of programs.  Less
+  formally, they provide programmers with a way to visualize and communicate
+  the behavior of their systems.  Inspired by these models, we give a
+  compositional model of program execution that includes speculation
+  (\S\ref{sec:model} and \S\ref{sec:semantics}) and show how it can be used
+  to model known attacks (\S\ref{sec:examples}) on branch prediction
+  \cite{DBLP:journals/corr/abs-1801-01203} and transactional memory
+  \cite{ChongSW18,DBLP:conf/uss/DisselkoenKPT17}.
+
+\item \emph{Mounting attacks against speculation on relaxed memory}.
+  Spectre shows how a leaky abstraction allows for the construction of
+  side-channels which bypass dynamic security checks.
+  %% Since defenses
+  %% against buffer overflows are often dynamic checks, these attacks
+  %% allow all memory in a process to be read.
+  Inspired by these
+  attacks, we show how to mount information flow attacks against
+  compiler optimizations, both against the model (\S\ref{sec:compiler})
+  and against existing compilers (\S\ref{sec:experiments}).
+  Fortunately, we were only able to mount the attacks against
+  ahead-of-time compilers (where optimizations require secrets
+  to be known at compile-time) and not just-in-time compilers
+  (which can optimize based on run-time secrets).
+  With the addition of shared-memory concurrency
+  to JavaScript~\cite[\S24.2]{ecma-262}, the attacks described in this paper might
+  become feasible.
+  %% We hope that compiler designers become as
+  %% aware of information flow attacks against optimizations as their
+  %% hardware designing colleagues.
+
+\end{itemize}
+Readers who wish to focus on the impact of the model can skip to \S\ref{sec:examples}
+on first reading, referring to prior sections as needed.
+
+\paragraph*{Acknowledgments}
+
+We would like to thank the anonymous referees,
+and the paper shepherd Frank Piessens, whose
+comments helped greatly improve this paper.
+Jagadeesan and Riely are supported by National Science Foundation CCR-1617175.
+
+\section{Related work}
+
+Information flow provides a formal
+foundation for end-to-end security.  Informally, a program is secure
+if there is no observable dependency of low-security outputs on high-security inputs.
+The precise formalization of this intuitive idea has been the topic of
+extensive research \cite{Sabelfeld:2006:LIS:2312191.2314769}, encompassing a variety of language
+features such as non-determinism~\cite{Wittbold1990InformationFI},
+concurrency~\cite{Smith:1998:SIF:268946.268975}, reactivity~\cite{O'Neill:2006:ISI:1155442.1155677}, and
+probability~\cite{Gray:1992:TMF:2699806.2699811}. The static and dynamic enforcement
+of these definitions in general purpose languages~\cite{myers-popl99} has % also
+% been studied extensively and has
+influenced language design and implementation.
+
+A key parameter in defining information flow is the \emph{observational power} of the attacker model. Whereas the classical
+input-output behavior is often an adequate foundation,
+it has long been known~\cite{Lampson:1973:NCP:362375.362389,Biswas:2017:STC:3058791.3023872} that side-channels that leak
+information arise from other observables such as execution time and
+power consumption.
+Recently, the Spectre family of attacks~\cite{DBLP:journals/corr/abs-1801-01203} has
+shown that branch prediction, in conjunction with cache-timing side-channels,
+allows adversaries to bypass dynamic security checks.
+
+\citet{Chien:2018} argues that Spectre-like attacks ``extend the functional
+specification of the architecture to include its detailed performance'' and
+thus ``making strong assurances of application security on a computing system
+requires detailed performance information.''
+This approach has been pursued in the information flow literature, by
+enriching language semantics with observables such as execution time and  power consumption
+\cite{Zhang:2012:LCM:2345156.2254078,hyperflow}.   This approach
+has also been pursued to develop model-checking techniques for Spectre-like
+attacks \cite{DBLP:conf/micro/TrippelLM18}.  Like our work,
+\cite{DBLP:conf/micro/TrippelLM18} recognizes the role played by adapting
+techniques from relaxed memory.
+
+In this paper, we adopt the opposite approach, attempting to understand
+Spectre-like attacks as \emph{abstractly} as possible and thus to reveal the
+``essence'' of Spectre.  We develop a novel model of speculative
+evaluation and show that it is sufficient to both capture known attacks and
+predict new attacks.  Our model is defined at the \emph{language} level,
+rather than the hardware level; thus, we do not model micro-architectural
+details such as caches or timing.
+
+Relaxed memory models
+\cite{SparcV9,Manson:2005:JMM:1047659.1040336,Boehm:2008:FCC:1375581.1375591,DBLP:conf/popl/ZhaoNMZ12,
+  Jagadeesan:2010:GOS:2175486.2175503,Kang-promising-2017} allow
+speculative execution to varying degrees. Relaxed execution is known to
+affect the validity of information flow analyses
+\cite{6957104,Vaughan:2012:SIF}.
+In these models, a valid execution is defined
+with reference to other possible executions of the program. These
+models are not, however, designed for modeling Spectre-style attacks
+on speculation. For example all of these models will consider the
+straight-line code:
+\[
+  r\GETS x\SEMI s\GETS\SEC \SEMI
+  a[r]\GETS 1
+\]
+to be the same as the conditional code:
+\[\begin{array}{ll}
+  r\GETS x\SEMI s\GETS\SEC \SEMI \\[\jot]
+  \IF(r\EQ s) \THEN a[s]\GETS 1 \ELSE a[r]\GETS 1 \FI
+\end{array}\]
+and indeed an optimizing compiler might choose to rewrite
+either of these programs to be the other.
+
+An attacker can mount a Spectre-style attack on the
+conditional code, for example by setting $x$ to be~$0$,
+flushing the cache,
+executing the program, then using timing effects to
+determine if $a[1]$ is in the cache. If it is, then $\SEC$
+must have been~$1$. This attack is not possible against
+the straight-line code, and so any model trying to
+capture Spectre must distinguish them.
+
+Most definitions of non-interference will say that in both
+programs, there is no observable dependency of the low-security
+outputs ($a$) on the high-security inputs ($\SEC$) and so both programs
+are safe.
+  The only existing models of
+non-interference which capture this information flow are ones such
+as~\cite{Zhang:2012:LCM:2345156.2254078} which model
+micro-architectural features such as caching and timing.
+
+In our model, the straight-line and conditional programs are not equated, since the conditional code has the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx0}{\DR{\aLoc}{0}}{}
+  \event{rs1}{\DR{\SEC}{1}}{below=of rx0}
+  \event{wa01}{\DW{a[0]}{1}}{right=3em of rx0}
+  \nonevent{wa11}{\DW{a[1]}{1}}{below=of wa01}
+  \po{rx0}{wa01}
+  \po{rs1}{wa01}
+  \po{rx0}{wa11}
+  \po{rs1}{wa11}
+\end{tikzpicture}\]
+which is not matched in the straight-line code.
+Indeed, from an information-flow perspective,
+this refined treatment of dependencies in conditionals identifies a novel
+distinguishing feature of our model, namely that the traditional conditional
+is a self-composition operator in the sense
+of~\cite{Barthe:2004:SIF:1009380.1009669}.
+
+Static analyses such as the Smith-Volpano type
+system~\cite{Smith:1998:SIF:268946.268975} will reject the conditional
+program, due to $a[s]\GETS 1$, in which a low-security assignment depends on
+a high-security variable.  We show how to circumvent such analyses in
+\S\ref{sec:spectre}.
+
+\section{UNUSED: Old intro}
+Information flow provides a formal
+foundation for end-to-end security.  Informally, a program is secure
+if there is no observable dependency of low-security outputs on high-security inputs.
+The precise formalization of this intuitive idea has been the topic of
+extensive research \cite{Sabelfeld:2006:LIS:2312191.2314769}, encompassing a variety of language
+features such as non-determinism~\cite{Wittbold1990InformationFI},
+concurrency~\cite{Smith:1998:SIF:268946.268975}, reactivity~\cite{O'Neill:2006:ISI:1155442.1155677}, and
+probability~\cite{Gray:1992:TMF:2699806.2699811}. The static and dynamic enforcement
+of these definitions in general purpose languages~\cite{myers-popl99} has % also
+% been studied extensively and has
+influenced language design and implementation.
+
+A key parameter in defining information flow is the \emph{observational power} of the attacker model. Whereas the classical
+input-output behavior is often an adequate foundation,
+it has long been known~\cite{Lampson:1973:NCP:362375.362389,Biswas:2017:STC:3058791.3023872} that side-channels that leak
+information arise from other observables such as execution time and
+power consumption.
+Recently, the Spectre family of attacks~\cite{DBLP:journals/corr/abs-1801-01203} has
+shown that branch prediction, in conjunction with cache-timing side-channels,
+allows adversaries to bypass dynamic security checks.
+
+\citet{Chien:2018} argues that Spectre-like attacks ``extend the functional
+specification of the architecture to include its detailed performance'' and
+thus ``making strong assurances of application security on a computing system
+requires detailed performance information.''
+This approach has been pursued in the information flow literature, by
+enriching language semantics with observables such as execution time and  power consumption
+\cite{Zhang:2012:LCM:2345156.2254078,hyperflow}.
+
+In this paper, we adopt the opposite approach, attempting to understand
+Spectre-like attacks as \emph{abstractly} as possible and thus to reveal the
+``essence'' of Spectre.  We develop a novel model of \emph{speculative
+  evaluation} and show that it is sufficient to both capture known attacks and
+predict new attacks.  Our model is defined at the \emph{language} level,
+rather than the hardware level; thus, we do not model micro-architectural
+details such as caches or timing, as in
+\cite{Zhang:2012:LCM:2345156.2254078,hyperflow}.
+% We try to give as
+% simple a model as possible, while still capturing shared-memory concurrency
+% and speculation.
+
+
+There are several sources of speculative evaluation in modern computer
+systems, intended to improve performance without affecting the observable
+behavior of the program: Failed speculations are meant to be
+undetectable. Yet, Spectre-like attacks show that failed speculations are not
+always undetectable.  Our model provides a unifying mechanism to understand
+these sources of speculation.  Because failed speculations are part of the
+model, it is easily enriched with operators to detect operations that occur
+in failed speculations.
+% In the spirit of \citet{Chien:2018}, our model ``extends the functional
+% specification of the programming language to include its detailed performance''.
+% so that failed speculation does not affect the input-output behavior
+% of the program, but may affect other observable behavior, opening an opportunity
+% for side-channels:
+\begin{itemize}
+\item Relaxed memory models
+  \cite{SparcV9,Manson:2005:JMM:1047659.1040336,Boehm:2008:FCC:1375581.1375591,DBLP:conf/popl/ZhaoNMZ12}
+  allow speculative execution to varying degrees. Relaxed execution
+  is known to affect the validity of information flow analyses
+  \cite{6957104,Vaughan:2012:SIF}.  More troubling, relaxed memory models
+  allow for the observation of control and data dependencies. This creates an
+  opportunity for information flows caused by optimizing compilers, whose
+  behavior is driven by dependency analysis.  Our basic model captures this
+  dependency analysis.
+  %% For example,
+  %% $(\IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)$ can be optimized to
+  %% $(\aLoc\GETS1)$, whereas  %% $(\IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI)$ cannot be so
+  %% optimized.
+\item Pipelined micro-architectures use \emph{branch prediction}
+  to speculatively execute the result of
+  a conditional jump or indirect jump instruction.
+  Spectre \cite{DBLP:journals/corr/abs-1801-01203} exploits
+  cache timing to detect the operations performed in a mispredicted branch
+  before being flushed from the pipeline.  We capture Spectre by enriching
+  our language with a single operation that allows one to test whether a
+  location has been touched. %, even in a failed speculation.
+  %% This means,
+  %% for example, that a single execution of
+  %% $(\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI)$ may depend on both $\aCmd$ and
+  %% $\bCmd$.  This differs from the standard semantics of the conditional, in
+  %% which executions of $\aCmd$ and $\bCmd$ are disjoint.
+\item Some microprocessors support transactional
+  memory~\cite{ChongSW18}, where aborted transactions are meant to be
+  unobservable.  \textsc{Prime+Abort}
+  \cite{DBLP:conf/uss/DisselkoenKPT17} uses cache timing to detect the
+  operations performed in an aborted transaction.  We capture \textsc{Prime+Abort} by enriching
+  our language with transactions that abort when a location used by the
+  transaction is touched outside the transaction.
+\end{itemize}
+
+%% This line of research was initiated by~\citet{Zhang:2012:LCM:2345156.2254078}.
+%% Whereas they explore static annotations to address side channels in the context of hardware description languages, we explore a model of programs
+%% that captures enough detail to reveal and analyze the presence of side
+%% channels revealed by speculative execution.
+%
+
+Our model is based on \emph{partially ordered multisets}~\cite{GISCHER1988199,Plotkin:1997:TSP:266557.266600}
+(``pomsets''), whose labels are given by read and write actions. These can be
+visualized as a graph where the edges indicate dependencies, for example
+$(\aReg\GETS\aLoc\SEMI \bLoc\GETS1\SEMI \cLoc\GETS\aReg+1)$
+has an execution modeled by the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
+  \event{wz2}{\DW{\cLoc}{2}}{right=of wy1}
+  \po[out=25,in=155]{rx1}{wz2}
+\end{tikzpicture}\]
+The edge from $(\DR{\aLoc}{1})$ to $(\DW{\cLoc}{2})$ indicates a
+data dependency. Since there is no dependency between
+$(\DW{\bLoc}{1})$ and $(\DW{\cLoc}{2})$, the write actions may
+take place in either order.  Such reorderings may arise in
+hardware (for example, caching) or in the compiler (for example,
+instruction reordering).
+
+The novel aspect of the model is that events have
+\emph{preconditions} which may be false. These are used in giving the
+semantics of conditionals and transactions, modeling failed branch
+prediction and aborted transactions. For example the program
+$(\IF(\aLoc)\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
+has an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
+  \nonevent{wy2}{\DW{\bLoc}{2}}{below=of wy1}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of wy1}
+  \po{rx1}{wy1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+The edges from $(\DR{\aLoc}{1})$ to $(\DW{\bLoc}{1})$ and
+$(\DW{\bLoc}{2})$ indicate control dependencies. The presence of
+a crossed out $(\DW{\bLoc}{2})$ indicates an event with an unsatisfiable precondition,
+modeling an unsuccessful speculation.
+Since the $(\DW{\cLoc}{1})$ action is performed on both branches of the conditional,
+there is no control dependency from $(\DR{\aLoc}{1})$.  Indeed, from an information-flow perspective,
+this refined treatment of dependencies in conditionals identifies a novel distinguishing feature of our model, namely that the traditional conditional is a self-composition operator in the sense of~\cite{Barthe:2004:SIF:1009380.1009669}.
+
+There do exist models of programs which include speculation, notably
+the Java Memory Model~\cite{Manson:2005:JMM:1047659.1040336}, and the
+generative~\cite{Jagadeesan:2010:GOS:2175486.2175503} and
+promising~\cite{Kang-promising-2017} operational semantics for
+relaxed memory.  In all of these models a valid execution is defined
+with reference to other possible executions of the program. These
+models are not, however, designed for modeling Spectre-style attacks
+on speculation. For example all of these models will consider the
+straight-line code:
+\[
+  r\GETS x\SEMI s\GETS\SEC \SEMI
+  a[r]\GETS 1
+\]
+to be the same as the conditional code:
+\[\begin{array}{ll}
+  r\GETS x\SEMI s\GETS\SEC \SEMI \\[\jot]
+  \IF(r\EQ s) \THEN a[s]\GETS 1 \ELSE a[r]\GETS 1 \FI
+\end{array}\]
+and indeed an optimizing compiler might choose to rewrite
+either of these programs to be the other.
+
+An attacker can mount a Spectre-style attack on the
+conditional code, for example by setting $x$ to be~$0$,
+flushing the cache,
+executing the program, then using timing effects to
+determine if $a[1]$ is in the cache. If it is, then $\SEC$
+must have been~$1$. This attack is not possible against
+the straight-line code, and so any model trying to
+capture Spectre must distinguish them.
+
+Most definitions of non-interference will say that in both
+programs, there is no observable dependency of the low-security
+outputs ($a$) on the high-security inputs ($\SEC$) and so both programs
+are safe.
+  The only existing models of
+non-interference which capture this information flow are ones such
+as~\cite{Zhang:2012:LCM:2345156.2254078} which model
+micro-architectural features such as caching and timing.
+
+In our model, the straight-line and conditional programs are not equated, since the conditional code has the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx0}{\DR{\aLoc}{0}}{}
+  \event{rs1}{\DR{\SEC}{1}}{below=of rx0}
+  \event{wa01}{\DW{a[0]}{1}}{right=3em of rx0}
+  \nonevent{wa11}{\DW{a[1]}{1}}{below=of wa01}
+  \po{rx0}{wa01}
+  \po{rs1}{wa01}
+  \po{rx0}{wa11}
+  \po{rs1}{wa11}
+\end{tikzpicture}\]
+which is not matched in the straight-line code.
+
+Static analyses such as the Smith-Volpano type
+system~\cite{Smith:1998:SIF:268946.268975} will reject the conditional
+program, due to $a[s]\GETS 1$, in which a low-security assignment depends on
+a high-security variable.  We show how to circumvent such analyses in
+\S\ref{sec:spectre}.
+
+
+The model in this paper leads to new attacks on optimizing
+compilers~(\S\ref{sec:info-flow-attack} and~\S\ref{sec:dse}) which
+were discovered as a consequence of building the model. A natural
+question is whether these attacks are an artifact of the model, or if
+they can be mounted in practice? We mounted the attacks on gcc and
+clang, where they succeeded in leaking a $\SEC$ as long as the secret
+was a constant known at compile time. By itself this is not too
+worrying, since secrets are not normally static constants. If the same
+attacks could be mounted against Just-In-Time~(JIT) compilers, this
+is potentially significant, as secrets are often known at JIT-compile
+time.
+
+Fortunately, our attempts to mount the attacks against SpiderMonkey,
+V8 and HotSpot did not succeed. We speculate that this is because
+JIT compilers do not perform as aggressive optimizations as
+ahead-of-time compilers, and not because of mitigations against
+information flows. With the addition of shared-memory concurrency
+to JavaScript~\cite[\S24.2]{ecma-262}, the attacks described in this paper might
+become feasible. We hope that compiler designers become as
+aware of information flow attacks against optimizations as their
+hardware designing colleagues.
+
+The novel contributions of this paper are:
+\begin{itemize}
+
+\item a compositional model of program execution that includes speculation
+  (\S\ref{sec:model} and \S\ref{sec:semantics}),
+
+\item examples showing how the model can be applied,
+  including existing information flow attacks on
+  hardware and transactional memory, and new attacks on optimizing compilers (\S\ref{sec:examples}), and
+
+\item experimental evidence about how practical it is to mount
+  the new class of attacks (\S\ref{sec:experiments}).
+
+\end{itemize}
+Readers who wish to focus on the impact of the model can skip to \S\ref{sec:examples}
+on first reading, referring to prior sections as needed.
+
+
+\section{Model}
+\label{sec:model}
+
+Our model is based on \emph{partially ordered multisets}~\cite{GISCHER1988199,Plotkin:1997:TSP:266557.266600}
+(``pomsets''), whose labels are given by read and write actions. These can be
+visualized as a graph where the edges indicate dependencies, for example
+$(\aReg\GETS\aLoc\SEMI \bLoc\GETS1\SEMI \cLoc\GETS\aReg+1)$
+has an execution modeled by the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
+  \event{wz2}{\DW{\cLoc}{2}}{right=of wy1}
+  \po[out=25,in=155]{rx1}{wz2}
+\end{tikzpicture}\]
+The edge from $(\DR{\aLoc}{1})$ to $(\DW{\cLoc}{2})$ indicates a
+data dependency. Since there is no dependency between
+$(\DW{\bLoc}{1})$ and $(\DW{\cLoc}{2})$, the write actions may
+take place in either order.  Such reorderings may arise in
+hardware (for example, caching) or in the compiler (for example,
+instruction reordering).
+
+The novel aspect of the model is that events have
+\emph{preconditions}, which give the thread-local view of memory. These are used in giving the
+semantics of conditionals and transactions, modeling failed branch
+prediction and aborted transactions. For example the program
+$(\IF(\aLoc)\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
+has an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
+  \nonevent{wy2}{\DW{\bLoc}{2}}{below=of wy1}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of wy1}
+  \po{rx1}{wy1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+The edges from $(\DR{\aLoc}{1})$ to $(\DW{\bLoc}{1})$ and
+$(\DW{\bLoc}{2})$ indicate control dependencies. The presence of
+a crossed out $(\DW{\bLoc}{2})$ indicates an event with an unsatisfiable precondition,
+modeling an unsuccessful speculation.
+Since the $(\DW{\cLoc}{1})$ action is performed on both branches of the conditional,
+there is no control dependency from $(\DR{\aLoc}{1})$.  
+
+We give the semantics of a program as a set of pomsets with event labels of the form
+$(\aForm \mid \aAct)$, where $\aForm$ is the event's precondition
+(such as $\aExp=\aVal$) and $\aAct$ is the event's action (such as $\DW\aLoc\aVal$).
+For example the semantics of the program $(\aLoc\GETS\aExp)$ includes the case
+where $\aExp$ is $\aVal$, which is written to $\aLoc$, and is captured
+by the one-event pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wxv}{\aExp=\aVal \mid \DW{\aLoc}{\aVal}}{}
+\end{tikzpicture}\]
+We make few requirements of the logic of preconditions, save that it
+includes equalities between expressions, is closed under substitution,
+and supports a notion of implication.
+
+% For example, the set of pomsets $\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1}$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{ry1}{\DR{\bLoc}{1}}{}
+%   \event{wx2}{\DW{\aLoc}{2}}{right=of ry1}
+%   \po{ry1}{wx2}
+% \end{tikzpicture}\]
+The semantics is defined compositionally. As an example, we show how to 
+construct one of the pomsets in
+$\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1}$.
+First, $\sem{\aLoc\GETS\aReg+1}$
+contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx2}{\aReg=1 \mid \DW{\aLoc}{2}}{}
+\end{tikzpicture}\]
+Next, we perform the substitution of $\aReg$ with $1$ in every precondition,
+to get that $\sem{\aLoc\GETS\aReg+1}[1/\aReg]$
+contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx2}{1=1 \mid \DW{\aLoc}{2}}{}
+\end{tikzpicture}\]
+and since $(1=1)$ is a tautology, we elide it:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx2}{\DW{\aLoc}{2}}{}
+\end{tikzpicture}\]
+This substitution is performed in defining
+$\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1}$, which contains
+the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of ry1}
+  \po{ry1}{wx2}
+\end{tikzpicture}\]
+There is an ordering $(\DR{\bLoc}{1}) < (\DW{\aLoc}{2})$ (represented pictorially as an arrow)
+because the precondition $(\aReg=1)$ depends on $\aReg$. If the precondition
+was independent of $\aReg$ then there would be no ordering, for example
+$\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1-\aReg}$ contains
+the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of ry1}
+\end{tikzpicture}\]
+since the precondition $(\aReg+1-\aReg=1)$ is independent of $\aReg$.
+
+The main novelty of our semantics is the use of preconditions, which allow us
+to provide an unusual model of conditionals. In most
+models, an execution of
+$\sem{\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI}$ would either be
+given by an execution from $\sem{\aCmd}$ or from $\sem{\bCmd}$, but not both.
+In our semantics, a pomset
+in $\sem{\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI}$ may include
+both a pomset from $\sem{\aCmd}$ \emph{and} a pomset from $\sem{\bCmd}$.
+For example, $\sem{\IF(\aExp)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
+  \event{wx2}{\aExp=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+\end{tikzpicture}\]
+that is we have behavior from both branches of execution.
+
+Moreover, two events representing the same action on both sides of a
+conditional can be merged, producing a single event.
+The precondition of the merged event is the disjunction of the preconditions
+of the original events.
+For example
+$\sem{\IF(\aExp)\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
+  \event{wx2}{\aExp=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{(\aExp\neq0) \lor (\aExp=0) \mid \DW{\bLoc}{3}}{below=3ex of $(wx1)!0.5!(wx2)$}
+\end{tikzpicture}\]
+and since $(\aExp\neq0) \lor (\aExp=0)$ is a tautology, this is:
+\[\begin{tikzpicture}[node distance=1em]1
+  \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
+  \event{wx2}{\aExp=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{\DW{\bLoc}{3}}{right=of wx2}
+\end{tikzpicture}\]
+
+Combining this model of conditionals with the previously discussed model of memory using substitutions
+gives that
+$\sem{\IF(\cLoc)\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{\cLoc}{1}}{}
+  \event{wx1}{1\neq0 \mid \DW{\aLoc}{1}}{right=of rz1}
+  \event{wx2}{1=0    \mid \DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{\DW{\bLoc}{3}}{right=of wx2}
+  \po{rz1}{wx1}
+  \po[out=25,in=155]{rz1}{wx2}
+\end{tikzpicture}\]
+and we visualize unsatisfiable preconditions as crossed out:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{\cLoc}{1}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of rz1}
+  \nonevent{wx2}{\DW{\aLoc}{2}}{right=of wx1}
+  \event{wy3}{\DW{\bLoc}{3}}{right=of wx2}
+  \po{rz1}{wx1}
+  \po[out=25,in=155]{rz1}{wx2}
+\end{tikzpicture}\]
+Note that this semantics captures control dependencies
+such as $(\DR\cLoc1)<(\DW\aLoc1)$, independencies
+such as $(\DR\cLoc1)\not<(\DW\bLoc3)$, and failed
+speculations such as the crossed out $(\DW\aLoc2)$.
+
+In summary, the features we need of the underlying data model are:
+\begin{itemize}
+\item \emph{actions}, which may read or write memory locations, and
+\item \emph{preconditions}, which are closed under substitution.
+\end{itemize}
+In rest of this section we make data models precise %in~\S\ref{sec:preliminaries},
+and define pomsets.  In the next section we give the semantics of a simple
+imperative language as sets of pomsets.
+% in \S\ref{sec:pomsets}.
+% In \refapp{sets-of-pomsets}, we define
+% operations on sets of pomsets, which are used in~\S\ref{sec:semantics}
+% to give a compositional semantics for
+% a simple imperative language.
+
+\subsection{Data models}
+\label{sec:preliminaries}
+
+A \emph{data model} consists of:
+\begin{itemize}
+\item a set of \emph{memory locations} $\Loc$, ranged over by
+  $\aLoc$ and $\bLoc$,
+\item a set of \emph{registers} $\Reg$, ranged over by
+  $\aReg$ and $\bReg$,
+\item a set of \emph{values} $\Val$, ranged over by
+  $\aVal$ and $\bVal$,
+\item a set of \emph{expressions} $\Exp$, ranged over by
+  $\aExp$ and $\bExp$,
+\item a set of \emph{logical formulae} $\Formulae$, ranged over by
+  $\aForm$ and $\bForm$, and
+\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$,
+\end{itemize}
+such that:
+\begin{itemize}
+\item values include at least the constants $0$ and $1$,
+\item expressions include at least registers and values,
+\item expressions are closed under substitutions of the form $\aExp[\bExp/\aReg]$,
+\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$ and $(\aLoc=\bExp)$,
+\item formulae are closed under negation, conjunction, disjunction,
+\item formulae are closed under substitutions of the form $\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$,
+\item there is a relation $\vDash$ between formulae, and
+\item there are partial functions $\rreads$ and $\rwrites: \Act \fun (\Loc \times \Val)$.
+\end{itemize}
+We shall say $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
+$\rreads(\aAct) = (\aLoc,\aVal)$, and
+$\aAct$ \emph{writes} $\aVal$ \emph{to} $\aLoc$ whenever
+$\rwrites(\aAct) = (\aLoc,\aVal)$.
+We shall say $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
+$\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$,
+$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$, and
+$\aForm$ is \emph{independent of $\aLoc$} whenever $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
+In examples, the actions are of the form $(\DR{\aLoc}{\aVal})$, which reads $\aVal$ from $\aLoc$,
+and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
+
+\subsection{3-valued pomsets}
+\label{sec:pomsets}
+
+Recall the definition of a pomset from~\cite{GISCHER1988199}:
+\begin{definition}
+  A \emph{pomset} $(\Event, {\le}, \labelling)$ with alphabet $\Alphabet$
+  is a partial order $(\Event, {\le})$ together with
+  $\labelling: \Event \fun \Alphabet$.
+\end{definition}
+Going forward, we fix the alphabet $\Alphabet=(\Formulae\times\Act)$.
+We will write $(\aForm \mid \aAct)$ for the pair $(\aForm,\aAct)$,
+elide $\aForm$ when $\aForm$ is a tautology, and write $\aAct$ crossed-out ($\NEVER\aAct$)
+when $\aForm$ is unsatisfiable.
+We lift terminology from logical formulae and actions to events,
+for example if $\labelling(\aEv)=(\aForm\mid\aAct)$
+then we say
+$\aEv$ is unsatisfiable whenever $\aForm$ is unsatisfiable,
+$\aEv$ writes $\aVal$ to $\aLoc$ whenever $\aAct$ writes $\aVal$ to $\aLoc$, and
+so forth.
+We visualize a pomset as a graph where the nodes are drawn from
+$\Event$, each node $\aEv$ is labeled with $\labelling(\aEv)$,
+and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
+$\bEv\le\aEv$. For example:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \nonevent{wy0}{\DW{\bLoc}{0}}{right=of rx1}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \po{rx1}{wy0}
+  \po[out=30,in=150]{rx1}{wy1}
+\end{tikzpicture}\]
+is a visualization of the pomset where:
+\[\begin{array}{c}
+  E = \{ 0,1,2 \} \quad
+  0 \le 1 \quad
+  0 \le 2 \quad
+  \labelling(0) = (\TRUE, \DR{\aLoc}{1}) \\
+  \labelling(1) = (\FALSE, \DW{\bLoc}{0}) \quad
+  \labelling(2) = (\TRUE, \DW{\bLoc}{1}) \quad
+\end{array}\]
+
+We are building a compositional semantics of shared memory
+concurrency, which means we require a notion of when
+a read has a matching write. This is a property we require
+of closed programs, but \emph{not} of open programs.
+For example a program whose semantics includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{\aLoc}{1}}{}
+  \event{rx0}{\DR{\aLoc}{0}}{right=2.5em of wx1}
+  \event{wy0}{\DW{\bLoc}{0}}{right=of rx0}
+  \nonevent{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \po{rx0}{wy0}
+  \po[out=30,in=150]{rx0}{wy1}
+\end{tikzpicture}\]
+may be put in parallel
+with another program which writes $0$ to $\aLoc$.
+If the program is closed with respect to $\aLoc$ though, such an execution cannot exist,
+so we need each read of $\aLoc$ to have a matching write.
+This is captured by defining when $\aEv$ \emph{reads $\aLoc$ from} $\bEv$~\cite{alglave}.
+A preliminary definition (which, as we shall see, needs to be strengthened) is:
+\begin{itemize}
+\item $\bEv < \aEv$,
+\item $\aEv$ implies $\bEv$,
+\item $\bEv$ writes $\aVal$ to $\aLoc$,
+  and $\aEv$ reads $\aVal$ from $\aLoc$, and
+\item there is no $\bEv < \cEv < \aEv$ such that
+  $\cEv$ writes to $\aLoc$.
+\end{itemize}
+% In diagrams, for readability we often highlight the reads-from edges,
+% for example:
+%% We visualize rf-pomsets by drawing a dashed edge between nodes in $\RF$,
+%% labelled with the memory location,
+%% for example:
+%% \[\begin{tikzpicture}[node distance=1em]
+%%   \event{wx1}{\DW{\aLoc}{1}}{}
+%%   \event{x1}{\DR{\aLoc}{1}}{right=5em of wx1}
+%%   \nonevent{y0}{\DW{\bLoc}{0}}{below left=of x1}
+%%   \event{y1}{\DW{\bLoc}{1}}{below right=of x1}
+%%   \rfx{wx1}{x}{x1}
+%%   \po{x1}{y0}
+%%   \po{x1}{y1}
+%% \end{tikzpicture}\]
+%% In most cases, the memory location is obvious from context,
+%% so we elide it:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx1}{\DW{\aLoc}{1}}{}
+%   \event{x1}{\DR{\aLoc}{1}}{right=2.5em of wx1}
+%   \nonevent{y0}{\DW{\bLoc}{0}}{right=of x1}
+%   \event{y1}{\DW{\bLoc}{1}}{right=of y0}
+%   \rf{wx1}{x1}
+%   \po{x1}{y0}
+%   \po[out=30,in=150]{x1}{y1}
+% \end{tikzpicture}\]
+Unfortunately by itself, this is not enough. The problem is the final
+clause saying that there does not exist an $\aLoc$-\emph{blocking}
+event $\cEv$ between $\bEv$ and $\aEv$. Unfortunately, concurrency can
+turn events that were not $\aLoc$-blockers into an $\aLoc$-blocker,
+\emph{even if the new thread does not mention $\aLoc$.}
+We give an example to show this in \refapp{blockers}.
+This is a problem in that it means the preliminary model violates
+\emph{scope extrusion}~\cite{Milner:1999:CMS:329902},
+in that we can find programs $\aCmd$ and $\bCmd$ such that
+$\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is not the same as
+$\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
+
+There are a number of ways this can be addressed; for example,
+in models such as~\cite{Batty:2011:MCC:1926385.1926394} the reads-from relation is taken
+as a primitive. In this paper, we propose \emph{3-valued pomsets}
+as a solution. These are pomsets in which, in addition to positive statements
+$(\bEv < \aEv)$ (interpreted as $\aEv$ depends on $\bEv$),
+we also have negative statements $(\aEv \gtN \bEv)$
+(interpreted as $\aEv$ cannot depend on $\bEv$).
+
+\begin{definition}
+  A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labelling)$ 
+  is a \emph{pomset} $(\Event, {\le}, \labelling)$
+  together with ${\gtN} \subseteq (\Event\times\Event)$ such that:
+  \begin{itemize}
+  \item if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
+  \item if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
+  \item if $\cEv \ge \aEv \gtN \bEv$ or $\bEv \gtN \cEv \ge \aEv$ then $\aEv \gtN \cEv$.
+  \end{itemize}
+\end{definition}
+
+% \begin{definition}
+%   A \emph{3-valued poset} $(\Event,{\le},{\gtN})$ is a poset $(\Event,{\le})$
+%   together with ${\gtN} \subseteq (\Event\times\Event)$ such that:
+%   \begin{itemize}
+%   \item if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
+%   \item if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
+%   \item if $\cEv \ge \aEv \gtN \bEv$ or $\bEv \gtN \cEv \ge \aEv$ then $\aEv \gtN \cEv$.
+%   \end{itemize}
+% \end{definition}
+
+% \begin{definition}
+%   A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labelling)$
+%   is a 3-valued poset $(\Event, {\le}, {\gtN})$ and
+%   a pomset $(\Event, {\le}, \labelling)$.
+% \end{definition}
+
+Structures similar to 3-valued pomsets have come up in many guises, for example
+rough sets~\cite{Pawlak1982} or ultrametrics over
+$\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
+\emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
+They are the notion of pomset given by interpreting
+$\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
+
+In diagrams, we visualize $(\bEv \gtN \aEv)$ as a dashed
+arrow from $\bEv$ to $\aEv$ (note the change of direction).
+We refer to edges introduced by $(\bEv < \aEv)$ as
+\emph{strong edges} and by $(\bEv \gtN \aEv)$
+as \emph{weak edges}.
+For readability, we often highlight the reads-from edges as well.
+% for example:
+For example one execution of
+\(
+  (\aLoc\GETS0\SEMI\aLoc\GETS1) \PAR (\aLoc\GETS\aLoc+1)
+\)
+is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{\aLoc}{0}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
+  \event{rx1}{\DR{\aLoc}{1}}{right=2.5 em of wx1}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \wk{wx0}{wx1}
+  \wk{rx1}{wx2}
+\end{tikzpicture}\]
+We strengthen the definition of reads-from to require not just that
+no blocker exists, but that any candidate blocker must either
+have $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$. This ensures that any
+further concurrency cannot turn a non-blocker into a blocker.
+\begin{definition}\label{def:rf}
+  In a 3-valued pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
+  \begin{itemize}
+  \item $\bEv < \aEv$,
+  \item $\aEv$ implies $\bEv$,
+  \item $\bEv$ writes $\aVal$ to $\aLoc$,
+    and $\aEv$ reads $\aVal$ from $\aLoc$, and
+  \item if $\cEv$ writes to $\aLoc$
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}
+\end{definition}
+One of the requirements of closed programs is that
+every read event reads from a write event.
+
+In the remainder of the paper, we drop the prefix ``3-valued'', referring to
+3-valued pomsets simply as \emph{pomsets}.
+
+\section{Semantics of programs}
+\label{sec:semantics}
+
+\begin{figure*}
+\begin{eqnarray*}
+  \sem{\SKIP} & = & \{ \emptyset \} \\
+  \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+  \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
+  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
+  \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel \sem{\bCmd} \\
+  \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
+\end{eqnarray*}
+\caption{Semantics of a concurrent shared-memory language}
+\label{fig:programs}
+\end{figure*}
+
+In Figure~\ref{fig:programs}, we give the semantics of a simple shared-memory
+concurrent language as sets of pomsets.  
+Each pomset
+$\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
+expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
+$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, the sets of
+pomsets given by our semantics \emph{are} closed with respect to
+augmentation, which may create additional order and strengthening
+preconditions:
+\begin{definition}
+  $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
+  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
+  % $\labelling'(\aEv)=\labelling(\aEv)$
+  if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
+  $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+  $\bForm$.
+\end{definition}
+
+We give the semantics using combinators over sets of pomsets, defined in
+\refapp{sets-of-pomsets}.  Using $\aPSS$ to range over sets of pomsets, these
+are:
+\begin{itemize}
+\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
+  only pomsets where every event $\aEv$ that reads from $\aLoc$ \emph{can read} from some
+  $\bEv$, following Definition~\ref{def:rf},
+  and where no precondition can depend on $\aLoc$,
+
+\item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
+  keeping pomsets whose events have preconditions that imply $\aForm$,
+\item \emph{substitution} $\aPSS[\aExp/\aLoc]$, which replaces $\aLoc$ with
+  $\aExp$ in every precondition of $\aPSS$,
+\item \emph{composition} $\aPSS_1\parallel\aPSS_2$, which unions pomsets from
+  $\aPSS_1$ and $\aPSS_2$, allowing events to be merged, and
+\item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
+  $\aAct$ to pomsets in $\aPSS$, ordering $\aAct$ before any $\aEv$ whose predicate
+  depends on the value read by $\aAct$.
+\end{itemize}
+These operations are similar to those from models of concurrency such
+as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
+speculative evaluation.
+
+Restriction and guarding filter the set of pomsets; we have
+$(\nu\aLoc\st\aPSS)\subseteq\aPSS$ and $(\aForm\guard\aPSS)\subseteq\aPSS$.
+Substitution updates the preconditions in a pomset, thus we expect the number
+of pomsets to be unchanged; in addition, the number of events in each of the
+pomsets is unchanged.
+% : $|\aPSS[\aExp/\aLoc]|=|\aPSS|$
+The most interesting operators are composition and prefixing, which create
+larger pomsets from smaller ones.
+
+
+Composition is used in giving the semantics for conditionals and concurrency.
+$\aPSS_1 \parallel \aPSS_2$ contains the union of pomsets from $\aPSS_1$ and
+$\aPSS_2$, allowing overlap as long as they agree on actions. For example, if
+$\aPSS_1$ and $\aPSS_2$ contain:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm_1 \mid \bAct}{right=of a}
+  \po{a}{b}
+\end{tikzpicture}\qquad\qquad\begin{tikzpicture}[node distance=1em]
+  \event{b}{\bForm_2 \mid \bAct}{}
+  \event{c}{\cForm \mid \cAct}{right=of b}
+  \wk{b}{c}
+\end{tikzpicture}\]
+then $\aPSS_1 \parallel \aPSS_2$ contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm_1 \lor \bForm_2 \mid \bAct}{right=of a}
+  \event{c}{\cForm \mid \cAct}{right=of b}
+  \po{a}{b}
+  \wk{b}{c}
+\end{tikzpicture}\]
+
+Prefixing is used in giving the semantics of reads and writes.
+$\aAct\prefix\aPSS$ adds a new event $\cEv$ with action $\aAct$ to each
+pomset in $\aPSS$.  As in the definition of parallel composition, the
+definition allows the new event to overlap with events in $\aPSS$ as long as
+they agree on the action.
+
+If $\cEv$ writes to a location that is also written by $\aEv$ in $\aPSS$,
+then prefixing introduces weak order between them: $\aEv \gtN \cEv$.  This
+ensures that these writes cannot be given the reverse order in an augmentation.
+
+If $\cEv$ reads from a location that occurs in the predicate of $\aEv$, then
+prefixing introduces order from $\cEv$ to any $\aEv$
+whose predicate depends on $\aLoc$. 
+For example, if $\aAct$ and $\bAct$ write to the same location, $\aAct$ reads
+$\aVal$ from $\aLoc$, $\bForm$ is independent of $\aLoc$, and $\aPSS$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{b}{\bForm \mid \bAct}{}
+  \event{c}{\cForm \mid \cAct}{right=of b}
+  \po{b}{c}
+\end{tikzpicture}\]
+then $\aAct\prefix\aPSS$ contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm \mid \bAct}{right=of a}
+  \event{c}{\cForm[\vec\aVal/\vec\aLoc] \mid \cAct}{right=of b}
+  \po[out=25,in=155]{a}{c}
+  \wk{a}{b}
+  \po{b}{c}
+\end{tikzpicture}\]
+
+%% A write generates a write event that may be visible
+%% to other threads.  A read may see a
+%% thread-local value, or it may generate a read event that must be justified by
+%% another thread.  In the latter case, occurrences of $\aReg$ are replaced with
+%% $\aLoc$ (rather than $\aVal$) to ensure that dependencies are tracked
+%% properly.  The subsequent substitution of $\aVal$ for $\aLoc$ occurs in
+%% Definition~\ref{def:prefix} of prefixing.
+
+
+
+% We have completed the formal definition of our model of speculative
+% evaluation, and now turn to examples.
+
+In the remainder of this section, we give examples to explain the semantics,
+concentrating on reads and conditionals.  Security-relevant examples begin in
+\S\ref{sec:examples}.
+
+\subsection{Sequential memory accesses}
+\label{sec:sequential-memory}
+
+In the semantics of memory, there are two very different ways memory can be
+accessed: sequentially or concurrently.  These are modeled differently, since
+hardware and compilers give very different guarantees about their behavior.
+In the semantics of $\sem{\aReg\GETS\aLoc\SEMI \aCmd}$, given in
+Figure~\ref{fig:programs}, these are found on left and right sides of the
+union operation.  In this section, we discuss the sequential semantics,
+$\sem{\aCmd}[\aLoc/\aReg]$, leaving the concurrent semantics to
+\S\ref{sec:concurrent-memory}.
+
+Consider the program $(\aLoc\GETS0\SEMI \bLoc\GETS\aLoc+1)$.  One execution of
+this program is where the write to $y$ uses the sequential value of
+$x$, which is $0$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy1}{\DW{y}{1}}{right=of wx0}
+\end{tikzpicture}\]
+To see how this execution is modeled, we first
+expand out the syntax sugar to get the program
+$(\aLoc\GETS0\SEMI \aReg\GETS\aLoc\SEMI \bLoc\GETS\aReg+1\SEMI\SKIP).$
+Now $\sem{\SKIP}$ is just $\{\emptyset\}$, and
+$\sem{y \GETS r+1\SEMI \SKIP}$ includes:
+\[
+   (r+1=1) \guard (\DW y1) \prefix \sem{\SKIP}[1/y]
+\]
+which contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wy1}{r+1=1 \mid \DW{y}{1}}{}
+\end{tikzpicture}\]
+expressing that this program can write $1$ to $y$,
+as long as the precondition $(r+1=1)$ is satisfied.
+Now $\sem{r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$
+has two cases, the sequential case
+(which does not introduce a read action)
+and the concurrent case (which does).
+For the moment, we are interested in the sequential case:
+\[
+   \sem{y \GETS r+1\SEMI \SKIP}[x/r]
+\]
+which contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wy1}{x+1=1 \mid \DW{y}{1}}{}
+\end{tikzpicture}\]
+In this pomset, the precondition is $(x+1=1)$, which specifies a property
+of the thread-local value of $x$.
+Finally $\sem{x \GETS 0\SEMI r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ includes:
+\[
+   (0=0) \guard (\DW x0) \prefix \sem{r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}[0/x]
+\]
+which contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{0=0 \mid \DW{x}{0}}{}
+  \event{wy1}{0=0\land0+1=1 \mid \DW{y}{1}}{right=of wx0}
+\end{tikzpicture}\]
+all of whose preconditions are tautologies, so this has the expected behavior:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy1}{\DW{y}{1}}{right=of wx0}
+\end{tikzpicture}\]
+There is no dependency between $(\DW x0)$ and $(\DW y1)$,
+since $(0=0\land0+1=1)$ is independent of $\aLoc$.
+
+This example demonstrates how preconditions
+capture the sequential semantics of memory.
+In an execution containing an event with label
+$(\aForm \mid \aAct)$, one way the precondition $\aForm$
+can be discharged is by an assignment $\aLoc\GETS\aExp$,
+which performs a substitution $[\aExp/\aLoc]$.
+This is a variant of the Hoare semantics of
+assignment \cite{Hoare:1969:ABC:363235.363259}, where if $\aCmd$ has precondition $\aForm$
+then $\aLoc\GETS\aExp\SEMI\aCmd$ has precondition
+$\aForm[\aExp/\aLoc]$.
+
+\subsection{Concurrent memory accesses}
+\label{sec:concurrent-memory}
+
+We now turn to the case of concurrent accesses to memory.
+Consider the program %a concurrent version of the program from \S\ref{sec:sequential-memory}:
+$(\aLoc\GETS1 \PAR \bLoc\GETS\aLoc+1)$.
+In executions of this program, it is possible for the second thread to 
+perform a concurrent read of $x$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+To see how this execution is modeled, we first
+expand out the syntax sugar to get the program
+$(\aLoc\GETS1\SEMI\SKIP \PAR \aReg\GETS\aLoc\SEMI \bLoc\GETS\aReg+1\SEMI\SKIP).$
+As before, $\sem{y \GETS r+1\SEMI \SKIP}$ includes:
+\[
+   (r+1=2) \guard (\DW y2) \prefix \sem{\SKIP}[2/y]
+\]
+which contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wy2}{r+1=2 \mid \DW{y}{2}}{}
+\end{tikzpicture}\]
+As before, $\sem{r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ has two cases.
+We are now interested in the concurrent case, which includes:
+\[
+   (\DR x1) \prefix \sem{y \GETS r+1\SEMI \SKIP}[x/r]
+\]
+which contains the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{x}{1}}{}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+Note that $(\DR x1)$ reads $1$ from $x$, and while
+$(x+1=2)[1/x]$ is a tautology,
+$(x+1=2)$ is not,
+and so there is a dependency
+$(\DR x1) < (\DW y2)$.
+
+Now, $\sem{x \GETS 1\SEMI \SKIP}$ includes the pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+\end{tikzpicture}\]
+and so $\sem{x \GETS 1\SEMI \SKIP \PAR r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+as expected, including a reads-from dependency
+$(\DW x1) < (\DR x1)$.
+
+This example demonstrates how read and write events
+capture the concurrent semantics of memory.
+In an execution containing an event with label
+$(\DR \aLoc\aVal)$, if the execution is
+$\aLoc$-closed, then there must be an event
+it reads from, for example one labeled
+$(\DW \aLoc\aVal)$.
+
+\subsection{Control dependencies}
+\label{sec:control-dep}
+
+Conditionals introduce control dependencies, for example consider the program:
+\[
+  \aReg\GETS\cLoc\SEMI
+  \IF(\aReg)\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI
+\]
+This includes executions in which the false branch is taken:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \nonevent{wx1}{\DW{x}{1}}{right=of rz0}
+  \event{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz0}{wx1}
+  \po[out=30,in=150]{rz0}{wy2}
+\end{tikzpicture}\]
+and ones where the true branch is taken:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{z}{1}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz1}
+  \nonevent{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz1}{wx1}
+  \po[out=30,in=150]{rz1}{wy2}
+\end{tikzpicture}\]
+In both cases, we record the actions in the branch that was
+not taken. This is a novel feature of this model, and is
+intended to capture speculative evaluation. In \S\ref{sec:spectre}
+we will show how this model captures Spectre-like information
+flow attacks, once the attacker is provided with the ability to
+observe such speculations.
+
+To see how these executions are modeled, consider the semantics of
+$\sem{x\GETS 1\SEMI\SKIP}$, which contains any pomset of the form:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\aForm \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+in particular it contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+Similarly $\sem{y\GETS 2\SEMI\SKIP}$ contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wy2}{r=0 \mid \DW{y}{2}}{}
+\end{tikzpicture}\]
+and so $\sem{\IF(r)\THEN x\GETS 1\SEMI\SKIP \ELSE y\GETS 2\SEMI\SKIP \FI}$
+contains:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
+  \event{wy2}{r=0 \mid \DW{y}{2}}{right=of wx1}
+\end{tikzpicture}\]
+Now, the semantics of concurrent read performs substitutions, for example:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \event{wx1}{0\neq0 \mid \DW{x}{1}}{right=of rz0}
+  \event{wy2}{0=0 \mid \DW{y}{2}}{right=of wx1}
+  \po{rz0}{wx1}
+  \po[out=25,in=155]{rz0}{wy2}
+\end{tikzpicture}\]
+which gives the required pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \nonevent{wx1}{\DW{x}{1}}{right=of rz0}
+  \event{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz0}{wx1}
+  \po[out=30,in=150]{rz0}{wy2}
+\end{tikzpicture}\]
+Note that the precondition $r=0$ is dependent on $r$,
+and so there is a dependency $(\DR z0) < (\DW y2)$,
+modeling the control dependency introduced by the conditional.
+
+\subsection{Control independencies}
+
+In most models of control dependencies, the dependency relation
+is syntactic, based on whether the action occurs syntactically
+inside a conditional. In contrast, the notion in this model is
+semantic: if an action can occur on both sides of a conditional,
+there is no control dependency. Consider a variant of the example
+from \S\ref{sec:control-dep}:
+\[
+  \aReg\GETS\cLoc\SEMI
+  \IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI
+\]
+This has the expected execution in which the control
+dependencies exist:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \nonevent{nwx1}{\DW{x}{1}}{right=of rz0}
+  \event{wx1}{\DW{x}{1}}{right=of nwx1}
+  \po{rz0}{nwx1}
+  \po[out=30,in=150]{rz0}{wx1}
+\end{tikzpicture}\]
+but it also has an execution in which the two writes
+of $1$ to $x$ are merged, resulting in no dependency:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz0}
+\end{tikzpicture}\]
+To see how this arises,
+consider the definition of $\sem{\IF(r)\THEN x\GETS1\SEMI\SKIP \ELSE x\GETS1\SEMI\SKIP \FI}$:
+\[\begin{array}{rl}
+   \aPSS_1 \parallel \aPSS_2 \quad\mbox{where}\quad&
+   \aPSS_1 = (r\neq 0) \guard \sem{x\GETS1\SEMI\SKIP} \\&
+   \aPSS_2 = (r=0) \guard \sem{x\GETS1\SEMI\SKIP}
+\end{array}\]
+Now, one pomset in $\aPSS_1$ is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+that is $\aPS_1$ where:
+\[
+  \Event_1 = \{\aEv\} \quad
+  \labelling_1(\aEv) = (r\neq 0, \DW x1)
+\]
+and similarly, one pomset in $\aPSS_2$ is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{r=0 \mid \DW{x}{1}}{}
+\end{tikzpicture}\]
+that is $\aPS_2$ where:
+\[
+  \Event_2 = \{\aEv\} \quad
+  \labelling_2(\aEv) = (r= 0, \DW x1)
+\]
+Crucially, in the definition of $\aPSS_1 \parallel \aPSS_2$
+there is \emph{no} requirement that $\Event_1$ and $\Event_2$ are disjoint,
+and in this case they overlap at $\aEv$. As a result, one pomset in
+$\aPSS_1\parallel\aPSS_2$ is $\aPS_0$ where:
+\[
+  \Event_0 = \{\aEv\} \quad
+  \labelling_0(\aEv) = (r\neq0 \lor r=0, \DW x1)
+\]
+that is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+\end{tikzpicture}\]
+Note that this pomset has no precondition dependent on $r$,
+since $(r\neq0 \lor r=0)$ does not depend on $r$, which is why
+we end up with an execution without a control dependency:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz0}{\DR{z}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz0}
+\end{tikzpicture}\]
+This semantics captures compiler optimizations which may, for example,
+merge code executed on both branches of a conditional, or hoist
+constant assignments out of loops.
+
+We can now see the counterintuitive behavior of conditionals
+in the presence of control dependencies.
+There are programs such as
+\(
+  (\IF(\cLoc)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)
+\)
+with executions in which  $(\DW x1)$ is independent of $(\DR z1)$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{z}{1}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz1}
+\end{tikzpicture}\]
+while programs such as
+\(
+  (\IF(\cLoc)\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI)
+\)
+only have executions in which $(\DW x1)$ is dependent on $(\DR z1)$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rz1}{\DR{z}{1}}{}
+  \event{wx1}{\DW{x}{1}}{right=of rz1}
+  \nonevent{wy2}{\DW{y}{2}}{right=of wx1}
+  \po{rz1}{wx1}
+  \po[out=30,in=150]{rz1}{wy2}
+\end{tikzpicture}\]
+These programs have executions with different dependency relations, depending only
+on conditional branches that were \emph{not} taken. In \S\ref{sec:info-flow-attack}
+we shall see that this has security implications, since relaxed
+memory can observe dependency.
+% The attack is similar to Spectre, so
+% we shall take a detour to see how Spectre can be modeled in this
+% setting.
+
+\subsection{UNUSED: Relaxed memory}
+\label{sec:relaxed-memory}
+
+In \S\ref{sec:info-flow-attack} we present an information flow attack
+on relaxed memory, similar to Spectre in that it relies on speculative
+evaluation. Unlike Spectre it does not depend on timing attacks,
+but instead is based on the sensitivity of relaxed memory to data
+dependencies. % For this reason, we present a simple model of relaxed
+% memory, which is strong enough to capture this attack.
+
+Our model includes concurrent memory accesses, which can introduce concurrent
+reads-from. 
+Since we are allowing events to be partially ordered, this gives a simple
+model of relaxed memory.  For example an independent read independent write
+(IRIW) example is:
+\[\begin{array}{l}
+  x\GETS0\SEMI x\GETS x+1
+  \PAR
+  y\GETS0\SEMI y\GETS y+1
+\\{}
+  \PAR
+  r_1\GETS x\SEMI r_2\GETS y
+  \PAR
+  s_1\GETS y\SEMI s_2\GETS x
+\end{array}\]
+which includes the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of wy0}
+  \event{ry1}{\DR{y}{1}}{below=4ex of wx0}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of rx0}
+  \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \rf{wy0}{ry0}
+  \rf[out=210,in=30]{wy1}{ry1}
+  \rf{wx0}{rx0}
+  \wk{rx0}{wx1}
+  \wk{ry0}{wy1}
+\end{tikzpicture}\]
+This model does not introduce thin-air reads (TAR).
+For example the TAR pit
+\((
+  x\GETS y \PAR y \GETS x
+)\)
+fails to produce a value for $x$ from thin air
+since this produces a cycle in $\le$, as shown on the left below:
+\begin{align*}
+\begin{tikzpicture}[node distance=1em]
+  \event{ry42}{\DR{y}{42}}{}
+  \event{wx42}{\DW{x}{42}}{below=of ry42}
+  \event{rx42}{\DR{x}{42}}{right=2.5em of ry42}
+  \event{wy42}{\DW{y}{42}}{below=of rx42}
+  \po{ry42}{wx42}
+  \po{rx42}{wy42}
+  \rf{wx42}{rx42}
+  \rf{wy42}{ry42}
+\end{tikzpicture}
+&&
+\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{y}{1}}{}
+  \event{wx1}{\DW{x}{1}}{below=of ry1}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
+  \event{wy1}{\DW{y}{1}}{below=of rx1}
+  \po{ry1}{wx1}
+  \rf{wx1}{rx1}
+  \rf{wy1}{ry1}
+\end{tikzpicture}
+\end{align*}
+This cycle can be broken by removing a dependency. For example
+\((
+  x\GETS y \PAR r\GETS x\SEMI y \GETS r+1-r
+)\)
+has the execution on the right above.
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{ry1}{\DR{y}{1}}{}
+%   \event{wx1}{\DW{x}{1}}{below=of ry1}
+%   \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
+%   \event{wy1}{\DW{y}{1}}{below=of rx1}
+%   \po{ry1}{wx1}
+%   \rf{wx1}{rx1}
+%   \rf{wy1}{ry1}
+% \end{tikzpicture}\]
+Note that $(\DR x1) \not\le (\DW y1)$, so this does not introduce a cycle.
+
+Although it is not the primary focus of this paper, our model may be an
+attractive model of relaxed memory.  Many prior models either permit
+thin-air executions that our model forbids or forbid desirable executions
+that our model permits.
+%% In \S\ref{sec:logic}, we develop a logic which allows us to prove that our
+%% semantics forbids thin air examples that are permitted by prior speculative
+%% models
+%% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
+% Our model passes all of the causality test cases
+% \cite{PughWebsite}.
+%% Significantly, this
+%% includes test case 9, which is forbidden by \cite{DBLP:conf/lics/JeffreyR16},
+%% one of the few models that disallows the thin air example from
+%% \S\ref{sec:logic}.  We present this test case in the appendix, where we also
+%% discuss the thread inlining examples from
+%% \cite{Manson:2005:JMM:1047659.1040336}.
+
+% In \refapp{logic}, we present a variant of the TAR-pit
+% example %from \S\ref{sec:relaxed-memory}
+% that is allowed under prior speculative semantics
+% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
+% We develop a logic that allows us to prove that the problematic execution is
+% forbidden in our model.  \citet{DBLP:conf/esop/BattyMNPS15} showed that the
+% thin-air problem has no per-candidate-execution solution for C++.  This
+% result does not apply to our model, which has a different notion of
+% dependency.
+
+% as the semantics of a conditional can depend on the semantics
+% of both branches.
+
+\citet{PughWebsite} developed a set of twenty {causality test cases} in the
+process of revising the Java Memory Model (JMM)
+\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
+confirmed that our model gives the desired result for all twenty cases,
+unrolling loops as necessary.  Our model also gives the desired results for
+all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
+all but one in \citet[\textsection 5.3]{SevcikThesis}:
+redundant-write-after-read-elimination fails for any
+sensible non-coherent semantics.  Our model agrees with the JMM on the
+``surprising and controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
+inlining.
+In \refapp{tc}, we discuss three of the causality test cases and the thread
+inlining example from \cite{Manson:2005:JMM:1047659.1040336}.%  In presenting the
+% examples, we unroll loops, correct typos and simplify the code.  
+
+
+\section{Attacks on speculative execution}
+\label{sec:examples}
+
+In this section, we show how known attacks on speculative execution can be
+modeled.  In \S\ref{sec:spectre}, we discuss Spectre. In
+\S\ref{sec:spec-barriers}, we describe \emph{speculation barriers} for
+defense against Spectre.  In \S\ref{sec:transactions}, we discuss attacks on
+transactions.
+
+In each attack, there is a high-security variable $\SEC$,
+and the goal of the attacker is to learn one bit of information
+from $\SEC$. The Spectre and \textsc{Prime+Abort}
+attacks exploit optimizations in hardware, and so can be mounted
+against a dynamic $\SEC$.
+
+\subsection{Spectre}
+\label{sec:spectre}
+
+We give a simplified model of Spectre attacks, ignoring the details of
+cache timing.  In this model, we extend programs with the ability to tell
+whether a memory location has been touched (in practice this is
+implemented using timing attacks on the cache). For example,
+we can model Spectre by:
+\[\begin{array}{l}
+  \VAR a\SEMI \IF(\CANREAD(\SEC))\THEN a[\SEC]\GETS1
+  \brELIF(\TOUCHED a[0])\THEN x\GETS0
+  \brELIF(\TOUCHED a[1])\THEN x\GETS1 \FI
+\end{array}\]
+This is a low-security program, which is attempting to discover the
+value of a high-security variable $\SEC$. The low-security program
+is allowed to attempt to escalate its privileges by checking that it is
+allowed to read a high-security variable:
+\[\begin{array}{l}
+  \IF(\CANREAD(\SEC))\THEN \mbox{code allowed to read $\SEC$}
+  \brELSE \mbox{code not allowed to read $\SEC$} \FI
+\end{array}\]
+In this case, $\CANREAD(\SEC)$ is false, so the fallback code
+is executed. Unfortunately, the escalated code is speculatively
+evaluated, which allows information to leak by testing for which
+memory locations have been touched.
+
+Attacks may realize the abstract notions in various ways.  For example, in
+variant 1 of Spectre, the dynamic security check is implemented as an array
+bounds check.
+
+We model the $\TOUCHED$ test by introducing a new action
+$(\DT{\aLoc})$, and defining:
+\[\begin{array}{l}
+  \sem{\IF (\TOUCHED\aLoc) \THEN \aCmd \ELSE \bCmd \FI} \\[\jot]\quad =  ((\DT\aLoc) \prefix \sem{\aCmd}) \cup \sem{\bCmd}
+\end{array}\]
+Implementations of $\TOUCHED$ use cache timing, but their success can be modeled
+without needing to be precise about such microarchitectural details:
+\begin{itemize}
+\item if $\labelling(\aEv)=(\aForm \mid \DT{\aLoc})$
+  then there is $\bEv\gtN\aEv$
+  where $\bEv$ reads or writes $\aLoc$.
+\end{itemize}
+Note that there is no requirement that $\bEv$ be satisfiable,
+and indeed Spectre has the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \nonevent{rs}{\DR{\SEC}{1}}{}
+  \nonevent{wa}{\DW{a[1]}{1}}{right=of rs}
+  \event{ta}{\DT{a[1]}}{right=of wa}
+  \event{wx}{\DW{x}{1}}{right=of ta}
+  \po{rs}{wa}
+  \wk{wa}{ta}
+  \po{ta}{wx}
+\end{tikzpicture}\]
+but (assuming a successful implementation of $\TOUCHED$) \emph{not}:
+\[\begin{tikzpicture}[node distance=1em]
+  \nonevent{rs}{\DR{\SEC}{0}}{}
+  \nonevent{wa}{\DW{a[0]}{1}}{right=of rs}
+  \event{ta}{\DT{a[1]}}{right=of wa}
+  \event{wx}{\DW{x}{1}}{right=of ta}
+  \po{rs}{wa}
+  \wk{wa}{ta}
+  \po{ta}{wx}
+\end{tikzpicture}\]
+Thus, the attacker has managed to leak the value of a high-security
+location to a low-security one: if $(\DW x1)$ is observed, the \verb|SECRET|
+must have been 1.
+
+This shows how our model of speculation can express
+the way in which Spectre-like attacks bypass dynamic security checks,
+without giving a treatment of microarchitecture.
+
+\subsection{Speculation barriers}
+\label{sec:spec-barriers}
+
+The ability to model Spectre is useful, but really we would
+like to model defenses against such attacks, and provide some
+confidence in the correctness of the defense. One such defense
+which fits naturally in our model is \emph{speculation barriers},
+which prevent code from being speculatively executed. For example,
+we could introduce such a $\BARRIER$, and require that
+a barrier is introduced on each security check:
+\[\begin{array}{l}
+\IF(\CANREAD(\SEC))\THEN \BARRIER\SEMI\cdots
+  \ELSE \cdots \FI
+\end{array}\]
+To model barriers, we introduce a new action $\DSB$
+and define:
+\[\begin{array}{l}
+  \sem{\BARRIER\SEMI\aCmd} =  \{\emptyset\} \cup ((\DSB) \prefix \sem{\aCmd})
+\end{array}\]
+Implementations of $\BARRIER$ make use of hardware barriers which
+halt speculative execution until all instructions up to the barrier
+have been retired. Such barriers are successful when:
+\begin{itemize}
+\item if $\labelling(\aEv)=(\aForm \mid \DSB)$
+  then $\aForm$ is satisfiable.
+\end{itemize}
+For example, a successful implementation of barriers disallows
+the execution of Spectre:
+\[\begin{tikzpicture}[node distance=1em]
+  \nonevent{sb}{\DSB}{}
+  \nonevent{rs}{\DR{\SEC}{1}}{right=of sb}
+  \nonevent{wa}{\DW{a[1]}{1}}{right=of rs}
+  \event{ta}{\DT{a[1]}}{right=of wa}
+  \event{wx}{\DW{x}{1}}{right=of ta}
+  \po{rs}{wa}
+  \wk{wa}{ta}
+  \po{ta}{wx}
+\end{tikzpicture}\]
+One might expect that this is a successful (albeit expensive) defense
+against Spectre, but it is not, unless the compiler is aware that
+$\BARRIER$ cannot be lifted out of a conditional. An unaware compiler
+might perform common subexpression elimination on barriers, allowing
+the attacker to introduce a barrier to fool a compiler into optimizing
+the safe:
+\[\begin{array}{l}
+  \IF(\CANREAD(\SEC))\THEN \BARRIER\SEMI \cdots
+  \ELSE \BARRIER\SEMI \cdots \FI
+\end{array}\]
+into the unsafe:
+\[\begin{array}{l}
+  \BARRIER\SEMI \IF(\CANREAD(\SEC))\THEN \cdots
+  \ELSE \cdots \FI
+\end{array}\]
+To model the requirement that barriers are not moved past
+conditionals, we make them \emph{unmergeable}: $\DSB$ events
+on different arms of a conditional cannot be merged.
+With this requirement, we can show that barriers act as a
+defense against Spectre by first showing that $\sem\bCmd$ has
+the same successful executions as:
+\[
+  \sem{\IF(\CANREAD(\SEC)) \THEN \BARRIER\SEMI\aCmd \ELSE \bCmd \FI}
+\]
+and then showing that the semantics which only looks at successful
+executions is \emph{compositional}: if $\sem\bCmd$ has the same
+successful executions as $\sem{\bCmd'}$ then $\sem{\aCmd[\bCmd]}$ has
+the same successful executions as $\sem{\aCmd[\bCmd']}$ for any
+``program with a hole'' $\aCmd[{\bullet}]$. Compositional reasoning
+is what fails when $\DSB$ is mergeable, as shown by the
+attack against a compiler which blindly performs common subexpression
+elimination.
+
+To realize a speculation barrier in microarchitecture, it is likely
+sufficient for the barrier to stop any further speculation until the barrier
+is known to succeed.  There is experimental evidence that Intel's
+\texttt{mfence} instruction has the effect of a speculation barrier in some contexts
+\cite[\S{VII-\textit{D}}]{DBLP:conf/micro/TrippelLM18}.
+
+\subsection{Transactions}
+\label{sec:transactions}
+
+We present a model of transactional memory~\cite{Larus:2007:TM:1207012} that is sufficient to capture
+\textsc{Prime+Abort} attacks~\cite{DBLP:conf/uss/DisselkoenKPT17}.  We make
+several simplifying assumptions: transactions are serializable, strongly
+isolated, and only abort due to cache conflicts.
+
+The action $(\DB{\aVal})$ %\in\Acq$
+represents the begin of a transaction with
+id $\aVal$, and $(\DC{\aVal})$ %\in \Rel$
+represents the corresponding commit.
+We model a language in which transactions have explicit identifiers (which we
+elide in examples) and abort handlers (which we elide when they are empty):
+\[\begin{array}{l}
+    \sem{\BEGINVAL\SEMI \eCmd\SEMI \RECOVERYVAL \bCmd \ENDREC} \\\quad
+    = (\DB{\aVal}) \prefix \bigl(\sem{\eCmd} \cup \bigl((\FALSE \guard \sem{\eCmd}) \parallel \sem{\bCmd}\bigr)\bigr)
+    \\[\jot]
+    \sem{\COMMITVAL\SEMI \bCmd} \\\quad
+    = (\DC{\aVal}) \prefix \sem{\bCmd}
+  \end{array}\]
+The semantics of a transaction has two cases: a committed case
+(executing only the transaction body) and an aborted case (executing both the body and the
+recovery code, where the body is marked unsatisfiable). For example, two executions of
+\begin{math}
+  (\BEGIN\SEMI \aLoc\GETS1\SEMI \aLoc\GETS2\SEMI \COMMIT\SEMI \RECOVERY \bLoc\GETS1\ENDREC)
+\end{math}
+are:
+\[\begin{array}{c}\begin{tikzpicture}[node distance=1em]
+  \event{b0}{\DB{}}{}
+  \event{wx0}{\DW{x}{1}}{right=of b0}
+  \event{wx1}{\DW{x}{2}}{right=of wx0}
+  \event{c0}{\DC{}}{right=of wx1}
+  \po{b0}{wx0}
+  \po[out=30,in=150]{b0}{wx1}
+  \po[out=30,in=150]{wx0}{c0}
+  \po{wx1}{c0}
+  \wk{wx0}{wx1}
+\end{tikzpicture}
+\\
+\begin{tikzpicture}[node distance=1em]
+  \event{b0}{\DB{}}{}
+  \nonevent{wx0}{\DW{x}{1}}{right=of b0}
+  \nonevent{wx1}{\DW{x}{2}}{right=of wx0}
+  \nonevent{c0}{\DC{}}{right=of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of c0}
+  \po{b0}{wx0}
+  \po[out=30,in=150]{b0}{wx1}
+  \po[out=30,in=160]{b0}{wy1}
+  \po[out=30,in=150]{wx0}{c0}
+  \po{wx1}{c0}
+  \wk{wx0}{wx1}
+\end{tikzpicture}\end{array}\]
+At top level, we require that pomsets be \emph{serializable}, as defined below.
+\begin{definition}
+  We say that event $\comEv$ \emph{matches} $\begEv$ if
+  $\labelling(\comEv)=(\DC{\aVal})$ and
+  $\labelling(\begEv)=(\DB{\aVal})$. %, for some $\aVal$.
+  % We say that a begin event \emph{aborts} if every matching commit is
+  % unsatisfiable.
+  We say that begin event $\begEv$ \emph{begins} $\aEv$ if
+  $\begEv\le\aEv$ and there is no intervening matching commit; in this case
+  $\aEv$ \emph{belongs to} $\begEv$.
+  % event $\comEv$ such that $\begEv\le\comEv\le\aEv$
+  We say that commit event $\comEv$ \emph{commits} $\aEv$ if $\aEv\le\comEv$
+  and there is no intervening matching begin.
+  % event $\begEv$ such that $\aEv\le\begEv\le\comEv$.
+\end{definition}
+\begin{definition}
+  A pomset is \emph{serializable} if:
+  \begin{enumerate}
+  \item\label{tx:1} no two begins have the same id,
+  \item\label{tx:2} every commit follows the matching begin,
+  \item\label{tx:3} $\le$ totally orders tautological begins and commits,
+  \item\label{tx:4} if $\begEv$ begins $\aEv$, but not $\bEv$, and $\bEv\le\aEv$ then $\bEv\le\begEv$,
+  \item\label{tx:5} if $\comEv$ ends $\aEv$, but not $\bEv$, and $\aEv\le\bEv$ then $\comEv\le\bEv$,
+  % \item\label{tx:4} if $\begEv$ begins $\aEv$, but not $\bEv$, then
+  %   $\bEv\le\aEv$ implies $\bEv\le\begEv$ and $\bEv\gtN\aEv$ implies $\bEv\gtN\begEv$
+  % \item\label{tx:5} if $\comEv$ ends $\aEv$, but not $\bEv$, then
+  %   $\aEv\le\bEv$ implies $\comEv\le\bEv$ and $\aEv\gtN\bEv$ implies $\comEv\gtN\bEv$,
+  \item\label{tx:6} if $\aEv$ and $\bEv$ belong to $\begEv$ and read the same
+    location, then both read the same value, and
+    % note that read events are optional, so we can assume they come from
+    % outside the transaction.
+  %
+  % \item\label{tx:6} if $\begEv$ begins $\aEv$ then some matching $\comEv$ both implies and ends $\aEv$,
+  % \item\label{tx:6} if $\begEv$ begins $\aEv$ then some matching $\comEv$
+  %   ends $\aEv$ such that both $\aEv$ implies $\comEv$ and $\comEv$ implies $\aEv$,
+  \item\label{tx:7} if $\aEv$ belongs to $\begEv$, then $\aEv$ implies some
+    matching $\comEv$ that ends $\aEv$.
+  \end{enumerate}
+\end{definition}
+%In discussion, we identify transactions by their unique begin event.
+%A transaction that does not abort is \emph{successful}.
+%
+Conditions \ref{tx:1}-\ref{tx:5} ensure serializability of committed
+transactions.  Conditions \ref{tx:4}-\ref{tx:6} also ensure strong isolation
+for non-transactional events
+\cite{DBLP:journals/pacmpl/DongolJR18}. Condition \ref{tx:7} ensures that all
+events in aborted transactions are unsatisfiable.
+%
+For example Conditions \ref{tx:5} and \ref{tx:7} rule out
+executions (which violate strong isolation and atomicity):
+\[\begin{array}{c}\begin{tikzpicture}[node distance=1em]
+  \event{b0}{\DB{}}{}
+  \event{wx0}{\DW{x}{0}}{right=of b0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{c0}{\DC{}}{right=of wx1}
+  \event{rx0}{\DR{x}{0}}{right=of c0}
+  \po{b0}{wx0}
+  \po[out=30,in=150]{b0}{wx1}
+  \po[out=30,in=150]{wx0}{c0}
+  \po{wx1}{c0}
+  \wk{wx0}{wx1}
+  \rf[out=30,in=150]{wx0}{rx0}
+\end{tikzpicture}
+\\
+\begin{tikzpicture}[node distance=1em]
+  \event{b0}{\DB{}}{}
+  \event{wx0}{\DW{x}{0}}{right=of b0}
+  \nonevent{wx1}{\DW{x}{1}}{right=of wx0}
+  \nonevent{c0}{\DC{}}{right=of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of c0}
+  \po{b0}{wx0}
+  \po[out=30,in=150]{b0}{wx1}
+  \po[out=30,in=160]{b0}{wy1}
+  \po[out=30,in=150]{wx0}{c0}
+  \po{wx1}{c0}
+  \wk{wx0}{wx1}
+\end{tikzpicture}\end{array}\]
+
+In order to model \textsc{Prime+Abort}, we need a mechanism for modeling
+\emph{why} a transaction aborts, as this can be used as a back channel.
+We model a simple form of concurrent transaction, which aborts when it
+encounters a memory conflict---this is similar to
+the treatment of $\TOUCHED$ in \S\ref{sec:spectre}.
+
+\begin{definition}
+  \label{def:abort}
+  A commit event $\comEv$ matching $\begEv$ \emph{aborts due to memory conflict}
+  if there is some $\aEv$ ended by $\comEv$, and some tautologous $\begEv\gtN\bEv\gtN\comEv$ that does not
+  belong to $\begEv$ such that $\aEv$ and $\bEv$ touch the same location.
+\end{definition}
+
+The attack requires an honest agent whose %cache-set
+access pattern depends upon a secret.
+% If $a[0]$ and $a[1]$ belong to separate cache sets, then
+Such an honest agent is:
+\[
+  a[\SEC]\,\GETS\,1
+\]
+% \ignore{
+% \begin{verbatim}
+%   a[SECRET] := 1
+% \end{verbatim}
+% }
+%The attack relies on discovery of some $y$ which belongs to the cache-set of $a[1]$.
+Then the attacker program
+\[
+\BEGIN\SEMI a[1]\GETS0\SEMI r\GETS\COMMIT\SEMI \RECOVERY x\GETS1\ENDREC
+\]
+% \ignore{
+% \begin{verbatim}
+%   begin; y:=0; commit; onabort; x:=1;
+% \end{verbatim}
+% }
+can write $1$ to $x$ if the \texttt{SECRET} is $1$, in which case the
+following execution is possible.
+\[\begin{tikzpicture}[node distance=1em,baselinecenter]
+  \event{wa1}{\DW{a[1]}{1}}{}
+  \event{b}{\DB{}}{right=2.5em of wa1}
+  \nonevent{e}{\DW{a[1]}{0}}{right=of b}
+  \nonevent{c}{\DC{}}{right=of e}
+  \event{wx1}{\DW{x}{1}}{right=of c}
+  \po{b}{e}
+  \po{e}{c}
+  \po[out=30,in=155]{b}{wx1}
+  \wk{b}{wa1}
+  \wk[out=25,in=155]{wa1}{c}
+\end{tikzpicture}\]
+If the attacker knows that commits only abort due to memory conflicts,
+then this attack is an information flow, since the memory conflict only happens
+when the \texttt{SECRET} is $1$.
+
+The attacker code here must have write access to the high security variable
+$a$.  Such a ``write up'' is allowed by secrecy analyses such as the
+Smith-Volpano type system \cite{Smith:1998:SIF:268946.268975}, which
+is meant to guarantee noninterference.
+
+If we require that the attacker and honest agent access disjoint locations in
+memory, then we must include a bit of microarchitecture to model the attack.
+Suppose that the set of locations $\Loc$ is partitioned into \emph{cache
+  sets} and update Definition~\ref{def:abort} so that the commit event
+{aborts due to memory conflict} if $\aEv$ and $\bEv$ touch locations \emph{in
+  the same cache set}.
+
+\textsc{Prime+Abort} exploits an honest agent whose cache-set
+access pattern depends upon a secret.
+If $a[0]$ and $a[1]$ belong to separate cache sets, then
+such an honest agent is, as before:
+\[
+  a[\SEC]\,\GETS\,1
+\]
+The attack relies on discovery of some $y$ which belongs to the cache-set of
+$a[1]$.
+Then the attack can be written as:
+\[
+  \BEGIN\SEMI y\GETS0\SEMI r\GETS\COMMIT\SEMI \RECOVERY x\GETS1\ENDREC
+\]
+As before, if the attacker knows that commits only abort due to memory
+conflicts, then there is an information flow, since the memory conflict
+only happens when the \texttt{SECRET} is $1$.
+
+This style of attack can be thwarted by requiring that the honest agent and
+attack code access disjoint cache sets.  This approach is pursued in \cite{dawg}.
+
+Another defense is to require a speculation barrier at the beginning of each
+transaction.  This would have the effect, however, of undermining any
+optimistic execution strategy for transactions: the transaction would only be
+able to begin when it is known that its commit will succeed.
+
+% \ignore{
+% \begin{verbatim}
+%   begin; y:=0; commit; onabort; x:=1;
+% \end{verbatim}
+% }
+
+%   The definition handles simple examples:
+% \begin{itemize}
+% \item Single threaded example: $\DB_1 \DC_1 \DB_2 \DC_2$.  Because
+%   $\DC_2$ is a release, we know that $\DC_1<\DC_2$.  Because
+%   $\DB_1$ is an acquire, we know that $\DB_1<\DB_2$ By lifting, either of
+%   these is sufficient to require that $\DC_1<\DB_2$.
+% \[\begin{tikzpicture}[node distance=1em,baselinecenter]
+%   \event{b1}{\DB_1}{}
+%   \event{c1}{\DC_1}{right=of b1}
+%   \event{b2}{\DB_2}{below right=of b1}
+%   \event{c2}{\DC_2}{right=of b2}
+%   \po{b1}{c1}
+%   \po{b1}{b2}
+%   \po{b2}{c2}
+%   \po{c1}{c2}
+% \end{tikzpicture}
+% \;\text{implies}\;
+% \begin{tikzpicture}[node distance=1em,baselinecenter]
+%   \event{b1}{\DB_1}{}
+%   \event{c1}{\DC_1}{right=of b1}
+%   \event{b2}{\DB_2}{below right=of b1}
+%   \event{c2}{\DC_2}{right=of b2}
+%   \po{b1}{c1}
+%   \po{c1}{b2}
+%   \po{b2}{c2}
+% \end{tikzpicture}\]
+% \item Abort example:
+% \[\begin{tikzpicture}[node distance=1em,baselinecenter]
+%   \event{b1}{\DB}{}
+%   \event{wx1}{\DW{x}{1}}{right=of b1}
+%   \event{c1}{\DC_1}{above right=of wx1}
+%   \nonevent{c2}{\DC_2}{below right=of wx1}
+%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+%   \po{b1}{wx1}
+%   \po{wx1}{c1}
+%   \po{wx1}{c2}
+%   \rf{wx1}{rx1}
+% \end{tikzpicture}
+% \;\text{implies}\;
+% \begin{tikzpicture}[node distance=1em,baselinecenter]
+%   \event{b1}{\DB}{}
+%   \event{wx1}{\DW{x}{1}}{right=of b1}
+%   \event{c1}{\DC_1}{above right=of wx1}
+%   \nonevent{c2}{\DC_2}{below right=of wx1}
+%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+%   \po{b1}{wx1}
+%   \po{wx1}{c1}
+%   \po{wx1}{c2}
+%   \rf{wx1}{rx1}
+%   \po{c1}{rx1}
+% \end{tikzpicture}\]
+
+% % \item Clause \eqref{xrf} stops transaction from reading two different values
+% %   for the same variable from transactions (it is possible with no
+% %   transactional writes).
+% % \item Clause \eqref{xrf} also stops transactional IRIW.
+% \end{itemize}
+% % \begin{definition}
+% %   An rf-pomset is transaction-closed if the $\DB$ and $\DC$ actions with
+% %   satisfiable preconditions are totally ordered by $<$.
+% % \end{definition}
+
+% Let ``$\END\SEMI \bCmd$'' be syntax sugar for
+% ``$\IF\COMMIT\vec\aLoc\THEN\bCmd \ELSE \bCmd$'', where $\vec\aLoc$ are the
+% free variables of $\bCmd$.
+
+% The semantics of
+% \begin{alltt}
+%   x:=1; begin; x:=2; end; y:=x;
+% \end{alltt}
+% includes
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx1}{\DW{x}{1}}{}
+%   \event{b}{\DB}{right=of wx1}
+%   \event{wx2}{\DW{x}{2}}{right=of b}
+%   \event{c}{\DC}{right=of wx2}
+%   \event{wy2}{\DW{y}{2}}{right=of c}
+%   \nonevent{wy1}{\DW{y}{1}}{below=of wy2}
+%   \po{b}{wx2}
+%   \po[bend right]{b}{wy1}
+%   \po[bend left]{b}{wy2}
+%   \po{wx2}{c}
+%   \po[bend left]{wx1}{c}
+%   %\po{rz0}{wy2}
+% \end{tikzpicture}\]
+% and
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx1}{\DW{x}{1}}{}
+%   \event{b}{\DB}{right=of wx1}
+%   \nonevent{wx2}{\DW{x}{2}}{right=of b}
+%   \nonevent{c}{\DC}{right=of wx2}
+%   \nonevent{wy2}{\DW{y}{2}}{right=of c}
+%   \event{wy1}{\DW{y}{1}}{below=of wy2}
+%   \po{b}{wx2}
+%   \po[bend right]{b}{wy1}
+%   \po[bend left]{b}{wy2}
+%   \po{wx2}{c}
+%   \po[bend left]{wx1}{c}
+%   %\po{rz0}{wy2}
+% \end{tikzpicture}\]
+
+% Publication example:
+% \begin{alltt}
+%   var x; var f; x:=0; f:=0;
+%      x:=1; (begin; f:=1; end;) || (begin; r:=f; end; s:=x;)
+% \end{alltt}
+
+% Note: we could also include a transaction factory, and close the factory.
+% \begin{alltt}
+%   TransactionFactory T; var x; var f; x:=0; f:=0; fence;
+%      x:=1; (begin T; f:=1; f:=2; end T;) || (begin T; r:=f; end T; s:=x;)
+% \end{alltt}
+
+% Before defining atomicity, we provide some auxiliary notation.
+%
+% We say that $\aEv$ is a \emph{begin event} if
+% $\labelling(\aEv)=(\aForm\mid\DB)$ and a \emph{commit event} if
+% $\labelling(\aEv)=(\aForm\mid\DC)$.
+%
+% We write $\aForm_\aEv$ for the formula and $\aAct_\aEv$ for the
+% action of $\aEv$; that is, when $\labelling(\aEv)=(\aForm_\aEv\mid\aAct_\aEv)$.
+%
+% We say that $\aEv$ is \emph{compatible with} $\bEv$ when
+% $\aForm_\aEv\land\aForm_\bEv$ is satisfiable.
+%
+% \begin{definition}
+%   A pomset is \emph{atomic} when for any $\aEv$ that belongs to $(\begEv,\vec\comEv)$:
+%   \begin{enumerate}
+%   \item\label{xcommitform} $\aForm_{\aEv}$ implies $\textstyle\bigvee_i\aForm_{\comEv_i}$,
+%   \item\label{xliftb} if $\bEv<\aEv$ then $\bEv<\begEv$,
+%   \item\label{xliftc} if $\aEv<\bEv$ and $\bEv$ is compatible with
+%     $\comEv_i$ then $\comEv_i<\bEv$,
+%   \item\label{xtotal} if $\aEv'\neq\aEv$ belongs to $(\begEv',\vec\comEv')$ but not
+%     $(\begEv,\dontcare)$ and
+%     \begin{itemize}
+%     \item $\comEv'_j$ is compatible with $\aEv$, and
+%     \item $\comEv_i$ is compatible with $\aEv'$
+%     \end{itemize}
+%     then either
+%     $\comEv'_j<\begEv$ or
+%     $\comEv_i<\begEv'$,
+%   % \item\label{xrf} if $\aEv'\neq\aEv$ belongs to $(\begEv,\dontcare)$ but not
+%   %   $(\begEv,\dontcare)$ and
+%   %   \begin{itemize}
+%   %   \item $\aEv$ reads from $\bEv'$ that belongs to $(\begEv',\vec\comEv')$,
+%   %   \item $\aEv'$ reads from $\bEv''\neq\beV'$ that belongs to $(\begEv'',\vec\comEv'')$,
+%   %   \item $\comEv''_j$ is compatible with $\bEv'$, and
+%   %   \item $\comEv'_i$ is compatible with $\bEv''$
+%   %   \end{itemize}
+%   %   then either
+%   %   $\comEv''_j<\begEv'$ or
+%   %   $\comEv'_i<\begEv''$ .
+%   \item\label{xcommitvars} if $\aEv$ writes $\aLoc$ and $\comEv_i$ writes
+%     $\vec\aLoc$ then $\aLoc=\aLoc_i$, for some $i$, and
+%   \item\label{xreadunique} if $\aEv$ reads $\aLoc$ and $\aEv'\neq\aEv$ reads
+%     $\aLoc$, belongs to $(\begEv,\dontcare)$ and is compatible with $\aEv$
+%     then $\aAct_{\aEv}=\aAct_{\aEv'}$.
+%   \end{enumerate}
+% \end{definition}
+% Clause \eqref{xcommitform} requires that the precondition on $\aEv$ is false on an
+% aborted transaction.
+% The \emph{lifting clauses}, \eqref{xliftb} and \eqref{xliftc}, require order
+% come in or out of $\aEv$ is lifted to the corresponding begin or commit event.
+% % Clause \eqref{xrf} requires that whenever a transaction reads from two other
+% % transactions, the other transactions must be ordered.
+% Clause \eqref{xtotal} requires that transactions be totally ordered.
+% Clause \eqref{xcommitvars} requires that all writes be committed.
+% Clause \eqref{xreadunique} requires that multiple reads of a location in a
+% single transaction must see the same value.
+%
+% The definition of atomicity guarantees strong isolation.  For weak isolation,
+% clauses \eqref{xcommitvars} and \eqref{xreadunique} are unnecessary,
+% \eqref{xliftb} only applies when $\bEv$ is a commit, and \eqref{xliftc} only
+% applies when $\bEv$ is a begin.
+
+
+\section{Attacks on compiler optimizations}
+\label{sec:compiler}
+
+In this section, we model two attacks on compiler optimizations.  The first
+attack exploits reordering allowed by relaxed memory models
+(\S\ref{sec:info-flow-attack}).  The second exploits dead store elimination
+(\S\ref{sec:dse}).
+
+As in the previous section, the goal of the attacker is to learn one bit of
+information from the high-security $\SEC$.   The attacks on compiler
+optimizations require the $\SEC$ to be known to the compiler, for example a
+static $\SEC$ or a JIT compiler.
+
+To defend against these attacks it is sufficient to require a traditional
+memory fence after each security check: compilers do not reorder instructions
+over fences.
+
+\subsection{Relaxed memory orders}
+\label{sec:info-flow-attack}
+
+Consider an attacker program, again using dynamic security checks to
+try to learn a \verb|SECRET|. Whereas \verb|Spectre| uses
+hardware capabilities, which have to be modeled by adding
+extra capabilities to the language, this new attacker works
+by exploiting relaxed memory which can result in
+unexpected information flows. The attacker program is:
+\[\begin{array}[t]{@{}l}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI\\\quad
+    y\GETS x
+  \PAR\begin{array}[t]{@{}l}
+    \IF(y\EQ0)\THEN x\GETS1
+    \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
+    \brELSE x\GETS1\SEMI z\GETS1 \FI
+\end{array}\end{array}\]
+In the case where $\SEC$ is $2$, this has many executions,
+one of which is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx0}{\DR{x}{0}}{below=of wx0}
+  \event{wy0}{\DW{y}{0}}{right=of rx0}
+  \event{ry0}{\DR{y}{0}}{below=of wy0}
+  \event{wx1}{\DW{x}{1}}{right=of ry0}
+  \nonevent{wx2}{\DW{x}{2}}{right=of wx1}
+  \nonevent{wz1}{\DW{z}{1}}{right=of wx2}
+  \po{rx0}{wy0}
+  \po{ry0}{wx1}
+  \po[out=30,in=150]{ry0}{wz1}
+  \po[out=25,in=155]{ry0}{wx2}
+  \rf{ix}{rx0}
+  \rf{wy0}{ry0}
+  \wk{iy}{wy0}
+\end{tikzpicture}\]
+but there are no executions which exhibit
+$(\DW{z}{1})$, since any attempt to do so
+produces a cycle, since the value written
+to $x$ has a control dependency on the value
+read from $y$:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx1}{\DR{x}{1}}{below=of ix}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{below=of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry0}
+  \nonevent{wx2}{\DW{x}{2}}{right=of wx1}
+  \event{wz1}{\DW{z}{1}}{right=of wx2}
+  \po{rx1}{wy1}
+  \po{ry1}{wx1}
+  \po[out=30,in=150]{ry1}{wz1}
+  \po[out=25,in=155]{ry1}{wx2}
+  \rf[in=-90,out=-150]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=-20,in=90]{ix}{wx1}
+  \wk[out=-20,in=120]{ix}{wx2}
+  \wk{iy}{wy1}
+\end{tikzpicture}\]\vskip-\bigskipamount\noindent
+In the case where \verb|SECRET| is $1$, there is an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx1}{\DR{x}{1}}{below=of ix}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{below=of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry0}
+  \event{wz1}{\DW{z}{1}}{right=of wx1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wz1}
+  \rf[in=-90,out=-150]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=-20,in=90]{ix}{wx1}
+  \wk[out=-20,in=120]{ix}{wx2}
+  \wk{iy}{wy1}
+\end{tikzpicture}\]\vskip-\bigskipamount\noindent
+Note that in this case, there is no dependency from
+$(\DR{y}{1})$ to $(\DW{x}{1})$.  This lack of dependency makes the
+execution possible. Thus, if the attacker sees
+an execution with $(\DW{z}{1})$, they can conclude
+that \verb|SECRET| is $1$, which is an information flow
+attack.
+
+This attack is not just an artifact of the model,
+since the same behavior can be exhibited by
+compiler optimizations. Consider the program fragment:
+\[\begin{array}{l}
+    \IF(y = 0)\THEN x\GETS1
+    \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
+    \brELSE x\GETS1\SEMI z\GETS1 \FI
+\end{array}\]
+In the case where \verb|SECRET| is a constant \verb|1|,
+the compiler can inline it
+and lift the assignment to $x$ out of the $\IF$ statement:
+\[\begin{array}{l}
+    x\GETS1\SEMI
+    \IF(y = 0)\THEN
+    \brELIF(\CANREAD(\SEC))\THEN
+    \brELSE z\GETS1 \FI
+\end{array}\]
+After this optimization, a sequentially consistent execution
+exhibits $(\DW{z}{1})$. We discuss the practicality of this attack
+further in \S\ref{sec:experiments}.
+
+\subsection{Dead store elimination}
+\label{sec:dse}
+
+A common compiler optimization is \emph{dead store elimination},
+in which writes are omitted if they will be overwritten by a subsequent
+write later in the same thread. We can model eliminated writes
+by ones with an unsatisfiable precondition. For example,
+one execution of $(x \GETS 1\SEMI x \GETS 2) \PAR (r \GETS x)$ is:
+\[\begin{tikzpicture}[node distance=1em]
+  \nonevent{wx1}{\DW{x}{1}}{}
+  \event{wx2}{\DW{x}{2}}{right=of wx1}
+  \event{rx2}{\DR{x}{2}}{right=2.5em of wx2}
+  \wk{wx1}{wx2}
+  \rf{wx2}{rx2}
+\end{tikzpicture}\]
+Recall that for any satisfiable $\aEv$, if $\aEv$ reads $\aLoc$ from $\bEv$
+then $\bEv$ is satisfiable. This means that, although we can eliminate
+$(\DW{x}{1})$ we cannot eliminate $(\DW{x}{2})$.
+
+One heuristic that a compiler might adopt is to only eliminate
+writes that are guaranteed to be followed by another write
+to the same variable. This can be formalized by saying that
+a write event $\bEv$ is eliminable if
+there is a tautology $\bEv \gtN \aEv$
+which writes to the same location.
+A model of dead store elimination is one where,
+in every pomset, every eliminable event is unsatisfiable.
+This model includes the example above.
+
+Note that if dead store
+elimination is \emph{always} performed, then there is an information
+flow attack similar to the one in \S\ref{sec:info-flow-attack}. Consider
+the program:
+\[\begin{array}[t]{@{}l}
+    y\GETS x
+  \PAR\begin{array}[t]{@{}l}
+    x\GETS 1\SEMI\\
+    \IF(\CANREAD(\SEC))\THEN \IF(\SEC)\THEN x\GETS 2\FI
+    \brELSE x\GETS 2\FI
+\end{array}\end{array}\]
+In the case that \verb|SECRET| is $0$, there is an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{x}{1}}{}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{wx1}{\DW{x}{1}}{right=2.5em of wy1}
+  \event{wx2}{\aForm \mid \DW{x}{2}}{right=of wx1}
+  \rf[out=160,in=20]{wx1}{rx1}
+  \po{rx1}{wy1}
+  \wk{wx1}{wx2}
+\end{tikzpicture}\]
+where $\aForm$ is ($\lnot$\verb|canRead(SECRET)|),
+which is not a tautology, and so the $(\DW{x}{1})$ event is not eliminated.
+In the case that \verb|SECRET| is not $0$, the matching execution
+is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx2}{\DR{x}{2}}{}
+  \event{wy2}{\DW{y}{2}}{right=of rx2}
+  \nonevent{wx1}{\DW{x}{1}}{right=2.5em of wy2}
+  \event{wx2}{\DW{x}{2}}{right=of wx1}
+  \rf[out=160,in=20]{wx2}{rx2}
+  \po{rx2}{wy2}
+  \wk{wx1}{wx2}
+\end{tikzpicture}\]
+Now the $(\DW{x}{2})$ event is a guaranteed write, so the $(\DW{x}{1})$
+is eliminated, and so cannot be read.
+In the case that the attacker can rely on dead store
+elimination taking place, this is an information flow: if the attacker observes
+$x$ to be $1$, then they know \verb|SECRET| is $0$. We return to this attack
+in \S\ref{sec:experiments}.
+
+\section{Experiments}
+\label{sec:experiments}
+
+One theme of this paper is that optimizations not typically part of formal
+abstractions can result in information flow leaks.
+This is typified by the Spectre attack, which leverages speculative execution,
+a hardware optimization.
+\S\ref{sec:info-flow-attack} and~\S\ref{sec:dse} presented other attacks
+along the same line, which leverage compiler optimizations.
+These attacks also, unlike Spectre, do not rely on timing side channels, or
+indeed timers of any kind, bypassing many common Spectre
+mitigations~\cite{KohlbrennerShacham2016, FirefoxPerformanceNow}.
+
+In this section we present implementations of the attacks described
+in~\S\ref{sec:info-flow-attack} and~\S\ref{sec:dse}, in both cases
+exploiting compiler optimizations to construct an information flow attack.
+\ignore{
+The attacker model (detailed in~\S\ref{subsec:attacker-model})
+is currently unrealistic, as we attack C compilers rather than scripting
+languages, and we require the secret to be a compile-time constant which
+the compiler can optimize on.
+This renders these attacks proof-of-concepts rather than
+immediately exploitable vulnerabilities.
+However, we believe their novelty may lead to
+interesting discussion, and with much more development, these attacks may
+evolve into genuine threats against targets such as JIT compilers.
+}
+We demonstrate the efficacy of our proof-of-concept attacks against
+the {\CLANG} and {\GCC} C compilers.
+All of our experiments are performed on a Debian 9 machine with an Intel
+i7-6500U processor and 8 GB RAM;
+we test against {\GCC}~6.3.0 and {\CLANG}~3.8.
+
+\subsection{Attacker model}
+\label{subsec:attacker-model}
+
+As explained in Section~\ref{sec:examples}, our model expresses a variety
+of attacks with differing attacker models.
+The Spectre~(\S\ref{sec:spectre}) and
+\textsc{Prime+Abort}~(\S\ref{sec:transactions}) attacks exploit optimizations
+in hardware, and so can be mounted against a dynamic \SEC.
+Our model captures this appropriately.
+In contrast, the attacks from~\S\ref{sec:info-flow-attack}
+and~\S\ref{sec:dse} leverage compiler optimizations and require the \SEC to
+be known to the compiler, for example a static \SEC or a JIT compiler.
+As our experimental section is devoted to these latter (novel) attacks, we
+discuss the attacker model for these attacks in more detail.
+
+In the attacker model for the compiler-optimization attacks, we assume that
+there is a {\SEC} hardcoded into an application; for instance, {\SEC} may be
+an API key.
+This {\SEC} is known at compile time, but may not be
+accessed except behind a security check.
+Since the attacker is running with low security privileges,
+the security check always fails,
+so the attacker can only access the {\SEC} in dead code.
+\ignore{
+The attacker has no capabilities other than writing and executing code --- in
+particular the attacker may not disassemble the compiler or libraries to learn
+the {\SEC} directly; may not examine the internal state of the compiler;
+may not access timers of any kind; and may not leverage hardware side channels.
+}
+The attacker's goal is to learn the value of the {\SEC}.
+
+As a running hypothetical example, suppose there is a library that contains
+a hardcoded {\SEC}: % such as an API key: --- API key mentioned just above
+\begin{verbatim}
+  static const uint SECRET = 0x1234;
+  static volatile bool canReadSecret = false;
+\end{verbatim}
+The attacker is not allowed to write to \verb|canReadSecret| or read from {\SEC}
+except after performing an \verb|if(canReadSecret)| check.
+
+This is not necessarily a realistic attacker model,
+since in most cases secrets are only known at run time rather than compile time,
+which means that the attacks presented in this section
+are more proof-of-concepts rather than immediately exploitable vulnerabilities.
+However, the mechanisms we use are novel and could potentially be applied
+in other contexts.
+For instance, many real-world contexts allow untrusted or
+third-party entities to write code in a scripting language which is then
+compiled alongside and integrated into a larger application, often
+using a just-in-time (JIT) compiler.
+JavaScript code from third-party websites running in a browser is a common
+example of this.
+% We give an attacker similar capabilities against a
+% compiler, except that we consider the simpler setting of using C code against a C
+% compiler.
+Although we consider only attacks using C code against a C compiler,
+one could imagine a similar attack using JavaScript against browser JIT
+compilers, where the compiler may have access to interesting secrets such as the
+browser's cookie store, and may be able to optimize based on those secrets.
+We plan to explore JavaScript attacks of this type as future work.
+
+\subsection{Load-store reordering attack}
+\label{subsec:exp-rel-mem}
+
+We begin by examining the attack in~\S\ref{sec:info-flow-attack} in
+more detail.
+We show that by exploiting compiler optimizations which perform
+load-store reordering, an attacker can learn the value of a compile-time
+{\SEC} despite only being allowed to use it inside dead code.
+%This attack was tested and works against {\GCC} version 6.3.0.
+We verified that this attack succeeds against {\GCC} version 6.3.0.
+
+The form of the attack presented in~\S\ref{sec:info-flow-attack} works in
+theory, but in practice, just because a compiler is \emph{allowed} to perform a
+load-store reordering doesn't mean that it \emph{will}.
+We found that {\GCC} and {\CLANG} chose to read $y$ into a
+register first (before writing to $x$), regardless of the value of
+{\SEC}.
+% However, we did find a related pattern in which {\GCC} will emit a
+However, using a similar program we were able to coax {\GCC} to emit a
+different ordering of the read of $y$ and the write of $x$ depending
+on the value of a {\SEC}:
+\[\begin{array}[t]{@{}l}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI\\\quad
+    y\GETS x
+  \PAR\begin{array}[t]{@{}l}
+    x\GETS 1\SEMI\\
+    \IF(\texttt{canReadSecret})\THEN x\GETS\SEC\FI\\
+    \IF(y > 0)\THEN z\GETS 0 \ELSE z\GETS 1\FI
+\end{array}\end{array}\]
+\ignore{
+\begin{verbatim}
+    x := 0; y := 0;
+    (
+      y := x;
+    ) || (
+      x := 1;
+      if(canReadSecret) { x = SECRET; }
+      if (y) { return 0; }
+      else { return 1; }
+    )
+\end{verbatim}
+}
+
+Figure~\ref{fig:lsr-asm} shows the assembly output of {\GCC} on this program in the cases
+where {\SEC} is 0 and 1 respectively.
+In the case that {\SEC} is $1$, {\GCC} removes the \IF
+statement entirely, and moves the read of $y$ above the write of $x$.
+However, when {\SEC} is $0$, the \IF statement must remain
+intact, and {\GCC} does not move the read of $y$.
+This means that if {\SEC} is $1$, the second thread will always
+read $y\EQ0$ and always assign $z\GETS1$.
+However, if {\SEC} is $0$, it is possible that the first thread
+may observe $x\EQ1$ and write $y\GETS1$ in time for the second thread
+to observe $y\EQ1$ and thus assign $z\GETS0$.
+In this way, we leverage compiler load-store reordering to learn the value of
+a compile-time {\SEC}.
+
+\begin{figure}
+  \begin{tabular}{p{3.4cm} @{\quad} | p{3.4cm}}
+    \texttt{SECRET == 0} & \texttt{SECRET == 1} \\ \hline
+\begin{verbatim}
+  mov s(%rip), %eax
+  mov $1, x(%rip)
+  test %eax, %eax
+  je label1
+  mov $0, x(%rip)
+label1:
+  mov y(%rip), %eax
+  test %eax, %eax
+  sete %eax
+\end{verbatim}
+  &
+\begin{verbatim}
+  mov s(%rip), %eax
+  mov y(%rip), %eax
+  mov $1, x(%rip)
+  test %eax, %eax
+  sete %eax
+\end{verbatim}
+  \end{tabular}
+  \caption{
+    Simplified x86 assembly output from \texttt{gcc} for the main thread of
+    the load-store reordering attack.
+    In particular, note that the order between (\texttt{mov \$1, x(\%rip)})
+    and (\texttt{mov y(\%rip), \%eax}) is different in the two cases.
+    References to the \texttt{canReadSecret} variable have been shortened to
+    \texttt{s} for the figure.
+  }
+  \label{fig:lsr-asm}
+\end{figure}
+
+We extend this attack to leak a secret consisting of an arbitrary number
+\verb|N| of bits.
+To do this, we compile \verb|N| copies of the test function, each
+performing a boolean test on a single bit of {\SEC}.
+So that the bit value is
+constant at compile time, we must compile a separate function for each bit, rather than execute the same
+code repeatedly in a loop.
+\ignore{
+The function used for reading the \verb|k|th bit is as follows (for
+\verb|N <= 64|):
+\[\begin{array}[t]{@{}l}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI\\\quad
+    y\GETS x
+  \PAR\begin{array}[t]{@{}l}
+    x\GETS 1\SEMI\\
+    \IF(\texttt{canReadSecret})\THEN x\GETS\texttt{(\SEC\, \& (1 << k)) ? 1 : 0}\SEMI\FI\\
+    \IF(y > 0)\THEN \RETURN 0
+    \brELSE \RETURN 1\FI
+\end{array}\end{array}\]
+Following the same analysis as above, this function will always return $1$
+if {\SEC} is $1$, but may return $0$ if {\SEC} is $0$.
+The extension of the attack to the general case with truly arbitrary \verb|N|
+is straightforward; {\SEC} becomes an array of 64-bit values, and we use
+\verb|k / 64| and \verb|1 << (k & 63)| as the array index and bitmask
+respectively.
+}
+
+We make three additional tweaks to improve the reliability, so that the attacker
+can confidently infer the value of {\SEC} based on the observed value of $z$.
+  First, rather than performing $y\GETS x$ only once in the forwarding thread,
+we perform $y\GETS x$ continuously in a loop.
+This maximizes the probability that, once $x\GETS 1$ occurs in the main
+thread, $y$ will be immediately assigned $1$ by the forwarding thread
+and the main thread will be able to read $y\EQ 1$.
+
+Second, we wish to lengthen the timing window between $x\GETS 1$ and the
+read of $y$ in the main thread (in the case where
+{\SEC} is $0$ and the read of $y$ remains below $x\GETS 1$).
+However, we wish to do this in a way that does not block the reordering of the
+read of $y$ upwards in the case where {\SEC} is $1$.
+We do this by inserting many copies of the line
+\[
+  \IF (\texttt{canReadSecret}) \THEN x\GETS\SEC\FI
+\]
+instead of just one.
+In the case where {\SEC} is $0$, this
+results in many reads of \verb|canReadSecret| and many conditional jumps,
+which in practice creates a timing window for the forwarding thread to perform
+$y\GETS x$.
+However, in the case where {\SEC} is $1$,
+all of these inserted lines can be removed just as a single copy could be.
+In practice, we found that inserting too many copies of the line prevents
+{\GCC} from reordering the read of $y$ above the write to $x$ as
+desired; inserting $30$ copies was sufficient to create a timing window
+while still allowing the desired reordering.
+
+Finally, we redundantly execute the entire attack several times, noting the
+value of $z$ in each case.
+We note that if \emph{any} of the redundant runs produces a value of
+$z\EQ0$ for a particular bit position, then we can be certain that the
+corresponding bit of {\SEC} \emph{must} be $0$, as it implies the
+read of $y$ was not reordered upwards in that particular function.
+On the other hand, the more runs that produce a value of $z\EQ1$ for a
+particular bit position, the more certain we can be that the read of $y$
+was reordered above the $x\GETS 1$ assignment, and {\SEC} is $1$.
+
+\begin{figure}
+  \small
+  \begin{tabular}{ r | l | l | l }
+    Redundancy & Bandwidth (bits/s) & Bitwise Acc & Per-run Acc \\ \hline
+    1          & 3.14 million       & 90.89\%     & 1.9\%       \\
+    2          & 1.56 million       & 96.04\%     & 8.1\%       \\
+    3          & 1.04 million       & 98.09\%     & 10.0\%      \\
+    4          & 783 thousand       & 98.98\%     & 24.3\%      \\
+    5          & 626 thousand       & 99.71\%     & 50.2\%      \\
+    7          & 447 thousand       & 99.91\%     & 70.6\%      \\
+    10         & 314 thousand       & 99.991\%    & 93.8\%      \\
+    15         & 208 thousand       & 99.994\%    & 95.5\%      \\
+    20         & 157 thousand       & 99.9995\%   & 99.2\%      \\
+    30         & 105 thousand       & 99.99995\%  & 99.9\%      \\
+  \end{tabular}
+  \caption{
+    Performance results for the load-store reordering attack when leaking a
+    2048-bit secret.
+    `Redundancy' is the number of redundant runs performed for error
+    correction; more redundant runs improves accuracy but reduces bandwidth.
+    `Bandwidth' is the number of bits leaked per second after accounting for
+    any error correction.
+    `Bitwise Accuracy' is the percentage of bits that were correct, while
+    `Per-run Accuracy' is the percentage of full 2048-bit secrets that were
+    correct in all bit positions.
+  }
+  \label{fig:load-store-perf}
+\end{figure}
+
+Figure~\ref{fig:load-store-perf} gives the performance results for this attack
+against {\GCC} version 6.3.0.
+The attack can sustain hundreds of thousands of bits per second leaked with
+near-perfect accuracy, or millions of bits per second with error rates of a
+few percent.
+This means that an attacker can leak a 2048-bit secret with near-perfect
+accuracy in under $10$ ms.
+Note that this bandwidth assumes that all copies of the attack function are
+already compiled; the cost of compilation is not included here.
+
+\subsection{Dead store elimination attack}
+\label{subsec:exp-dse}
+
+In this section we return to the attack in~\S\ref{sec:dse} based on
+dead store elimination.
+We show that in our attacker model (given in~\S\ref{subsec:attacker-model}),
+the attacker is able to exploit dead
+store elimination to again learn the value of a compile-time {\SEC}
+despite only being allowed to use it inside dead code.
+This attack is even more efficient than the attack on load-store reordering,
+and further, we were able to demonstrate its effectiveness against both
+{\GCC} and {\CLANG}.
+
+We start from the simple form of the attack presented in~\S\ref{sec:dse},
+and extend it to leak a secret consisting of an
+arbitrary number of bits, in the same way that we extended the load-store
+reordering attack.
+\ignore{
+As we did in the load-store reordering attack, we again compile \verb|N| copies
+of the test function, each performing a boolean test on a single bit of the
+secret.
+The function used for reading the \verb|k|th bit is as follows (for
+\verb|N <= 64|):
+\[\begin{array}[t]{@{}l}
+  \VAR x\GETS0\SEMI\\\quad
+    r\GETS x
+  \PAR\begin{array}[t]{@{}l}
+    x\GETS 1\SEMI\\
+    \IF(\CANREAD(\SEC))\THEN \IF(\SEC\,\texttt{ \& (1 << k)}\NOTEQ0)\THEN x\GETS 2\FI
+    \brELSE x\GETS 2\FI
+\end{array}\end{array}\]
+\ignore{
+\begin{verbatim}
+    (
+      r := x;
+    ) || (
+      x := 1;
+      if (canRead(SECRET)) {
+        if (SECRET & (1 << k)) { x := 2; }
+      } else {
+        x := 2;
+      }
+    )
+\end{verbatim}
+}
+Then, we test each function in turn, each time noting the value of $y$
+observed by the `listening' thread.
+If {\SEC} is 1, the $x\GETS 2$ assignment is
+guaranteed to happen, so the compiler can eliminate the $x \GETS 1$
+assignment as a dead store and we will observe $y\EQ 2$; however, if
+{\SEC} is 0, the $x\GETS 1$ assignment cannot be
+eliminated, and we will observe $y\EQ 1$ with some probability.
+The extension of the attack to the general case with truly arbitrary \verb|N|
+is straightforward and proceeds exactly as it did for the attack on
+load-store reordering.
+}
+We make three additional tweaks to improve the reliability so that the attacker
+can confidently infer the value of {\SEC}.
+Two of them follow exactly the same pattern as the reliability tweaks
+for the load-store reordering attack in~\S\ref{subsec:exp-rel-mem} ---
+continuously forwarding $x$ to $y$ in the forwarding thread, and running the
+entire attack multiple times.
+The remaining tweak is again motivated by increasing the timing window in
+which the forwarding can happen, but differs in some details from the
+implementation in~\S\ref{subsec:exp-rel-mem}.
+
+\ignore{
+First, rather than simply observing $x$ with $y\GETS x$ in the
+`listening' thread, we continuously load $x$ in a loop until a
+nonzero value is observed --- i.e., we perform
+$\DO{r\GETS x} \WHILE(r\EQ0)$.
+\ignore{
+\begin{verbatim}
+    do {
+      r := x;
+    } while(r == 0);
+\end{verbatim}
+}
+This remedies the case where $y\GETS x$ could observe a value of $x$
+from `before' either of the two possible writes performed by the other thread.
+}
+
+To increase the timing window, we insert additional time-consuming
+computation immediately following
+the $x\GETS 1$ operation in the main thread.
+This increases the likelihood that the listening thread will be able to observe
+$x\EQ 1$ (unless the $x\GETS 1$ write was eliminated).
+Inserting this computation should be done without interfering with the dead store
+elimination process itself, so that the compiler will continue to eliminate
+the $x\GETS 1$ write if and only if {\SEC} was 1.
+For {\GCC}, we have a fair amount of freedom with the time-consuming
+computation --- for instance, we can use an arbitrarily long loop.
+In fact, we can perform a further optimization by monitoring the value of the
+variable $y$ (written to by the listening thread) and breaking out of the
+loop early if we see that the listening thread has already observed $x\EQ 1$.
+However, with {\CLANG}, we cannot use a loop at all --- the time-consuming
+computation must be branch-free and, furthermore, must not consist of too many
+instructions.
+\ignore{
+This is because {\CLANG}'s dead store elimination pass operates only
+within basic blocks, and uses a heuristic to stop scanning the basic block
+early if it is too large.
+}
+Nonetheless, we find that even with these restrictions, we are able to
+construct a reliable and fast attack against both {\CLANG} and {\GCC}.
+
+\ignore{
+Finally, we redundantly execute the entire attack several times, noting the
+final value of $y$ (the first observed nonzero value of $x$) in each
+case.
+We note that if \emph{any} of the redundant runs produces $y\EQ 1$ for a
+particular bit position, we can be certain that the corresponding bit of
+{\SEC} \emph{must} be $0$, as it implies that the $x\GETS 1$ write
+was not eliminated in that particular function.
+On the other hand, the more runs that observe $y\EQ 2$ in a particular bit
+position despite our other reliability-increasing measures taken above, the
+more certain we can be that the $x\GETS 1$ write was eliminated in that
+function, and {\SEC} is $1$.
+}
+
+\begin{figure}
+  \small
+  \begin{tabular}{ r | l | l | l }
+    Redundancy & Bandwidth (bits/s) & Bitwise Acc & Per-run Acc \\ \hline
+    1          & 1.19 million       & 99.991\%    & 95.6\%      \\
+    2          & 597 thousand       & 99.99986\%  & 99.7\%      \\
+    3          & 397 thousand       & 100.0\%     & 100.0\%     \\
+  \end{tabular}
+  \caption{
+    Performance results for the dead store elimination attack on {\CLANG} when
+    leaking a 2048-bit secret.
+    Terms are the same as defined in the caption for Figure~\ref{fig:load-store-perf}.
+  }
+  \label{fig:clang-dse-perf}
+\end{figure}
+
+\begin{figure}
+  \small
+  \begin{tabular}{ r | c | c | c }%| c | c | c }
+    Stall amount & 10 &
+%                   20 &
+%                   50 &
+                   100 &
+%                   200 &
+                   500 \\ \hline
+    Redundancy 1 & \makecell{2.54 million\\98.15\%} &
+%                   \makecell{2.36 million\\99.80\%} &
+%                   \makecell{1.95 million\\99.987\%} &
+                   \makecell{1.54 million\\99.996\%} &
+%                   \makecell{1.12 million\\99.993\%} &
+                   \makecell{584 thousand\\99.998\%} \\ \hline
+    Redundancy 2 & \makecell{1.24 million\\99.73\%} &
+%                   \makecell{1.17 million\\99.993\%} &
+%                   \makecell{989 thousand\\100.0\%} &
+                   \makecell{774 thousand\\100.0\%} &
+%                   \makecell{553 thousand\\100.0\%} &
+                   \makecell{295 thousand\\100.0\%} \\ \hline
+    Redundancy 3 & \makecell{841 thousand\\99.94\%} &
+%                   \makecell{784 thousand\\100.0\%} &
+%                   \makecell{666 thousand\\100.0\%} &
+                   \makecell{521 thousand\\100.0\%} &
+%                   \makecell{370 thousand\\100.0\%} &
+                   \makecell{201 thousand\\100.0\%} \\ \hline
+    Redundancy 4 & \makecell{620 thousand\\99.992\%} &
+%                   \makecell{585 thousand\\100.0\%} &
+%                   \makecell{499 thousand\\100.0\%} &
+                   \makecell{387 thousand\\100.0\%} &
+%                   \makecell{285 thousand\\100.0\%} &
+                   \makecell{145 thousand\\100.0\%} \\
+  \end{tabular}
+  \caption{
+    Performance results for the dead store elimination attack on {\GCC} when
+    leaking a 2048-bit secret.
+    Rows give different values of `redundancy' (as defined in previous figures),
+    while columns give amounts of stall time immediately following the
+    $x\GETS 1$ write (as measured in loop iterations).
+    Each table cell gives the leak bandwidth in bits/sec, followed by the
+    bitwise accuracy.
+  }
+  \label{fig:gcc-dse-perf}
+\end{figure}
+% \begin{figure*}
+%   \small
+%   \begin{tabular}{ r | c | c | c | c | c | c }
+%     Stall amount & 10 & 20 & 50 & 100 & 200 & 500 \\ \hline
+%     Redundancy 1 & \makecell{2.54 million\\98.15\%} &
+%                    \makecell{2.36 million\\99.80\%} &
+%                    \makecell{1.95 million\\99.987\%} &
+%                    \makecell{1.54 million\\99.996\%} &
+%                    \makecell{1.12 million\\99.993\%} &
+%                    \makecell{584 thousand\\99.998\%} \\ \hline
+%     Redundancy 2 & \makecell{1.24 million\\99.73\%} &
+%                    \makecell{1.17 million\\99.993\%} &
+%                    \makecell{989 thousand\\100.0\%} &
+%                    \makecell{774 thousand\\100.0\%} &
+%                    \makecell{553 thousand\\100.0\%} &
+%                    \makecell{295 thousand\\100.0\%} \\ \hline
+%     Redundancy 3 & \makecell{841 thousand\\99.94\%} &
+%                    \makecell{784 thousand\\100.0\%} &
+%                    \makecell{666 thousand\\100.0\%} &
+%                    \makecell{521 thousand\\100.0\%} &
+%                    \makecell{370 thousand\\100.0\%} &
+%                    \makecell{201 thousand\\100.0\%} \\ \hline
+%     Redundancy 4 & \makecell{620 thousand\\99.992\%} &
+%                    \makecell{585 thousand\\100.0\%} &
+%                    \makecell{499 thousand\\100.0\%} &
+%                    \makecell{387 thousand\\100.0\%} &
+%                    \makecell{285 thousand\\100.0\%} &
+%                    \makecell{145 thousand\\100.0\%} \\
+%   \end{tabular}
+%   \caption{
+%     Performance results for the dead store elimination attack on {\GCC} when
+%     leaking a 2048-bit secret.
+%     Rows give different values of `redundancy' (as defined in previous figures),
+%     while columns give amounts of stall time immediately following the
+%     $x\GETS 1$ write (as measured in loop iterations).
+%     Each table cell gives the leak bandwidth in bits/sec, followed by the
+%     bitwise accuracy.
+%   }
+%   \label{fig:gcc-dse-perf}
+% \end{figure*}
+
+Performance results for the dead store elimination attack against {\CLANG}
+are given in Figure~\ref{fig:clang-dse-perf}, and against {\GCC} are given in
+Figure~\ref{fig:gcc-dse-perf}.
+Both attacks are faster than the load-store-reordering attack from
+\S\ref{subsec:exp-rel-mem} when comparing settings which give the same
+accuracy.
+In particular, the attack on {\GCC} can leak a 2048-bit cryptographic
+key with perfect accuracy (in our tests) in about $2$ ms.
+
+\section{Conclusions and future work}
+
+In this paper, we have presented a model of speculative evaluation and
+shown that it captures non-trivial properties of speculations produced
+by hardware, compiler optimizations, and transactions. These properties
+include information flow attacks: in the case of hardware and transactions
+this is modeling known attacks~\cite{DBLP:journals/corr/abs-1801-01203,DBLP:conf/uss/DisselkoenKPT17},
+but in the case of compiler optimizations the attacks are new, and were
+discovered as a direct result of developing the model. We have experimentally
+validated that the attacks can be carried out against \verb|gcc| and \verb|clang|,
+though only against secrets known at compile time.
+
+We have tried where possible to abstract away from the
+micro-architectural details that enable attackers to exploit
+speculation, while still trying to capture the ``essence'' of
+Spectre. There are trade-offs with any such abstraction, as
+higher-level abstractions make program behavior easier to understand
+and reason about, but at the cost of ignoring potential attacks. One
+software developer's useful abstraction is another's ignoring the
+difficult issues.
+
+As a concrete instance, one feature of Spectre we have glossed over is
+the ability of the attacker to influence speculation, for example by
+training the branch predictor or influencing the contents of caches.
+We expect that such attacker influence could be modeled using a
+mechanism similar to the speculation barriers of \S\ref{sec:spec-barriers},
+but under the control of the attacker rather than the honest agents.
+
+The paper's primary focus is not weak memory, and the model of relaxed
+memory used in this paper is deliberately simplified, compared for
+example to
+C11~\cite{Boehm:2008:FCC:1375581.1375591,Batty:2011:MCC:1926385.1926394}. Nonetheless,
+we believe that the model developed in the paper has promise as a
+semantics for relaxed memory. Our model appears to be the first in the
+literature that both validates all of the JMM causality test cases and
+also forbids thin air behavior; the most prominent existing models are
+either too permissive~\cite{Manson:2005:JMM:1047659.1040336,
+  Jagadeesan:2010:GOS:2175486.2175503,Kang-promising-2017} or
+too conservative~\cite{DBLP:conf/lics/JeffreyR16}.  In separate work,
+we are exploring the usual properties of weak memory, such as
+comparisons with sequentially consistent models,
+optimization soundness, or compilation soundness.  While our model of
+transactions shows the flexibility of our model, in this future work,
+we will include known features of hardware, including locks, fences,
+and read-modify-write instructions.  This development is not core to
+the basic findings of this paper.
+
+
+
+UNUSED: In particular our model of reads-from is strong, and could be weakened
+by replacing the requirement $\bEv<\aEv$ in Definition~\ref{def:rf} by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
+%% in particular the logical formulation of $\aLoc$-closure in
+%% \S\ref{sec:logic} as
+%% $((\DR{\aLoc}{\aVal}) \Rightarrow \once(\DW{\aLoc}{\aVal}))$
+%% would no longer be sound.
+% The model is also not considering coherence, though we speculate it
+% can be added by requiring that for each $\aLoc$, $\gtN$ form a total
+% order when restricted to events that write to $\aLoc$.
+
+The design space for transactions is very rich~\cite{DBLP:journals/pacmpl/DongolJR18}.
+We have only presented one design choice, and it remains to be seen how other
+design choices could be adopted. For example, we have chosen not to distinguish
+commits that are aborted due to transaction failure from commits which are aborted
+for other reasons, such as failed speculation.
+
+In future work, it would be interesting to see if full-abstraction
+results for pomsets \cite{Plotkin:1997:TSP:266557.266600} can be extended to
+3-valued pomsets.
+
+One interesting feature of this model is that (in the language
+of~\cite{Pichon-Pharabod:2016:CSR:2837614.2837616}) it is a
+\emph{per-candidate execution model}, in that the correctness of an
+execution only requires looking at that one execution, not at
+others. This is explicit in memory models such
+as~\cite{Jagadeesan:2010:GOS:2175486.2175503,Kang-promising-2017} in which
+``alternative futures'' are explored, in a style reminiscent of
+Abramsky's bisimulation as a testing equivalence~\cite{ABRAMSKY1987225}. Models of
+information flow are similar, in that they require comparing different
+runs to test for the presence of dependencies~\cite{Clarkson:2010:HYP:1891823.1891830}. In contrast, the model
+presented here explicitly captures dependency in the pomset order, and
+models multiple runs by giving the semantics of $\IF$ in terms of a
+concurrent semantics of both branches.
+In the parlance of information flow~\cite{Barthe:2004:SIF:1009380.1009669},
+the humble conditional suffices to construct a composition operator to detect information flow  in the presence of speculation.
+
+\begin{small}
+\bibliography{bib}
+\end{small}
+
+\appendix
+\subsection{Operations on sets of pomsets}
+\label{app:sets-of-pomsets}
+
+Here we give the formal definitions for the operations described at the
+beginning of \S\ref{sec:semantics}.
+
+In order to model speculation barriers in \S\ref{sec:spec-barriers},
+we partition the actions into \emph{mergeable} and \emph{unmergeable}.
+
+In transactional memory, begin and commit actions are memory fences: that is,
+they are a barrier to reordering memory accesses.  To capture this (and other
+memory barriers), we identify sets $\Rel$ and $\Acq \subseteq\Act$.  For
+transactions, we have $(\DB{\aVal})\in\Acq$ for begins,
+$(\DC{\aVal})\in \Rel$ for commits.  We say that $\aAct$ is a \emph{release}
+if $\aAct\in\Rel$ and $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$.
+% In a pomset, a release event is one
+% labelled with a release action, and an acquire event is one labelled by an
+% acquire action.  
+
+\begin{definition}
+  \label{def:prefix}
+Let $\aAct \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+\begin{itemize}
+\item $\Event' = \Event \cup \{\cEv\}$,
+\item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+\item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
+\item if $\cEv\in\Event$ then $\cEv$ is mergeable,
+\item $\labelling'(\cEv) = (\aForm, \aAct)$, and
+\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
+  (\bForm' \mid \bAct)$, where:
+  \begin{itemize}
+  \item $\cEv <' \aEv$ whenever $\aAct$ is an acquire or $\bAct$ is a release, 
+  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+  \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+    then $\cEv \gtN' \aEv$, and
+  \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
+    % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} & \textsc{[dependent read]} \\
+    % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
+    % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
+    \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
+    \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
+    \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
+  \end{array}\right.\)
+  \end{itemize}
+\end{itemize}
+\end{definition}
+The first constraint ensures that events are ordered before a release and
+after an acquire.  The second constraint ensures that thread-local reads do
+not cross acquire fences.
+
+% Prefixing is used to define the semantics of reads and writes, and
+% adds a new event $\cEv$ with action $\aAct$.  As in the definition
+% of parallel composition, the definition allows the new event to overlap with
+% events in $\aPSS$ as long as they agree on the action.
+
+The tricky parts of the
+definition are the named cases, which place requirements on read
+dependencies.  If $\aAct$ reads $\aVal$ from $\aLoc$, we have to
+decide whether $\aEv$ depends on $\cEv$ for some $\aEv$ with old
+precondition $\bForm$ and new precondition $\bForm'$. The first case
+\textsc{[dependent read]} is that the dependency exists, in which case
+$\bForm'$ just has to imply $\bForm[\aVal/\aLoc]$. The more interesting 
+case is \textsc{[independent read]}, in which case $\bForm'$ has to imply
+$\bForm[\aVal/\aLoc]$ and $\bForm$. This corresponds to a case where
+$\aEv$ can be performed with or without $\cEv$.
+In particular, if $\bForm$ is independent of $\aLoc$ then we can pick
+$\bForm'$ to be $\bForm$, and the independent read case will apply.
+% For example,
+% if $\aAct$ and $\bAct$ write to the same location, $\aAct$ reads $\aVal$ from $\aLoc$, $\bForm$ is independent of $\aLoc$,
+% and
+% $\aPSS$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{b}{\bForm \mid \bAct}{}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{b}{c}
+% \end{tikzpicture}\]
+% then $\aAct\prefix\aPSS$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm \mid \bAct}{right=of a}
+%   \event{c}{\cForm[\vec\aVal/\vec\aLoc] \mid \cAct}{right=of b}
+%   \po[out=25,in=155]{a}{c}
+%   \wk{a}{b}
+%   \po{b}{c}
+% \end{tikzpicture}\]
+
+
+\begin{definition}
+Let $\aPS_0 \in (\aPSS_1 \parallel \aPSS_2)$
+whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
+\begin{itemize}
+\item $\Event_0 = \Event_1 \cup \Event_2$,
+\item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le_0 \bEv$,
+\item if $\aEv \gtN_1 \bEv$ or $\aEv \gtN_2 \bEv$ then $\aEv \gtN_0 \bEv$,
+\item if $\aEv\in\Event_1\cap\Event_2$ then $\aEv$ is mergeable,
+\item if $\labelling_0(\aEv) = (\aForm_0 \mid \aAct)$ then either:
+  \begin{itemize}
+  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$
+    and $\aForm_0$ implies $\aForm_1 \lor \aForm_2$,
+  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\aEv \not\in \Event_2$
+    and $\aForm_0$ implies $\aForm_1$, or
+  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$ and $\aEv \not\in \Event_1$
+    and $\aForm_0$ implies $\aForm_2$.
+  \end{itemize}
+\end{itemize}
+\end{definition}
+% We use $\aPSS_1 \parallel \aPSS_2$ in defining the semantics of conditionals
+% and concurrency.
+% It contains the union of pomsets from $\aPSS_1$ and $\aPSS_2$,
+% allowing overlap as long as they agree on actions. For example, if
+% $\aPSS_1$ and $\aPSS_2$ contain:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm_1 \mid \bAct}{right=of a}
+%   \po{a}{b}
+% \end{tikzpicture}\qquad\qquad\begin{tikzpicture}[node distance=1em]
+%   \event{b}{\bForm_2 \mid \bAct}{}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \wk{b}{c}
+% \end{tikzpicture}\]
+% then $\aPSS_1 \parallel \aPSS_2$ contains:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm_1 \lor \bForm_2 \mid \bAct}{right=of a}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{a}{b}
+%   \wk{b}{c}
+% \end{tikzpicture}\]
+
+\begin{definition}
+Let $\aPSS[\aExp/\aLoc]$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+\begin{itemize}
+\item $\Event' = \Event$,
+\item if $\bEv \le \aEv$ then $\bEv \le' \aEv$, and
+\item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$, and
+\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) = (\bForm[\aExp/\aLoc] \mid \aAct)$.
+\end{itemize}
+and similarly for $\aPSS[\aLoc/\aReg]$.
+\end{definition}
+
+\begin{definition}
+Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever:
+\begin{itemize}
+\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\aForm$ implies $\bForm$.
+\end{itemize}
+\end{definition}
+
+
+
+\begin{definition}
+\label{def:x-closed}
+  A 3-valued pomset is $\aLoc$-closed if,
+  for every $\aEv\in\Event$:
+  \begin{itemize}
+  \item $\aEv$ is independent of $\aLoc$, and
+  \item if $\aEv$ reads from $\aLoc$, then there is a $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
+  \end{itemize}
+\end{definition}
+
+The definitions as they stand allow cycles in weak edges. This is necessary for examples such
+as $(\aLoc\GETS\bLoc-1\SEMI \aLoc\GETS1 \PAR \bLoc\GETS\aLoc-1\SEMI\bLoc\GETS1)$
+which has execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wx0}{\DW{\aLoc}{0}}{right=of ry1}
+  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
+  \event{rx1}{\DR{\aLoc}{1}}{right=2.5em of wx1}
+  \event{wy0}{\DW{\bLoc}{0}}{right=of rx1}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \wk{wx0}{wx1}
+  \wk{wy0}{wy1}
+  \po{ry1}{wx0}
+  \po{rx1}{wy0}
+  \rf{wx1}{rx1}
+  \rf[in=20,out=160]{wy1}{ry1}
+\end{tikzpicture}\]
+However, in order to model release/acquire fencing in transactions, we need to ban
+executions such as:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{\aLoc}{0}}{}
+  \event{wx1}{\DW{\aLoc}{1}}{below=7ex of wx0}
+  \event{wy1}{\DC{}}{below right=of wx0}
+  \event{ry1}{\DB{}}{right=2.5em of wy1}
+  % \event{wy1}{\DWRel{\bLoc}{1}}{below right=of wx0}
+  % \event{ry1}{\DRAcq{\bLoc}{1}}{right=2.5em of wy1}
+  \event{rx0}{\DR{\aLoc}{0}}{above right=of ry1}
+  \event{rx1}{\DR{\aLoc}{1}}{below=7ex of rx0}
+  \wk[out=-75,in=75]{wx0}{wx1}
+  \wk[out=105,in=-105]{wx1}{wx0}
+  \po{wx0}{wy1}
+  \po{wx1}{wy1}
+  \po{ry1}{rx0}
+  \po{ry1}{rx1}
+  \rf{wy1}{ry1}
+  \rf{wx0}{rx0}
+  \rf{wx1}{rx1}
+\end{tikzpicture}\]
+The problem here is the weak cycle between $(\DW\aLoc0)$ and $(\DW\aLoc1)$,
+which according to Definition~\ref{def:rf}, allows both $(\DR\aLoc0)$ and
+$(\DR\aLoc1)$, even though one of them must be a stale value. This can be addressed by
+requiring $\gtN$ to form a \emph{per-location} partial order. This is a form
+of partial coherence, and can be strengthened to total coherence by requiring
+$\gtN$ to be a per-location total order.
+
+\begin{definition}
+  A 3-valued pomset is \emph{partially} (resp.~\emph{totally}) $\aLoc$-\emph{coherent}
+  if, when restricted to events which touch $\aLoc$,
+  $\gtN$ forms a partial (resp.~total) order.
+\end{definition}
+
+\begin{definition}
+Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+$\aPS$ is $\aLoc$-closed and partially $\aLoc$-coherent.
+\end{definition}
+
+\subsection{Blockers}
+\label{app:blockers}
+
+Recall the preliminary definition of reads-from in \S\ref{sec:pomsets}, which
+defined an $\aLoc$-blocker to be and event $\cEv$ that writes to $\aLoc$ such that
+$\bEv < \cEv < \aEv$.  Were we to adopt this definition, then concurrent
+threads could turn events that were not $\aLoc$-blockers into an
+$\aLoc$-blocker, even if the new thread does not mention $\aLoc$.
+
+To see this, consider the program
+\begin{math}
+  (
+  \aLoc\GETS1\SEMI
+  \bLoc\GETS\aLoc
+  \PAR
+  \aLoc\GETS\cLoc+1\SEMI
+  \bLoc\GETS\aLoc
+  \PAR
+  \IF(z=2)\THEN\aReg\GETS\aLoc\FI
+  )
+\end{math}
+with execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{\aLoc}{1}}{}
+  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+  \rf{wx1}{rx1a}
+  \po{rx1a}{wy1}
+  \rf{wx2}{rx2a}
+  \po{rx2a}{wy2}
+  \po{rz1}{wx2}
+  \po{rz2}{rx1}
+  \rf[out=20,in=160]{wx1}{rx1}
+\end{tikzpicture}\]
+and the program
+\begin{math}
+  (
+  \cLoc\GETS\bLoc\SEMI
+  \cLoc\GETS\bLoc
+  )
+\end{math}
+with execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{\bLoc}{1}}{}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
+  \event{ry2}{\DR{\bLoc}{2}}{right=of wz1}
+  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
+  \po{ry1}{wz1}
+  \po{ry2}{wz2}
+\end{tikzpicture}\]
+If these are placed in parallel, then a possible execution is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{\aLoc}{1}}{}
+  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+  \rf{wx1}{rx1a}
+  \po{rx1a}{wy1}
+  \rf{wx2}{rx2a}
+  \po{rx2a}{wy2}
+  \po{rz1}{wx2}
+  \po{rz2}{rx1}
+  \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
+  \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
+  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
+  \po{ry1}{wz1}
+  \po{ry2}{wz2}
+  \rf{wy1}{ry1}
+  \rf{wz1}{rz1}
+  \rf{wy2}{ry2}
+  \rf{wz2}{rz2}
+\end{tikzpicture}\]
+and now the $(\DW{\aLoc}{2})$ event is an $\aLoc$-blocker,
+so $(\DR{\aLoc}{1})$ cannot
+read from $(\DW{\aLoc}{1})$.
+
+In the final definition of reads-from in \S\ref{sec:pomsets} we
+ruled out $\aLoc$-blockers by requiring that any
+event $\cEv$ that writes to $\aLoc$ has
+either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+With this definition, in order for $(\DR{\aLoc}{1})$ to read from
+$(\DW{\aLoc}{1})$, we either need $(\DW{\aLoc}{2}) \gtN (\DW{\aLoc}{1})$
+or $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$, for example:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{\aLoc}{1}}{}
+  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+  \rf{wx1}{rx1a}
+  \po{rx1a}{wy1}
+  \rf{wx2}{rx2a}
+  \po{rx2a}{wy2}
+  \po{rz1}{wx2}
+  \po{rz2}{rx1}
+  \rf[out=20,in=160]{wx1}{rx1}
+  \wk[out=-150,in=-30]{rx1}{wx2}
+  \wk{wy1}{wy2}
+\end{tikzpicture}\]
+then putting this in parallel as before results in:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{\aLoc}{1}}{}
+  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+  \rf{wx1}{rx1a}
+  \po{rx1a}{wy1}
+  \rf{wx2}{rx2a}
+  \po{rx2a}{wy2}
+  \po{rz1}{wx2}
+  \po{rz2}{rx1}
+  \rf[out=20,in=160]{wx1}{rx1}
+  \wk[out=-150,in=-30]{rx1}{wx2}
+  \wk{wy1}{wy2}
+  \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
+  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
+  \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
+  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
+  \po{ry1}{wz1}
+  \po{ry2}{wz2}
+  \rf{wy1}{ry1}
+  \rf{wz1}{rz1}
+  \rf{wy2}{ry2}
+  \rf{wz2}{rz2}
+  \wk[out=30,in=150]{wz1}{wz2}
+\end{tikzpicture}\]
+but this is \emph{not} a valid 3-valued pomset,
+since $(\DW{\aLoc}{2}) < (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
+which is a contradiction.
+
+
+%\input{logic}
+
+
+\subsection{Release/acquire synchronization}
+\label{app:ra}
+
+% In relaxed memory models, synchronization actions act as memory fences: that
+% is, they are a barrier to reordering memory accesses.  In this section, we
+% present a simple model of release/acquire fencing. In
+% \S\ref{sec:transactions}, we show that this can be scaled up to a model of
+% transactional memory.
+
+% We assume there are sets $\Rel$ and $\Acq \subseteq\Act$.  We say that
+% $\aAct$ is a \emph{release action} if $\aAct\in\Rel$ and $\aAct$ is an
+% \emph{acquire action} if $\aAct\in\Acq$.
+% In a pomset, a release event is one labelled with a release action,
+% and an acquire event is one labelled by an acquire action.
+% To give the semantics of fences, we add extra constraints
+% to Definition~\ref{def:prefix} of prefixing %$\aAct\prefix\aPSS$
+% (recalling that $\cEv$ is the %$\aAct$-labelled
+% event being introduced):
+% \begin{itemize}
+% \item $\cEv \le \aEv$ whenever $\cEv$ is an acquire event or $\aEv$ is a release event, and
+% \item if $\cEv$ is an acquire event then $\aEv$ is independent of $\aLoc$,
+%   for every $\aLoc$.
+% \end{itemize}
+% The first constraint ensures that events are ordered before a release and
+% after an acquire.  The second constraint ensures that thread-local reads do
+% not cross acquire fences.
+
+We can develop a simple model of release/acquire synchronization using the
+following actions: % we will use
+% releasing writes and acquiring reads:
+\begin{itemize}
+\item $(\DWRel{\aLoc}{\aVal})$, a release action that writes $\aVal$ to $\aLoc$, and
+\item $(\DRAcq{\aLoc}{\aVal})$, an acquire action that reads $\aVal$ from $\aLoc$.
+\end{itemize}
+The semantics of programs with releasing write and acquiring read are similar
+to regular write and read, with $\DWRel\aLoc\aVal$ replacing
+$\DW\aLoc\aVal$ and $\DRAcq\aLoc\aVal$ replacing $\DR\aLoc\aVal$:
+\begin{eqnarray*}
+  \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+  \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+\end{eqnarray*}
+
+To see the need for the first constraint on prefixing, consider the program:
+\[
+  \VAR x\GETS0\SEMI \VAR f\GETS0\SEMI
+  (x\GETS 1\SEMI \REL f\GETS1 \PAR \ACQ r\GETS f; s\GETS x)
+\]
+This has an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wf0}{\DW{f}{0}}{right=of wx0}
+  \event{wx1}{\DW{x}{1}}{below=of wx0}
+  \event{wf1}{\DWRel{f}{1}}{right=of wx1}
+  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
+  \event{rx1}{\DR{x}{1}}{right=of rf1}
+  \po{wx0}{wf1}
+  \po{wf0}{wf1}
+  \po{wx1}{wf1}
+  \po{rf1}{rx1}
+  \rf{wf1}{rf1}
+  \rf[out=20,in=160]{wx1}{rx1}
+  \wk{wx0}{wx1}
+\end{tikzpicture}\]
+but \emph{not}:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wf0}{\DW{f}{0}}{right=of wx0}
+  \event{wx1}{\DW{x}{1}}{below=of wx0}
+  \event{wf1}{\DWRel{f}{1}}{right=of wx1}
+  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
+  \event{rx0}{\DR{x}{0}}{right=of rf1}
+  \po{wx0}{wf1}
+  \po{wf0}{wf1}
+  \po{wx1}{wf1}
+  \po{rf1}{rx1}
+  \rf{wf1}{rf1}
+  \rf[out=-20,in=160]{wx0}{rx0}
+  \wk{wx0}{wx1}
+\end{tikzpicture}\]
+since $(\DW x0) \gtN (\DW x1) < (\DR x0)$, so this pomset does not satisfy the
+requirements to be $x$-closed.
+If we replace the release
+with a plain write, then the outcome $(\DRAcq f1)$ and $(\DR x0)$ is possible:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wf0}{\DW{f}{0}}{right=of wx0}
+  \event{wx1}{\DW{x}{1}}{below=of wx0}
+  \event{wf1}{\DW{f}{1}}{right=of wx1}
+  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
+  \event{rx0}{\DR{x}{0}}{right=of rf1}
+  \wk{wf0}{wf1}
+  \po{rf1}{rx0}
+  \rf{wf1}{rf1}
+  \rf[out=-20,in=160]{wx0}{rx0}
+  \wk{wx0}{wx1}
+\end{tikzpicture}\]
+since no order is required between $(\DW x1)$ and $(\DW f1)$.  
+Symmetrically, if we replace the acquire of the original program
+with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
+% \begin{verbatim}
+%   x := 0; rel f := 0; ||
+%   acq r := f; if (r == 0) { x := x+1; rel f := 1; } ||
+%   acq s := f; if (r == 1) { x := x+1; rel f := 2; }
+% \end{verbatim}
+% This has an execution:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wf0}{\DWRel{f}{0}}{below=of wx0}
+%   \event{rf0}{\DRAcq{f}{0}}{right=2.5 em of wx0}
+%   \event{rx0}{\DR{x}{0}}{below=of rf0}
+%   \event{wx1}{\DW{x}{1}}{below=of rx0}
+%   \event{wf1}{\DWRel{f}{1}}{below=of wx1}
+%   \event{rf1}{\DRAcq{f}{1}}{right=2.5 em of rf0}
+%   \event{rx1}{\DR{x}{1}}{below=of rf1}
+%   \event{wx2}{\DW{x}{2}}{below=of rx1}
+%   \event{wf2}{\DWRel{f}{2}}{below=of wx2}
+%   \po{wx0}{wf0}
+%   \po{rf0}{rx0}
+%   \po{rx0}{wx1}
+%   \po{wx1}{wf1}
+%   \po{rf1}{rx1}
+%   \po{rx1}{wx2}
+%   \po{wx2}{wf2}
+%   \rf{wf0}{rf0}
+%   \rf{wx0}{rx0}
+%   \rf{wf1}{rf1}
+%   \rf{wx1}{rx1}
+% \end{tikzpicture}\]
+% but \emph{not}:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wf0}{\DWRel{f}{0}}{below=of wx0}
+%   \event{rf0}{\DRAcq{f}{0}}{right=2.5 em of wx0}
+%   \event{rx0}{\DR{x}{0}}{below=of rf0}
+%   \event{wx1}{\DW{x}{1}}{below=of rx0}
+%   \event{wf1}{\DWRel{f}{1}}{below=of wx1}
+%   \event{rf1}{\DRAcq{f}{1}}{right=2.5 em of rf0}
+%   \event{rx0b}{\DR{x}{0}}{below=of rf1}
+%   \event{wx1b}{\DW{x}{1}}{below=of rx0b}
+%   \event{wf2}{\DWRel{f}{2}}{below=of wx1b}
+%   \po{wx0}{wf0}
+%   \po{rf0}{rx0}
+%   \po{rx0}{wx1}
+%   \po{wx1}{wf1}
+%   \po{rf1}{rx0b}
+%   \po{rx0b}{wx1b}
+%   \po{wx1b}{wf2}
+%   \rf{wf0}{rf0}
+%   \rf{wx0}{rx0}
+%   \rf{wf1}{rf1}
+%   \rf{wx0}{rx0b}
+% \end{tikzpicture}\]
+% since $(\DW x0) < (\DW x1) < (\DR x0)$, so this pomset does not satisfy the
+% requirements to be an rf-pomset.
+
+% The notion rf-pomset is sufficient to capture hardware models and
+% release/acquire access in C++, where reads-from implies happens-before
+% \cite{alglave}.  To model C++ relaxed access, it
+% would be necessary to use a more general notion of rf-pomset, where
+% $(\bEv,\aLoc,\aEv) \in \RF$ does not necessarily imply $\bEv < \aEv$, instead
+% requiring that $(\mathord< \cup \mathord\RF)$ be acyclic.
+
+%% To see the need for the second constraint on prefixing, consider the program:
+%% \begin{displaymath}
+%%   (
+%%   x\GETS1\SEMI
+%%   \REL f\GETS 1\SEMI
+%%   \ACQ r\GETS f\SEMI
+%%   y\GETS x
+%%   )
+%%   \PAR
+%%   (
+%%   \ACQ s\GETS f\SEMI
+%%   x\GETS2\SEMI
+%%   \REL f\GETS 2\SEMI
+%%   )
+%% \end{displaymath}
+%% whose semantics includes execution:
+%% \begin{displaymath}
+%% \begin{tikzpicture}[node distance=1em]
+%%   \event{wx1}{\DW{x}{1}}{}
+%%   \event{wf1}{\DWRel{f}{1}}{right=of wx1}
+%%   \event{rf1}{\DRAcq{f}{2}}{below=of wf1}
+%%   \event{wx2}{\DW{x}{2}}{right=of rf1}
+%%   \event{wf2}{\DWRel{f}{1}}{right=of wx2}
+%%   \event{rf2}{\DRAcq{f}{2}}{above=of wf2}
+%%   \event{wy1}{\DW{y}{1}}{right=of rf2}
+%%   \po{wx1}{wf1}
+%%   \rf{wf1}{rf1}
+%%   \po{rf1}{wx2}
+%%   \po{wx2}{wf2}
+%%   \rf{wf2}{rf2}
+%%   \po{rf2}{wy1}
+%% \end{tikzpicture}
+%% \end{displaymath}
+%% This execution exists because
+%% \begin{math}
+%%   \sem{y\GETS x}
+%% \end{math}
+%% includes
+%% \begin{math}
+%%   (x=1\mid \DW{y}{1})
+%% \end{math}
+%% and the precondition $x=1$ is fulfilled by the preceding write $x\GETS1$.  In
+%% implementation term, this execution is reading $1$ from $x$ in a ``stale
+%% cache.''  The alternative execution that attempts to read $1$ from the $x$ in
+%% ``main memory,'' has an explicit $(\DR{x}{1})$ between $(\DRAcq{f}{2})$ and
+%% $(\DW{y}{1})$, and thus will fail to be $x$-closed.
+
+%% To prevent thread-local writes from crossing release/acquire pairs, we
+%% require that pomsets in the semantics of acquire have no free locations.
+%% This corresponds to the idea that acquires flush the read cache, and
+%% therefore reads must reload values from main memory after an acquire.
+
+% In addition, we must change the semantics of write from
+% \S\ref{sec:sets-of-pomsets} to ensure that an action is generated for every
+% write that might be published by a subsequent release action.
+% Formally, $\sem{\aLoc\GETS\aExp\SEMI \aCmd}$ only includes pomsets
+% from $\sem{\aCmd}[\aExp/\aLoc]$ that contain a write to
+% $\aLoc$ that is not preceded by a release.
+
+
+\subsection{Relaxed memory}
+\label{sec:relaxed-memory}
+
+In \S\ref{sec:info-flow-attack} we presented an information flow attack
+on relaxed memory, similar to Spectre in that it relies on speculative
+evaluation. Unlike Spectre it does not depend on timing attacks,
+but instead is based on the sensitivity of relaxed memory to data
+dependencies. % For this reason, we present a simple model of relaxed
+% memory, which is strong enough to capture this attack.
+
+Our model includes concurrent memory accesses, which can introduce concurrent
+reads-from. 
+Since we are allowing events to be partially ordered, this gives a simple
+model of relaxed memory.  For example an independent read independent write
+(IRIW) example is:
+\[\begin{array}{l}
+  x\GETS0\SEMI x\GETS x+1
+  \PAR
+  y\GETS0\SEMI y\GETS y+1
+\\{}
+  \PAR
+  r_1\GETS x\SEMI r_2\GETS y
+  \PAR
+  s_1\GETS y\SEMI s_2\GETS x
+\end{array}\]
+which includes the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of wy0}
+  \event{ry1}{\DR{y}{1}}{below=4ex of wx0}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of rx0}
+  \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \rf{wy0}{ry0}
+  \rf[out=210,in=30]{wy1}{ry1}
+  \rf{wx0}{rx0}
+  \wk{rx0}{wx1}
+  \wk{ry0}{wy1}
+\end{tikzpicture}\]
+This model does not introduce thin-air reads (TAR).
+For example the TAR pit
+\((
+  x\GETS y \PAR y \GETS x
+)\)
+fails to produce a value for $x$ from thin air
+since this produces a cycle in $\le$, as shown on the left below:
+\begin{align*}
+\begin{tikzpicture}[node distance=1em]
+  \event{ry42}{\DR{y}{42}}{}
+  \event{wx42}{\DW{x}{42}}{below=of ry42}
+  \event{rx42}{\DR{x}{42}}{right=2.5em of ry42}
+  \event{wy42}{\DW{y}{42}}{below=of rx42}
+  \po{ry42}{wx42}
+  \po{rx42}{wy42}
+  \rf{wx42}{rx42}
+  \rf{wy42}{ry42}
+\end{tikzpicture}
+&&
+\begin{tikzpicture}[node distance=1em]
+  \event{ry1}{\DR{y}{1}}{}
+  \event{wx1}{\DW{x}{1}}{below=of ry1}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
+  \event{wy1}{\DW{y}{1}}{below=of rx1}
+  \po{ry1}{wx1}
+  \rf{wx1}{rx1}
+  \rf{wy1}{ry1}
+\end{tikzpicture}
+\end{align*}
+This cycle can be broken by removing a dependency. For example
+\((
+  x\GETS y \PAR r\GETS x\SEMI y \GETS r+1-r
+)\)
+has the execution on the right above.
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{ry1}{\DR{y}{1}}{}
+%   \event{wx1}{\DW{x}{1}}{below=of ry1}
+%   \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
+%   \event{wy1}{\DW{y}{1}}{below=of rx1}
+%   \po{ry1}{wx1}
+%   \rf{wx1}{rx1}
+%   \rf{wy1}{ry1}
+% \end{tikzpicture}\]
+Note that $(\DR x1) \not\le (\DW y1)$, so this does not introduce a cycle.
+
+Although it is not the primary focus of this paper, our model may be an
+attractive model of relaxed memory.  Many prior models either permit
+thin-air executions that our model forbids or forbid desirable executions
+that our model permits.
+%% In \S\ref{sec:logic}, we develop a logic which allows us to prove that our
+%% semantics forbids thin air examples that are permitted by prior speculative
+%% models
+%% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
+% Our model passes all of the causality test cases
+% \cite{PughWebsite}.
+%% Significantly, this
+%% includes test case 9, which is forbidden by \cite{DBLP:conf/lics/JeffreyR16},
+%% one of the few models that disallows the thin air example from
+%% \S\ref{sec:logic}.  We present this test case in the appendix, where we also
+%% discuss the thread inlining examples from
+%% \cite{Manson:2005:JMM:1047659.1040336}.
+
+% In \refapp{logic}, we present a variant of the TAR-pit
+% example %from \S\ref{sec:relaxed-memory}
+% that is allowed under prior speculative semantics
+% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
+% We develop a logic that allows us to prove that the problematic execution is
+% forbidden in our model.  \citet{DBLP:conf/esop/BattyMNPS15} showed that the
+% thin-air problem has no per-candidate-execution solution for C++.  This
+% result does not apply to our model, which has a different notion of
+% dependency.
+
+% as the semantics of a conditional can depend on the semantics
+% of both branches.
+
+\citet{PughWebsite} developed a set of twenty {causality test cases} in the
+process of revising the Java Memory Model (JMM)
+\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
+confirmed that our model gives the desired result for all twenty cases,
+unrolling loops as necessary.  Our model also gives the desired results for
+all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
+all but one in \citet[\textsection 5.3]{SevcikThesis}:
+redundant-write-after-read-elimination fails for any
+sensible non-coherent semantics.  Our model agrees with the JMM on the
+``surprising and controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
+inlining.
+% In \refapp{tc}, we discuss three of the causality test cases and the thread
+% inlining example from \cite{Manson:2005:JMM:1047659.1040336}.%  In presenting the
+% examples, we unroll loops, correct typos and simplify the code.  
+
+% \subsection{Causality test cases}
+% \label{app:tc}
+
+% \citet{PughWebsite} developed a set of twenty {causality test cases} in the
+% process of revising the Java Memory Model (JMM)
+% \cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
+% confirmed that our model gives the desired result for all twenty cases,
+% unrolling loops as necessary.  Our model also gives the desired results for
+% all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
+% all but one in \citet[\textsection 5.3]{SevcikThesis}:
+% redundant-write-after-read-elimination fails for any
+% sensible non-coherent semantics.  Our model agrees with the JMM on the
+% ``surprising and controversial behaviors'' of \citet[\textsection
+% 8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
+% inlining.
+
+\section{UNUSED: appendix stuff}
+
+%In this section,
+We now discuss three of the causality test cases, as well as the thread
+inlining from \cite{Manson:2005:JMM:1047659.1040336}.  In presenting the
+examples, we unroll loops, correct typos and simplify the code.  
+
+\subsubsection{Causality test case 8}
+
+Test case 8 asks whether:
+\begin{displaymath}
+  \VAR x\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI
+  (\IF(x<2)\THEN y\GETS 1\FI 
+  \PAR
+  x\GETS y)
+\end{displaymath}
+may read $1$ for both $x$ and $y$.  This behavior is allowed, since
+``interthread analysis could determine that $x$ and $y$ are always either $0$
+or $1$.''  This breaks the dependency between the read of $x$ and the write
+to $y$ in the first thread, allowing the write to be moved earlier.
+
+The semantics of TC8 includes
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx1}{\DR{x}{1}}{right=2.1em of iy}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=2.1em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \po{ry1}{wx1}
+  \po[out=30,in=150]{ix}{rx1}
+  \rf[in=-25,out=-160]{wx1}{rx1}
+  \rf[out=20,in=160]{wy1}{ry1}
+  \wk[out=-25,in=-150]{ix}{wx1}
+  \wk[out=25,in=155]{iy}{wy1}
+\end{tikzpicture}\]
+Where we require $(\DW{x}{0})<(\DR{x}{1})$ but not $(\DR{x}{1})<(\DW{y}{1})$.
+To see why this execution exists, consider the left thread with syntax sugar
+removed:
+\begin{displaymath}
+  r\GETS x\SEMI \IF(r<2)\THEN y\GETS 1\FI
+\end{displaymath}
+\begin{math}
+  \sem{\IF(r<2)\THEN y\GETS 1\FI}
+\end{math}
+includes
+\begin{math}
+  (r<2\mid\DW{y}{1}).
+\end{math}
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wy1}{r<2\mid\DW{y}{1}}{}
+% \end{tikzpicture}\]
+Thus, by Figure~\ref{fig:programs}, 
+\begin{math}
+  \sem{r\GETS x\SEMI \IF(r<2)\THEN y\GETS 1\FI}
+\end{math}
+includes
+\begin{math}
+  (\DR{x}{1}) \prefix (r<2\mid\DW{y}{1})[x/r]
+\end{math}
+which simplifies to
+\begin{math}
+  (\DR{x}{1}) \prefix (x<2\mid\DW{y}{1}),
+\end{math}
+which, by Definition~\ref{def:prefix}, includes:
+\[\begin{tikzpicture}[node distance=1em,baselinecenter]
+    \event{rx1}{\DR{x}{1}}{}
+    \event{wy1}{x<2\mid\DW{y}{1}}{right=of rx1}
+  \end{tikzpicture}\]
+Here we have used the \textsc{[non-ordering read]} clause of Definition~\ref{def:prefix}:
+``$\bForm'$ implies $\bForm[\aVal/\aLoc] \land \bForm$, if $\aAct$ reads $\aVal$ from $\aLoc$,''
+where $a=(\DR{x}{1})$,  $\bForm=\bForm'=(x<2)$.  We can use this case since
+$x<2$ implies $1<2\land x<2$.
+
+Prefixing with $(\DW{x}{0})$ allows us to discharge the assumption $x<2$,
+arriving at:
+\[\begin{tikzpicture}[node distance=1em,baselinecenter]
+    \event{ix}{\DW{x}{0}}{}
+    \event{rx1}{\DR{x}{1}}{right=2.5 em of ix}
+    \event{wy1}{\DW{y}{1}}{right=of rx1}
+    \po{ix}{rx1}
+  \end{tikzpicture}\]
+Here we have used the \textsc{[ordering read]}
+clause of \ref{def:prefix}:
+``$\bForm'$ implies $\bForm[\aVal/\aLoc]$, if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$,''
+where $a=(\DW{x}{0})$,  $\bForm=(x<2)$ and $\bForm'=\TRUE$.  As long as
+require
+\begin{math}
+  (\DW{x}{0})<
+  (\DR{x}{1}),
+\end{math}
+we can use this case since $\TRUE$ implies $0<2$.
+
+\subsubsection{Causality test case 9}
+
+Test case 9 asks whether:
+\begin{displaymath}
+  \VAR x\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI
+  (\IF(x<2)\THEN y\GETS 1\FI 
+  \PAR
+  x\GETS y
+  \PAR
+  y\GETS 2\SEMI)
+\end{displaymath}
+may read $1$ for both $x$ and $y$.  This behavior is also allowed.  This is
+``similar to test case $8$, except that $x$ is not always $0$ or
+$1$. However, a compiler might determine that the read of $x$ by thread $1$
+will never see the write by thread $3$ (perhaps because thread $3$ will be
+scheduled after thread $1$)''
+
+Reasoning as for test case 8, the semantics of test case 9 includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx1}{\DR{x}{1}}{right=2.2 em of iy}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=2.2em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wx2}{\DW{x}{2}}{below=3ex of $(ix)!0.5!(iy)$}%{right=2.5em of wx1}
+  \po{ry1}{wx1}
+  \po[out=30,in=150]{ix}{rx1}
+  \rf[in=-25,out=-160]{wx1}{rx1}
+  \rf[out=20,in=160]{wy1}{ry1}
+  \wk[out=-25,in=-150]{ix}{wx1}
+  \wk[out=25,in=155]{iy}{wy1}
+  \wk{ix}{wx2}
+  % \wk[out=-25,in=-150]{ix}{wx2}
+\end{tikzpicture}\]
+
+Thus, with respect to the introduction of new threads, our model appears to
+be more robust than the event structures semantics of
+\cite{DBLP:conf/lics/JeffreyR16}, which fails on this test case.
+
+\subsubsection{Causality test case 14}
+
+Test case 14 asks whether:
+\begin{multline*}
+  \VAR a\GETS 0\SEMI
+  \VAR b\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI\\[-.5ex]
+  (\IF(a)\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  \PAR\\[-.5ex]
+  \WHILE(y+b==0) \THEN\SKIP\FI\; a\GETS1)
+\end{multline*}
+may read $1$ for $a$ and $b$, yet $0$ for $y$.  Here $a$ and $b$ are regular
+variables and $y$ is volatile, which is equivalent to release/acquire in this
+example.  This behavior is also disallowed, since ``in all sequentially
+consistent executions, [the read of $a$ gets $0$] and the program is
+correctly synchronized. Since the program is correctly synchronized in all SC
+executions, no non-SC behaviors are allowed.''
+
+Unrolling the loop once, we have:
+\begin{multline*}
+  \VAR a\GETS 0\SEMI
+  \VAR b\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI\\[-.5ex]
+  (\IF(a)\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  \PAR\\[-.5ex]
+  \IF(y\lor b)\THEN a\GETS 1\FI)
+\end{multline*}
+We argue that any execution with $(\DR{a}{1})$, $(\DR{b}{1})$, and
+$(\DR{y}{0})$ must be cyclic.  The closure requirements require that
+\begin{math}
+  (\DW{a}{1})<(\DR{a}{1})
+  \;\text{and}\;
+  (\DR{b}{1})<(\DR{b}{1}).
+\end{math}
+Ignoring initialization, least ordered execution that includes all of these
+actions is:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{ra1}{\DR{a}{1}}{}
+  \event{wb1}{\DW{b}{1}}{below=of ra1}
+  \nonevent{wy1}{\DW{y}{1}}{left=of wb1}
+  \event{rb1}{\DR{b}{1}}{right=4.5em of ra1}
+  \event{ry0}{\DR{y}{0}}{right=of rb1}
+  \event{wa1}{\DW{a}{1}}{below=of rb1}
+  \po{ra1}{wb1}
+  \po{rb1}{wa1}
+  \rf{wa1}{ra1}
+  \rf{wb1}{rb1}
+\end{tikzpicture}\]
+where the read of $a$ is ordering for $(\DW{b}{1})$ but
+not $(\DW{y}{1})$, and the read of $b$ is ordering for $(\DW{a}{1})$ but the
+read of $y$ is not.  $(\DW{y}{1})$ is crossed out, since its
+precondition must imply $(\lnot a)[1/a]$, which is equivalent to $\FALSE$.
+To avoid order from $(\DR{y}{0})$ to $(\DW{a}{1})$, we
+have strengthened the predicate on $(\DW{a}{1})$ from $(y\lor b)$ to
+$(y=0\land b=1)$.  Note that we cannot use this trick symmetrically to remove
+the order from $(\DR{b}{1})$ to $(\DW{a}{1})$, since $b=1$ does not follow
+from the initialization of $b$.
+
+
+\subsubsection{Thread inlining}
+
+One property one could ask of a model of shared memory is thread
+inlining: any execution of $\sem{P\SEMI Q}$ is an execution of $\sem{P
+  \PAR Q}$. This is \emph{not} a goal of our model, and indeed is not
+satisfied, due to the different semantics of concurrent and sequential
+memory accesses. We demonstrate this by considering an example from
+the Java Memory Model~\cite{Manson:2005:JMM:1047659.1040336}, which shows that Java does not
+satisfy thread inlining either.
+
+The lack of thread inlining is related to the different dependency
+relations introduced by sequential and concurrent access.
+Recall from \S\ref{sec:sequential-memory} that the program
+\verb`(x := 0; y := x+1;)` has execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy1}{\DW{y}{1}}{right=of wx0}
+\end{tikzpicture}\]
+but that \verb`(x := 1; || y := x+1;)` has:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \po{rx1}{wy2}
+\end{tikzpicture}\]
+That is, in the sequential case there is no dependency from the
+write of $x$ to the write of $y$, but in the concurrent case there
+is such a dependency.
+
+This can be used to construct a counter-example to thread inlining, based on~\cite[Ex~11]{Manson:2005:JMM:1047659.1040336}:
+\begin{verbatim}
+  x := 0; if (x == 1) { z := 1; } else { x := 1; } || y := x; || x := y;
+\end{verbatim}
+This has no execution containing $(\DW z1)$. Any attempt to build such an execution
+results in a cycle:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{\DW{z}{1}}{right=of rx1a}
+  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+  \event{rx1b}{\DR{x}{1}}{below=of wx1a}%{right=2.5em of wx1a}
+  \event{wy1}{\DW{y}{1}}{right=of rx1b}
+  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+  \event{wx1b}{\DW{x}{1}}{right=of ry1}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+  \po{rx1b}{wy1}
+  \po{ry1}{wx1b}
+  \rf{wy1}{ry1}
+  \rf[out=160, in=30]{wx1b}{rx1a}
+  \rf[out=160, in=30]{wx1b}{rx1b}
+\end{tikzpicture}\]
+Inlining the thread \verb|(y := x)| gives~\cite[Ex~12]{Manson:2005:JMM:1047659.1040336}:
+\begin{verbatim}
+  x := 0; if (x == 1) { z := 1; } else { x := 1; } y := x; || x := y;
+\end{verbatim}
+with execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{\DW{z}{1}}{right=of rx1a}
+  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+  \event{wx1b}{\DW{x}{1}}{right=of ry1}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+  \po{ry1}{wx1b}
+  \rf{wy1}{ry1}
+  \rf[out=160, in=30]{wx1b}{rx1a}
+\end{tikzpicture}\]
+To see why this execution exists, consider the program fragment:
+\begin{verbatim}
+  if (x == 1) { z := 1; } else { x := 1; } y := x;
+\end{verbatim}
+Removing the syntax sugar, this is:
+\begin{verbatim}
+  r1 := x; if (r1 == 1) {
+    z := 1; r2 := x; y := r2; skip
+  } else {
+    x := 1; r3 := x; y := r3; skip
+  }
+\end{verbatim}
+Now, $\sem{z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP}$
+includes pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
+  \event{wy1}{r_1=x=1 \mid \DW{y}{1}}{right=of wz1}
+\end{tikzpicture}\]
+and $\sem{x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP}$
+includes pomset:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
+  \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
+\end{tikzpicture}\]
+so  $\sem{\IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
+  \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
+\end{tikzpicture}\]
+which means $\sem{\IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wz1}{x=1 \mid \DW{z}{1}}{}
+  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{(x=x=1) \lor (x\neq1)) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}%{right=of wx1a}
+\end{tikzpicture}\]
+Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wz1}{x=1 \mid \DW{z}{1}}{}
+  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+\end{tikzpicture}\]
+and so $\sem{r_1 \GETS x\SEMI \IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
+  \event{wx1a}{1\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+\end{tikzpicture}\]
+which simplifies to:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{\DW{z}{1}}{right=of rx1a}
+  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+\end{tikzpicture}\]
+as required. The rest of the example is straightforward, and shows that our semantics
+agrees with the JMM in not supporting thread inlining.
+
+
+
+% \subsection{Word tearing}
+
+% \todo{Remove this section, since it's not needed for transactions?}
+
+% In \S\ref{sec:transactions}, we shall be considering transactional memory,
+% and in \S\ref{sec:transactions} show that we can model a simplified version
+% of an information flow attack on transactions. In order to model transactions,
+% we need to consider actions that can write many memory locations at once,
+% since this is part of the semantics of commitment. To lead up to this, we first
+% consider a simpler scenario of many-location writes and reads, which is word
+% tearing.
+
+% In word tearing, a program contains a write instruction with data larger
+% than the hardware word size, for example copying a byte array, or assigning
+% a 64-bit float on a 32-bit architecture. For example, consider the program:
+% \begin{verbatim}
+%   (x := [0, 0];) || (x := [1, 1];) || (r := x;)
+% \end{verbatim}
+% This has executions in which the read of $x$ only reads from one of the writes,
+% for example:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx00}{\DW{x}{[0,0]}}{}
+%   \event{wx11}{\DW{x}{[1,1]}}{right=2.5em of wx00}
+%   \event{rx00}{\DR{x}{[0,0]}}{right=2.5em of wx11}
+%   \rf[out=20, in=160]{wx00}{rx00}
+% \end{tikzpicture}\]
+% but also has executions in which the read of $x$ reads from both writes,
+% for example:
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx00}{\DW{x}{[0,0]}}{}
+%   \event{wx11}{\DW{x}{[1,1]}}{right=2.5em of wx00}
+%   \event{rx01}{\DR{x}{[0,1]}}{right=2.5em of wx11}
+%   \rfx[out=20, in=160]{wx00}{x[0]}{rx01}
+%   \rfx[out=-20, in=-160]{wx11}{x[1]}{rx01}
+% \end{tikzpicture}\]
+% Word tearing can occur, for example, in Java extended floating point~\cite{jmm},
+% LLVM 64-bit instructions on 32-bit hardware~\cite{llvm}, or in
+% JavaScript SharedArrayBuffers~\cite{js-sab}.
+
+% \newcommand{\rfControl}[4][]{\draw[rf,#1](#2) .. controls (#3) .. (#4);}
+% \[\begin{tikzpicture}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wx1}{\DW{x}{1}}{right=of wx0}
+%   \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
+%   \event{wy1}{\DW{y}{1}}{right=of wy0}
+%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wy1}
+%   \event{ry0}{\DR{y}{0}}{right=of rx1}
+%   \event{ry1}{\DR{y}{1}}{right=2.5 em of ry0}
+%   \event{rx0}{\DR{x}{0}}{right=of ry1}
+%   \rf[out=20,in=160]{wx1}{rx1}
+%   \rf[out=20,in=160]{wy0}{ry0}
+%   \rf[out=340,in=200]{wy1}{ry1}
+%   \coordinate (a) [below=of wy1];
+%   \rfControl[out=340,in=200]{wx0}{a}{rx0}
+%   \wk{wx0}{wx1}
+%   \wk{wy0}{wy1}
+%   \po{rx1}{ry0}
+%   \po{ry1}{rx0}
+% \end{tikzpicture}\]
+
+
+% Batty section 4:
+% \cite[\S4]{DBLP:conf/esop/BattyMNPS15},
+% Example LB+ctrldata+ctrl-double (language must allow)
+% r1=loadrlx(x) //reads 42
+% if (r1 == 42)
+%   storerlx(y,r1)
+
+% r2=loadrlx(y) //reads 42
+% if (r2 == 42)
+%   storerlx (x,42)
+% else
+% storerlx (x,42)
+
+% a:RRLX x=42 sb,dd,cd
+% c:RRLX y=42 sb,cd
+%   This is forbidden on hardware if compiled naively, as the architectures respect read-to-write control dependencies, but in practice compilers will collapse conditionals like that of the second thread, removing the control dependencies from the read of y to the writes of x and making the code identical to the previous example. As that example is allowed and observable on hardware (and we pre- sume that it would be impractical to outlaw such optimization for C or C++), the language must also allow this execution. But this execution has a cycle in the union of reads-from and dependency, so we cannot simply exclude all those.
+% Then one might hope for some other adaptation of the C/C++11 model, but the following example shows at least that there is no per-candidate-execution solution.
+% Example LB+ctrldata+ctrl-single (language can and should forbid)
+% r1=loadrlx(x) //reads 42 if (r1 == 42)
+% storerlx (y,r1) r2=loadrlx (y) //reads 42 if (r2 == 42)
+% a:RRLX x=42 sb,dd,cd
+% rf
+% b:WRLX y=42
+% c:RRLX y=42 sb,cd
+% rf
+% d:WRLX x=42
+% rf rf
+% b:WRLX y=42 d:WRLX x=42
+%   storerlx (x,42)
+
+\subsection{UNUSED: Logic}
+\label{app:logic}
+
+\newcommand{\closed}{\textsf{closed}}
+\newcommand{\pLTL}{\textsf{PLTL}}
+\newcommand{\once}{\Diamond^{-1}}
+\newcommand{\always}{\Box^{-1}}
+\newcommand{\afo}{\phi}
+\newcommand{\bfo}{\psi}
+\newcommand{\mods}{\textsf{Models}}
+
+In this section, we develop sufficient logical infrastructure to prove that
+our semantics disallows thin air executions.  We present a variant of the
+TAR-pit example from \S\ref{sec:relaxed-memory} which poses difficulties
+under many speculative semantics.
+
+We adapt past linear temporal logic (\pLTL)
+\cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
+instant operator and adopting strict versions of the temporal operators.
+The atoms of our logic are write and read events.
+% \begin{displaymath}
+%   \afo \QUAD::=\QUAD
+%   \DR{\aLoc}{\aVal}
+%   \mid
+%   \DW\aLoc\aVal
+%   \afo \wedge\bfo
+%   \mid \lnot \afo
+%   \once\afo
+%   \mid \always\afo
+% \end{displaymath}
+%\begin{definition} %[Satisfaction]
+  Given an pomset $\aPS$ and event $\aEv$, define:
+  \begin{displaymath}
+    \begin{array}{lrl}
+      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
+      \aPS,\aEv &\models& \TRUE\\
+      \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
+      %\aPS,\aEv &\models& \once\afo, \text{if } (\exists \bEv \le \aEv, \bEv\not=\aEv)  \aPS,\bEv \models \afo \\
+      \aPS,\aEv &\models& \always\afo, \text{ if } (\forall \bEv \le \aEv,\,  \bEv\not=\aEv)\; \aPS,\bEv \models \afo
+    \end{array} 
+  \end{displaymath}
+  Define $\aPS \models \afo$ if
+  $(\forall \aEv \in \Event) \;\aPS,\aEv \models\afo$ and $\aPSS\models \afo$
+  if $(\forall \aPS \in \aPSS)\; \aPS \models\afo$.
+%\end{definition}
+
+Let $\once\afo$ be defined as $\lnot(\always\lnot\afo)$. 
+In addition, let $\FALSE$, $\lor$ and $\Rightarrow$ be defined in the
+standard way.
+% $\afo\lor\bfo$ for $\lnot(\lnot \afo \land \lnot \bfo)$,
+% and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
+
+The past operators do not include the current instant, and thus 
+they do \emph{not} satisfy the rule
+\begin{math}
+  \always\afo\Rightarrow\once\afo.
+\end{math}
+However, they do satisfy:
+% \begin{align*}  
+%   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
+%   &&
+%   \frac{\aPS \models \always\afo \Rightarrow\afo}{\aPS \models \afo}\text{(Induction)}
+% \end{align*}
+\begin{gather*}
+  \tag{Coinduction}
+  (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+  \\
+  \tag{Induction}
+  (\always\afo \Rightarrow\afo) \Rightarrow\afo
+\end{gather*}
+% \begin{description}
+% \item[Coinduction.]
+%   \begin{math}
+%     (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+%   \end{math}
+% \item[Induction.] 
+%   \begin{math}
+%     (\always\afo \Rightarrow\afo) \Rightarrow\afo
+%   \end{math}
+% \end{description}
+Note that $\aPS \models \afo \land \always\afo$ whenever $\aPS \models \afo$.
+
+We now present two proof rules.  The first rule captures the semantics of
+local variables.  Define
+\begin{math}
+  \closed(\aLoc) = (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}).
+\end{math}
+Although this definition does not mention intervening writes, it is
+sufficient for our example.  It is straightforward to establish that
+following rule is sound:
+\begin{displaymath}
+  \tag{Closing $\aLoc$}
+  \frac{
+    \afo \text{ is independent of } \aLoc
+    \qquad
+    \aPS \models \closed(\aLoc) \Rightarrow \afo
+  }{
+    \nu \aLoc \st \aPS \models \afo
+  }
+\end{displaymath}
+
+The second rule describes composition, in the style of Abadi and
+Lamport~\cite{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
+consider the special case with a single invariant.
+% We view the
+% composition result as capturing key aspects of no-ThinAirRead, as will become
+% clearer in the examples below.
+In order to state the theorem, we generalize the satisfaction relation to
+include environment assumptions.  Let
+\begin{math}
+  \mods{(\afo)} = \{ \aPSS \mid \aPSS \models \afo \}
+\end{math}
+be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
+closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
+  $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
+  imply $\bEv\in\Event'$, and $(\labelling',\leq',\gtN')$ coincide with
+  $(\labelling,\leq,\gtN)$ for elements of $\Event'$.}.
+  % when $\aEv,\,\bEv\in\Event'$: $\labelling'(\aEv)=\labelling(\aEv)$,
+  % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\gtN'\bEv$ iff
+  % $\aEv\gtN\bEv$. 
+\begin{noenv}
+  Define
+  \begin{math}
+    \afo, \aPSS \models \bfo  \text{ if } \mods{(\afo)} \parallel \aPSS \models \bfo.
+  \end{math}
+\end{noenv}
+\begin{proposition}%[Composition]
+  Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
+  augmentation-closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
+ %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
+ %   implies $\aEv\gtN'\bEv$, and
+ %   % $\labelling'(\aEv)=\labelling(\aEv)$
+ %   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
+ %   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+ %   $\bForm$.}
+  Then:
+  \begin{displaymath}
+    \tag{Composition}
+    \frac{
+      \afo, \aPSS_1 \models\afo
+      \qquad
+      \afo, \aPSS_2 \models\afo
+    }{\aPSS_1 \parallel \aPSS_2 \models \afo}
+  \end{displaymath}
+\end{proposition}
+\begin{proof}[Proof sketch]
+  We will show that all prefixes in the prefix closures of
+  $\aPSS_1 \parallel \aPSS_2$ satisfy the required property.  Proof proceeds
+  by induction on prefixes of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
+
+  The case for empty prefix  follows from assumption that  $\afo$ is prefix closed.  
+
+  For the inductive case, consider %$\aPS$ in the prefix closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
+  $\aPS \in \aPS_1 \parallel \aPS_2$ where
+  $\aPS_i \in \aPSS_i$.  Since $\aPSS_1$ and $\aPSS_2$ are augmentation
+  closed, we can assume that the restriction of $\aPS$ to the events of
+  $\aPS_i$ coincides with $\aPS_i$, for $i=1,2$.
+  %
+  Consider a prefix $\aPS'$ derived by removing a maximal element $\aEv$ from
+  $\aPS$.  Suppose $\aEv$ comes from $\aPS_1$ (the other case is
+  symmetric). Since $\aPS_2$ is a prefix of $\aPS'$ and $\aPS' \models \afo$
+  by induction hypothesis, we deduce that $\aPS_2 \models \afo$.
+  % Thus, $\aPS_2 \in \mods{(\afo)}$.
+  Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
+  deduce that $\aPS \models \afo$.
+\end{proof}
+
+We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
+\begin{multline*}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  \\[-.5ex] (
+    y\GETS x
+  \PAR
+    \IF(z)\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+  \PAR
+    z\GETS1
+  )
+\end{multline*}
+This program is allowed to write $1$ to $a$ under many speculative
+memory models
+\cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17},
+even though the read of $1$ from $y$ in the else branch of the second
+thread arises out of thin air.   In contrast, we prove the formula
+\begin{math}
+  \lnot\once(\DW{a}{1})
+\end{math}
+holds for the models of this program in our semantics.  We start with the following invariant,
+which holds for each of the three threads, and thus, by composition, for the
+aggregate program:
+\begin{align*}
+  &[\once(\DW{y}{1}) \Rightarrow \once(\DR{x}{1})]
+  \land\\[-.5ex]
+  &[\once(\DW{a}{1}) \Rightarrow (\once(\DR{y}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{y}{1})))]
+\end{align*}
+Closing $y$, we have,
+\begin{math}
+  \once(\DR{y}{1}) \Rightarrow \once(\DW{y}{1}) % \Rightarrow \once(\DR{x}{1})
+\end{math}
+which we substitute into the left conjunct to get:
+\begin{displaymath}
+  \once(\DR{y}{1}) \Rightarrow \once(\DR{x}{1})
+\end{displaymath}
+which in turn we substitute into the right conjunct to get:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DR{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{x}{1})))
+\end{displaymath}
+Closing $x$, we can replace $\once(\DR{x}{1})$ with $\once(\DW{x}{1})$:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DW{x}{1})))
+\end{displaymath}
+Applying coinduction to the right conjunct, we have:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\lnot \DW{x}{1}))
+\end{displaymath}
+Simplifying, we have, as required:  
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow \FALSE
+\end{displaymath}
+
+\end{document}

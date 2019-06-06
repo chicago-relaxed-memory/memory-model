@@ -319,33 +319,33 @@ in models such as~\cite{Batty:2011:MCC:1926385.1926394} the reads-from relation 
 as a primitive. In this paper, we propose \emph{3-valued pomsets}
 as a solution. These are pomsets in which, in addition to positive statements
 $(\bEv < \aEv)$ (interpreted as $\aEv$ depends on $\bEv$),
-we also have negative statements $(\bEv \ltN \aEv)$
-(interpreted as $\aEv$ cannot depend on $\bEv$).
+we also have negative statements $(\bEv \gtN \aEv)$
+(interpreted as $\bEv$ cannot depend on $\aEv$).
 
 \begin{definition}
-  A \emph{3-valued pomset} $(\Event, {\le}, {\ltN}, \labelling)$ 
+  A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labelling)$ 
   is a \emph{pomset} $(\Event, {\le}, \labelling)$
-  together with ${\ltN} \subseteq (\Event\times\Event)$ such that:
+  together with ${\gtN} \subseteq (\Event\times\Event)$ such that:
   \begin{itemize}
-  \item if $\bEv \le \aEv$ then $\aEv \ltN \bEv$,
-  \item if $\bEv \le \aEv$ and $\bEv \ltN \aEv$ then $\bEv = \aEv$,
-  \item if $\cEv \ge \bEv \ltN \aEv$ or $\cEv \ltN \bEv \ge \aEv$ then $\cEv \ltN \aEv$.
+  \item if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
+  \item if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
+  \item if $\cEv \ge \aEv \gtN \bEv$ or $\bEv \gtN \cEv \ge \aEv$ then $\aEv \gtN \cEv$.
   \end{itemize}
 \end{definition}
 
 % \begin{definition}
-%   A \emph{3-valued poset} $(\Event,{\le},{\ltN})$ is a poset $(\Event,{\le})$
-%   together with ${\ltN} \subseteq (\Event\times\Event)$ such that:
+%   A \emph{3-valued poset} $(\Event,{\le},{\gtN})$ is a poset $(\Event,{\le})$
+%   together with ${\gtN} \subseteq (\Event\times\Event)$ such that:
 %   \begin{itemize}
-%   \item if $\bEv \le \aEv$ then $\aEv \ltN \bEv$,
-%   \item if $\bEv \le \aEv$ and $\bEv \ltN \aEv$ then $\bEv = \aEv$,
-%   \item if $\cEv \ge \bEv \ltN \aEv$ or $\cEv \ltN \bEv \ge \aEv$ then $\cEv \ltN \aEv$.
+%   \item if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
+%   \item if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
+%   \item if $\cEv \ge \aEv \gtN \bEv$ or $\bEv \gtN \cEv \ge \aEv$ then $\aEv \gtN \cEv$.
 %   \end{itemize}
 % \end{definition}
 
 % \begin{definition}
-%   A \emph{3-valued pomset} $(\Event, {\le}, {\ltN}, \labelling)$
-%   is a 3-valued poset $(\Event, {\le}, {\ltN})$ and
+%   A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labelling)$
+%   is a 3-valued poset $(\Event, {\le}, {\gtN})$ and
 %   a pomset $(\Event, {\le}, \labelling)$.
 % \end{definition}
 
@@ -356,10 +356,10 @@ $\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
 They are the notion of pomset given by interpreting
 $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
 
-In diagrams, we visualize $(\aEv \ltN \bEv)$ as a dashed
+In diagrams, we visualize $(\bEv \gtN \aEv)$ as a dashed
 arrow from $\bEv$ to $\aEv$ (note the change of direction).
 We refer to edges introduced by $(\bEv < \aEv)$ as
-\emph{strong edges} and by $(\aEv \ltN \bEv)$
+\emph{strong edges} and by $(\bEv \gtN \aEv)$
 as \emph{weak edges}.
 For readability, we often highlight the reads-from edges as well.
 % for example:
@@ -379,7 +379,7 @@ is:
 \end{tikzpicture}\]
 We strengthen the definition of reads-from to require not just that
 no blocker exists, but that any candidate blocker must either
-have $\bEv \ltN \cEv$ or $\cEv \ltN \aEv$. This ensures that any
+have $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$. This ensures that any
 further concurrency cannot turn a non-blocker into a blocker.
 \begin{definition}\label{def:rf}
   In a 3-valued pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
@@ -389,7 +389,7 @@ further concurrency cannot turn a non-blocker into a blocker.
   \item $\bEv$ writes $\aVal$ to $\aLoc$,
     and $\aEv$ reads $\aVal$ from $\aLoc$, and
   \item if $\cEv$ writes to $\aLoc$
-    then either $\bEv \ltN \cEv$ or $\cEv \ltN \aEv$.
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 \end{definition}
 One of the requirements of closed programs is that
@@ -424,7 +424,7 @@ there is $\aPS\in\aPSS$ such that:
 \begin{itemize}
 \item $\Event' = \Event \cup \{\cEv\}$,
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-\item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$,
+\item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
 \item if $\cEv\in\Event$ then $\cEv$ is mergeable,
 \item $\labelling'(\cEv) = (\aForm, \aAct)$, and
 \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
@@ -492,7 +492,7 @@ whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
 \begin{itemize}
 \item $\Event_0 = \Event_1 \cup \Event_2$,
 \item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le_0 \bEv$,
-\item if $\aEv \ltN_1 \bEv$ or $\aEv \ltN_2 \bEv$ then $\aEv \ltN_0 \bEv$,
+\item if $\aEv \gtN_1 \bEv$ or $\aEv \gtN_2 \bEv$ then $\aEv \gtN_0 \bEv$,
 \item if $\aEv\in\Event_1\cap\Event_2$ then $\aEv$ is mergeable,
 \item if $\labelling_0(\aEv) = (\aForm_0 \mid \aAct)$ then either:
   \begin{itemize}
@@ -534,7 +534,7 @@ there is $\aPS\in\aPSS$ such that:
 \begin{itemize}
 \item $\Event' = \Event$,
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$, and
-\item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$, and
+\item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$, and
 \item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) = (\bForm[\aExp/\aLoc] \mid \aAct)$.
 \end{itemize}
 and similarly for $\aPSS[\aLoc/\aReg]$.
@@ -600,14 +600,14 @@ executions such as:
 The problem here is the weak cycle between $(\DW\aLoc0)$ and $(\DW\aLoc1)$,
 which according to Definition~\ref{def:rf}, allows both $(\DR\aLoc0)$ and
 $(\DR\aLoc1)$, even though one of them must be a stale value. This can be addressed by
-requiring $\ltN$ to form a \emph{per-location} partial order. This is a form
+requiring $\gtN$ to form a \emph{per-location} partial order. This is a form
 of partial coherence, and can be strengthened to total coherence by requiring
-$\ltN$ to be a per-location total order.
+$\gtN$ to be a per-location total order.
 
 \begin{definition}
   A 3-valued pomset is \emph{partially} (resp.~\emph{totally}) $\aLoc$-\emph{coherent}
   if, when restricted to events which touch $\aLoc$,
-  $\ltN$ forms a partial (resp.~total) order.
+  $\gtN$ forms a partial (resp.~total) order.
 \end{definition}
 
 \begin{definition}
@@ -642,7 +642,7 @@ augmentation, which may create additional order and strengthening
 preconditions:
 \begin{definition}
   $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
-  implies $\aEv\le'\bEv$, $\aEv\ltN\bEv$ implies $\aEv\ltN'\bEv$, and
+  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
   % $\labelling'(\aEv)=\labelling(\aEv)$
   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
@@ -711,7 +711,7 @@ definition allows the new event to overlap with events in $\aPSS$ as long as
 they agree on the action.
 
 If $\cEv$ writes to a location that is also written by $\aEv$ in $\aPSS$,
-then prefixing introduces weak order between them: $\cEv \ltN \aEv$.  This
+then prefixing introduces weak order between them: $\aEv \gtN \cEv$.  This
 ensures that these writes cannot be given the reverse order in an augmentation.
 
 If $\cEv$ reads from a location that occurs in the predicate of $\aEv$, then

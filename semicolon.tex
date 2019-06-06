@@ -402,7 +402,7 @@ definition allows the new event to overlap with events in $\aPSS$ as long as
 they agree on the action.
 
 If $\cEv$ writes to a location that is also written by $\aEv$ in $\aPSS$,
-then prefixing introduces weak order between them: $\cEv \ltN \aEv$.  This
+then prefixing introduces weak order between them: $\aEv \gtN \cEv$.  This
 ensures that these writes cannot be given the reverse order in an augmentation.
 
 If $\cEv$ reads from a location that occurs in the predicate of $\aEv$, then
@@ -482,7 +482,7 @@ there is $\aPS\in\aPSS$ such that:
 \begin{itemize}
 \item $\Event' = \Event \cup \{\cEv\}$,
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-\item if $\bEv \ltN \aEv$ then $\bEv \ltN' \aEv$,
+\item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
 \item $\labelling'(\cEv) = (\aForm \mid \aAct)$, and
 \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then:
   \begin{itemize}
