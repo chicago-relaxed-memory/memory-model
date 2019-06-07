@@ -475,7 +475,8 @@ The last condition ensures that useless reads are not included.
 Otherwise, $\labellingForm'(\cEv)$ is unconstrained.
 
 In order to keep augmentation closure, we need to keep the unsatisfiable
-elements in the set of pomsets.  
+elements in the set of pomsets.
+
 
 \begin{comment}
 The first constraint ensures that events are ordered before a release and
@@ -490,6 +491,31 @@ Note that you cannot require that $\bForm'$ is independent of every $\bLoc$
 because then it's not augment closed.
 \end{comment}
 
+\subsection{Sequential stuff}
+
+Definitions of $\fpo$ can be done by just modifying the definition of
+prefixing.
+\begin{itemize}
+\item $\fpo(\aPSS\aSub)=\fpo(\aPSS)$
+\item $\fpo(\aForm\guard\aPSS)=\fpo(\aPSS)$
+\item $\fpo(\nu\aLoc\st\aPSS)=\fpo(\aPSS)$
+\item $\fpo(\aPSS_1\parallel\aPSS_2)=\fpo(\aPSS_1)\cup\fpo(\aPSS_2)$
+\item $\fpo(\aAct\prefix\aPSS)$ just adds the new event to $\fpo(\aPSS)$
+\end{itemize}
+$\fird$ (internal read dependency) is more complicated.
+We need to change the rules
+\begin{eqnarray*}
+  \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+  \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) 
+\end{eqnarray*}
+to
+\begin{eqnarray*}
+  \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
+\end{eqnarray*}
+so that prefixing can talk about occurrences of $\aLoc$ in $\sem{\aCmd}$.
+Then you get an $\fird$ from the new event $\cEv$ to an old event $\aEv$ if
+$\labellingForm(\aEv)$ is dependent on $\aLoc$ (ie, it is \emph{not} independent).
 
 % To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
 % consider example:
@@ -503,6 +529,8 @@ because then it's not augment closed.
 % If you read 37 for $y$, then the predicate on \texttt{Wz1} before the
 % read is either $r=r$ or $v=r$, where $v=37$, for example.  In one case you
 % get a dependency and in the other you do not.
+
+\subsection{Example}
 
 An example to show that we need $[\aExp/\aLoc]$ in the rule for write, rather
 than $[\aVal/\aLoc]$:
