@@ -448,7 +448,7 @@ then $\aAct\prefix\aPSS$ contains:
   \label{def:prefix}
 Let $\aAct \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
-\begin{itemize}
+\begin{enumerate}
 \item $\Event' = \Event \cup \{\cEv\}$,
 \item ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
 \item ${\gtN'}\supseteq{\gtN}$, %if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
@@ -470,18 +470,18 @@ there is $\aPS\in\aPSS$ such that:
 %   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
 %     then $\cEv \gtN' \aEv$, and
 %   \end{itemize}
-\item $\labellingAct'(\aEv) = \labellingAct'(\aEv)$ unless $\aEv=\cEv$.   $\labellingAct'(\cEv) = \aAct$, 
-\item if $\aAct$ does not read then $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$,
-\item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
-  \begin{itemize}
-  \item $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)[\aVal/\aLoc]$, and
-  \item either $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$ or $\cEv<'\aEv$, 
-  \end{itemize}
+\item $\labellingAct'(\cEv) = \aAct$ and $\labellingAct'(\aEv) = \labellingAct(\aEv)$,
+\item either $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$ or
+  $\aAct$ is a read and $\cEv<'\aEv$,
+% \item if $\aAct$ does not read then $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$,
+% \item if $\aAct$ reads then either $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$ or $\cEv<'\aEv$,  %
+\item if $\aAct$ reads $\aVal$ from $\aLoc$ then
+   $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)[\aVal/\aLoc]$, %
 \item if $\aAct$ is an acquire then $\labellingForm'(\aEv)$ is independent of every $\bLoc$,
 \item if $\aAct$ is an acquire or $\labellingAct(\aEv)$ is a release then $\cEv <' \aEv$, 
 \item if $\aAct$ and $\labellingAct(\aEv)$ both touch the same location and one is a write,
     then $\cEv \gtN' \aEv$, and
-\item if $\aAct$ is a pure read (not acquire or release), then either
+\item if $\aAct$ is a read but not a fence then either
   $\labellingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
   that $\labellingForm'(\aEv)$ does not imply $\labellingForm(\aEv)$.
 % \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
@@ -500,7 +500,7 @@ there is $\aPS\in\aPSS$ such that:
 %     \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
 %   \end{array}\right.\)
 %   \end{itemize}
-\end{itemize}
+\end{enumerate}
 \end{definition}
 The last condition ensures that useless reads are not included.
 Otherwise, $\labellingForm'(\cEv)$ is unconstrained.
