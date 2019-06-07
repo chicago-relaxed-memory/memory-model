@@ -17,6 +17,7 @@ A \emph{data model} consists of:
   $\aForm$ and $\bForm$, and
 \item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$,
 \end{itemize}
+Let $\aSub$ range over substitutions of the form $\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
@@ -25,7 +26,7 @@ We require that data models satisfy the following:
 \item expressions do not include memory locations,
 \item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$,
 \item formulae are closed under negation, conjunction, disjunction, and
-  substitutions of the form $\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$, 
+  substitution, 
 \item there is a relation $\vDash$ between formulae, 
 \item there are partial functions $\rreads$ and $\rwrites: \Act \fun (\Loc
   \times \Val)$, and
@@ -86,15 +87,17 @@ $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
 In the remainder of the paper, we drop the prefix ``3-valued'', referring to
 3-valued pomsets simply as \emph{pomsets}.
 
-We fix the alphabet $\Alphabet=(\Formulae\times\Act)$.  
+We fix the alphabet $\Alphabet=(\Formulae\times\Act)$.  We write pairs in
+$(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide $\aForm$ when
+$\aForm$ is a tautology.  Define $\labellingForm$ and $\labellingAct$ so that
+$\labellingForm(\aEv)=\aForm$ and $\labellingAct(\aEv)=\aAct$ whenever
+$\labellingForm(\aEv)=(\aForm\mid\aAct)$.
 
 We lift terminology from logical formulae and actions to events, for example
 if $\labelling(\aEv)=(\aForm\mid\aAct)$ then we say $\aEv$ is unsatisfiable
 whenever $\aForm$ is unsatisfiable, $\aEv$ writes $\aVal$ to $\aLoc$ whenever
 $\aAct$ writes $\aVal$ to $\aLoc$, and so forth.
 
-We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.
-We elide $\aForm$ when $\aForm$ is a tautology.
 We visualize a pomset as a graph where the nodes are drawn from
 $\Event$, each node $\aEv$ is labelled with $\labelling(\aEv)$,
 and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
@@ -164,6 +167,11 @@ isomorphism and augmentation.
 NOTE: because augment closed, any event can go false, and we kill everything
 after it, so that means we do get a kind of prefix closure.
 
+In this paper, we are not investigating speculative execution.  So we make
+the global assumption formulae can only get stronger in dependent actions:
+if $\aEv<\bEv$ then
+$\labellingForm(\bEv)$ implies $\labellingForm(\aEv)$.
+ 
 \begin{definition}
   $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
   $f:\Event\fun\Event'$ such that
@@ -180,11 +188,12 @@ Augmentation may create additional order and strengthening
 preconditions.
 \begin{definition}
   $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
-  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
-  % $\labelling'(\aEv)=\labelling(\aEv)$
-  if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
-  $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
-  $\bForm$.
+  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, 
+  $\labellingAct'(\aEv)=\labellingAct(\aEv)$ and
+  $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$.
+  % if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
+  % $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+  % $\bForm$.
 \end{definition}
 
 We give the semantics using combinators over sets of pomsets, defined below.
@@ -225,8 +234,8 @@ Substitution updates the preconditions in a pomset, thus we expect the number
 of pomsets to be unchanged; in addition, the number of events in each of the
 pomsets is unchanged.
 \begin{definition}
-For a substitution $\aSub$ of the form $[\aLoc/\aReg]$ or
-$[\bExp/\aLoc]$,  let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+  %For a substitution $\aSub$, of the form $[\aLoc/\aReg]$ or $[\bExp/\aLoc]$,
+  Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \Event$,
 ${\le'} = {\le}$, 
@@ -411,24 +420,39 @@ there is $\aPS\in\aPSS$ such that:
 \item $\Event' = \Event \cup \{\cEv\}$,
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
 \item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
-\item $\labelling'(\cEv) = (\aForm \mid \aAct)$, and
-\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then:
-  \begin{itemize}
-  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
-  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-  \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
-    then $\cEv \gtN' \aEv$, and
-  \end{itemize}
+% \item $\labellingAct'(\aEv) = \labellingAct'(\aEv)$ unless $\aEv=\cEv$.   $\labellingAct'(\cEv) = \aAct$, 
+% \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
+%   (\bForm' \mid \bAct)$, where:
+%   \begin{itemize}
+%   \item if $\aAct$ is an acquire then $\labellingForm'(\aEv)$ is independent of every $\bLoc$,
+%   \item if $\aAct$ does not read then $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$,
+%   \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
+%     \begin{itemize}
+%     \item $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)[\aVal/\aLoc]$, and
+%     \item either $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$ or $\cEv<'\aEv$, 
+%     \end{itemize}
+%   \end{itemize}
+\item $\labellingAct'(\cEv) = \aAct$, 
 \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
   (\bForm' \mid \bAct)$, where:
   \begin{itemize}
+  \item if $\aAct$ is an acquire then $\bForm'$ is independent of every $\bLoc$,
   \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
   \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
     \begin{itemize}
     \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
-    \item either $\bForm'$ implies $\bForm$ or $\cEv<'\aEv$.
+    \item either $\bForm'$ implies $\bForm$ or $\cEv<'\aEv$, 
     \end{itemize}
   \end{itemize}
+\item if $\labellingAct(\aEv) = \bAct$ then:
+  \begin{itemize}
+  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
+  \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+    then $\cEv \gtN' \aEv$, and
+  \end{itemize}
+\item if $\aAct$ is a pure read (not acquire or release), then either
+  $\labellingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
+  that $\labellingForm'(\aEv)$ does not imply $\labellingForm'(\aEv)$.
 % \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
 %   (\bForm' \mid \bAct)$, where:
 %   \begin{itemize}
@@ -447,6 +471,11 @@ there is $\aPS\in\aPSS$ such that:
 %   \end{itemize}
 \end{itemize}
 \end{definition}
+The last condition ensures that useless reads are not included.
+Otherwise, $\labellingForm'(\cEv)$ is unconstrained.
+
+In order to keep augmentation closure, we need to keep the unsatisfiable
+elements in the set of pomsets.  
 
 \begin{comment}
 The first constraint ensures that events are ordered before a release and
