@@ -1,3 +1,8 @@
+\newcommand{\restrict}[1]{\mathbin{|}_{#1}}
+\newcommand{\textand}{\;\allowbreak\text{and}\allowbreak\;}
+\newcommand{\textimplies}{\; \allowbreak\text{implies}\allowbreak\;}
+\newcommand{\textor}{\; \allowbreak\text{or}\allowbreak\;}
+
 % \usepackage{amsmath}
 % \renewcommand{\arraystretch}{1}
 % \renewcommand{\arraycolsep}{0pt}
@@ -83,7 +88,7 @@
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DT}[1]{\mathsf{T}\ifnotempty{#1}{\,#1}}
 \newcommand{\DSB}{\mathsf{SB}}
-\newcommand{\DF}{\mathsf{F}}
+\newcommand{\DF}{\mathsf{FF}}
 \newcommand{\DB}[1]{\mathsf{B}\ifnotempty{#1}{\,#1}}
 \newcommand{\DC}[1]{\mathsf{C}\ifnotempty{#1}{\,#1}}
 
@@ -97,7 +102,7 @@
 \newcommand{\begEv}{b}
 \newcommand{\comEv}{c}
 \newcommand{\ltN}{\mathrel{\,\mid\!\!\!<}}
-\newcommand{\gtN}{\mathrel{\,\mid\!\!\!>}}
+\newcommand{\gtN}{\mathrel{\mkern4mu\mid\!\!\!>}}
 
 \newcommand{\Alphabet}{\Sigma}
 \newcommand{\labelling}{\lambda}
@@ -121,7 +126,7 @@
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
 \newcommand{\REL}{\mathsf{rel}\,}
 \newcommand{\ACQ}{\mathsf{acq}\,}
-\newcommand{\FENCE}{\texttt{fence}}
+\newcommand{\FENCE}{\texttt{fullFence}}
 \newcommand{\BEGIN}{\texttt{begin}}
 \newcommand{\COMMIT}{\texttt{commit}}
 \newcommand{\RECOVERY}{\texttt{onabort}\,\{}

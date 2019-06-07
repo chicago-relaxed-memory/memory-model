@@ -1,18 +1,112 @@
-% at most 12 pages, excluding references, not anonymous
-% Titles and Short Abstracts Due	4 January 2019
-% Full Papers Due	11 January 2019
-% Author Feedback/Rebuttal Period	4–8 March 2019
-% Author Notification	29 March 2019
-% Conference	24–27 June 2019
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+%% For double-blind review submission
+%\documentclass[acmsmall,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission
 
-\usepackage[numbers]{natbib}
+% \documentclass[acmsmall]{acmart}\settopmatter{printfolios=true}
+% \hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=2}
+%% For final camera-ready submission
+%\documentclass[acmsmall,10pt]{acmart}\settopmatter{}
+
+%% Note: Authors migrating a paper from PACMPL format to traditional
+%% SIGPLAN proceedings format should change 'acmsmall' to
+%% 'sigplan'.
+
+\documentclass[acmsmall,screen]{acmart}
+
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+
+
+
+% \makeatletter\if@ACM@journal\makeatother
+% %% Journal information (used by PACMPL format)
+% %% Supplied to authors by publisher for camera-ready submission
+% \acmJournal{PACMPL}
+% \acmVolume{1}
+% \acmNumber{1}
+% \acmArticle{1}
+% \acmYear{2017}
+% \acmMonth{1}
+% \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
+% \else\makeatother
+% %% Conference information (used by SIGPLAN proceedings format)
+% %% Supplied to authors by publisher for camera-ready submission
+% \acmConference[PL'17]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2017}{New York, NY, USA}
+% \acmYear{2017}
+% \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+% \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
+% \fi
+
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission
+% \setcopyright{none}             %% For review submission
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2017}           %% If different from \acmYear
+
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+\citestyle{acmauthoryear}   %% For author/year citations
+
+
+
+\usepackage{macros}
+
+\usepackage{amssymb,amsthm}
+\theoremstyle{acmdefinition}
+% \newcounter{theorem2}
+% \newtheorem{aside}[theorem2]{Aside}
+% \newtheorem{remark}[theorem2]{Remark}
+% \newtheorem{assumption}[theorem2]{Assumption}
+\usepackage{stmaryrd}
+
+
+
+
+
+%%% The following is specific to POPL'18 and the paper
+%%% 'Transactions in Relaxed Memory Architectures'
+%%% by Brijesh Dongol, Radha Jagadeesan, and James Riely.
+%%%
+\setcopyright{acmcopyright}
+\acmPrice{}
+\acmDOI{10.1145/3158106}
+\acmYear{2018}
+\copyrightyear{2018}
+\acmJournal{PACMPL}
+\acmVolume{2}
+\acmNumber{POPL}
+\acmArticle{18}
+\acmMonth{1}
+
+% % at most 12 pages, excluding references, not anonymous
+% % Titles and Short Abstracts Due	4 January 2019
+% % Full Papers Due	11 January 2019
+% % Author Feedback/Rebuttal Period	4–8 March 2019
+% % Author Notification	29 March 2019
+% % Conference	24–27 June 2019
+% \documentclass[conference]{IEEEtran}
+% \IEEEoverridecommandlockouts
+
+%\usepackage[numbers]{natbib}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{stmaryrd}
 \usepackage{hyperref}
-\newcommand{\email}[1]{\href{mailto:#1}{{\UrlFont #1}}}
+%\newcommand{\email}[1]{\href{mailto:#1}{{\UrlFont #1}}}
 \usepackage{amsthm}
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
@@ -28,7 +122,7 @@
 % \def\verbatim@font{\sffamily\upshape}
 % \makeatother
 
-\bibliographystyle{plainnat}
+%\bibliographystyle{plainnat}
 \usepackage{macros}
 \newcommand{\ignore}[1]{}
 \newcommand{\todo}[1]{{\color{red}\textbf{\{#1\}}}}
@@ -37,28 +131,162 @@
 
 \begin{document}
 
-\title{What Happened}
+%% Title information
+\title{Transactions in Relaxed Memory Architectures}
+% \title[Short Title]{Full Title}         %% [Short Title] is optional;
+%                                         %% when present, will be used in
+%                                         %% header instead of Full Title.
+% \titlenote{with title note}             %% \titlenote is optional;
+%                                         %% can be repeated if necessary;
+%                                         %% contents suppressed with 'anonymous'
+% \subtitle{Subtitle}                     %% \subtitle is optional
+% \subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+%                                         %% can be repeated if necessary;
+%                                         %% contents suppressed with 'anonymous'
 
-\author{
-\IEEEauthorblockN{Radha Jagadeesan}
-\IEEEauthorblockA{\textit{DePaul University}\\
-  \email{rjagadeesan@cs.depaul.edu}}
-\and
-\IEEEauthorblockN{Alan Jeffrey}
-\IEEEauthorblockA{\textit{Mozilla Research}\\
-  \email{ajeffrey@mozilla.com}}
-\and
-\IEEEauthorblockN{James Riely}
-\IEEEauthorblockA{\textit{DePaul University}\\
-  \email{jriely@cs.depaul.edu}}
+
+%% Author information
+%% Contents and number of authors suppressed with 'anonymous'.
+%% Each author should be introduced by \author, followed by
+%% \authornote (optional), \orcid (optional), \affiliation, and
+%% \email.
+%% An author may have multiple affiliations and/or emails; repeat the
+%% appropriate command.
+%% Many elements are not rendered, but should be provided for metadata
+%% extraction tools.
+
+\author{Brijesh Dongol}
+\orcid{0000-0003-0446-3507}
+\affiliation{
+  \department{Department of Computer Science}
+  \institution{Brunel University London}
+  \country{UK}
 }
+\email{brijesh.dongol@brunel.ac.uk}
+
+\author{Radha Jagadeesan}
+\affiliation{
+  \department{School of Computing}
+  \institution{DePaul University}
+  \country{USA}
+}
+\email{rjagadeesan@cs.depaul.edu}
+
+\author{James Riely}
+\orcid{0000-0002-8731-1463}
+\affiliation{
+  \department{School of Computing}
+  \institution{DePaul University}
+  \country{USA}
+}
+\email{jriely@cs.depaul.edu}
 
 
+%% Paper note
+%% The \thanks command may be used to createame a "paper note" ---
+%% similar to a title note or an author note, but not explicitly
+%% associated with a particular element.  It will appear immediately
+%% above the permission/copyright statement.
+% \thanks{Radha Jagadeesan and James Riely were supported in part by NSF CCR }                %% \thanks is optional
+%                                         %% can be repeated if necesary
+%                                         %% contents suppressed with 'anonymous'
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10003752.10003753.10003761.10003762</concept_id>
+<concept_desc>Theory of computation~Parallel computing models</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+% <concept>
+% <concept_id>10003752.10003753.10003761.10003763</concept_id>
+% <concept_desc>Theory of computation~Distributed computing models</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10003753.10003761.10003764</concept_id>
+% <concept_desc>Theory of computation~Process calculi</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10003790.10002990</concept_id>
+% <concept_desc>Theory of computation~Logic and verification</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10010124.10010131.10010133</concept_id>
+% <concept_desc>Theory of computation~Denotational semantics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>TT
+% <concept>
+% <concept_id>10003752.10010124.10010131.10010134</concept_id>
+% <concept_desc>Theory of computation~Operational semantics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10010124.10010131.10010135</concept_id>
+% <concept_desc>Theory of computation~Axiomatic semantics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+<concept>
+<concept_id>10003752.10010124.10010138.10011119</concept_id>
+<concept_desc>Theory of computation~Abstraction</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Parallel computing models}
+% \ccsdesc[500]{Theory of computation~Distributed computing models}
+% \ccsdesc[500]{Theory of computation~Process calculi}
+% \ccsdesc[500]{Theory of computation~Logic and verification}
+% \ccsdesc[500]{Theory of computation~Denotational semantics}
+% \ccsdesc[500]{Theory of computation~Operational semantics}
+% \ccsdesc[500]{Theory of computation~Axiomatic semantics}
+\ccsdesc[500]{Theory of computation~Abstraction}
+ 
+
+%% End of generated code
+
+
+%% Keywords
+%% comma separated list
+\keywords{Relaxed Memory Models, Hardware Transactional Memory}  %% \keywords is optional
+
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
 \maketitle
 
-\begin{abstract}
-A memory model, designed to be as weak as possible.
-\end{abstract}
+% \title{What Happened}
+
+% \author{
+% \IEEEauthorblockN{Radha Jagadeesan}
+% \IEEEauthorblockA{\textit{DePaul University}\\
+%   \email{rjagadeesan@cs.depaul.edu}}
+% \and
+% \IEEEauthorblockN{Alan Jeffrey}
+% \IEEEauthorblockA{\textit{Mozilla Research}\\
+%   \email{ajeffrey@mozilla.com}}
+% \and
+% \IEEEauthorblockN{James Riely}
+% \IEEEauthorblockA{\textit{DePaul University}\\
+%   \email{jriely@cs.depaul.edu}}
+% }
+
 
 \input{intro}
 \input{model}

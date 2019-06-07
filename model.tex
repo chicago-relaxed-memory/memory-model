@@ -45,11 +45,12 @@ $\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
 the actions are of the form $(\DR{\aLoc}{\aVal})$, which reads $\aVal$ from
 $\aLoc$, and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
 
-We say that $\aAct$ is a \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
-is an \emph{release} if $\aAct\in\Rel$.  In examples, the actions are of the
+We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
+is a \emph{release} if $\aAct\in\Rel$.  We say that $\aAct$ is a \emph{fence}
+if it is either a release or an acquire.  In examples, the actions are of the
 form $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$ from
-$\aLoc$,  $(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$
-to $\aLoc$, and $(\DF)$, which is both an acquire and a release and neither
+$\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$ to
+$\aLoc$, and $(\DF)$, which is both an acquire and a release and neither
 reads nor writes.
 
 We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
@@ -179,17 +180,18 @@ $\labellingForm(\bEv)$ implies $\labellingForm(\aEv)$.
   % \item
   $\labelling(\aEv)=\labelling'(f(\aEv))$,
   % \item
-  $\aEv\le\bEv$ when $f(\aEv)\le'f(\bEv)$, and
+  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$, and
   % \item
-  $\aEv\gtN\bEv$ when $f(\aEv)\gtN'f(\bEv)$.
+  $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
   % \end{itemize}
 \end{definition}
 Augmentation may create additional order and strengthening
 preconditions.
 \begin{definition}
-  $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
-  implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, 
-  $\labellingAct'(\aEv)=\labellingAct(\aEv)$ and
+  $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$,
+  ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
+  ${\gtN}\subseteq{\gtN'}$, %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, 
+  $\labellingAct'=\labellingAct$, and %$\labellingAct'(\aEv)=\labellingAct(\aEv)$ and
   $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$.
   % if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
   % $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
@@ -204,9 +206,8 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
   keeping pomsets whose events have preconditions that imply $\aForm$,
 \item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
-  only pomsets where every event $\aEv$ that reads from $\aLoc$ \emph{can read} from some
-  $\bEv$, following Definition~\ref{def:rf},
-  and where no precondition can depend on $\aLoc$,
+  only pomsets where every event $\aEv$ that reads from $\aLoc$ can read from
+  some $\bEv$ and where no precondition can depend on $\aLoc$,
 \item \emph{composition} $\aPSS_1\parallel\aPSS_2$, which unions pomsets from
   $\aPSS_1$ and $\aPSS_2$, allowing events to be merged, and
 \item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
@@ -253,18 +254,20 @@ Guarding filters a set of pomsets; we have
 $(\aForm\guard\aPSS)\subseteq\aPSS$.
 The definition is straightforward:
 \begin{definition}
-Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever:
-\begin{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
-\end{itemize}
+Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+$\aForm$ implies $\labellingForm(\aEv)$.
+% \begin{itemize}
+% \item if $\labelling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
+% \end{itemize}
 \end{definition}
 
 \subsection{Restriction}
 \label{sec:restriction}
 
-Restriction also filters a set of pomsets; we have
-$(\nu\aLoc\st\aPSS)\subseteq\aPSS$.  The definition requires that we define
-when a read is possible.
+% Restriction also filters a set of pomsets; we have
+% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% The definition requires that we define
+% when a read is possible.
 
 \begin{definition}\label{def:rf}
   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
@@ -277,32 +280,47 @@ when a read is possible.
     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 \end{definition}
-Our model of reads-from is strong, and could be weakened by replacing the
-requirement $\bEv<\aEv$ in Definition~\ref{def:rf} by $\bEv\gtN\aEv$. It
-remains to be seen how this impacts the model.
 
 
 \begin{definition}
 \label{def:x-closed}
-  A 3-valued pomset is $\aLoc$-closed if,
-  for every $\aEv\in\Event$:
+A pomset is $\aLoc$-closed if, for every $\aEv\in\Event$:
   \begin{itemize}
   \item $\aEv$ is independent of $\aLoc$, and
-  \item if $\aEv$ reads from $\aLoc$, then there is a $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
+  \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$
+    can read $\aLoc$ from $\bEv$,
+  \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a fence or there is
+    some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
   \end{itemize}
 \end{definition}
+% Our model of reads-from is strong, and could be weakened by replacing the
+% requirement $\bEv<\aEv$ % in Definition~\ref{def:rf}
+% by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
+
+% \begin{definition}
+%   A 3-valued pomset is $\aLoc$-\emph{coherent}
+%   if, when restricted to events which touch $\aLoc$,
+%   $\gtN$ forms a total order.
+% \end{definition}
+
+We say that $\aPS' = \aPS\restrict{\Event'}$ when 
+ $\Event' \subseteq \Event$,
+ ${\labelling'} = {\labelling}\restrict{\Event'}$, 
+ ${\le'} = {\le}\restrict{\Event'}$, and
+ ${\gtN'} = {\gtN}\restrict{\Event'}$.
 
 \begin{definition}
-  A 3-valued pomset is $\aLoc$-\emph{coherent}
-  if, when restricted to events which touch $\aLoc$,
-  $\gtN$ forms a total order.
+  Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  whenever there is $\aPS\in\aPSS$ such that $\aPS' = \aPS\restrict{\Event'}$
+  and $\aPS'$ is $\aLoc$-closed.
+  % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+  % \begin{itemize}
+  % \item $\aEv$ is independent of $\aLoc$, and
+  % \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
+  % \end{itemize}
 \end{definition}
-
-\begin{definition}
-Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-$\aPS$ is $\aLoc$-closed and $\aLoc$-coherent.
-\end{definition}
-
+This definition throws away useless writes.
+I don't think we need coherence any more.
 
 \subsection{Composition}
 Composition is used in giving the semantics for conditionals and concurrency.
@@ -328,20 +346,34 @@ then $\aPSS_1 \parallel \aPSS_2$ contains:
 \end{tikzpicture}\]
 
 \begin{definition}
-Let $\aPS' \in (\aPSS_1 \parallel \aPSS_2)$
-whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
+Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that:
 \begin{itemize}
-\item $\Event' = \Event_1 \cup \Event_2$,
-\item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le' \bEv$,
-\item if $\aEv \gtN_1 \bEv$ or $\aEv \gtN_2 \bEv$ then $\aEv \gtN' \bEv$,
-\item if $\labelling'(\aEv) = (\aForm' \mid \aActSub)$ then either:
+\item $\Event' = \Event^1 \cup \Event^2$,
+\item ${\le'}\supseteq{\le^1}\cup{\le^2}$, %if $\aEv \le^1 \bEv$ or $\aEv \le^2 \bEv$ then $\aEv \le' \bEv$,
+\item ${\gtN'}\supseteq{\gtN^1}\cup{\gtN^2}$, %if $\aEv \gtN^1 \bEv$ or $\aEv \gtN^2 \bEv$ then $\aEv \gtN' \bEv$,
+% \item if $\labelling'(\aEv) = (\aForm' \mid \aAct)$ then either:
+%   \begin{itemize}
+%   \item $\labelling^1(\aEv) = (\aForm^1 \mid \aAct)$ and $\labelling^2(\aEv) = (\aForm^2 \mid \aAct)$
+%     and $\aForm'$ implies $\aForm^1 \lor \aForm^2$,
+%   \item $\labelling^1(\aEv) = (\aForm^1 \mid \aAct)$ and $\aEv \not\in \Event^2$
+%     and $\aForm'$ implies $\aForm^1$, or
+%   \item $\labelling^2(\aEv) = (\aForm^2 \mid \aAct)$ and $\aEv \not\in \Event^1$
+%     and $\aForm'$ implies $\aForm^2$.
+%   \end{itemize}
+\item Either
+  % \begin{gather*}
+  %   \labellingAct'(\aEv) = \labellingAct^1(\aEv) = \labellingAct^2(\aEv) \textand \labellingForm'(\aEv) \textimplies \labellingForm^1(\aEv) \lor \labellingForm^2(\aEv),\\
+  %   \aEv \not\in \Event^2,\; \labellingAct'(\aEv) = \labellingAct^1(\aEv) \textand \labellingForm'(\aEv) \textimplies \labellingForm^1(\aEv),\; \textor\\    
+  %   \aEv \not\in \Event^1,\; \labellingAct'(\aEv) = \labellingAct^2(\aEv) \textand \labellingForm'(\aEv) \textimplies \labellingForm^2(\aEv).
+  % \end{gather*}
   \begin{itemize}
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aActSub)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aActSub)$
-    and $\aForm'$ implies $\aForm_1 \lor \aForm_2$,
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aActSub)$ and $\aEv \not\in \Event_2$
-    and $\aForm'$ implies $\aForm_1$, or
-  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aActSub)$ and $\aEv \not\in \Event_1$
-    and $\aForm'$ implies $\aForm_2$.
+  \item $\labellingAct'(\aEv) = \labellingAct^1(\aEv) = \labellingAct^2(\aEv)
+    \textand \labellingForm'(\aEv) \textimplies \labellingForm^1(\aEv) \lor \labellingForm^2(\aEv)$,
+  \item $\labellingAct'(\aEv) = \labellingAct^1(\aEv),\;\; \aEv \not\in \Event^2\,
+    \textand \labellingForm'(\aEv) \textimplies \labellingForm^1(\aEv),\; \textor$
+  \item $\labellingAct'(\aEv) = \labellingAct^2(\aEv),\;\; \aEv \not\in \Event^1\,
+    \textand \labellingForm'(\aEv) \textimplies \labellingForm^2(\aEv)$.
   \end{itemize}
 \end{itemize}
 \end{definition}
@@ -418,41 +450,40 @@ Let $\aAct \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 \begin{itemize}
 \item $\Event' = \Event \cup \{\cEv\}$,
-\item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-\item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
-% \item $\labellingAct'(\aEv) = \labellingAct'(\aEv)$ unless $\aEv=\cEv$.   $\labellingAct'(\cEv) = \aAct$, 
+\item ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+\item ${\gtN'}\supseteq{\gtN}$, %if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
+% \item $\labellingAct'(\cEv) = \aAct$, 
 % \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
 %   (\bForm' \mid \bAct)$, where:
 %   \begin{itemize}
-%   \item if $\aAct$ is an acquire then $\labellingForm'(\aEv)$ is independent of every $\bLoc$,
-%   \item if $\aAct$ does not read then $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$,
+%   \item if $\aAct$ is an acquire then $\bForm'$ is independent of every $\bLoc$,
+%   \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
 %   \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
 %     \begin{itemize}
-%     \item $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)[\aVal/\aLoc]$, and
-%     \item either $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$ or $\cEv<'\aEv$, 
+%     \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
+%     \item either $\bForm'$ implies $\bForm$ or $\cEv<'\aEv$, 
 %     \end{itemize}
 %   \end{itemize}
-\item $\labellingAct'(\cEv) = \aAct$, 
-\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
-  (\bForm' \mid \bAct)$, where:
+% \item if $\labellingAct(\aEv) = \bAct$ then:
+%   \begin{itemize}
+%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
+%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+%     then $\cEv \gtN' \aEv$, and
+%   \end{itemize}
+\item $\labellingAct'(\aEv) = \labellingAct'(\aEv)$ unless $\aEv=\cEv$.   $\labellingAct'(\cEv) = \aAct$, 
+\item if $\aAct$ does not read then $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$,
+\item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
   \begin{itemize}
-  \item if $\aAct$ is an acquire then $\bForm'$ is independent of every $\bLoc$,
-  \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
-  \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
-    \begin{itemize}
-    \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
-    \item either $\bForm'$ implies $\bForm$ or $\cEv<'\aEv$, 
-    \end{itemize}
+  \item $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)[\aVal/\aLoc]$, and
+  \item either $\labellingForm'(\aEv)$ implies $\labellingForm(\aEv)$ or $\cEv<'\aEv$, 
   \end{itemize}
-\item if $\labellingAct(\aEv) = \bAct$ then:
-  \begin{itemize}
-  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv <' \aEv$, 
-  \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+\item if $\aAct$ is an acquire then $\labellingForm'(\aEv)$ is independent of every $\bLoc$,
+\item if $\aAct$ is an acquire or $\labellingAct(\aEv)$ is a release then $\cEv <' \aEv$, 
+\item if $\aAct$ and $\labellingAct(\aEv)$ both touch the same location and one is a write,
     then $\cEv \gtN' \aEv$, and
-  \end{itemize}
 \item if $\aAct$ is a pure read (not acquire or release), then either
   $\labellingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
-  that $\labellingForm'(\aEv)$ does not imply $\labellingForm'(\aEv)$.
+  that $\labellingForm'(\aEv)$ does not imply $\labellingForm(\aEv)$.
 % \item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
 %   (\bForm' \mid \bAct)$, where:
 %   \begin{itemize}
