@@ -1,5 +1,5 @@
 %% For double-blind review submission
-%\documentclass[acmsmall,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true}
+\documentclass[acmsmall,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true}
 %% For single-blind review submission
 
 % \documentclass[acmsmall]{acmart}\settopmatter{printfolios=true}
@@ -11,7 +11,7 @@
 %% SIGPLAN proceedings format should change 'acmsmall' to
 %% 'sigplan'.
 
-\documentclass[acmsmall,screen]{acmart}
+%\documentclass[acmsmall,screen]{acmart}
 
 
 %% Some recommended packages.
@@ -65,13 +65,6 @@
 
 \usepackage{macros}
 
-\usepackage{amssymb,amsthm}
-\theoremstyle{acmdefinition}
-% \newcounter{theorem2}
-% \newtheorem{aside}[theorem2]{Aside}
-% \newtheorem{remark}[theorem2]{Remark}
-% \newtheorem{assumption}[theorem2]{Assumption}
-\usepackage{stmaryrd}
 
 
 
@@ -101,28 +94,6 @@
 % \documentclass[conference]{IEEEtran}
 % \IEEEoverridecommandlockouts
 
-%\usepackage[numbers]{natbib}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{stmaryrd}
-\usepackage{hyperref}
-%\newcommand{\email}[1]{\href{mailto:#1}{{\UrlFont #1}}}
-\usepackage{amsthm}
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{proposition}[theorem]{Proposition}
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\usepackage{amsmath}
-\usepackage{alltt}
-\usepackage{makecell}
-\usepackage[T1]{fontenc}
-\usepackage{verbatim}
-% \makeatletter
-% \def\verbatim@font{\sffamily\upshape}
-% \makeatother
-
-%\bibliographystyle{plainnat}
 \usepackage{macros}
 \newcommand{\ignore}[1]{}
 \newcommand{\todo}[1]{{\color{red}\textbf{\{#1\}}}}
@@ -132,7 +103,7 @@
 \begin{document}
 
 %% Title information
-\title{Transactions in Relaxed Memory Architectures}
+\title{Semantic Dependency as a Model of Relaxed Memory}
 % \title[Short Title]{Full Title}         %% [Short Title] is optional;
 %                                         %% when present, will be used in
 %                                         %% header instead of Full Title.
@@ -155,14 +126,6 @@
 %% Many elements are not rendered, but should be provided for metadata
 %% extraction tools.
 
-\author{Brijesh Dongol}
-\orcid{0000-0003-0446-3507}
-\affiliation{
-  \department{Department of Computer Science}
-  \institution{Brunel University London}
-  \country{UK}
-}
-\email{brijesh.dongol@brunel.ac.uk}
 
 \author{Radha Jagadeesan}
 \affiliation{
@@ -171,6 +134,14 @@
   \country{USA}
 }
 \email{rjagadeesan@cs.depaul.edu}
+
+\author{Alan Jeffrey}
+\orcid{0000-0001-6342-0318}
+\affiliation{
+  \institution{Mozilla Research}
+  \country{USA}
+}
+\email{ajeffrey@mozilla.com}
 
 \author{James Riely}
 \orcid{0000-0002-8731-1463}
@@ -292,6 +263,7 @@
 \input{model}
 \input{examples}
 \input{logic}
+\input{sc}
 \input{outro}
 
 \begin{small}

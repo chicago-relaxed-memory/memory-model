@@ -1,24 +1,101 @@
 \section{Introduction}
 \label{sec:intro}
 
-Fixing the model in a way that forbids all “out-of-thin- air” behaviors and still allows the most efficient compilation is beyond the scope of the current paper. 
+\citet{Hoare:1969:ABC:363235.363259} described a logic for understanding
+sequential execution.  For example, the rule for assignment states that:
+\begin{displaymath}
+  \hoare{\aForm[\aExp/\aLoc]}{\aLoc\GETS\aExp}{\aForm}
+\end{displaymath}
+This views a program as a \emph{predicate transformer}, made explicit by
+\citet{Dijkstra:1975:GCN:360933.360975}.
+\begin{displaymath}
+  \fwp(\aLoc\GETS\aExp,\;\aForm) = \aForm[\aExp/\aLoc]
+\end{displaymath}
+This interpretation gives a natural notion of program equality.  It defines a
+semantics for all programs.  It is compositional.  It supports type-safe
+execution.  It is preserved by compilers and single-threaded hardware.
+(Indeed, equivalence under this model can be taken as the correctness
+condition for compiler and hardware optimizations.)
 
-We present a model with the following properties:
-\begin{itemize}
-\item Compilation result (compile to C++, or LLVM, or hardware models) without fences
-\item Soundness of optimizations (list from LDRF paper + those from promising
-  semantics)  Follow dolan.
-\item DRF programs have SC semantics
-\item satisfies JMM test cases and other examples
-\item supports a program logic and no-TAR
-\item is compositional
-\end{itemize}  
 
-Other things:
+Concurrent programming is more difficult to understand, but in certain
+special cases substantial progress has been made, such as race-free
+shared-memory
+\citep{OHearn:2007:RCL:1235896.1236121,OHearn:2019:SL:3310134.3211968} and
+message-passing \citep{Hennessy:1980:ONC:646234.758793,Cleaveland2018}.
+
+For \emph{shared-memory programs with data races (SMP-DR)}, no canonical
+model as arisen.  A sensible model should induce a natural notion of program
+equality.  It should define a semantics for all programs.  It should be
+compositional.  It should support type-safe execution.  And it should be
+preserved by current compilers and multi-threaded hardware.  The last point
+is \emph{descriptive}: capturing that which exists.
+
+Concurrent models require that we identify events for read and write actions,
+which might later allow for interaction with another thread.  Yet, the
+correctness of transformations on single-threaded code are defined
+semantically.  Getting these two world-views to play nice has proven
+incredibly challenging.
+
+Rather than a single canonical model, we have arrived at a spectrum of models
+for SMP-DR.  These can be characterized as either \emph{strong} or
+\emph{weak}.  The strong models invalidate some common compiler and hardware
+optimizations and reorderings, such as common subexpression elimination or
+load-buffering.
+
+Sequential consistency (SC) \citep{Lamport:1979:MMC:1311099.1311750} is
+universally accepted as the strongest sensible model of SMP-DR.  In addition
+to invalidating optimizations, SC is also non-compositional.  Nevertheless,
+SC and other strong models my work well in practice
+\cite{Singh:2012:ESC:2337159.2337220,Dolan:2018:BDR:3192366.3192421,Ou:2018:TUC:3288538.3276506}.
+
+Attempts to define a weakest model for SMP-DR have largely failed.
+\begin{enumerate}
+\item \citet{Manson:2005:JMM:1047659.1040336} and similar models
+  \cite{DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17} all require
+  shenanigans for type safety
+  \cite{DBLP:journals/toplas/Lochbihler13,DBLP:conf/tldi/GotoJPR12}.  This is
+  a variant of the thin-air problem.
+\item \citet{DBLP:conf/lics/JeffreyR16} is too strong.
+\item C11 does not define a semantics for racy programs.  Even restricted to
+  the defined subset, C11 still allows thin-air type unsafety on relaxed
+  atomics. The attempts to repair C11 have lead to strong models.
+\end{enumerate}
+
+In this paper, we propose a candidate definition for
+\begin{center}
+  \emph{the weakest sensible model of SMP-DR}.
+\end{center}
+
+Our model uses Hoare logic for sequential code and partially-ordered sets of
+read-write events for concurrent code.  As usual, the order denotes temporal
+dependency between two events.
+
+Our first insight is that these two approaches can be combined by associating
+logical predicates with events in the partial order.  Sequencing affects the
+predicates, as in Hoare logic.  Parallel composition, instead, combines the
+events of two partial orders.
+
+Our second insight is that when combining partial orders from the two
+branches of a conditional, events may coalesce, resulting in weaker
+predicates via disjunction.  This allows events that occur within both
+branches of a conditional to float in the partial order, independent of the
+condition itself.
+
+There are several details to sort out, which we dutifully perform:
 \begin{itemize}
-\item Full abstraction:  If two programs are different, then there is a
-  distinguishing context of the form P; [] || Q; R
-\item precisely models dependency
+\item give semantics of release and acquire fences
+\item establish DRF-SC
+\item establish logical reasoning
+\item establish congruence properties for language constructs
+\item establish that compiler optimizations are permitted
+\item establish that hardware optimizations are permitted
+\end{itemize}
+
+Things we do not do:
+\begin{itemize}
+\item give semantics of read-modify-write operations
+\item give semantics for non-terminating programs
 \end{itemize}
 
 % Local Variables:

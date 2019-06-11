@@ -1,20 +1,21 @@
+\newcommand{\hoare}[3]{\{#1\}\;#2\;\{#3\}}
+\newcommand{\fwp}{\textit{wp}}
+
+\newcommand{\xinit}{\mathsf{init}}
+\newcommand{\BNFSEP}{\ensuremath{\;\mathrel{|}\;}}
+\newcommand{\BNFDEF}{\ensuremath{\;\mathrel{\mathord{\vcentcolon}\mkern-1mu\mathord{\vcentcolon}\mathord{{=}}}\;}}
+
 \newcommand{\restrict}[1]{\mathbin{|}_{#1}}
 \newcommand{\textand}{\;\allowbreak\text{and}\allowbreak\;}
 \newcommand{\textimplies}{\; \allowbreak\text{implies}\allowbreak\;}
 \newcommand{\textor}{\; \allowbreak\text{or}\allowbreak\;}
 
-% \usepackage{amsmath}
-% \renewcommand{\arraystretch}{1}
-% \renewcommand{\arraycolsep}{0pt}
-
-\newcommand{\fpo}{\mathit{po}}
+\newcommand{\fpox}{\mathit{po}}
 \newcommand{\fird}{\mathit{ird}}
 \newcommand{\TIKZ}[2][]{\left\{\,\begin{tikzpicture}[baselinecenter,node distance=1em,#1]#2\end{tikzpicture}\,\right\}}
 \newcommand{\fork}{\setminus_{\mathsf{S}}}
 
 \newcommand{\refapp}[1]{Appendix~\ref{app:#1}}
-\def\ttdefault{cmss}
-\usepackage[T1]{fontenc}
 
 \newenvironment{noenv}{\ignorespaces}{\ignorespacesafterend}
 \newcommand{\aCmd}{C}
@@ -124,6 +125,8 @@
 \newcommand{\aPSS}{\mathcal{P}}
 
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
+\newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\textit{SC}}}
+%\newcommand{\semsc}[1]{\textit{SC}\llbracket#1\rrbracket}
 \newcommand{\REL}{\mathsf{rel}\,}
 \newcommand{\ACQ}{\mathsf{acq}\,}
 \newcommand{\FENCE}{\texttt{fullFence}}
@@ -164,9 +167,23 @@
 \newcommand{\GCC}{\texttt{gcc}}
 \newcommand{\CLANG}{\texttt{clang}}
 
-\usepackage{amsmath}
+\usepackage[T1]{fontenc}
 \usepackage{alltt}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{hyperref}
 \usepackage{makecell}
+\usepackage{mathtools}
+\usepackage{stmaryrd}
+\usepackage{verbatim}
+
+\theoremstyle{acmdefinition}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
 \usepackage{tikz}
 \usetikzlibrary{shapes}
 \usetikzlibrary{shapes.misc}
@@ -187,15 +204,12 @@
 \tikzstyle{baselinecenter} = [baseline={([yshift=-.5ex]current bounding box.west)}]
 %\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
 \tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]
+\newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{cloudy} = [draw=black, fill=blue!10, cloud, aspect=2]
+\newcommand{\cloud}[3]{\node[cloudy](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{final} = [draw=black, fill=blue!10, rectangle, rounded corners, double, minimum size=3ex]
-\tikzstyle{po} = [->]
-\tikzstyle{wk} = [->,dashed]
-\tikzstyle{lift} = [->,double]
-\tikzstyle{rf} = [->,thick,draw=black!50!green]
-
-\tikzset{
-    nonevent/.style={
+\newcommand{\final}[3]{\node[final](#1)[#3]{$\mathstrut#2$};}
+\tikzset{nonevent/.style={
         event, 
         append after command={
             node [
@@ -208,16 +222,57 @@
         }
     }
 }
-
-\newcommand{\final}[3]{\node[final](#1)[#3]{$\mathstrut#2$};}
-\newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
 \newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
-\newcommand{\cloud}[3]{\node[cloudy](#1)[#3]{$\mathstrut#2$};}
+\tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=orange!90!black]
+\newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
+
+\tikzstyle{po} = [->]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
+\tikzstyle{lift} = [->,double]
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
+\tikzstyle{rf} = [->,thick,color=black!50!red]
 \newcommand{\rf}[3][]{\draw[rf,#1](#2)to(#3);}
-\newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
 \newcommand{\rfx}[4][]{\draw[rf,#1](#2) edge node[above,text=black!50!green]{$#3$} (#4);}
+\tikzstyle{wk} = [->,dashed]
+\newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
+
+\usepackage{xparse}
+\tikzstyle{hb} = [->,thick]
+\NewDocumentCommand \hb {O{} m O{} m} {\draw[hb,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{hb}$}  (#4);}
+\newcommand{\rhb}{\ensuremath{\mathrel{\mathsf{hb}}}}%
+\newcommand{\xhb}{\xarrowtikz{hb}{hb}}%
+\tikzstyle{sw} = [->,thick]
+\NewDocumentCommand \sw {O{} m O{} m} {\draw[sw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{sw}$}  (#4);}
+\newcommand{\rsw}{\ensuremath{\mathrel{\mathsf{sw}}}}%
+\newcommand{\xsw}{\xarrowtikz{sw}{sw}}%
+\tikzstyle{ird} = [->,thick,color=black!50!green]
+\NewDocumentCommand \ird {O{} m O{} m} {\draw[ird,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ird}$}  (#4);}
+\newcommand{\rird}{\ensuremath{\mathrel{\mathsf{ird}}}}%
+\newcommand{\xird}{\xarrowtikz{ird}{ird}}%
+\tikzstyle{rb} = [->,thick,dotted,color=black!50!green]
+\NewDocumentCommand \rb {O{} m O{} m} {\draw[rb,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rb}$}  (#4);}
+\newcommand{\rrb}{\ensuremath{\mathrel{\mathsf{rb}}}}%
+\newcommand{\xrb}{\xarrowtikz{rb}{rb}}%
+\tikzstyle{pox} = [->,thick,color=blue!50!black]
+\NewDocumentCommand \pox {O{} m O{} m} {\draw[pox,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{po}$}  (#4);}
+\newcommand{\rpox}{\ensuremath{\mathrel{\mathsf{po}}}}%
+\newcommand{\xpox}{\xarrowtikz{pox}{po}}%
+
+\newsavebox{\mytempbox}
+\newcommand{\xarrowtikz}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
+  \mathrel{\smash{\tikz[baseline=-0.5ex]{\draw[#2] (0,0) -- node[midway,#1]{\(\scriptstyle\mathsf{#3}\)} (\wd\mytempbox,0);}}}}
+\newcommand{\xarrowtikzrev}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
+  \mathrel{\smash{\tikz[baseline=-0.5ex]{\draw[#2] (\wd\mytempbox,0) -- node[pos=0.4,#1]{\(\scriptstyle\mathsf{#3}\)} (0,0);}}}}
+\newcommand{\xarrowtikzboth}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
+  \mathrel{\smash{\tikz[baseline=-0.5ex]{\draw[#2] (0,0) -- node[midway,#1]{\(\scriptstyle\mathsf{#3}\)} (\wd\mytempbox,0);
+        \draw[#2] (\wd\mytempbox,0) -- (0,0);
+      }}}}
+
+\newcommand{\xarrow}[1]{\xrightarrow{\smash{#1}}}
+%\newcommand{\xarrow}[1]{\xrightarrow{\raisebox{-1ex}{$\scriptstyle\smash{#1}$}}}
+\newcommand{\Xarrow}[1]{\xRightarrow{#1}}
+
+
 
 % Local Variables:
 % mode: latex

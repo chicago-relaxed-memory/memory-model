@@ -156,8 +156,34 @@ For example:
 \label{fig:programs}
 \end{figure*}
 
-In Figure~\ref{fig:programs}, we give the semantics of a simple shared-memory
-concurrent language as sets of pomsets.  
+We consider a simple shared-memory concurrent language, with statements defined as follows.
+\begin{align*}
+\aCmd,\,\bCmd
+\BNFDEF& \SKIP
+\BNFSEP \FENCE\SEMI \aCmd
+\BNFSEP \aLoc\GETS\aExp\SEMI \aCmd
+\BNFSEP \REL\aLoc\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\aLoc\SEMI \aCmd
+\BNFSEP \ACQ\aReg\GETS\aLoc\SEMI \aCmd \\
+\BNFSEP& \IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI
+\BNFSEP \aCmd \PAR \bCmd
+\BNFSEP \VAR\aLoc\SEMI \aCmd
+\end{align*}
+We write $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+We write $\IF (\aExp) \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
+shorthand for $\IF (\aExp) \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
+
+We only consider programs with top level parallelism.   We expect programs to
+be of the form
+\begin{displaymath}
+  \VAR\vec{\aLoc}\SEMI
+  \vec{\aLoc}\GETS\vec{0}\SEMI
+  \FENCE\SEMI
+  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+\end{displaymath}
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.
+
+In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
 Each pomset
 $\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
 expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
@@ -208,8 +234,8 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 \item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
   only pomsets where every event $\aEv$ that reads from $\aLoc$ can read from
   some $\bEv$ and where no precondition can depend on $\aLoc$,
-\item \emph{composition} $\aPSS_1\parallel\aPSS_2$, which unions pomsets from
-  $\aPSS_1$ and $\aPSS_2$, allowing events to be merged, and
+\item \emph{composition} $\aPSS^1\parallel\aPSS^2$, which unions pomsets from
+  $\aPSS^1$ and $\aPSS^2$, allowing events to be merged, and
 \item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
   $\aAct$ to pomsets in $\aPSS$, ordering $\aAct$ before any $\aEv$ whose predicate
   depends on the value read by $\aAct$.
@@ -229,7 +255,7 @@ speculative evaluation.
 % We have completed the formal definition of our model of speculative
 % evaluation, and now turn to examples.
 
-\subsection{Substitution and Guarding} 
+\subsubsection{Substitution and Guarding} 
 
 Substitution updates the preconditions in a pomset, thus we expect the number
 of pomsets to be unchanged; in addition, the number of events in each of the
@@ -261,8 +287,14 @@ $\aForm$ implies $\labellingForm(\aEv)$.
 % \end{itemize}
 \end{definition}
 
-\subsection{Restriction}
+\subsubsection{Restriction}
 \label{sec:restriction}
+
+\begin{definition}
+  A 3-valued pomset is $\aLoc$-\emph{coherent}
+  if, when restricted to events which touch $\aLoc$,
+  $\gtN$ forms a total order.
+\end{definition}
 
 % Restriction also filters a set of pomsets; we have
 % $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
@@ -297,12 +329,6 @@ A pomset is $\aLoc$-closed if, for every $\aEv\in\Event$:
 % requirement $\bEv<\aEv$ % in Definition~\ref{def:rf}
 % by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
 
-% \begin{definition}
-%   A 3-valued pomset is $\aLoc$-\emph{coherent}
-%   if, when restricted to events which touch $\aLoc$,
-%   $\gtN$ forms a total order.
-% \end{definition}
-
 We say that $\aPS' = \aPS\restrict{\Event'}$ when 
  $\Event' \subseteq \Event$,
  ${\labelling'} = {\labelling}\restrict{\Event'}$, 
@@ -312,7 +338,7 @@ We say that $\aPS' = \aPS\restrict{\Event'}$ when
 \begin{definition}
   Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   whenever there is $\aPS\in\aPSS$ such that $\aPS' = \aPS\restrict{\Event'}$
-  and $\aPS'$ is $\aLoc$-closed.
+  and $\aPS'$ is $\aLoc$-coherent and $\aLoc$-closed.
   % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
   % \begin{itemize}
   % \item $\aEv$ is independent of $\aLoc$, and
@@ -320,26 +346,25 @@ We say that $\aPS' = \aPS\restrict{\Event'}$ when
   % \end{itemize}
 \end{definition}
 This definition throws away useless writes.
-I don't think we need coherence any more.
 
-\subsection{Composition}
+\subsubsection{Composition}
 Composition is used in giving the semantics for conditionals and concurrency.
-$\aPSS_1 \parallel \aPSS_2$ contains the union of pomsets from $\aPSS_1$ and
-$\aPSS_2$, allowing overlap as long as they agree on actions. For example, if
-$\aPSS_1$ and $\aPSS_2$ contain:
+$\aPSS^1 \parallel \aPSS^2$ contains the union of pomsets from $\aPSS^1$ and
+$\aPSS^2$, allowing overlap as long as they agree on actions. For example, if
+$\aPSS^1$ and $\aPSS^2$ contain:
 \[\begin{tikzpicture}[node distance=1em]
   \event{a}{\aForm \mid \aAct}{}
-  \event{b}{\bForm_1 \mid \bAct}{right=of a}
+  \event{b}{\bForm^1 \mid \bAct}{right=of a}
   \po{a}{b}
 \end{tikzpicture}\qquad\qquad\begin{tikzpicture}[node distance=1em]
-  \event{b}{\bForm_2 \mid \bAct}{}
+  \event{b}{\bForm^2 \mid \bAct}{}
   \event{c}{\cForm \mid \cAct}{right=of b}
   \wk{b}{c}
 \end{tikzpicture}\]
-then $\aPSS_1 \parallel \aPSS_2$ contains:
+then $\aPSS^1 \parallel \aPSS^2$ contains:
 \[\begin{tikzpicture}[node distance=1em]
   \event{a}{\aForm \mid \aAct}{}
-  \event{b}{\bForm_1 \lor \bForm_2 \mid \bAct}{right=of a}
+  \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
   \event{c}{\cForm \mid \cAct}{right=of b}
   \po{a}{b}
   \wk{b}{c}
@@ -377,31 +402,31 @@ whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that:
   \end{itemize}
 \end{itemize}
 \end{definition}
-% We use $\aPSS_1 \parallel \aPSS_2$ in defining the semantics of conditionals
+% We use $\aPSS^1 \parallel \aPSS^2$ in defining the semantics of conditionals
 % and concurrency.
-% It contains the union of pomsets from $\aPSS_1$ and $\aPSS_2$,
+% It contains the union of pomsets from $\aPSS^1$ and $\aPSS^2$,
 % allowing overlap as long as they agree on actions. For example, if
-% $\aPSS_1$ and $\aPSS_2$ contain:
+% $\aPSS^1$ and $\aPSS^2$ contain:
 % \[\begin{tikzpicture}[node distance=1em]
 %   \event{a}{\aForm \mid \aAct}{}
-%   \event{b}{\bForm_1 \mid \bAct}{right=of a}
+%   \event{b}{\bForm^1 \mid \bAct}{right=of a}
 %   \po{a}{b}
 % \end{tikzpicture}\qquad\qquad\begin{tikzpicture}[node distance=1em]
-%   \event{b}{\bForm_2 \mid \bAct}{}
+%   \event{b}{\bForm^2 \mid \bAct}{}
 %   \event{c}{\cForm \mid \cAct}{right=of b}
 %   \wk{b}{c}
 % \end{tikzpicture}\]
-% then $\aPSS_1 \parallel \aPSS_2$ contains:
+% then $\aPSS^1 \parallel \aPSS^2$ contains:
 % \[\begin{tikzpicture}[node distance=1em]
 %   \event{a}{\aForm \mid \aAct}{}
-%   \event{b}{\bForm_1 \lor \bForm_2 \mid \bAct}{right=of a}
+%   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
 %   \event{c}{\cForm \mid \cAct}{right=of b}
 %   \po{a}{b}
 %   \wk{b}{c}
 % \end{tikzpicture}\]
 
 
-\subsection{Prefixing}
+\subsubsection{Prefixing}
 Prefixing is used in giving the semantics of reads and writes.
 $\aAct\prefix\aPSS$ adds a new event $\cEv$ with action $\aAct$ to each
 pomset in $\aPSS$.  As in the definition of parallel composition, the
@@ -521,35 +546,6 @@ where the second thread is interleaved between the rel and acq of the first.
 Note that you cannot require that $\bForm'$ is independent of every $\bLoc$
 because then it's not augment closed.
 \end{comment}
-
-\subsection{Sequential stuff}
-
-Definitions of $\fpo$ can be done by just modifying the definition of
-prefixing.
-\begin{itemize}
-\item $\fpo(\aPSS\aSub)=\fpo(\aForm\guard\aPSS)=\fpo(\aPSS)$
-\item $\fpo(\aPSS_1\parallel\aPSS_2)=\fpo(\aPSS_1)\cup\fpo(\aPSS_2)$
-\item $\fpo(\nu\aLoc\st\aPSS)=\fpo(\aPSS)$ but restricted to the events in
-  the restriction
-\item $\fpo(\aAct\prefix\aPSS)$ just adds the new event to $\fpo(\aPSS)$
-\end{itemize}
-
-$\fird$ is similar: you get $\fird$ from the prefixed event $\cEv$ to an old event
-$\aEv$ if $\labellingForm(\aEv)$ is dependent on $\aLoc$ (ie, it is
-\emph{not} independent).
-
-% To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
-% consider example:
-% \begin{verbatim}
-% r=y; if (r) {x=r} else {x=r}; s=x; if (r==s) {z=1}
-% \end{verbatim}
-% or simplified:
-% \begin{verbatim}
-% r=y;x=r;s=x; if(s==r){z=1}
-% \end{verbatim}
-% If you read 37 for $y$, then the predicate on \texttt{Wz1} before the
-% read is either $r=r$ or $v=r$, where $v=37$, for example.  In one case you
-% get a dependency and in the other you do not.
 
 \subsection{Example}
 
