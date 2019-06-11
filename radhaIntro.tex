@@ -1,0 +1,41 @@
+\section{Introduction}
+
+Desiderata for a memory model.
+
+1. Facilitating compiler transformations.   Ideally, all valid single threaded transformations on synchronization free code.  A prototypical example is commuting of independent statements
+
+2. Compiling to hardware models.  Minimize the amount of synchronization needed for implementation on hardware models.  Ideally, the relaxed atomics of C11 or the raw variables of Java should not require any extra synchronization.
+
+3. Reasoning.  A memory model should support compositional reasoning on safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  In a simple form of preserving temporal invariants:
+\[
+  \frac{
+      \afo, \aPSS_1 \models\afo
+      \qquad
+      \afo, \aPSS_2 \models\afo
+    }{\aPSS_1 \parallel \aPSS_2 \models \afo}
+\]
+where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$.
+
+Type safety is a special case of this principle. 
+
+OATA violates this. eg....
+
+Relationship to the State of the art.
+\citet{Manson:2005:JMM:1047659.1040336} and similar models
+  \cite{DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17} 
+ \citet{DBLP:conf/lics/JeffreyR16}.
+       * Do not support Compositional Reasoning.  
+          Support (1,2) mostly.
+
+\citet{RC11refs,Dolan:2018:BDR:3192366.3192421}. 
+           Forbid breaking of PO from reads--> writes.  
+           Evidence for (1,2) from Dolan.  Though, extra fence after reads.
+           We show (3)
+
+Relationship to \citet{BoehmOOTA}.
+   Use to classify into decreasing worlds.
+           OOTA world
+              Our paper
+                 RC11, Boehm,LDRF
+
+
