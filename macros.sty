@@ -1,11 +1,16 @@
 \newcommand{\eqorder}{\sim}
 \newcommand{\suborder}{\sqsubseteq}
 \newcommand{\inj}{f}
-\newcommand{\FA}{[\mathsf{F_A}]}
-\newcommand{\FR}{[\mathsf{F_R}]}
-\newcommand{\FF}{[\mathsf{F_F}]}
 \newcommand{\hoare}[3]{\{#1\}\;#2\;\{#3\}}
 \newcommand{\fwp}{\textit{wp}}
+
+\newcommand{\aF}{\xi}
+\newcommand{\FA}{\mathsf{A}}
+\newcommand{\FR}{\mathsf{R}}
+\newcommand{\FF}{\mathsf{F}}
+%\newcommand{\FID}[1]{[\DF{#1}]}
+\newcommand{\IDA}{[\mathsf{Acq}]}
+\newcommand{\IDR}{[\mathsf{Rel}]}
 
 \newcommand{\xinit}{\mathsf{init}}
 \newcommand{\BNFSEP}{\ensuremath{\;\mathrel{|}\;}}
@@ -95,7 +100,7 @@
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DT}[1]{\mathsf{T}\ifnotempty{#1}{\,#1}}
 \newcommand{\DSB}{\mathsf{SB}}
-\newcommand{\DF}{\mathsf{FF}}
+\newcommand{\DF}[1]{\mathsf{F}_{#1}}
 \newcommand{\DB}[1]{\mathsf{B}\ifnotempty{#1}{\,#1}}
 \newcommand{\DC}[1]{\mathsf{C}\ifnotempty{#1}{\,#1}}
 
@@ -137,7 +142,7 @@
 %\newcommand{\semsc}[1]{\textit{SC}\llbracket#1\rrbracket}
 \newcommand{\REL}{\mathsf{rel}\,}
 \newcommand{\ACQ}{\mathsf{acq}\,}
-\newcommand{\FENCE}{\texttt{fullFence}}
+\newcommand{\FENCE}{\texttt{fence}}
 \newcommand{\BEGIN}{\texttt{begin}}
 \newcommand{\COMMIT}{\texttt{commit}}
 \newcommand{\RECOVERY}{\texttt{onabort}\,\{}
@@ -154,9 +159,9 @@
 \newcommand{\PASS}{\texttt{pass}}
 \newcommand{\WHILE}{\texttt{while}\,}
 \newcommand{\DO}[1]{\texttt{do}\,\{#1\}\,}
-\newcommand{\THEN}{\,\{\,}
-\newcommand{\ELSE}{\,\}\,\texttt{else}\,\{\,}
-\newcommand{\ELIF}{\,\}\,\texttt{else}\,\texttt{if}\,}
+\newcommand{\THEN}{\allowbreak\,\{\,}
+\newcommand{\ELSE}{\,\}\,\allowbreak\texttt{else}\allowbreak\,\{\,}
+\newcommand{\ELIF}{\,\}\,\allowbreak\texttt{else}\allowbreak\,\texttt{if}\,}
 \newcommand{\brELSE}{\,\}\\\texttt{else}\,\{\,}
 \newcommand{\brELIF}{\,\}\\\texttt{else}\,\texttt{if}\,}
 \newcommand{\FI}{\,\}}
