@@ -56,7 +56,7 @@ We require that data models satisfy the following:
 \label{sec:semi:pomsets}
 
 We fix the alphabet $\Alphabet=(\Formulae\times(\Act\cup\Sub))$.  With this
-alphabet, the labelling of a pomset determines two disjoint sets of events.
+alphabet, the labeling of a pomset determines two disjoint sets of events.
 We refer to those that map to actions $\Sub$ as \emph{final}, and those that
 map to substitutions $\Act$ as \emph{nonfinal}.
 When we need to distinguish these, we let the set of events
@@ -86,7 +86,7 @@ in a set of pomsets.
 Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \EAct$,
-$\labelling'\subseteq\labelling$,
+$\labeling'\subseteq\labeling$,
 $\aEv\le'\bEv$ whenever $\aEv\le\bEv$, and
 $\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
 \end{definition}
@@ -101,11 +101,11 @@ $\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
 \item $\Event' = \EAct_1 \cup \bigcup_{\cEv}\Event_{\cEv}$,
 \item if $\bEv \le_1 \aEv$ or $\bEv\le_{\cEv} \aEv$ then $\bEv \le' \aEv$,
 \item if $\bEv \gtN_1 \aEv$ or $\bEv\gtN_{\cEv} \aEv$ then $\bEv \gtN' \aEv$,
-\item if $\bEv\in\EAct_1$ then $\labelling'(\bEv) = \labelling_1(\bEv)$, and
-\item if $\labelling_1(\bEv) = (\dontcare \mid \aAct)$ and
-  $\labelling_{\cEv}(\aEv) = (\bForm \mid \bAct)$ then:
+\item if $\bEv\in\EAct_1$ then $\labeling'(\bEv) = \labeling_1(\bEv)$, and
+\item if $\labeling_1(\bEv) = (\dontcare \mid \aAct)$ and
+  $\labeling_{\cEv}(\aEv) = (\bForm \mid \bAct)$ then:
   \begin{itemize}
-  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv <' \aEv$,
+  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv \lt' \aEv$,
   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
   \item either $\aAct$ and $\bAct$ are provably separable, or both are reads, or
     $\bEv \gtN' \aEv$, and
@@ -114,15 +114,15 @@ $\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
   \end{itemize}
 \item 
   if
-  $\labelling_1(\cEv) = (\dontcare \mid \aSub)$, and
-  $\labelling_{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
-  $\labelling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
+  $\labeling_1(\cEv) = (\dontcare \mid \aSub)$, and
+  $\labeling_{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
+  $\labeling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
   \begin{itemize}
   \item $\bForm'$ implies
     $\lor\{\aForm\mid\bEv\in\ESub_1 \land \aEv\in\aPS\!_{\bEv}
-    \land \labelling_1(\bEv)=(\aForm{\mid}\dontcare)\}$,
+    \land \labeling_1(\bEv)=(\aForm{\mid}\dontcare)\}$,
   \item $\bForm'$ implies $\bForm\aSub$, and
-  \item either $\bForm'$ implies $\bForm$ or $\bEv<_1\cEv$ implies $\bEv<'\aEv$.
+  \item either $\bForm'$ implies $\bForm$ or $\bEv\lt_1\cEv$ implies $\bEv\lt'\aEv$.
     %$\bEv\in\EAct_1$ such that.
   \end{itemize}
 \end{itemize}

@@ -32,8 +32,8 @@ The atoms of our logic are write and read events.
   Given an pomset $\aPS$ and event $\aEv$, define:
   \begin{displaymath}
     \begin{array}{lrl}
-      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
-      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
       \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
       \aPS,\aEv &\models& \TRUE\\
       \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
@@ -115,9 +115,9 @@ include environment assumptions.  Let
 be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
 closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
-  imply $\bEv\in\Event'$, and $(\labelling',\leq',\gtN')$ coincide with
-  $(\labelling,\leq,\gtN)$ for elements of $\Event'$.}.
-  % when $\aEv,\,\bEv\in\Event'$: $\labelling'(\aEv)=\labelling(\aEv)$,
+  imply $\bEv\in\Event'$, and $(\labeling',\leq',\gtN')$ coincide with
+  $(\labeling,\leq,\gtN)$ for elements of $\Event'$.}.
+  % when $\aEv,\,\bEv\in\Event'$: $\labeling'(\aEv)=\labeling(\aEv)$,
   % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\gtN'\bEv$ iff
   % $\aEv\gtN\bEv$. 
 \begin{noenv}
@@ -131,9 +131,9 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   augmentation-closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
  %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
  %   implies $\aEv\gtN'\bEv$, and
- %   % $\labelling'(\aEv)=\labelling(\aEv)$
- %   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
- %   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+ %   % $\labeling'(\aEv)=\labeling(\aEv)$
+ %   if $\labeling(\aEv) = (\bForm \mid \bAct)$ then
+ %   $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
  %   $\bForm$.}
   Then:
   \begin{displaymath}

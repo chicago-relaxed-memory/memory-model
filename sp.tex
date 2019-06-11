@@ -663,7 +663,7 @@ the pomset:
   \event{wx2}{\DW{\aLoc}{2}}{right=of ry1}
   \po{ry1}{wx2}
 \end{tikzpicture}\]
-There is an ordering $(\DR{\bLoc}{1}) < (\DW{\aLoc}{2})$ (represented pictorially as an arrow)
+There is an ordering $(\DR{\bLoc}{1}) \lt (\DW{\aLoc}{2})$ (represented pictorially as an arrow)
 because the precondition $(\aReg=1)$ depends on $\aReg$. If the precondition
 was independent of $\aReg$ then there would be no ordering, for example
 $\sem{\aReg\GETS\bLoc\SEMI \aLoc\GETS\aReg+1-\aReg}$ contains
@@ -731,8 +731,8 @@ and we visualize unsatisfiable preconditions as crossed out:
   \po[out=25,in=155]{rz1}{wx2}
 \end{tikzpicture}\]
 Note that this semantics captures control dependencies
-such as $(\DR\cLoc1)<(\DW\aLoc1)$, independencies
-such as $(\DR\cLoc1)\not<(\DW\bLoc3)$, and failed
+such as $(\DR\cLoc1)\lt(\DW\aLoc1)$, independencies
+such as $(\DR\cLoc1)\not\lt(\DW\bLoc3)$, and failed
 speculations such as the crossed out $(\DW\aLoc2)$.
 
 In summary, the features we need of the underlying data model are:
@@ -793,22 +793,22 @@ and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
 
 Recall the definition of a pomset from~\cite{GISCHER1988199}:
 \begin{definition}
-  A \emph{pomset} $(\Event, {\le}, \labelling)$ with alphabet $\Alphabet$
+  A \emph{pomset} $(\Event, {\le}, \labeling)$ with alphabet $\Alphabet$
   is a partial order $(\Event, {\le})$ together with
-  $\labelling: \Event \fun \Alphabet$.
+  $\labeling: \Event \fun \Alphabet$.
 \end{definition}
 Going forward, we fix the alphabet $\Alphabet=(\Formulae\times\Act)$.
 We will write $(\aForm \mid \aAct)$ for the pair $(\aForm,\aAct)$,
 elide $\aForm$ when $\aForm$ is a tautology, and write $\aAct$ crossed-out ($\NEVER\aAct$)
 when $\aForm$ is unsatisfiable.
 We lift terminology from logical formulae and actions to events,
-for example if $\labelling(\aEv)=(\aForm\mid\aAct)$
+for example if $\labeling(\aEv)=(\aForm\mid\aAct)$
 then we say
 $\aEv$ is unsatisfiable whenever $\aForm$ is unsatisfiable,
 $\aEv$ writes $\aVal$ to $\aLoc$ whenever $\aAct$ writes $\aVal$ to $\aLoc$, and
 so forth.
 We visualize a pomset as a graph where the nodes are drawn from
-$\Event$, each node $\aEv$ is labeled with $\labelling(\aEv)$,
+$\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$,
 and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
 $\bEv\le\aEv$. For example:
 \[\begin{tikzpicture}[node distance=1em]
@@ -823,9 +823,9 @@ is a visualization of the pomset where:
   E = \{ 0,1,2 \} \quad
   0 \le 1 \quad
   0 \le 2 \quad
-  \labelling(0) = (\TRUE, \DR{\aLoc}{1}) \\
-  \labelling(1) = (\FALSE, \DW{\bLoc}{0}) \quad
-  \labelling(2) = (\TRUE, \DW{\bLoc}{1}) \quad
+  \labeling(0) = (\TRUE, \DR{\aLoc}{1}) \\
+  \labeling(1) = (\FALSE, \DW{\bLoc}{0}) \quad
+  \labeling(2) = (\TRUE, \DW{\bLoc}{1}) \quad
 \end{array}\]
 
 We are building a compositional semantics of shared memory
@@ -848,17 +848,17 @@ so we need each read of $\aLoc$ to have a matching write.
 This is captured by defining when $\aEv$ \emph{reads $\aLoc$ from} $\bEv$~\cite{alglave}.
 A preliminary definition (which, as we shall see, needs to be strengthened) is:
 \begin{itemize}
-\item $\bEv < \aEv$,
+\item $\bEv \lt \aEv$,
 \item $\aEv$ implies $\bEv$,
 \item $\bEv$ writes $\aVal$ to $\aLoc$,
   and $\aEv$ reads $\aVal$ from $\aLoc$, and
-\item there is no $\bEv < \cEv < \aEv$ such that
+\item there is no $\bEv \lt \cEv \lt \aEv$ such that
   $\cEv$ writes to $\aLoc$.
 \end{itemize}
 % In diagrams, for readability we often highlight the reads-from edges,
 % for example:
 %% We visualize rf-pomsets by drawing a dashed edge between nodes in $\RF$,
-%% labelled with the memory location,
+%% labeled with the memory location,
 %% for example:
 %% \[\begin{tikzpicture}[node distance=1em]
 %%   \event{wx1}{\DW{\aLoc}{1}}{}
@@ -896,13 +896,13 @@ There are a number of ways this can be addressed; for example,
 in models such as~\cite{Batty:2011:MCC:1926385.1926394} the reads-from relation is taken
 as a primitive. In this paper, we propose \emph{3-valued pomsets}
 as a solution. These are pomsets in which, in addition to positive statements
-$(\bEv < \aEv)$ (interpreted as $\aEv$ depends on $\bEv$),
+$(\bEv \lt \aEv)$ (interpreted as $\aEv$ depends on $\bEv$),
 we also have negative statements $(\aEv \gtN \bEv)$
 (interpreted as $\aEv$ cannot depend on $\bEv$).
 
 \begin{definition}
-  A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labelling)$ 
-  is a \emph{pomset} $(\Event, {\le}, \labelling)$
+  A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labeling)$ 
+  is a \emph{pomset} $(\Event, {\le}, \labeling)$
   together with ${\gtN} \subseteq (\Event\times\Event)$ such that:
   \begin{itemize}
   \item if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
@@ -922,9 +922,9 @@ we also have negative statements $(\aEv \gtN \bEv)$
 % \end{definition}
 
 % \begin{definition}
-%   A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labelling)$
+%   A \emph{3-valued pomset} $(\Event, {\le}, {\gtN}, \labeling)$
 %   is a 3-valued poset $(\Event, {\le}, {\gtN})$ and
-%   a pomset $(\Event, {\le}, \labelling)$.
+%   a pomset $(\Event, {\le}, \labeling)$.
 % \end{definition}
 
 Structures similar to 3-valued pomsets have come up in many guises, for example
@@ -936,7 +936,7 @@ $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}.
 
 In diagrams, we visualize $(\bEv \gtN \aEv)$ as a dashed
 arrow from $\bEv$ to $\aEv$ (note the change of direction).
-We refer to edges introduced by $(\bEv < \aEv)$ as
+We refer to edges introduced by $(\bEv \lt \aEv)$ as
 \emph{strong edges} and by $(\bEv \gtN \aEv)$
 as \emph{weak edges}.
 For readability, we often highlight the reads-from edges as well.
@@ -962,7 +962,7 @@ further concurrency cannot turn a non-blocker into a blocker.
 \begin{definition}\label{def:rf}
   In a 3-valued pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
   \begin{itemize}
-  \item $\bEv < \aEv$,
+  \item $\bEv \lt \aEv$,
   \item $\aEv$ implies $\bEv$,
   \item $\bEv$ writes $\aVal$ to $\aLoc$,
     and $\aEv$ reads $\aVal$ from $\aLoc$, and
@@ -1004,9 +1004,9 @@ preconditions:
 \begin{definition}
   $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$, $\aEv\le\bEv$
   implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, and
-  % $\labelling'(\aEv)=\labelling(\aEv)$
-  if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
-  $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+  % $\labeling'(\aEv)=\labeling(\aEv)$
+  if $\labeling(\aEv) = (\bForm \mid \bAct)$ then
+  $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
   $\bForm$.
 \end{definition}
 
@@ -1229,7 +1229,7 @@ Note that $(\DR x1)$ reads $1$ from $x$, and while
 $(x+1=2)[1/x]$ is a tautology,
 $(x+1=2)$ is not,
 and so there is a dependency
-$(\DR x1) < (\DW y2)$.
+$(\DR x1) \lt (\DW y2)$.
 
 Now, $\sem{x \GETS 1\SEMI \SKIP}$ includes the pomset:
 \[\begin{tikzpicture}[node distance=1em]
@@ -1244,7 +1244,7 @@ and so $\sem{x \GETS 1\SEMI \SKIP \PAR r \GETS x\SEMI y \GETS r+1\SEMI \SKIP}$ i
   \po{rx1}{wy2}
 \end{tikzpicture}\]
 as expected, including a reads-from dependency
-$(\DW x1) < (\DR x1)$.
+$(\DW x1) \lt (\DR x1)$.
 
 This example demonstrates how read and write events
 capture the concurrent semantics of memory.
@@ -1321,7 +1321,7 @@ which gives the required pomset:
   \po[out=30,in=150]{rz0}{wy2}
 \end{tikzpicture}\]
 Note that the precondition $r=0$ is dependent on $r$,
-and so there is a dependency $(\DR z0) < (\DW y2)$,
+and so there is a dependency $(\DR z0) \lt (\DW y2)$,
 modeling the control dependency introduced by the conditional.
 
 \subsection{Control independencies}
@@ -1365,7 +1365,7 @@ Now, one pomset in $\aPSS_1$ is:
 that is $\aPS_1$ where:
 \[
   \Event_1 = \{\aEv\} \quad
-  \labelling_1(\aEv) = (r\neq 0, \DW x1)
+  \labeling_1(\aEv) = (r\neq 0, \DW x1)
 \]
 and similarly, one pomset in $\aPSS_2$ is:
 \[\begin{tikzpicture}[node distance=1em]
@@ -1374,7 +1374,7 @@ and similarly, one pomset in $\aPSS_2$ is:
 that is $\aPS_2$ where:
 \[
   \Event_2 = \{\aEv\} \quad
-  \labelling_2(\aEv) = (r= 0, \DW x1)
+  \labeling_2(\aEv) = (r= 0, \DW x1)
 \]
 Crucially, in the definition of $\aPSS_1 \parallel \aPSS_2$
 there is \emph{no} requirement that $\Event_1$ and $\Event_2$ are disjoint,
@@ -1382,7 +1382,7 @@ and in this case they overlap at $\aEv$. As a result, one pomset in
 $\aPSS_1\parallel\aPSS_2$ is $\aPS_0$ where:
 \[
   \Event_0 = \{\aEv\} \quad
-  \labelling_0(\aEv) = (r\neq0 \lor r=0, \DW x1)
+  \labeling_0(\aEv) = (r\neq0 \lor r=0, \DW x1)
 \]
 that is:
 \[\begin{tikzpicture}[node distance=1em]
@@ -1617,7 +1617,7 @@ $(\DT{\aLoc})$, and defining:
 Implementations of $\TOUCHED$ use cache timing, but their success can be modeled
 without needing to be precise about such microarchitectural details:
 \begin{itemize}
-\item if $\labelling(\aEv)=(\aForm \mid \DT{\aLoc})$
+\item if $\labeling(\aEv)=(\aForm \mid \DT{\aLoc})$
   then there is $\bEv\gtN\aEv$
   where $\bEv$ reads or writes $\aLoc$.
 \end{itemize}
@@ -1673,7 +1673,7 @@ Implementations of $\BARRIER$ make use of hardware barriers which
 halt speculative execution until all instructions up to the barrier
 have been retired. Such barriers are successful when:
 \begin{itemize}
-\item if $\labelling(\aEv)=(\aForm \mid \DSB)$
+\item if $\labeling(\aEv)=(\aForm \mid \DSB)$
   then $\aForm$ is satisfiable.
 \end{itemize}
 For example, a successful implementation of barriers disallows
@@ -1783,8 +1783,8 @@ are:
 At top level, we require that pomsets be \emph{serializable}, as defined below.
 \begin{definition}
   We say that event $\comEv$ \emph{matches} $\begEv$ if
-  $\labelling(\comEv)=(\DC{\aVal})$ and
-  $\labelling(\begEv)=(\DB{\aVal})$. %, for some $\aVal$.
+  $\labeling(\comEv)=(\DC{\aVal})$ and
+  $\labeling(\begEv)=(\DB{\aVal})$. %, for some $\aVal$.
   % We say that a begin event \emph{aborts} if every matching commit is
   % unsatisfiable.
   We say that begin event $\begEv$ \emph{begins} $\aEv$ if
@@ -1957,9 +1957,9 @@ able to begin when it is known that its commit will succeed.
 %   The definition handles simple examples:
 % \begin{itemize}
 % \item Single threaded example: $\DB_1 \DC_1 \DB_2 \DC_2$.  Because
-%   $\DC_2$ is a release, we know that $\DC_1<\DC_2$.  Because
-%   $\DB_1$ is an acquire, we know that $\DB_1<\DB_2$ By lifting, either of
-%   these is sufficient to require that $\DC_1<\DB_2$.
+%   $\DC_2$ is a release, we know that $\DC_1\lt\DC_2$.  Because
+%   $\DB_1$ is an acquire, we know that $\DB_1\lt\DB_2$ By lifting, either of
+%   these is sufficient to require that $\DC_1\lt\DB_2$.
 % \[\begin{tikzpicture}[node distance=1em,baselinecenter]
 %   \event{b1}{\DB_1}{}
 %   \event{c1}{\DC_1}{right=of b1}
@@ -2013,7 +2013,7 @@ able to begin when it is known that its commit will succeed.
 % \end{itemize}
 % % \begin{definition}
 % %   An rf-pomset is transaction-closed if the $\DB$ and $\DC$ actions with
-% %   satisfiable preconditions are totally ordered by $<$.
+% %   satisfiable preconditions are totally ordered by $\lt$.
 % % \end{definition}
 
 % Let ``$\END\SEMI \bCmd$'' be syntax sugar for
@@ -2070,11 +2070,11 @@ able to begin when it is known that its commit will succeed.
 % Before defining atomicity, we provide some auxiliary notation.
 %
 % We say that $\aEv$ is a \emph{begin event} if
-% $\labelling(\aEv)=(\aForm\mid\DB)$ and a \emph{commit event} if
-% $\labelling(\aEv)=(\aForm\mid\DC)$.
+% $\labeling(\aEv)=(\aForm\mid\DB)$ and a \emph{commit event} if
+% $\labeling(\aEv)=(\aForm\mid\DC)$.
 %
 % We write $\aForm_\aEv$ for the formula and $\aAct_\aEv$ for the
-% action of $\aEv$; that is, when $\labelling(\aEv)=(\aForm_\aEv\mid\aAct_\aEv)$.
+% action of $\aEv$; that is, when $\labeling(\aEv)=(\aForm_\aEv\mid\aAct_\aEv)$.
 %
 % We say that $\aEv$ is \emph{compatible with} $\bEv$ when
 % $\aForm_\aEv\land\aForm_\bEv$ is satisfiable.
@@ -2083,9 +2083,9 @@ able to begin when it is known that its commit will succeed.
 %   A pomset is \emph{atomic} when for any $\aEv$ that belongs to $(\begEv,\vec\comEv)$:
 %   \begin{enumerate}
 %   \item\label{xcommitform} $\aForm_{\aEv}$ implies $\textstyle\bigvee_i\aForm_{\comEv_i}$,
-%   \item\label{xliftb} if $\bEv<\aEv$ then $\bEv<\begEv$,
-%   \item\label{xliftc} if $\aEv<\bEv$ and $\bEv$ is compatible with
-%     $\comEv_i$ then $\comEv_i<\bEv$,
+%   \item\label{xliftb} if $\bEv\lt\aEv$ then $\bEv\lt\begEv$,
+%   \item\label{xliftc} if $\aEv\lt\bEv$ and $\bEv$ is compatible with
+%     $\comEv_i$ then $\comEv_i\lt\bEv$,
 %   \item\label{xtotal} if $\aEv'\neq\aEv$ belongs to $(\begEv',\vec\comEv')$ but not
 %     $(\begEv,\dontcare)$ and
 %     \begin{itemize}
@@ -2093,8 +2093,8 @@ able to begin when it is known that its commit will succeed.
 %     \item $\comEv_i$ is compatible with $\aEv'$
 %     \end{itemize}
 %     then either
-%     $\comEv'_j<\begEv$ or
-%     $\comEv_i<\begEv'$,
+%     $\comEv'_j\lt\begEv$ or
+%     $\comEv_i\lt\begEv'$,
 %   % \item\label{xrf} if $\aEv'\neq\aEv$ belongs to $(\begEv,\dontcare)$ but not
 %   %   $(\begEv,\dontcare)$ and
 %   %   \begin{itemize}
@@ -2104,8 +2104,8 @@ able to begin when it is known that its commit will succeed.
 %   %   \item $\comEv'_i$ is compatible with $\bEv''$
 %   %   \end{itemize}
 %   %   then either
-%   %   $\comEv''_j<\begEv'$ or
-%   %   $\comEv'_i<\begEv''$ .
+%   %   $\comEv''_j\lt\begEv'$ or
+%   %   $\comEv'_i\lt\begEv''$ .
 %   \item\label{xcommitvars} if $\aEv$ writes $\aLoc$ and $\comEv_i$ writes
 %     $\vec\aLoc$ then $\aLoc=\aLoc_i$, for some $i$, and
 %   \item\label{xreadunique} if $\aEv$ reads $\aLoc$ and $\aEv'\neq\aEv$ reads
@@ -2893,7 +2893,7 @@ the basic findings of this paper.
 
 
 UNUSED: In particular our model of reads-from is strong, and could be weakened
-by replacing the requirement $\bEv<\aEv$ in Definition~\ref{def:rf} by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
+by replacing the requirement $\bEv\lt\aEv$ in Definition~\ref{def:rf} by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
 %% in particular the logical formulation of $\aLoc$-closure in
 %% \S\ref{sec:logic} as
 %% $((\DR{\aLoc}{\aVal}) \Rightarrow \once(\DW{\aLoc}{\aVal}))$
@@ -2949,7 +2949,7 @@ transactions, we have $(\DB{\aVal})\in\Acq$ for begins,
 $(\DC{\aVal})\in \Rel$ for commits.  We say that $\aAct$ is a \emph{release}
 if $\aAct\in\Rel$ and $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$.
 % In a pomset, a release event is one
-% labelled with a release action, and an acquire event is one labelled by an
+% labeled with a release action, and an acquire event is one labeled by an
 % acquire action.  
 
 \begin{definition}
@@ -2961,19 +2961,19 @@ there is $\aPS\in\aPSS$ such that:
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
 \item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
 \item if $\cEv\in\Event$ then $\cEv$ is mergeable,
-\item $\labelling'(\cEv) = (\aForm, \aAct)$, and
-\item if $\labelling(\aEv) = (\bForm \mid \bAct)$ then $\labelling'(\aEv) =
+\item $\labeling'(\cEv) = (\aForm, \aAct)$, and
+\item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =
   (\bForm' \mid \bAct)$, where:
   \begin{itemize}
-  \item $\cEv <' \aEv$ whenever $\aAct$ is an acquire or $\bAct$ is a release, 
+  \item $\cEv \lt' \aEv$ whenever $\aAct$ is an acquire or $\bAct$ is a release, 
   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
     then $\cEv \gtN' \aEv$, and
   \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
-    % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} & \textsc{[dependent read]} \\
+    % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$} & \textsc{[dependent read]} \\
     % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
     % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
-    \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
+    \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
     \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
     \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
   \end{array}\right.\)
@@ -3029,13 +3029,13 @@ whenever there are $\aPS_1 \in \aPSS_1$ and $\aPS_2 \in \aPSS_2$ such that:
 \item if $\aEv \le_1 \bEv$ or $\aEv \le_2 \bEv$ then $\aEv \le_0 \bEv$,
 \item if $\aEv \gtN_1 \bEv$ or $\aEv \gtN_2 \bEv$ then $\aEv \gtN_0 \bEv$,
 \item if $\aEv\in\Event_1\cap\Event_2$ then $\aEv$ is mergeable,
-\item if $\labelling_0(\aEv) = (\aForm_0 \mid \aAct)$ then either:
+\item if $\labeling_0(\aEv) = (\aForm_0 \mid \aAct)$ then either:
   \begin{itemize}
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$
+  \item $\labeling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\labeling_2(\aEv) = (\aForm_2 \mid \aAct)$
     and $\aForm_0$ implies $\aForm_1 \lor \aForm_2$,
-  \item $\labelling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\aEv \not\in \Event_2$
+  \item $\labeling_1(\aEv) = (\aForm_1 \mid \aAct)$ and $\aEv \not\in \Event_2$
     and $\aForm_0$ implies $\aForm_1$, or
-  \item $\labelling_2(\aEv) = (\aForm_2 \mid \aAct)$ and $\aEv \not\in \Event_1$
+  \item $\labeling_2(\aEv) = (\aForm_2 \mid \aAct)$ and $\aEv \not\in \Event_1$
     and $\aForm_0$ implies $\aForm_2$.
   \end{itemize}
 \end{itemize}
@@ -3070,7 +3070,7 @@ there is $\aPS\in\aPSS$ such that:
 \item $\Event' = \Event$,
 \item if $\bEv \le \aEv$ then $\bEv \le' \aEv$, and
 \item if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$, and
-\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\labelling'(\aEv) = (\bForm[\aExp/\aLoc] \mid \aAct)$.
+\item if $\labeling(\aEv) = (\bForm \mid \aAct)$ then $\labeling'(\aEv) = (\bForm[\aExp/\aLoc] \mid \aAct)$.
 \end{itemize}
 and similarly for $\aPSS[\aLoc/\aReg]$.
 \end{definition}
@@ -3078,7 +3078,7 @@ and similarly for $\aPSS[\aLoc/\aReg]$.
 \begin{definition}
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever:
 \begin{itemize}
-\item if $\labelling(\aEv) = (\bForm \mid \aAct)$ then $\aForm$ implies $\bForm$.
+\item if $\labeling(\aEv) = (\bForm \mid \aAct)$ then $\aForm$ implies $\bForm$.
 \end{itemize}
 \end{definition}
 
@@ -3155,7 +3155,7 @@ $\aPS$ is $\aLoc$-closed and partially $\aLoc$-coherent.
 
 Recall the preliminary definition of reads-from in \S\ref{sec:pomsets}, which
 defined an $\aLoc$-blocker to be and event $\cEv$ that writes to $\aLoc$ such that
-$\bEv < \cEv < \aEv$.  Were we to adopt this definition, then concurrent
+$\bEv \lt \cEv \lt \aEv$.  Were we to adopt this definition, then concurrent
 threads could turn events that were not $\aLoc$-blockers into an
 $\aLoc$-blocker, even if the new thread does not mention $\aLoc$.
 
@@ -3298,7 +3298,7 @@ then putting this in parallel as before results in:
   \wk[out=30,in=150]{wz1}{wz2}
 \end{tikzpicture}\]
 but this is \emph{not} a valid 3-valued pomset,
-since $(\DW{\aLoc}{2}) < (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
+since $(\DW{\aLoc}{2}) \lt (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
 which is a contradiction.
 
 
@@ -3317,11 +3317,11 @@ which is a contradiction.
 % We assume there are sets $\Rel$ and $\Acq \subseteq\Act$.  We say that
 % $\aAct$ is a \emph{release action} if $\aAct\in\Rel$ and $\aAct$ is an
 % \emph{acquire action} if $\aAct\in\Acq$.
-% In a pomset, a release event is one labelled with a release action,
-% and an acquire event is one labelled by an acquire action.
+% In a pomset, a release event is one labeled with a release action,
+% and an acquire event is one labeled by an acquire action.
 % To give the semantics of fences, we add extra constraints
 % to Definition~\ref{def:prefix} of prefixing %$\aAct\prefix\aPSS$
-% (recalling that $\cEv$ is the %$\aAct$-labelled
+% (recalling that $\cEv$ is the %$\aAct$-labeled
 % event being introduced):
 % \begin{itemize}
 % \item $\cEv \le \aEv$ whenever $\cEv$ is an acquire event or $\aEv$ is a release event, and
@@ -3384,7 +3384,7 @@ but \emph{not}:
   \rf[out=-20,in=160]{wx0}{rx0}
   \wk{wx0}{wx1}
 \end{tikzpicture}\]
-since $(\DW x0) \gtN (\DW x1) < (\DR x0)$, so this pomset does not satisfy the
+since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, so this pomset does not satisfy the
 requirements to be $x$-closed.
 If we replace the release
 with a plain write, then the outcome $(\DRAcq f1)$ and $(\DR x0)$ is possible:
@@ -3457,15 +3457,15 @@ with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 %   \rf{wf1}{rf1}
 %   \rf{wx0}{rx0b}
 % \end{tikzpicture}\]
-% since $(\DW x0) < (\DW x1) < (\DR x0)$, so this pomset does not satisfy the
+% since $(\DW x0) \lt (\DW x1) \lt (\DR x0)$, so this pomset does not satisfy the
 % requirements to be an rf-pomset.
 
 % The notion rf-pomset is sufficient to capture hardware models and
 % release/acquire access in C++, where reads-from implies happens-before
 % \cite{alglave}.  To model C++ relaxed access, it
 % would be necessary to use a more general notion of rf-pomset, where
-% $(\bEv,\aLoc,\aEv) \in \RF$ does not necessarily imply $\bEv < \aEv$, instead
-% requiring that $(\mathord< \cup \mathord\RF)$ be acyclic.
+% $(\bEv,\aLoc,\aEv) \in \RF$ does not necessarily imply $\bEv \lt \aEv$, instead
+% requiring that $(\mathord\lt \cup \mathord\RF)$ be acyclic.
 
 %% To see the need for the second constraint on prefixing, consider the program:
 %% \begin{displaymath}
@@ -3713,7 +3713,7 @@ The semantics of TC8 includes
   \wk[out=-25,in=-150]{ix}{wx1}
   \wk[out=25,in=155]{iy}{wy1}
 \end{tikzpicture}\]
-Where we require $(\DW{x}{0})<(\DR{x}{1})$ but not $(\DR{x}{1})<(\DW{y}{1})$.
+Where we require $(\DW{x}{0})\lt(\DR{x}{1})$ but not $(\DR{x}{1})\lt(\DW{y}{1})$.
 To see why this execution exists, consider the left thread with syntax sugar
 removed:
 \begin{displaymath}
@@ -3761,11 +3761,11 @@ arriving at:
   \end{tikzpicture}\]
 Here we have used the \textsc{[ordering read]}
 clause of \ref{def:prefix}:
-``$\bForm'$ implies $\bForm[\aVal/\aLoc]$, if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv<'\aEv$,''
+``$\bForm'$ implies $\bForm[\aVal/\aLoc]$, if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$,''
 where $a=(\DW{x}{0})$,  $\bForm=(x<2)$ and $\bForm'=\TRUE$.  As long as
 require
 \begin{math}
-  (\DW{x}{0})<
+  (\DW{x}{0})\lt
   (\DR{x}{1}),
 \end{math}
 we can use this case since $\TRUE$ implies $0<2$.
@@ -3841,9 +3841,9 @@ Unrolling the loop once, we have:
 We argue that any execution with $(\DR{a}{1})$, $(\DR{b}{1})$, and
 $(\DR{y}{0})$ must be cyclic.  The closure requirements require that
 \begin{math}
-  (\DW{a}{1})<(\DR{a}{1})
+  (\DW{a}{1})\lt(\DR{a}{1})
   \;\text{and}\;
-  (\DR{b}{1})<(\DR{b}{1}).
+  (\DR{b}{1})\lt(\DR{b}{1}).
 \end{math}
 Ignoring initialization, least ordered execution that includes all of these
 actions is:
@@ -4130,8 +4130,8 @@ The atoms of our logic are write and read events.
   Given an pomset $\aPS$ and event $\aEv$, define:
   \begin{displaymath}
     \begin{array}{lrl}
-      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
-      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labelling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
       \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
       \aPS,\aEv &\models& \TRUE\\
       \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
@@ -4213,9 +4213,9 @@ include environment assumptions.  Let
 be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
 closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
-  imply $\bEv\in\Event'$, and $(\labelling',\leq',\gtN')$ coincide with
-  $(\labelling,\leq,\gtN)$ for elements of $\Event'$.}.
-  % when $\aEv,\,\bEv\in\Event'$: $\labelling'(\aEv)=\labelling(\aEv)$,
+  imply $\bEv\in\Event'$, and $(\labeling',\leq',\gtN')$ coincide with
+  $(\labeling,\leq,\gtN)$ for elements of $\Event'$.}.
+  % when $\aEv,\,\bEv\in\Event'$: $\labeling'(\aEv)=\labeling(\aEv)$,
   % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\gtN'\bEv$ iff
   % $\aEv\gtN\bEv$. 
 \begin{noenv}
@@ -4229,9 +4229,9 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   augmentation-closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
  %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
  %   implies $\aEv\gtN'\bEv$, and
- %   % $\labelling'(\aEv)=\labelling(\aEv)$
- %   if $\labelling(\aEv) = (\bForm \mid \bAct)$ then
- %   $\labelling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+ %   % $\labeling'(\aEv)=\labeling(\aEv)$
+ %   if $\labeling(\aEv) = (\bForm \mid \bAct)$ then
+ %   $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
  %   $\bForm$.}
   Then:
   \begin{displaymath}

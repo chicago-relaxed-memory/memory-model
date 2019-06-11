@@ -1,4 +1,7 @@
-\newcommand{\F}{\mathsf{F}}
+
+\newcommand{\FA}{[\mathsf{F_A}]}
+\newcommand{\FR}{[\mathsf{F_R}]}
+\newcommand{\FF}{[\mathsf{F_F}]}
 \newcommand{\hoare}[3]{\{#1\}\;#2\;\{#3\}}
 \newcommand{\fwp}{\textit{wp}}
 
@@ -103,13 +106,15 @@
 \newcommand{\cEvs}{C}
 \newcommand{\begEv}{b}
 \newcommand{\comEv}{c}
-\newcommand{\ltN}{\mathrel{\,\mid\!\!\!<}}
-\newcommand{\gtN}{\mathrel{\mkern4mu\mid\!\!\!>}}
+\newcommand{\ltN}{\mathrel{{\color{blue}\,\mid\!\!\!<}}}
+\newcommand{\gtN}{\mathrel{{\color{blue}\mkern4mu\mid\!\!\!>}}}
+\renewcommand{\le}{\mathrel{{\color{blue}\leq}}}
+\newcommand{\lt}{\mathrel{{\color{blue}<}}}
 
 \newcommand{\Alphabet}{\Sigma}
-\newcommand{\labelling}{\lambda}
-\newcommand{\labellingForm}{\lambda_{\Formulae}}
-\newcommand{\labellingAct}{\lambda_{\Act}}
+\newcommand{\labeling}{\lambda}
+\newcommand{\labelingForm}{\lambda_{\Formulae}}
+\newcommand{\labelingAct}{\lambda_{\Act}}
 
 \newcommand{\RF}{\mathsf{RF}}
 

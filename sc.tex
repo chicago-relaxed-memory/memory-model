@@ -5,13 +5,15 @@ In this section, we prove the SC-DRF theorem, which states that any program
 that lacks data races under the SC semantics must only have executions that
 are compatible with SC executions.
 
-The program $\aLoc\GETS1\PAR\aLoc\GETS2$ is considered to have an SC data
-race, but $\aLoc\GETS1\SEMI\aLoc\GETS2$ does not.  In our semantics the only
-difference between these is that $\aLoc\GETS1\SEMI\aLoc\GETS2$ enforces weak
-order between the writes.
+The program $x\GETS1\PAR x\GETS2$ is considered to have an SC data race, but
+$x\GETS1\SEMI x\GETS2$ does not.  In our semantics the only difference
+between these is that $x\GETS1\SEMI x\GETS2$ enforces weak order between the
+writes.  Note also that the
+$\sem{x\GETS1\SEMI a\GETS y}=\sem{a\GETS y\SEMI x\GETS1}$, yet these two must
+be distinguished in SC, as per the load-buffering litmus test.
 
-In order to define SC data races, it is necessary to augment our semantics to
-record program order.  We extend the definitions in
+In order to define SC executions and SC data races, it is necessary to
+augment our semantics to record program order.  We extend the definitions in
 \textsection\ref{sec:semantics} with
 ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
 \begin{itemize}
@@ -29,31 +31,37 @@ ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
   ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
   when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
-Let $[\F]$ be the identity relation on fences.
+Let $\FA$ be the identity relation on acquire fences, and likewise $\FR$ on release fences.
 We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
 Now define $\rsw$ and $\rhb$.
 \begin{align*}
-  {\rsw} &= [\F]; {\rpox}; ({\rrf}\setminus{\rpox}); {\rpox}; [\F]
+  {\rsw} &= \FR; {\rpox}^*; ({\rrf}\setminus{\rpox}); {\rpox}^*; \FA
   \\
-  {\rhb} &= ({\rpox} \cup {\rsw})^*
+  {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
 Two actions \emph{conflict} if they touch the same location and at least one
-is a write action.  A pomset has a data race if there are conflicting actions
-that are unordered by $\rhb$.
-
+is a write action.  A pomset has a \emph{data race} if there are events
+$\aEv$ and $\bEv$ such that 
+\begin{itemize}
+\item $\aEv$ and $\bEv$ are unordered by $\rhb$,
+\item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict, and
+\item $\labelingForm(\aEv)\land\labelingForm(\bEv)$ is satisfiable.
+\end{itemize}
 The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
 executions where
 \begin{itemize}
-\item $\prefix$ and $\parallel$ take disjoint union,
-\item all reads are denoted by explicit actions,
-\item $\prefix$ action is ordered before every event that follows it.
+\item ${\le}\subseteq{\rpox}$,
+\item prefixing ($\prefix$) and composition ($\parallel$) take disjoint union, and
+\item all reads are denoted by explicit actions.
 \end{itemize}
-We say that $\aCmd$ has an SC race if there is some pomset in $\semsc{\aCmd}$
+Our semantics already ensures ${\le}\subseteq{\rsw}$.
+
+We say that $\aCmd$ has an \emph{SC race} if there is some pomset in $\semsc{\aCmd}$
 that contains a data race.
 
-In this section we show that if $\semsc{\aCmd}$ has only race-free
-executions, then $\sem{\aCmd}$ only contains executions ``compatible'' with
-those of $\semsc{\aCmd}$.
+In this section we show that if $\semsc{\aCmd}\subseteq\sem{\aCmd}$ has only
+race-free executions, then $\sem{\aCmd}$ only contains executions
+``compatible'' with those of $\semsc{\aCmd}$.
 
 To define compatibility, we extend the definitions of
 \textsection\ref{sec:semantics} to include an additional order: $\rird$.
@@ -69,7 +77,7 @@ To define compatibility, we extend the definitions of
   ${\rird'} = {\rird}^1\cup{\rird}^2$
   when $\aPSS'=\aPSS^1\parallel\aPSS^2$
 \item
-  ${\rird'} = {\rird}\cup\{(\cEv,\aEv)\mid\labellingForm(\aEv) \;\text{is dependent on}\; \aLoc\}$
+  ${\rird'} = {\rird}\cup\{(\cEv,\aEv)\mid\labelingForm(\aEv) \;\text{is dependent on}\; \aLoc\}$
   when $\aPSS'=\aAct\prefix\aPSS$, $\aAct$ writes $\aLoc$, and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
 
