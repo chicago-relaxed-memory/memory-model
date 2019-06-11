@@ -74,7 +74,11 @@ $\inj:\Event'\rightarrow\Event$ such that:
 \item $\aEv\gtN'\bEv$ implies $\inj(\aEv)\gtN\inj(\bEv)$
 \end{itemize}
 
-
+\begin{theorem}
+  If $\semsc{\aCmd}$ contains only race-free executions and
+  $\aPS\in\sem{\aCmd}$ then there exists some $\aPS'\in\semsc{\aCmd}$ such
+  that $\aPS\suborder\aPS'$.
+\end{theorem}
 
 To define compatibility, we extend the definitions of
 \textsection\ref{sec:semantics} to include an additional order: $\rird$.
