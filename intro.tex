@@ -25,7 +25,7 @@ shared-memory
 message-passing \citep{Hennessy:1980:ONC:646234.758793,Cleaveland2018}.
 
 For \emph{shared-memory programs with data races (SMP-DR)}, no canonical
-model as arisen.  A sensible model should induce a natural notion of program
+model has arisen.  A sensible model should induce a natural notion of program
 equality.  It should define a semantics for all programs.  It should be
 compositional.  It should support type-safe execution.  And it should be
 preserved by current compilers and multi-threaded hardware.  The last point
@@ -96,7 +96,12 @@ Things we do not do:
 \begin{itemize}
 \item give semantics of read-modify-write operations
 \item give semantics for non-terminating programs
+\item prove type safety for a nontrivial language
 \end{itemize}
+About the last point, we do prove that our semantics disallows examples such
+as Figure 27 of \cite{DBLP:journals/toplas/Lochbihler13}, which is closely
+related to type safety.
+
 
 % Local Variables:
 % mode: latex
