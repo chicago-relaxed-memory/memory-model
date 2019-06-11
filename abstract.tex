@@ -1,0 +1,18 @@
+A memory model, designed to be as weak as possible.
+\begin{itemize}
+\item Compilation result (compile to C++, or LLVM, or hardware models) without fences
+\item Soundness of optimizations (list from LDRF paper + those from promising
+  semantics)  Follow dolan.
+\item DRF programs have SC semantics
+\item satisfies JMM test cases and other examples
+\item supports a program logic and no-TAR
+\item is compositional
+\end{itemize}  
+
+Other things:
+\begin{itemize}
+\item Full abstraction:  If two programs are different, then there is a
+  distinguishing context of the form P; [] || Q; R
+\item precisely models dependency
+\end{itemize}
+

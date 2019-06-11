@@ -1,0 +1,111 @@
+\section{SC-DRF}
+
+
+In this section, we prove the SC-DRF theorem, which states that any program
+that lacks data races under the SC semantics must only have executions that
+are compatible with SC executions.
+
+The program $\aLoc\GETS1\PAR\aLoc\GETS2$ is considered to have an SC data
+race, but $\aLoc\GETS1\SEMI\aLoc\GETS2$ does not.  In our semantics the only
+difference between these is that $\aLoc\GETS1\SEMI\aLoc\GETS2$ enforces weak
+order between the writes.
+
+In order to define SC data races, it is necessary to augment our semantics to
+record program order.  We extend the definitions in
+\textsection\ref{sec:semantics} with
+${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
+\begin{itemize}
+\item
+  ${\rpox'} = {\rpox}$
+  when $\aPSS'=\aPSS\aSub$
+  or $\aPSS'=\aForm\guard\aPSS$
+\item
+  ${\rpox'} = {\rpox}\restrict{\Event'}$
+  when $\aPSS'=\nu\aLoc\st\aPSS$
+\item
+  ${\rpox'} = {\rpox}^1\cup{\rpox}^2$
+  when $\aPSS'=\aPSS^1\parallel\aPSS^2$
+\item
+  ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
+  when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
+\end{itemize}
+Let $[\F]$ be the identity relation on fences.
+We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
+Now define $\rsw$ and $\rhb$.
+\begin{align*}
+  {\rsw} &= [\F]; {\rpox}; ({\rrf}\setminus{\rpox}); {\rpox}; [\F]
+  \\
+  {\rhb} &= ({\rpox} \cup {\rsw})^*
+\end{align*}
+Two actions \emph{conflict} if they touch the same location and at least one
+is a write action.  A pomset has a data race if there are conflicting actions
+that are unordered by $\rhb$.
+
+The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
+executions where
+\begin{itemize}
+\item $\prefix$ and $\parallel$ take disjoint union,
+\item all reads are denoted by explicit actions,
+\item $\prefix$ action is ordered before every event that follows it.
+\end{itemize}
+We say that $\aCmd$ has an SC race if there is some pomset in $\semsc{\aCmd}$
+that contains a data race.
+
+In this section we show that if $\semsc{\aCmd}$ has only race-free
+executions, then $\sem{\aCmd}$ only contains executions ``compatible'' with
+those of $\semsc{\aCmd}$.
+
+To define compatibility, we extend the definitions of
+\textsection\ref{sec:semantics} to include an additional order: $\rird$.
+\begin{itemize}
+\item
+  ${\rird'} = {\rird}$
+  when $\aPSS'=\aPSS\aSub$
+  or $\aPSS'=\aForm\guard\aPSS$
+\item
+  ${\rird'} = {\rird}\restrict{\Event'}$
+  when $\aPSS'=\nu\aLoc\st\aPSS$
+\item
+  ${\rird'} = {\rird}^1\cup{\rird}^2$
+  when $\aPSS'=\aPSS^1\parallel\aPSS^2$
+\item
+  ${\rird'} = {\rird}\cup\{(\cEv,\aEv)\mid\labellingForm(\aEv) \;\text{is dependent on}\; \aLoc\}$
+  when $\aPSS'=\aAct\prefix\aPSS$, $\aAct$ writes $\aLoc$, and $\Event' = \Event \cup \{\cEv\}$
+\end{itemize}
+
+From $\rird$, we define ${\rrb}={\rird}^{-1};{\gtN}$.
+
+We want that if there is an execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\DW{\aLoc}{1}}{}
+  \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
+  \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
+  \wk{a}{c}
+  \ird{a}{b}
+  \rb{b}{c}
+\end{tikzpicture}\]
+Then there is also
+\[\begin{tikzpicture}[node distance=1em]
+  \event{a}{\DW{\aLoc}{1}}{}
+  \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
+  \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
+  \event{r}{\DR{\aLoc}{1}}{below right=.1em and 2em of a} 
+  \wk{a}{c}
+  \rf{a}{r}
+  \po{r}{b}
+\end{tikzpicture}\]
+
+
+% To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
+% consider example:
+% \begin{verbatim}
+% r=y; if (r) {x=r} else {x=r}; s=x; if (r==s) {z=1}
+% \end{verbatim}
+% or simplified:
+% \begin{verbatim}
+% r=y;x=r;s=x; if(s==r){z=1}
+% \end{verbatim}
+% If you read 37 for $y$, then the predicate on \texttt{Wz1} before the
+% read is either $r=r$ or $v=r$, where $v=37$, for example.  In one case you
+% get a dependency and in the other you do not.
+
