@@ -1,3 +1,38 @@
+\begin{comment}
+https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
+
+Cannot encode R/A actions with actions+fences...
+
+A release operation prevents preceding memory operations from being delayed
+past it (a;Rel =/=> Rel;a)
+ 
+A release fence prevents preceding memory operations from being delayed past
+subsequent writes (a;FR;w =/=> w;a;FR)
+
+An acquire operation prevents subsequent memory operations from being advanced
+before it (Acq;a =/=> a;Acq)
+
+An acquire fence prevents subsequent memory operations from being advanced
+before prior reads (r;FA;a =/=> FA;a;r)
+
+https://www.modernescpp.com/index.php/fences-as-memory-barriers
+
+StoreLoad: Full fence allows a store before to be reordered with respect to a
+load after (wx;F;ry) ===> (ry;F;wx)
+
+StoreLoad+LoadLoad: Release fence also allows (rx;FR;ry) ===> (ry;FR;rx)
+
+StoreLoad+StoreStore: Acquire fence also allows (wx;FR;wy) ===> (wy;FR;wx)
+
+LoadStore: No fence allows a prior load to reorder w.r.t. a subsequent store
+(rx;FR;wy) =/=> (wy;FR;rx)
+
+https://preshing.com/20120710/memory-barriers-are-like-source-control-operations/
+Good news is that a fullFence does it.
+
+Bizarrely, it seems this is not supported in C++... You have to go to assembly.
+\end{comment}
+
 \section{Model}
 \label{sec:model}
 \subsection{Data models}
@@ -46,12 +81,17 @@ the actions are of the form $(\DR{\aLoc}{\aVal})$, which reads $\aVal$ from
 $\aLoc$, and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
 
 We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
-is a \emph{release} if $\aAct\in\Rel$.  We say that $\aAct$ is a \emph{fence}
-if it is either a release or an acquire.  In examples, the actions are of the
-form $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$ from
-$\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$ to
-$\aLoc$, and $(\DF)$, which is both an acquire and a release and neither
-reads nor writes.
+is a \emph{release} if $\aAct\in\Rel$.  We say that $\aAct$ is a
+\emph{synchronization} if it is either a release or an acquire.  In examples,
+the actions are of the form $(\DRAcq{\aLoc}{\aVal})$, which is an acquire
+that reads $\aVal$ from $\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release
+that writes $\aVal$ to $\aLoc$, and $(\DF{})$, which is both an acquire and a
+release and neither reads nor writes.
+% In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
+% indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
+% \begin{displaymath}
+%   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
+% \end{displaymath}
 
 We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
 that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
@@ -143,7 +183,7 @@ For example:
 \begin{figure*}
 \begin{eqnarray*}
   \sem{\SKIP} & = & \{ \emptyset \} \\
-  \sem{\FENCE\SEMI \aCmd} & = & (\DF) \prefix \sem{\aCmd} \\
+  \sem{\FENCE\SEMI \aCmd} & = & (\DF{}) \prefix \sem{\aCmd} \\
   \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
@@ -170,6 +210,8 @@ We consider a simple shared-memory concurrent language, with statements defined 
 \BNFSEP \VAR\aLoc\SEMI \aCmd
 \end{align*}
 We write $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 We write $\IF (\aExp) \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
 shorthand for $\IF (\aExp) \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 
@@ -321,7 +363,7 @@ A pomset is $\aLoc$-closed if, for every $\aEv\in\Event$:
   \item $\aEv$ is independent of $\aLoc$, and
   \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$
     can read $\aLoc$ from $\bEv$,
-  \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a fence or there is
+  \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a synchronization or there is
     some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
   \end{itemize}
 \end{definition}
@@ -506,7 +548,7 @@ there is $\aPS\in\aPSS$ such that:
 \item if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, 
 \item if $\aAct$ and $\labelingAct(\aEv)$ both touch the same location and one is a write,
     then $\cEv \gtN' \aEv$, and
-\item if $\aAct$ is a read but not a fence then either
+\item if $\aAct$ is a read but not a synchronization then either
   $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
   that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
 % \item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =

@@ -1,6 +1,5 @@
 \section{SC-DRF}
 
-
 In this section, we prove the SC-DRF theorem, which states that any program
 that lacks data races under the SC semantics must only have executions that
 are compatible with SC executions.
@@ -31,11 +30,11 @@ ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
   ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
   when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
-Let $\FA$ be the identity relation on acquire fences, and likewise $\FR$ on release fences.
+Let $\IDA$ be the identity relation on acquire events, and likewise $\IDR$ on release events.
 We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
 Now define $\rsw$ and $\rhb$.
 \begin{align*}
-  {\rsw} &= \FR; {\rpox}^*; ({\rrf}\setminus{\rpox}); {\rpox}^*; \FA
+  {\rsw} &= \IDR; {\rpox}^*; ({\rrf}\setminus{\rpox}); {\rpox}^*; \IDA
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
@@ -78,7 +77,67 @@ $\inj:\Event'\rightarrow\Event$ such that:
   If $\semsc{\aCmd}$ contains only race-free executions and
   $\aPS\in\sem{\aCmd}$ then there exists some $\aPS'\in\semsc{\aCmd}$ such
   that $\aPS\suborder\aPS'$.
+\begin{proof}
+  \begin{itemize}
+  \item
+    \begin{math}
+      \sem{\SKIP}
+      =
+      \{ \emptyset \} 
+    \end{math}
+  \item
+    \begin{math}
+      \sem{\FENCE_{\aF}\SEMI \aCmd}
+      =
+      (\DF{\aF}) \prefix \sem{\aCmd}
+    \end{math}
+  \item
+    \begin{math}
+      \sem{\aLoc\GETS\aExp\SEMI \aCmd}
+      =
+      \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+    \end{math}
+  % \item
+  %   \begin{math}
+  %     \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd}
+  %     =
+  %     \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  %   \end{math}
+  \item
+    \begin{math}
+      \sem{\aReg\GETS\aLoc\SEMI \aCmd}
+      =
+      \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+    \end{math}
+  % \item
+  %   \begin{math}
+  %     \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd}
+  %     =
+  %     \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  %   \end{math}
+  \item
+    \begin{math}
+      \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI}
+      =
+      \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
+    \end{math}
+  \item
+    \begin{math}
+      \sem{\aCmd \PAR \bCmd}
+      =
+      \sem{\aCmd} \parallel \sem{\bCmd}
+    \end{math}
+  \item
+    \begin{math}
+      \sem{\VAR\aLoc\SEMI \aCmd}
+      =
+      \nu \aLoc \st \sem{\aCmd}
+    \end{math}
+\end{itemize}
+  
+\end{proof}
 \end{theorem}
+
 
 To define compatibility, we extend the definitions of
 \textsection\ref{sec:semantics} to include an additional order: $\rird$.
