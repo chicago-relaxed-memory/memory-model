@@ -27,9 +27,14 @@ message-passing \citep{Hennessy:1980:ONC:646234.758793,Cleaveland2018}.
 For \emph{shared-memory programs with data races (SMP-DR)}, no canonical
 model has arisen.  A sensible model should induce a natural notion of program
 equality.  It should define a semantics for all programs.  It should be
-compositional.  It should support type-safe execution.  And it should be
-preserved by current compilers and multi-threaded hardware.  The last point
-is \emph{descriptive}: capturing that which exists.
+compositional.  It should support type-safe execution.  It should be
+preserved by current compilers and multi-threaded hardware.  It should also be
+\emph{coherent}, in that writes to a single location appear to be totally
+ordered.  The last two points are descriptive, in that they capture existing
+systems, yet they bound the definition in different directions: To support
+optimization, the model cannot be to strong.  To support coherence, the model
+cannot be too weak\footnote{From this point of view, coherence is what
+  distinguishes shared memory from a truly distributed system.}.
 
 Concurrent models require that we identify events for read and write actions,
 which might later allow for interaction with another thread.  Yet, the
