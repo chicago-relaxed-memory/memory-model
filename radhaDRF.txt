@@ -1,173 +1,76 @@
-Def.  s-> is the skeleton of strong arrow.i.e
-  * transitive closure of s-> is the strong arrow
-  * a s-> b  ===> !exists c \not\in {a,b}: a strong c strong b
+Given P: such that any cross thread edge in w--> comes from:
+         a hb edge, or 
+         a conflicting edge on the same variable.
 
-Def: minimum model:
-    (*)  s-> across threads is (a) write to read, or (b) hbe edge 
-    (**) within thread is a subset of po
-    (**) only edges out of writes are to release
-         only edges into reads are from acquire/reads
-    (***) NO DANGLING READS (ie no read that is strong arrow maximal)
 
-Assumptions.
-1. po;hbe;hbe = hbe
-2. hbe strict partial order, po is a union of total orders. (so, hb transitive)
-3. ??poloc subseteq weak??? (* not used in these proofs *)
-4. hbe subseteq strong
-5. Closure.  For any prefix of events, there is an extending execution where the new
-         events are sequential (ie. any two new events related by po are related by strong)
+Minimal P:
+   * w--> = s--> cup SCperVar closure
+   * Only cross thread s--> edges are from hbe or write-- read
+   * Only 
 
-Def: race. (w,r) in execution, not related by hb   
 
-Order on (w,r) pairs of an execution:
-   (w1,r1) < (w2, r2) if r1 < r2       
+(Indn on (P, Q, |remaining events|), where 
+     Q is an augmentation of a prefix of P such that (po subseteq w-->, or acyclic(po cup w-->))
 
-Lemma 1. Consider a minimum model.
-    * events e (Write),f (Read) are in a race
-    * (e,f) minimal in above order.
-
-(A)Let e' strong e.  Then:
-   not (f po e')
-   not (e po e')
-
-(B)Let f' strong e.  Then:
-   not (f po f')
-   not (e po f')
+Proving:either that Q can be extended into Q' such that
+     |Q'| = |P|
+    or Q' witnesses a data race.
+   In either case, Q' will also satisfy  po subseteq w-->
 
 Proof:
-(A)
-   Let e'=a0 s-> a1 s-> a2 .... s-> a(n+1) = e
-     be the s-> path from e' to e.
-   Let us assume that there is at least one edge
-           in this path that crosses threads.  
-   Any edge in this path in the same thread is a po edge.
-   Any edge that crosses threads in this path is a hbe edge.
-     If not:
-          (ak,a(k+1)) is a race
-           ak is a write
-           a(k+1) s-> e s-> f
-   Contradicting minimality of (e,f)
+Consider prefixes wrt both po,w-->. 
+Consider a maximal such prefix.  
+If it is bigger than Q, we are done.
 
-     So, e' hbe e.
+Otherwise
+Let e0... en be the next events wrt po
 
-Case (i): not (f po e')
-   Two cases.
-        case a. e' in different thread than e. Then, above holds. So:
-            f po e' hbe e ==> f hbe e (contradiction to (e,f) being a race/matching pair)
-        case b. e' in same thread as e.
-            Then e', f in different threads.
+Wlog, assume that e0..en are minimal wrt hb.
+a)if all ei are acquires: Q is the full deadlocked pomset  P
 
-Case (ii): not (e po e')
-       Two cases.
-       case a. e' in different thread than e. Then, above holds:
-            e' hbe e po e' ==> e' hbe e' (contradiction)
-       case b. e' is same thread as e. Then, 
-                case (i) above holds:
-                    e' hbe e po e' ==> e' hbe e' (contradiction) 
-                case (ii) above does not hold.  Whole path in same thread.
-                    In this case, e' po e ===> not (e po e')
-
-======== COPYING ABOVE ================================================
-(B)
-   Let f'=a0 s-> a1 s-> a2 .... s-> a(n+1) = f
-     be the s-> path from f' to f.
-   Let us assume that there is at least one edge
-           in this path that crosses threads.  
-   Any edge in this path in the same thread is a po edge.
-   Any edge that crosses threads in this path is a hbe edge.
-     If not:
-          (ak,a(k+1)) is a race
-           ak is a write
-           a(k+1) s->.. f
-   Contradicting minimality of (e,f)
-
-     So, f' hbe f.
-
-Case (i): not (f po f')
-       Two cases.
-       case a. f' in different thread than f. Then, above holds:
-            f' hbe f po f' ==> f' hbe f' (contradiction)
-
-       case b. f' is same thread as f Then, 
-                case (i) above holds:
-                    f' hbe f po f' ==> f' hbe f' (contradiction) 
-                case (ii) above does not hold.  Whole path in same thread.
-                    In this case, f' po f ===> not (f po f')
-
-Case (ii): not (e po f')
-    Two cases.
-        case a. f' in different thread than f. Then, above holds. So:
-            e po f' hbe f ==> e hbe f (contradiction to race)
-        case b. f' in same thread as f.
-            Then f', e in different threads.
-
-=============================================================================
-
-Def. L-sequential.  L-events related by po are related by strong
-
-Def.  Given L, let L-po be the restriction of po to L.
-
-Thm 1.  (DRF ==> SEQ)  If a minimal execution has no data-races, then:
-    po cup strong order is acyclic.
-
-Proof. [By contradiction]
-    Every cross thread edge is hbe, by DRF.  Every in thread edge is a po edge.
-    So, since po;hbe;po is contained in hbe, we get a hbe cycle.
-    Contradiction.
-
-NonThm. (LDRF ==> LSEQ) 
-If a minimal execution has no data-races, then:
-    L-po cup strong order is acyclic.
-
-Counter example:
-if (Ru1)         W_R(y1)       if (Rz1) 
-   Wx1;      ||             ||    Wu1
-if R_A(y1)
-   Wz1
-
-
-Def: [no racy infoflow 1]
-   * no strong arrow from L-read to racing non-L write
-
-Thm 2' [ LDRF ==> LSEQ] when no racy infoflow1
-======
-Proof: Consider a simple cycle in L-po cup strong order.  
-
-  The cycle has to have at least  two L-events, say (e,f) in thread t, connected by po.
-
-     f is a write: next event is via hbe to a L-read  (no races on L)
-       removing f leaves the cycle intact. (since hbe;po subseteq hbe)
- 
-     f is a read: last event in t is connected via hbe to the next thread 
-                        (no racy infoflow1)
-       removing f leaves the cycle intact. (since po;hbe subseteq hbe)
-
-
-  
-
-Thm 3[Finding L-races by L-seq]
-===============================
-  Find minimal L-race (e,f).
+b)if an ei is a pure release (* minimality assumption
+    all edges into a release arise via edges into those po before it 
+*)
+   add ei to Q.  Induction HYP
    
-  Consider the strong prefix P of (e,f).
-  By lemma 1, (e,f) are po-maximal.
-  P can be extended to a L-sequential prefix P'.
-  P' +(e,f) is the required witness. 
-  
-  
-  
-  
+c) e0..en are not acquires or releases. 
 
+(i) If ei is a write.  
+   Consider Q' = Q cup ei
+            P = P \ CUP after(ei), 
+                        after(f) for any event f >-->ei
+
+(* If so, just add it to the prefix, and wait for 
+   the racy read/write to arise *)
+
+UNFINISHED
  
+(ii) e0..en are all reads.
+         ei are R/W actions.  There are e0'..ek'  such that:
+                ei   po  ei'
+                ei'  w-> e[(i+1) mod k]
 
 
+So, we deduce that ei' are all writes (* minimality stuff *)
+
+Case when: eis are all reads.  ei's are all writes.  ei'  w-> e[(i+1) mod k] is racy.
+   (* last by assumption of hb minimality *)
+   We deduce that at least one of the ej po ej' is such that not(ej s--> ej')
+        (since owise we have a s--> cycle) 
+
+P' = [P\ after(ej)] with ej turning into a read of available value
+Q' = Q + changed ej 
+Race from ej'  is still valid
+            
+Induction applies.  
+
+       
 
 
+Closure properties:
+  a. Let P in [| C |].  Let e be a read.    
+           Then, there is a pomset Q in [| C |]
+                     Q changes value of read
+                     Q agrees with P on Q \ follow(e)
 
-
-
-
-
-      
-
-
+  b. 
