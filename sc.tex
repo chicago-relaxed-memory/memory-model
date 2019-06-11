@@ -50,7 +50,7 @@ $\aEv$ and $\bEv$ such that
 The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
 executions where
 \begin{itemize}
-\item ${\le}\subseteq{\rpox}$,
+\item ${\gtN}\cup{\rpox}$ is acyclic (and therefore ${\le}\cup{\rpox}$ is acyclic),
 \item prefixing ($\prefix$) and composition ($\parallel$) take disjoint union, and
 \item all reads are denoted by explicit actions.
 \end{itemize}
@@ -60,8 +60,21 @@ We say that $\aCmd$ has an \emph{SC race} if there is some pomset in $\semsc{\aC
 that contains a data race.
 
 In this section we show that if $\semsc{\aCmd}\subseteq\sem{\aCmd}$ has only
-race-free executions, then $\sem{\aCmd}$ only contains executions
-``compatible'' with those of $\semsc{\aCmd}$.
+race-free executions, then each pomset $\aPS\in\sem{\aCmd}$ is ``equivalent''
+to some $\aPS'\in\semsc{\aCmd}$, where $\aPS'$ may have more events, but
+preserves labeling and has less order.
+
+We say that $\aPS\suborder\aPS'$ if there is an injection
+$\inj:\Event'\rightarrow\Event$ such that:
+\begin{itemize}
+\item $\labelingAct'(\aEv) = \labelingAct(\inj(\aEv))$
+\item $\labelingForm'(\aEv)$ implies $\labelingForm(\inj(\aEv))$
+\item $\labelingForm(\bEv)$ implies $\bigvee_{\aEv\in\inj^{-1}(\bEv)}(\labelingForm'(\aEv))$
+\item $\aEv\le'\bEv$ implies $\inj(\aEv)\le\inj(\bEv)$
+\item $\aEv\gtN'\bEv$ implies $\inj(\aEv)\gtN\inj(\bEv)$
+\end{itemize}
+
+
 
 To define compatibility, we extend the definitions of
 \textsection\ref{sec:semantics} to include an additional order: $\rird$.
