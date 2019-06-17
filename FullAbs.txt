@@ -1,0 +1,103 @@
+Full Thread FullAbs.
+
+Def: A pomset is  synchronization free if 
+        * writes are maximal
+        * reads are minimal
+        * reads are unique
+
+Def: A pomset is a thread pomset if all preconditions are either
+         unsatisfiable or tautologies
+
+Def: A synchronization free thread pomset P defines a function
+           P: Reads --> MultiSet of writes
+     P(R) = W
+       if forall w in W, for all e s--> w in P, e in R
+
+
+
+Lemma. T1,T2 are synchronization free thread pomsets then: 
+       T1 = T2 as pomsets iff 
+       T1 = T2 as functions
+
+Proof:
+  Given two equal functions.
+      Map reads to reads 
+      Map writes to writes with same causality
+  
+Def: Let T, T' be  pomsets.
+     T is distinguishable from T' if there is a maximal 
+          (W test true) 
+    event in T, whereas no such event in T'.   
+
+Extend to set of pomsets.  Let S, S' be  pomsets. S is distinguishable from S'
+     if exists T in S that is distinguishable from all T' in S'.
+
+Def.   Let vec{xi = vi} be an ordering of W consistent with weak order.
+       W tester is sequence
+               r = read x1;
+               if r== v1
+                   write x1 v    // v is any value different from v1 .. vn
+                   r = read x2;
+                      if r == v2
+                        write x2 v    // v is any value different from v1 .. vn
+                        ..
+                          if r == vn
+                             test = true 
+
+
+
+Thm.  Let T1,T2 be synchronization free thread pomsets such that 
+          T1 not=T2.  
+      Then, there exists T such that
+             [| T1 || T |] is 
+      distinguishable from 
+             [| T1 || T |]
+
+Proof: Use function characterization.  
+  T1 not= T2.  So, there is a set of reads on which the multiset of writes (W1, W2) differ.
+    Wlog assume that W1 not multisetsubset W2.
+
+  T = write vec{R};
+          W tester
+  produces a write of true to test iff writes W1 are produced in order.
+ 
+
+======================================= DONE TILL HERE =============================
+
+Full Abstraction for finite data types.
+
+Assumption.  
+  a. Program operates over a finite data type D with n values.
+  b. Completeness: any predicate  is equivalent to a finite disjunction
+
+Def: Define Datatype D1 as having n+1 values.  
+       We assume an injection i: D --> D1 that leaves value v of D1 not in range
+
+Def. Given a synchronization pomset P over variables v1..vk.
+     
+     Consider a valuation V to v1..vk.
+     Let W be the set of generated writes by this assignment of values.
+
+     
+
+     Consider:
+            V;    || W tester  
+            P
+     where the 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

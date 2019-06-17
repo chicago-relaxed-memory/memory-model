@@ -1,25 +1,6 @@
 Def: Let P be a pomset.  e an event in P
    after(e) = {f in P | f = e (OR) e s--> f }
    strictlyAfter(e) = {f in P | f = e (OR) e s--> f }
-   
-
-Closure properties:
-  Lemma. Let P in [| C |]. Let e be an event.   Then, there is a pomset Q in [| C |] st
-           * Q agrees with P on P \ after(e)
-           * Q \ P has a maximal event e' of the same type as e
-                     
-Some interesting cases.
-  a. Let P in [| C |].  Let e be a read, (R x v). v' chosen as any value.   
-           Then, there is a pomset Q in [| C |]
-                     there is a maximal event e' = (R x v'), for any v'
-                     Q agrees with P on P \ after(e)
-
-  b. Let P in [| C |].  Let e be a write, (W x v).  
-           Then, there is a pomset Q in [| C |]
-                     Q agrees with P on P \ strictlyafter(e)
-
-
-
 
 Def: 
     f ifr g if: e ird f, e -->g, (e,g) writes on same var
@@ -28,6 +9,38 @@ Def:
 Require: [COHERENCE]
   linearorder( w-->| writes of a var)  
 
+   
+Def: (Minimal)
+Let P be such that:
+    * Only cross thread s--> edges are from hb or write--->read
+    * w---> = (s--> cup WeakPerVar)closure
+
+Closure properties:
+  a. Let P in [| C |].  Let e be a read, (R x v). v' chosen as any value.   
+           Then, there is a pomset Q in [| C |]
+                     there is a maximal event e' = (R x v'), for any v'
+                     Q agrees with P on P \ after(e)
+
+  b. Let P in [| C |] be minimal. 
+     Let e (resp. f) be writes on same var such that 
+               e not(s-->) f
+               e w--> f
+               no other write f' (on same var) such that:
+                      e w--> f' w--> f
+
+     Then, there is a minimal pomset Q in [| C |] 
+           Q only differs from P in weak order, such that 
+                f w--> e 
+           in Q
+    Proof: Only change the weak order.
+         Changes in Q:
+           (i)      f w-->e in r     
+          (ii)  For all reads r matched to e in P, change from;
+                    r w--> f to f w--> r
+         (iii) For all reads r matched to f in P, change from;           
+                    e w--> r to r w--> e
+
+                    
 Def: P is said to be SEQ if:
   acylic(po cup s--> cup WeakPerVar)
 
@@ -55,10 +68,6 @@ Proof: (* Structural induction *)
 Def: Two events are in conflict if they are on same variable and at least one of them is a write 
 
 Def: A race is a pair of conflicting events unrelated by hb
-
-Def: (Minimal)
-Let P be such that:
-    * Only cross thread s--> edges are from hb or write--->read
  
 Def: Q in [| C |] demonstrates a race if:
                a. Q is SEQ
@@ -72,12 +81,13 @@ Given a minimal P.
 Lemma.Given (P,Q) where:
           a) P, Q are minimal elements of an execution.  P has a race
           b) Q is a prefix of P under all of po, s-->, WeakPerVar
-             Q is SEQ
-    Then, either:
-         Q can be extended into a SEQ Q' in [| C |] that demonstrates a race.
+          c) Q is SEQ
+    Then,Q can be extended into a SEQ Q' in [| C |] that demonstrates a race.
           
-Proof:     
-Indn on |Q\P|.
+Proof:    
+Count size of events for W with ird inedges as 1 + #Ird-Edges 
+
+Indn on -|Q|
 
 Consider maximal prefix ( wrt all of po,s-->,WeakPerVar) of P that extends Q.   
 If it is bigger than Q, we are done (by IH)
@@ -95,69 +105,26 @@ Let  be the next events wrt po that are minimal wrt
                 ei   po  ei'
                 ei'  WPV-> e[(i+1) mod k]
 
-  Choose e0' ... en' to make the cycle the smallest.
-
-  If there is an ej po ej' is such that not(ej s--> ej').  Choose:
-         
-P' = P\ after=(ej) + fj, (where fj is with ej turning into a read of available value)
-Q' = Q + fj 
-P' still has a race including ej'  (Induction hyp)
+  If all  ei   po  ei' is such that
+           ei s--> ei'
+  we have a  cycle in w--> on a SingleVar.  Contradiction.
 
 
-Otherwise: we have e0'..en'  such that:
-                ei   s>-->  ei'
-                ei'  WPV-> e[(i+1) mod k]
+  So, there is an ej po ej' is such that not(ej s--> ej').  Choose:
 
-This is a cycle in w--> on a SingleVar.  Contradiction.
+  Case (a): ej is a read.  
+                  Use Closure (a) change read to read a value from previous(ej)
+                  (e'(j-1), ej) race is unaffected.
+                  |Q| goes up
 
-==================================== SO FAR SO GOOD =================================
- If there a read in the {e0... en}, say ei
- It has to be fulfilled by e(i-1)
-                   since e(i-1)'  WPV-> e[i mod k], e(i-1) is a write          
-    We argue it has to be e'(i-1) has to be the matching write
-    If not, we have a smaller cycle
-  
-if One of the ei' --> e(i+1) edges is a rf edge
-                 Change the read at e(i+1)
-                 Drop strictly after e(i+1)
+  Case (b): ej is a write.
+                 ej is hb minimal.
+                 So, for all writes f on same var such that f w--> ej, we know that not (f s--> ej) 
+                 Use Closure (b) to move ej after such fs.
 
- 
+                 So, wlog we can assume that e'(j-1) is a read.  
+                 Use Closure (a) change read to read ej
+                 (e'(j-1), ej) race is unaffected.
+                 |Q| goes up
 
-
-
-
-
-=============================
-
-So,    ei's are reads.  
-   ==> ei's are writes.
-   ==> ei WPV e(i+1) is either a   
-
-(i) If ei is a write.  
-   Consider Q' = Q cup ei
-            P = P \ CUP after(ei), 
-                        after(f) for any event f >-->ei
-
-(* If so, just add it to the prefix, and wait for 
-   the racy read/write to arise *)
-
-UNFINISHED
- 
-(ii) e0..en are all reads.
-        There are e0'..ek'  such that:
-                ei   po  ei'
-                ei'  w-> e[(i+1) mod k]
-
-
-So, we deduce that ei' are all writes (* minimality stuff *)
-
-Case when: eis are all reads.  ei's are all writes.  ei'  w-> e[(i+1) mod k] is racy.
-   (* last by assumption of hb minimality *)
-   
-            
-Induction applies.  
-
-       
-
-
-
+      
