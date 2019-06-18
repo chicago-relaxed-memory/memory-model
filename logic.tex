@@ -21,7 +21,7 @@ The atoms of our logic are write and read events.
 %   \mid \always\afo
 % \end{displaymath}
 %\begin{definition} %[Satisfaction]
-  Given an pomset $\aPS$ and event $\aEv$, define:
+  Given a pomset $\aPS$ and event $\aEv$, define:
   \begin{displaymath}
     \begin{array}{lrl}
       \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
@@ -33,35 +33,55 @@ The atoms of our logic are write and read events.
       \aPS,\aEv &\models& \always\afo, \text{ if } (\forall \bEv \le \aEv,\,  \bEv\not=\aEv)\; \aPS,\bEv \models \afo
     \end{array} 
   \end{displaymath}
+
+\begin{definition}
   Define $\aPS \models \afo$ if
   $(\forall \aEv \in \Event) \;\aPS,\aEv \models\afo$ and $\aPSS\models \afo$
   if $(\forall \aPS \in \aPSS)\; \aPS \models\afo$.
-%\end{definition}
+\end{definition}
+Thus, $\aPS\models \afo \land \always\afo$ whenever $\aPS \models \afo$; a fact that relies crucially on the universal quantification over all events of a pomset in the above definition.
 
-Let $\once\afo$ be defined as $\lnot(\always\lnot\afo)$. 
-In addition, let $\FALSE$, $\lor$ and $\Rightarrow$ be defined in the
-standard way.
+Define the other connectives standardly following DeMorgan laws.
+\begin{displaymath}
+\begin{array}{lrl}
+\once\afo &=& \lnot(\always\lnot\afo) \\
+\FALSE &=& \lnot(\TRUE) \\
+\afo\lor\bfo &=& \lnot(\lnot(\afo)\land\lnot(\bfo)) \\
+\afo\Rightarrow\bfo &=& \lnot(\afo) \lor\ \bfo
+\end{array}
+\end{displaymath}
+%Let $$ be defined as $$. 
+%In addition, let $\FALSE$, $\lor$ and $$ be defined in the
+%standard way.
 % $\afo\lor\bfo$ for $\lnot(\lnot \afo \land \lnot \bfo)$,
 % and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
-
 The past operators do not include the current instant, and thus 
 they do \emph{not} satisfy the rule
 \begin{math}
   \always\afo\Rightarrow\once\afo.
 \end{math}
+because the roots --- the minimal elements of a pomset --- always validate $ \always\afo$ and always invalidate $\once\afo$.  
 However, they do satisfy:
 % \begin{align*}  
 %   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
 %   &&
 %   \frac{\aPS \models \always\afo \Rightarrow\afo}{\aPS \models \afo}\text{(Induction)}
 % \end{align*}
+\begin{lemma}
+Given an pomset $\aPS$.  
 \begin{gather*}
   \tag{Coinduction}
-  (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+  \aPS \models (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
   \\
   \tag{Induction}
-  (\always\afo \Rightarrow\afo) \Rightarrow\afo
+  \aPS \models (\always\afo \Rightarrow\afo) \Rightarrow\afo
 \end{gather*}
+\end{lemma}
+\begin{proof}
+We prove that any node in a pomset satisfies these formulas.  
+The proof for both rules proceeds by induction on the length of the maximal path from a root to a node. 
+\end{proof}
+
 % \begin{description}
 % \item[Coinduction.]
 %   \begin{math}
@@ -72,7 +92,7 @@ However, they do satisfy:
 %     (\always\afo \Rightarrow\afo) \Rightarrow\afo
 %   \end{math}
 % \end{description}
-Note that $\aPS \models \afo \land \always\afo$ whenever $\aPS \models \afo$.
+
 
 We now present two proof rules.  The first rule captures the semantics of
 local variables.  Define
