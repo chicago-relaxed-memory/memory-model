@@ -1,0 +1,261 @@
+\section{RadhaRandomness}
+
+\tikzstyle{varsc} = [->]
+\newcommand{\fvarsc}{\mathit{varsc}}
+\newcommand{\rvarsc}{\ensuremath{\mathrel{\mathsf{varsc}}}}%
+\newcommand{\xvarsc}{\xarrowtikz{varsc}{varsc}}
+
+\newcommand{\reads}{\mathit{Reads}}
+
+\newcommand{\writes}{\mathit{Writes}}
+\newcommand{\pomf}[1]{Fun_{#1}}
+\newcommand{\pomFn}{\mathit{PomFn}}
+\newcommand{\power}{\mathcal{P}}
+\newcommand{\aFn}{F}
+\newcommand{\aRSet}{R}
+\newcommand{\bRSet}{S}
+\newcommand{\aWSet}{U}
+\newcommand{\bWSet}{V}
+\newcommand{\aWrite}{\aAct_w}
+\newcommand{\bPS}{\aPS'}
+
+\begin{definition}
+A thread: top level component of a parallel composition
+\end{definition}
+
+
+
+\begin{definition}
+$\aPS$ is a generator of a set of pomsets $\aPSS$ if for all $\bPS \in \aPSS$ such that $\aPS$ augments $\bPS$, $\aPS$ is isomorphic to $\bPS$.
+\end{definition}
+
+
+\section{The semantics  of threads, explained}
+We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
+
+\begin{lemma}
+Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\sem{\aCmd}$  are such that:
+\begin{itemize}
+\item  If $\aEv\le\bEv$ and $\aEv$ is a write, then $\bEv$ is a release action.
+\item  If $\aEv\le\bEv$ and $\bEv$ is a read, then $\aEv$ is an acquire action.
+\item  If both $\aEv$ and $\bEv$ touch the same variable and at least one of them is a write, then $\bEv \gtN \aEv$ or $\bEv \gtN \aEv$.
+\item $\aEv \gtN \bEv$ if $ \bEv (\le \cup \rvarsc)^* \aEv$, where
+            $ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\bEv \gtN \aEv$.
+\end{itemize}
+\end{lemma}
+\begin{proof}
+Formally, the proof proceeds by structural induction on the semantics of commands, by considering the minimal requirements on the order relations imposed by the semantics.
+
+
+The key case is prefixing.  
+
+The only required $\le$-edges out of writes are into release actions, and the only required $\le$-edges into reads arise from read actions. The only required $\gtN$ relationships arise from actions touch the same variable and one of them is a write.   
+\end{proof}
+
+In particular, if there are no release or acquire actions in $\aCmd$, then, the first two conditions simplify to:
+\begin{itemize}
+\item Writes are maximal
+\item Reads are minimal
+\end{itemize}
+thus providing a particularly simple view of the semantics of threads without synchronization primitives.   
+
+\begin{definition}
+$\reads$ is the finite powerset of read actions, ordered by subset.  
+
+A write multiset is a pair $(\aWSet,\gtN)$ where $\gtN$ is union of total orders, one for each variable. $\writes$ is the space of write multisets ordered as:
+$(\aWSet,\gtN) \preceq (\aWSet',\gtN')$ iff $\aWSet \subseteq\aWSet'$ and $\gtN \subseteq \gtN'$.
+\end{definition}
+
+$\reads$ is a lattice, with least upper bounds ($\sqcup$) (resp. greatest lower bound, $\sqcap$)  induced by union (resp. intersection).  Similarly for $\writes$. 
+
+\begin{definition}[Pomset Functions]
+Let $\pomFn: \reads \rightarrow \writes$ be the space of finitary monotone and stable functions, ie, $\aFn \in \pomFn$ satisfies:
+\begin{itemize}
+\item $\aRSet \subseteq \bRSet \Longrightarrow\ \aFn(\aRSet) \subseteq \aFn(\bRSet)$
+\item There exists $\aRSet_{\aFn}$ such that $\forall \aRSet$, $\aFn(\aRSet) \preceq \aFn(\aRSet_{\aFn})$
+\item $\aFn(\aRSet \sqcap \bRSet) =  \aFn(\aRSet) \sqcap \aFn(\bRSet)$
+\end{itemize}
+\end{definition}
+Thus, for each write  $\aWrite$ in $\aFn(\aRSet)$ we have a minimum cause $\min(\aWrite) \subseteq \aRSet$ that captures the reads that need to be satisfied to cause it.   
+
+Let $\aCmd$ be a synchronization free thread.  Then, 
+With every generator $\aPS$ of  $\sem{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
+\[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \le \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
+Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\le$.
+
+Similarly, given $\aFn \in \pomFn$, we can generate $\aPS$ as follows:
+\begin{itemize}
+\item There is a unique event of $\aPS$ for each element in $\aRSet_{\aFn}$ and $\aFn(\aRSet_{\aFn})$.  In the rest of this discussion, we conflate the event with its label.
+\item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \le \bEv$ for all $\aEv \in \min(\bEv)$
+\item $\aEv \gtN \bEv$ if $ \bEv (\le \cup \pi_2(\aFn(\aRSet_{\aFn}))^* \aEv$.
+\end{itemize}
+
+Examples??.  
+a) x= 1
+x=2
+
+b  r =x
+   if r =1  {y=1}
+   else      {y =2}
+
+
+\begin{lemma}
+Consider the subset of pomsets of $\sem{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
+All generators $\aPS$   are such that the following hold.
+
+If $\aEv\le\bEv$ and $\aEv \in \sem{\aCmd}$ and  $\bEv \in \sem{\bCmd}$, then at least one of the following holds:
+\begin{itemize}
+\item  $\aEv$ is a write, $\bEv$ is a read, and $\bEv$ reads-from $\aEv$.
+\item There exists a release action $\aEv'$ in $\sem{\aCmd}$, a matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $\aEv \le \aEv'$, $\bEv' \le \bEv$ and $\aEv' \le \bEv'$.
+\end{itemize}
+
+$\aEv \gtN \bEv$ if $ \bEv (\le \cup \rvarsc)^* \aEv$, where
+            $ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\bEv \gtN \aEv$.
+
+\end{lemma}
+
+\endinput
+
+\section{Generators for semantics of programs with parallel composition}
+
+
+
+
+
+
+\begin{definition}
+$ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\aEv \xird \bEv$ or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aev$.
+\end{definition}
+
+\begin{definition}
+$\aPS$ is minimal if:
+\begin{itemze}
+\item  If $\aEv\le\bEv$ and $\aEv\not\xpox\bEv$, then $\aEv \xhb\bEv$
+\item $\aEv \gtN \bEv$ if $ \bEv (\le \cup \rvarsc)^* \aEv$
+\end{itemize}
+
+===================
+
+Def: Let P be a pomset.  e an event in P
+   after(e) = {f in P | f = e (OR) e s--> f }
+   strictlyAfter(e) = {f in P | f = e (OR) e s--> f }
+
+   
+Def: (Minimal)
+Let P be such that:
+    * Only cross thread s--> edges are from hb or write--->read
+    * w---> = (s--> cup WeakPerVar)closure
+
+Closure properties:
+  a. Let P in [| C |].  Let e be a read, (R x v). v' chosen as any value.   
+           Then, there is a pomset Q in [| C |]
+                     there is a maximal event e' = (R x v'), for any v'
+                     Q agrees with P on P \ after(e)
+
+  b. Let P in [| C |] be minimal. 
+     Let e (resp. f) be writes on same var such that 
+               e not(s-->) f
+               e w--> f
+               no other write f' (on same var) such that:
+                      e w--> f' w--> f
+
+     Then, there is a minimal pomset Q in [| C |] 
+           Q only differs from P in weak order, such that 
+                f w--> e 
+           in Q
+    Proof: Only change the weak order.
+         Changes in Q:
+           (i)      f w-->e in r     
+          (ii)  For all reads r matched to e in P, change from;
+                    r w--> f to f w--> r
+         (iii) For all reads r matched to f in P, change from;           
+                    e w--> r to r w--> e
+
+                    
+Def: P is said to be SEQ if:
+  acylic(po cup s--> cup WeakPerVar)
+
+Def: If P is SEQ, def Explicate(P):
+For each ird edge
+      W x i --> f
+add a new event R x i and edges:
+      R x i s--> f
+      W x i s--> R x i
+and any induced edges
+   e s--> W x i  ==> e s--> R x i  [same for weak]
+   f s--> e      ==> R x i s--> e  [same for weak]
+  
+Lemma:
+   If P is SEQ, explicate(P) is a valid pomset
+Proof:
+      * No s--> cycles (since any cycle in explicate(P) involving new event induces a cycle in P)
+      * Visibility maintained since W x i is immediate s--> predecessor of new event
+
+Lemma.  Let P in [| C |] is SEQ,  then explicate(P) in SEQ[| C |]
+
+Proof: (* Structural induction *)
+  
+
+Def: Two events are in conflict if they are on same variable and at least one of them is a write 
+
+Def: A race is a pair of conflicting events unrelated by hb
+ 
+Def: Q in [| C |] demonstrates a race if:
+               a. Q is SEQ
+               b. There is a race in Q 
+  
+Thm:
+Given a minimal P.
+    if P does not have a race, then P is SEQ
+    if P has a race, then there exists Q in [| C |] that demonstrates a race
+
+Lemma.Given (P,Q) where:
+          a) P, Q are minimal elements of an execution.  P has a race
+          b) Q is a prefix of P under all of po, s-->, WeakPerVar
+          c) Q is SEQ
+    Then,Q can be extended into a SEQ Q' in [| C |] that demonstrates a race.
+          
+Proof:    
+Count size of events for W with ird inedges as 1 + #Ird-Edges 
+
+Indn on -|Q|
+
+Consider maximal prefix ( wrt all of po,s-->,WeakPerVar) of P that extends Q.   
+If it is bigger than Q, we are done (by IH)
+
+Otherwise, Q is maximal such prefix of P. 
+
+Choose events that are minimal wrt po.
+Choose subset of events that are minimal wrt s--> (so also hb minimal)
+
+Let this subset be e0... en
+
+Let  be the next events wrt po that are minimal wrt 
+
+  There are e0'..en'  such that:
+                ei   po  ei'
+                ei'  WPV-> e[(i+1) mod k]
+
+  If all  ei   po  ei' is such that
+           ei s--> ei'
+  we have a  cycle in w--> on a SingleVar.  Contradiction.
+
+
+  So, there is an ej po ej' is such that not(ej s--> ej').  Choose:
+
+  Case (a): ej is a read.  
+                  Use Closure (a) change read to read a value from previous(ej)
+                  (e'(j-1), ej) race is unaffected.
+                  |Q| goes up
+
+  Case (b): ej is a write.
+                 ej is hb minimal.
+                 So, for all writes f on same var such that f w--> ej, we know that not (f s--> ej) 
+                 Use Closure (b) to move ej after such fs.
+
+                 So, wlog we can assume that e'(j-1) is a read.  
+                 Use Closure (a) change read to read ej
+                 (e'(j-1), ej) race is unaffected.
+                 |Q| goes up
+
+      
