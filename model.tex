@@ -182,6 +182,10 @@ For example:
 
 \begin{figure*}
 \begin{eqnarray*}
+  \sem{[\bExp]\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\; \textstyle\bigcup_\aVal\;
+  \bigl(([\bExp]=\aLoc \land \aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  \sem{\aReg\GETS[\bExp]\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\;
+  ([\bExp]=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
   \sem{\SKIP} & = & \{ \emptyset \} \\
   \sem{\FENCE\SEMI \aCmd} & = & (\DF{}) \prefix \sem{\aCmd} \\
   \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
@@ -323,11 +327,14 @@ $(\aForm\guard\aPSS)\subseteq\aPSS$.
 The definition is straightforward:
 \begin{definition}
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-$\aForm$ implies $\labelingForm(\aEv)$.
+$\aForm$ implies $\labelingForm(\aEv)$ if $\labelingAct(\aEv)$ writes.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
 \end{definition}
+Note that this liberalization allows reads more flexibility.  This is
+desirable in the language and architectural models, but not necessarily in
+microarchitectural models where reads are visible.
 
 \subsubsection{Restriction}
 \label{sec:restriction}
