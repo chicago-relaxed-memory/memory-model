@@ -22,22 +22,39 @@
 \newcommand{\aWrite}{\aAct_w}
 \newcommand{\bPS}{\aPS'}
 
+
+For any $\aPS$, then $\closed(\aPS)$ is set enriched with useless reads
+(preserving augmentation closure) and where we remove any event whose
+precondition is not a tautology.
+
+For top level programs:
+\begin{displaymath}
+  \semClosed{\VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)}
+  =
+  \VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\semClosed{\aCmd^1} \PAR \cdots \PAR \semClosed{\aCmd^n})
+\end{displaymath}
+
 \begin{definition}
 A thread: top level component of a parallel composition
 \end{definition}
-
-
 
 \begin{definition}
 $\aPS$ is a generator of a set of pomsets $\aPSS$ if for all $\bPS \in \aPSS$ such that $\aPS$ augments $\bPS$, $\aPS$ is isomorphic to $\bPS$.
 \end{definition}
 
-
 \section{The semantics  of threads, explained}
 We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
 
 \begin{lemma}
-Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\sem{\aCmd}$  are such that:
+Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClose{\aCmd}$  are such that:
 \begin{itemize}
 \item  If $\aEv\lt\bEv$ and $\aEv$ is a write, then $\bEv$ is a release action.
 \item  If $\aEv\lt\bEv$ and $\bEv$ is a read, then $\aEv$ is an acquire action.
@@ -157,7 +174,7 @@ For generators $\aPS$ of $\sem{\aCmd}$, we define a size $|\aPS|$ as follows: $|
 We prove by induction on $|\aCmd| - |\bPS|$ that given $(\aPS, \bPS)$ such that:
 \begin{itemize}
 \item $\bPS$ is \Seq\ 
-\item $\bPS$ is a prefix of $\aPS$ under all of $\xpo,\gtN,\lt$ 
+\item $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$ 
 \item $\aPS$ has a race
 \end{itemize}
 there exists $\bPS\in \sem{\aCmd}$ that demonstrates the race.
@@ -166,9 +183,9 @@ The required theorem follows by setting $\bPS$ to be the empty pomset.
 
 For the base case, $\bPS = |\aPS|$.  In this case, $\aPS$ is the required witness.
 
-Otherwise, consider a maximal prefix, extending $\bPS$, wrt to all of  $\xpo,\gtN,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
+Otherwise, consider a maximal prefix, extending $\bPS$, wrt to all of  $\xpox,\gtN,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
 
-If not, $\bPS$ is already maximal.  Choose events in $\aPS \setminus \bPS$ that are minimal wrt the lexicographic ordering $\langle \xpo, \lt \rangle$.    Thus, there are events
+If not, $\bPS$ is already maximal.  Choose events in $\aPS \setminus \bPS$ that are minimal wrt the lexicographic ordering $\langle \xpox, \lt \rangle$.    Thus, there are events
 $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ such that:
 \[
 \begin{array}{lrl}
