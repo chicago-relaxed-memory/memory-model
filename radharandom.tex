@@ -54,7 +54,7 @@ $\aPS$ is a generator of a set of pomsets $\aPSS$ if for all $\bPS \in \aPSS$ su
 We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
 
 \begin{lemma}
-Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClose{\aCmd}$  are such that:
+Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClosed{\aCmd}$  are such that:
 \begin{itemize}
 \item  If $\aEv\lt\bEv$ and $\aEv$ is a write, then $\bEv$ is a release action.
 \item  If $\aEv\lt\bEv$ and $\bEv$ is a read, then $\aEv$ is an acquire action.
