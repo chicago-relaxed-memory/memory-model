@@ -1,11 +1,14 @@
 \section{RadhaRandomness}
 
+\newcommand{\acylic}{\mathit{acyclic}}
+
 \tikzstyle{varsc} = [->]
 \newcommand{\fvarsc}{\mathit{varsc}}
 \newcommand{\rvarsc}{\ensuremath{\mathrel{\mathsf{varsc}}}}%
 \newcommand{\xvarsc}{\xarrowtikz{varsc}{varsc}}
 
 \newcommand{\reads}{\mathit{Reads}}
+\newcommand{\Seq}{{\tt Sequential}}
 
 \newcommand{\writes}{\mathit{Writes}}
 \newcommand{\pomf}[1]{Fun_{#1}}
@@ -36,10 +39,10 @@ We are considering finite programs without loops.  So,  all pomsets in the seman
 \begin{lemma}
 Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\sem{\aCmd}$  are such that:
 \begin{itemize}
-\item  If $\aEv\le\bEv$ and $\aEv$ is a write, then $\bEv$ is a release action.
-\item  If $\aEv\le\bEv$ and $\bEv$ is a read, then $\aEv$ is an acquire action.
+\item  If $\aEv\lt\bEv$ and $\aEv$ is a write, then $\bEv$ is a release action.
+\item  If $\aEv\lt\bEv$ and $\bEv$ is a read, then $\aEv$ is an acquire action.
 \item  If both $\aEv$ and $\bEv$ touch the same variable and at least one of them is a write, then $\bEv \gtN \aEv$ or $\bEv \gtN \aEv$.
-\item $\aEv \gtN \bEv$ if $ \bEv (\le \cup \rvarsc)^* \aEv$, where
+\item $\aEv \gtN \bEv$ if $ \bEv (\lt \cup \rvarsc)^* \aEv$, where
             $ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\bEv \gtN \aEv$.
 \end{itemize}
 \end{lemma}
@@ -49,7 +52,7 @@ Formally, the proof proceeds by structural induction on the semantics of command
 
 The key case is prefixing.  
 
-The only required $\le$-edges out of writes are into release actions, and the only required $\le$-edges into reads arise from read actions. The only required $\gtN$ relationships arise from actions touch the same variable and one of them is a write.   
+The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions. The only required $\gtN$ relationships arise from actions touch the same variable and one of them is a write.   
 \end{proof}
 
 In particular, if there are no release or acquire actions in $\aCmd$, then, the first two conditions simplify to:
@@ -80,14 +83,14 @@ Thus, for each write  $\aWrite$ in $\aFn(\aRSet)$ we have a minimum cause $\min(
 
 Let $\aCmd$ be a synchronization free thread.  Then, 
 With every generator $\aPS$ of  $\sem{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
-\[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \le \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
-Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\le$.
+\[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \lt \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
+Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\lt$.
 
 Similarly, given $\aFn \in \pomFn$, we can generate $\aPS$ as follows:
 \begin{itemize}
 \item There is a unique event of $\aPS$ for each element in $\aRSet_{\aFn}$ and $\aFn(\aRSet_{\aFn})$.  In the rest of this discussion, we conflate the event with its label.
-\item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \le \bEv$ for all $\aEv \in \min(\bEv)$
-\item $\aEv \gtN \bEv$ if $ \bEv (\le \cup \pi_2(\aFn(\aRSet_{\aFn}))^* \aEv$.
+\item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \lt \bEv$ for all $\aEv \in \min(\bEv)$
+\item $\aEv \gtN \bEv$ if $ \bEv (\lt \cup \pi_2(\aFn(\aRSet_{\aFn}))^* \aEv$.
 \end{itemize}
 
 Examples??.  
@@ -99,41 +102,91 @@ b  r =x
    else      {y =2}
 
 \section{Generators for semantics of programs with parallel composition}
-\begin{lemma}
+\begin{lemma}\label{pargen}
 Consider the subset of pomsets of $\sem{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
 All generators $\aPS$   are such that the following hold.
 
-If $\aEv\le\bEv$ and $\aEv \in \sem{\aCmd}$ and  $\bEv \in \sem{\bCmd}$, then at least one of the following holds:
+If $\aEv\lt\bEv$ and $\aEv \in \sem{\aCmd}$ and  $\bEv \in \sem{\bCmd}$, then at least one of the following holds:
 \begin{itemize}
 \item  $\aEv$ is a write, $\bEv$ is a read, and $\bEv$ reads-from $\aEv$.
-\item There exists a release action $\aEv'$ in $\sem{\aCmd}$, a matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $\aEv \le \aEv'$, $\bEv' \le \bEv$ and $\aEv' \le \bEv'$.
+\item There exists a release action $\aEv'$ in $\sem{\aCmd}$, a matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
 \end{itemize}
 
-$\aEv \gtN \bEv$ if $ \bEv (\le \cup \rvarsc)^* \aEv$, where
+$\aEv \gtN \bEv$ if $ \bEv (\lt \cup \rvarsc)^* \aEv$, where
             $ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\bEv \gtN \aEv$.
 
 \end{lemma}
 
-\endinput
-
-
-
-
-
-
-
+\section{DRF Proof}
 
 \begin{definition}
-$ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\aEv \xird \bEv$ or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aev$.
+$ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\aEv \xird \bEv$ or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
 \end{definition}
 
 \begin{definition}
-$\aPS$ is minimal if:
-\begin{itemze}
-\item  If $\aEv\le\bEv$ and $\aEv\not\xpox\bEv$, then $\aEv \xhb\bEv$
-\item $\aEv \gtN \bEv$ if $ \bEv (\le \cup \rvarsc)^* \aEv$
+$\aPS$ is \Seq\ if  $\acylic(\rpox \cup \lt \cup \xvarsc)$
+\end{definition}
+We argue that \Seq\ is an accurate measure of sequential consistency.  
+
+\begin{definition}
+$\aPS \in \sem{\aCmd}$ demonstrates a race if $\aPS$ is \Seq\ and  there is a race in $\aPS$.
+\end{definition}
+
+              
+
+\begin{theorem}[DRF1]
+Let $\aPS \in \sem{\aCmd}$ be a generator.  
+If $\aPS$ does not have a race, $\aPS$ is \Seq.
+\end{theorem}
+\begin{proof}
+We first show that if $\aPS$ is not \Seq, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \lt \cup \xvarsc$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
+If for all $i$, $\aEv'_i  \xhb \aEv'_{i+1}$, then the above is a cycle in $\rhb$, which is a contradiction.
+So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There are two cases to consider.
+\begin{itemize}
+\item $\aEv'_i  \xvarsc \aEv'_{i+1}$.   In this case, there is a race.
+\item  $\aEv'_i  \lt \aEv'_{i+1}$.  In this case, using lemma~\ref{pargen}, we deduce that $\aEv'_i$ is a write and $\aEv'_{i+1}$ is a conflicting read, so there is a race. 
 \end{itemize}
 
+\end{proof}
+\begin{theorem}[DRF2]
+Let $\aPS \in \sem{\aCmd}$ be a generator.   If $\aPS$ has a race, then there exists $\bPS\in \sem{\aCmd}$ that demonstrates the race.
+\end{theorem}
+\begin{proof}
+For generators $\aPS$ of $\sem{\aCmd}$, we define a size $|\aPS|$ as follows: $|\aPS|$ is the sum of the number of events in $\aPS$ and $|\rird_{\aPS}|$ (the number of tuples in the relation $\rird$).    Since we are considering loop free programs, there is a generator $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $|\aCmd|$.  
+
+We prove by induction on $|\aCmd| - |\bPS|$ that given $(\aPS, \bPS)$ such that:
+\begin{itemize}
+\item $\bPS$ is \Seq\ 
+\item $\bPS$ is a prefix of $\aPS$ under all of $\xpo,\gtN,\lt$ 
+\item $\aPS$ has a race
+\end{itemize}
+there exists $\bPS\in \sem{\aCmd}$ that demonstrates the race.
+
+The required theorem follows by setting $\bPS$ to be the empty pomset.
+
+For the base case, $\bPS = |\aPS|$.  In this case, $\aPS$ is the required witness.
+
+Otherwise, consider a maximal prefix, extending $\bPS$, wrt to all of  $\xpo,\gtN,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
+
+If not, $\bPS$ is already maximal.  Choose events in $\aPS \setminus \bPS$ that are minimal wrt the lexicographic ordering $\langle \xpo, \lt \rangle$.    Thus, there are events
+$\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ such that:
+\[
+\begin{array}{lrl}
+\aEv_i \xpox\ \aEv'_i \\
+\aEv'_i \xpox\ \aEv'_{(i+1) \mod\ n}
+\end{array}
+\]
+
+
+\end{proof}
+
+
+
+
+
+
+
+\endinput
 ===================
 
 Def: Let P be a pomset.  e an event in P
@@ -141,10 +194,6 @@ Def: Let P be a pomset.  e an event in P
    strictlyAfter(e) = {f in P | f = e (OR) e s--> f }
 
    
-Def: (Minimal)
-Let P be such that:
-    * Only cross thread s--> edges are from hb or write--->read
-    * w---> = (s--> cup WeakPerVar)closure
 
 Closure properties:
   a. Let P in [| C |].  Let e be a read, (R x v). v' chosen as any value.   
@@ -172,8 +221,7 @@ Closure properties:
                     e w--> r to r w--> e
 
                     
-Def: P is said to be SEQ if:
-  acylic(po cup s--> cup WeakPerVar)
+Def: 
 
 Def: If P is SEQ, def Explicate(P):
 For each ird edge
@@ -188,7 +236,7 @@ and any induced edges
 Lemma:
    If P is SEQ, explicate(P) is a valid pomset
 Proof:
-      * No s--> cycles (since any cycle in explicate(P) involving new event induces a cycle in P)
+      * No s--> cyclts (since any cyclt in explicate(P) involving new event induces a cyclt in P)
       * Visibility maintained since W x i is immediate s--> predecessor of new event
 
 Lemma.  Let P in [| C |] is SEQ,  then explicate(P) in SEQ[| C |]
@@ -196,13 +244,11 @@ Lemma.  Let P in [| C |] is SEQ,  then explicate(P) in SEQ[| C |]
 Proof: (* Structural induction *)
   
 
-Def: Two events are in conflict if they are on same variable and at least one of them is a write 
+Def: Two events are in conflict if they are on same variablt and at ltast one of them is a write 
 
 Def: A race is a pair of conflicting events unrelated by hb
  
-Def: Q in [| C |] demonstrates a race if:
-               a. Q is SEQ
-               b. There is a race in Q 
+
   
 Thm:
 Given a minimal P.
@@ -210,7 +256,7 @@ Given a minimal P.
     if P has a race, then there exists Q in [| C |] that demonstrates a race
 
 Lemma.Given (P,Q) where:
-          a) P, Q are minimal elements of an execution.  P has a race
+          a) P, Q are minimal eltments of an execution.  P has a race
           b) Q is a prefix of P under all of po, s-->, WeakPerVar
           c) Q is SEQ
     Then,Q can be extended into a SEQ Q' in [| C |] that demonstrates a race.
@@ -220,13 +266,9 @@ Count size of events for W with ird inedges as 1 + #Ird-Edges
 
 Indn on -|Q|
 
-Consider maximal prefix ( wrt all of po,s-->,WeakPerVar) of P that extends Q.   
-If it is bigger than Q, we are done (by IH)
 
-Otherwise, Q is maximal such prefix of P. 
 
-Choose events that are minimal wrt po.
-Choose subset of events that are minimal wrt s--> (so also hb minimal)
+Otherwise, 
 
 Let this subset be e0... en
 
@@ -238,7 +280,7 @@ Let  be the next events wrt po that are minimal wrt
 
   If all  ei   po  ei' is such that
            ei s--> ei'
-  we have a  cycle in w--> on a SingleVar.  Contradiction.
+  we have a  cyclt in w--> on a SingltVar.  Contradiction.
 
 
   So, there is an ej po ej' is such that not(ej s--> ej').  Choose:
