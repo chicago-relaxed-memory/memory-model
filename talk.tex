@@ -109,9 +109,9 @@
   \frametitle{Optimizations in hardware\onslide<4->{ and compilers}}
 
   Another lie we tell programmers:\\
-  ``only one branch of an $\IF$ is executed.''
+  ``only one branch of an $\IF{}$ is executed.''
 
-  \[ \IF(\aLoc)\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1 \FI \]
+  \[ \IF{\aLoc}\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1 \FI \]
 
   has execution%
   \only<2>{ where $\DW\cLoc1$ might happen before $\DW\bLoc1$}%
@@ -145,7 +145,7 @@
 
   Imagine a $\SEC$, protected by a run-time security check:
   \[
-     \IF \CANREAD(\SEC) \THEN \dots\mbox{use } \SEC\dots \ELSE \dots \FI
+     \IF{\CANREAD(\SEC)} \THEN \dots\mbox{use } \SEC\dots \ELSE \dots \FI
   \]
   For attacker code $\CANREAD(\SEC)$ is always false\pause, e.g.
 \[\begin{tikzpicture}[node distance=1em]
@@ -159,7 +159,7 @@
 \end{tikzpicture}\]
   is an execution of
   \(
-     \IF y \THEN \IF \CANREAD(\SEC) \THEN x\GETS\SEC \ELSE x\GETS2 \FI \FI
+     \IF{y} \THEN \IF{\CANREAD(\SEC)} \THEN x\GETS\SEC \ELSE x\GETS2 \FI \FI
   \).
 
   \pause\bigskip
@@ -172,7 +172,7 @@
 
   A very simplified Spectre attack:
   \[\begin{array}{l}
-    \IF \CANREAD(\SEC) \THEN a[\SEC]\GETS1
+    \IF{\CANREAD(\SEC)} \THEN a[\SEC]\GETS1
     \brELIF \TOUCHED(a[0]) \THEN x\GETS0 
     \brELIF \TOUCHED(a[1]) \THEN x\GETS1 \FI 
   \end{array}\]
@@ -219,7 +219,7 @@
   y\GETS x
   & \PAR
   & \begin{array}[t]{@{}l}
-    \IF(y\EQ0)\THEN x\GETS1
+    \IF{y\EQ0}\THEN x\GETS1
     \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\end{array}\]
@@ -282,7 +282,7 @@ If $\SEC$ is $2$, there is no execution (due to cyclic dependency):
   Main attacker thread:
   \(
     x\GETS1\SEMI
-    \IF (\CANREAD(\SEC)) \THEN x\GETS\SEC\SEMI \FI
+    \IF{\CANREAD(\SEC}) \THEN x\GETS\SEC\SEMI \FI
     r\GETS y\SEMI
   \)
 
@@ -475,7 +475,7 @@ if canRead(SECRET) {
 
   \only<3>{is an execution of $(\aReg\GETS\aLoc\SEMI \bLoc\GETS1\SEMI \cLoc\GETS\aReg+1)$.}
 
-  \only<4>{is an execution of $(\IF(\aLoc)\THEN \bLoc\GETS1 \ELSE \bLoc\GETS2 \FI)$.}
+  \only<4>{is an execution of $(\IF{\aLoc}\THEN \bLoc\GETS1 \ELSE \bLoc\GETS2 \FI)$.}
 \end{frame}
 
 \subsection{Loads and stores}
@@ -513,7 +513,7 @@ if canRead(SECRET) {
   Next, conditionals.
 
   \pause\bigskip
-  \emph{New idea}: an execution of $\IF M \THEN \aCmd \ELSE \bCmd \FI$\\
+  \emph{New idea}: an execution of $\IF{M}\THEN \aCmd \ELSE \bCmd \FI$\\
   comes from an execution of $\aCmd$ \emph{and} an execution of $\bCmd$\pause, e.g.
 
 \[\begin{tikzpicture}[node distance=1em]
@@ -528,7 +528,7 @@ if canRead(SECRET) {
 
   is an execution of \((
     \onslide<6->{\aReg\GETS\aLoc\SEMI}
-    \onslide<5->{\IF(\aReg)\THEN}
+    \onslide<5->{\IF{\aReg}\THEN}
     \onslide<3,5->{\bLoc\GETS1}
     \onslide<5->{\ELSE}
     \onslide<4->{\bLoc\GETS2}
@@ -548,7 +548,7 @@ if canRead(SECRET) {
 
   But\dots\pause
   any execution of $\aCmd$ should be\\
-  an execution of $\IF M \THEN \aCmd \ELSE \aCmd \FI$\pause, e.g.
+  an execution of $\IF{M}\THEN \aCmd \ELSE \aCmd \FI$\pause, e.g.
 
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
@@ -557,7 +557,7 @@ if canRead(SECRET) {
   \po{rx1}{wy1}
   \po{rx1}{nwy1}
 \end{tikzpicture}\]
-  is an execution of $(\IF \aLoc\THEN \bLoc\GETS1 \ELSE \bLoc\GETS1 \FI)$\pause,
+  is an execution of $(\IF{\aLoc}\THEN \bLoc\GETS1 \ELSE \bLoc\GETS1 \FI)$\pause,
   but so is
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
@@ -617,7 +617,7 @@ if canRead(SECRET) {
   \frametitle{Information flow example}
   Imagine a $\SEC$, protected by a run-time security check:
   \[
-     \IF \CANREAD(\SEC) \THEN \dots\mbox{use } \SEC\dots \ELSE \dots \FI
+     \IF{\CANREAD(\SEC)} \THEN \dots\mbox{use } \SEC\dots \ELSE \dots \FI
   \]
   For attacker code $\CANREAD(\SEC)$ is always false\pause, e.g.
 \[\begin{tikzpicture}[node distance=1em]
@@ -631,7 +631,7 @@ if canRead(SECRET) {
 \end{tikzpicture}\]
   is an execution of
   \(
-     \IF y \THEN \IF \CANREAD(\SEC) \THEN x\GETS\SEC \ELSE x\GETS2 \FI \FI
+     \IF{y} \THEN \IF{\CANREAD(\SEC)} \THEN x\GETS\SEC \ELSE x\GETS2 \FI \FI
   \).
 
   \pause\bigskip
@@ -649,7 +649,7 @@ if canRead(SECRET) {
   \pause\bigskip
   Glossing over a lot of details, this is
   \[
-     \IF \TOUCHED(x) \THEN \cdots \ELSE \cdots \FI
+     \IF{\TOUCHED(x)} \THEN \cdots \ELSE \cdots \FI
   \]
 
   \pause
@@ -661,7 +661,7 @@ if canRead(SECRET) {
 \end{tikzpicture}\]
   is an execution of
   \(
-     \IF \TOUCHED(x) \THEN y\GETS1 \FI
+     \IF{\TOUCHED(x)} \THEN y\GETS1 \FI
   \).
 
   \pause\bigskip
@@ -675,7 +675,7 @@ if canRead(SECRET) {
 
   A very simplified Spectre attack:
   \[\begin{array}{l}
-    \IF \CANREAD(\SEC) \THEN a[\SEC]\GETS1
+    \IF{\CANREAD(\SEC)} \THEN a[\SEC]\GETS1
     \brELIF \TOUCHED(a[0]) \THEN x\GETS0 
     \brELIF \TOUCHED(a[1]) \THEN x\GETS1 \FI 
   \end{array}\]
@@ -743,7 +743,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
   If the attacker knows an aborted transaction does so
   because of a read/write or write/write conflict, then in
   \[\begin{array}{l}
-    \IF \CANREAD(\SEC) \THEN a[\SEC]\GETS1 \FI \PAR{}\\
+    \IF{\CANREAD(\SEC)} \THEN a[\SEC]\GETS1 \FI \PAR{}\\
     \BEGIN\SEMI a[1]\GETS2\SEMI \texttt{loop}\SEMI \END\SEMI x\GETS1
   \end{array}\]
   the transaction aborts only when $\SEC$ is $1$.
@@ -774,7 +774,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
 \[\begin{array}[t]{@{}l}
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
-    \IF(y\EQ0)\THEN x\GETS1
+    \IF{y\EQ0}\THEN x\GETS1
     \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\end{array}\]
@@ -824,7 +824,7 @@ If $\SEC$ is $2$, there is no execution:
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
     x\GETS 1\SEMI\\
-    \IF(\CANREAD(\SEC))\THEN \IF(\SEC)\THEN x\GETS 2\FI
+    \IF{\CANREAD(\SEC})\THEN \IF{\SEC}\THEN x\GETS 2\FI
     \brELSE x\GETS 2\FI
 \end{array}\end{array}\]
 If $\SEC$ is $1$, there is an execution:

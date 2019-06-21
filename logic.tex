@@ -127,10 +127,10 @@ include environment assumptions.  Let
 be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
 closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
-  imply $\bEv\in\Event'$, and $(\labeling',\leq',\gtN')$ coincide with
-  $(\labeling,\leq,\gtN)$ for elements of $\Event'$.}.
+  imply $\bEv\in\Event'$, and $(\labeling',\le',\gtN')$ coincide with
+  $(\labeling,\le,\gtN)$ for elements of $\Event'$.}.
   % when $\aEv,\,\bEv\in\Event'$: $\labeling'(\aEv)=\labeling(\aEv)$,
-  % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\gtN'\bEv$ iff
+  % $\aEv\le'\bEv$ iff $\aEv\le\bEv$, and $\aEv\gtN'\bEv$ iff
   % $\aEv\gtN\bEv$. 
 \begin{noenv}
   Define
@@ -185,7 +185,7 @@ We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 
   (
     y\GETS x
   \PAR
-    \IF(z)\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+    \IF{z}\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
   \PAR
     z\GETS1
   )

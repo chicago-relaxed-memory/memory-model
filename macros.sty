@@ -123,7 +123,8 @@
 \newcommand{\begEv}{b}
 \newcommand{\comEv}{c}
 \newcommand{\ltN}{\mathrel{{\color{blue}\,\mid\!\!\!<}}}
-\newcommand{\gtN}{\mathrel{{\color{blue}\mkern4mu\mid\!\!\!>}}}
+\newcommand{\gtN}{\lessdot}
+%\newcommand{\gtN}{\mathrel{{\color{blue}\mkern4mu\mid\!\!\!>}}}
 \renewcommand{\le}{\mathrel{{\color{blue}\leq}}}
 \newcommand{\lt}{\mathrel{{\color{blue}<}}}
 
@@ -164,7 +165,7 @@
 \newcommand{\GETS}{\texttt{:}\mkern-1mu\texttt{=}\,}
 \newcommand{\SEQ}{\texttt{;}\,}
 \newcommand{\SEMI}{\texttt{;}\,}
-\newcommand{\IF}{\texttt{if}\,}
+\newcommand{\IF}[1]{\texttt{if}\,#1}
 \newcommand{\PASS}{\texttt{pass}}
 \newcommand{\WHILE}{\texttt{while}\,}
 \newcommand{\DO}[1]{\texttt{do}\,\{#1\}\,}

@@ -34,7 +34,7 @@ Let $\IDA$ be the identity relation on acquire events, and likewise $\IDR$ on re
 We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
 Now define $\rsw$ and $\rhb$.
 \begin{align*}
-  {\rsw} &= \IDR; {\rpox}^*; ({\rrf}\setminus{\rpox}); {\rpox}^*; \IDA
+  {\rsw} &= \IDR; ({\rrf}\setminus{\rpox}); \IDA
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
@@ -117,7 +117,7 @@ $\inj:\Event'\rightarrow\Event$ such that:
   %   \end{math}
   \item
     \begin{math}
-      \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI}
+      \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
       =
       \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
     \end{math}

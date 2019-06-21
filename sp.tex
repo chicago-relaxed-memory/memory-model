@@ -115,7 +115,7 @@ as they are not visible to user code, that is if programs
 are sequentially consistent. Unfortunately, multi-threaded
 programs can often observe reorderings. For example
 running the above writing thread concurrently with
-an observing thread \((\IF(\bLoc)\THEN \cLoc\GETS\aLoc \FI)\)
+an observing thread \((\IF{\bLoc}\THEN \cLoc\GETS\aLoc \FI)\)
 can result in a sequentially inconsistent execution
 (where we highlight the matching write for each read):
 \[\begin{tikzpicture}[node distance=1em]
@@ -159,7 +159,7 @@ security implications.
 The simplest example of speculative evaluation
 is branch prediction. The expected observable behavior of
 a conditional such as
-\(( \IF(\aLoc) \THEN \bLoc\GETS1 \ELSE \cLoc\GETS1 \FI )\)
+\(( \IF{\aLoc} \THEN \bLoc\GETS1 \ELSE \cLoc\GETS1 \FI )\)
 is that just one branch will execute, for example:
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx0}{\DR{\aLoc}{0}}{}
@@ -292,7 +292,7 @@ straight-line code:
 to be the same as the conditional code:
 \[\begin{array}{ll}
   r\GETS x\SEMI s\GETS\SEC \SEMI \\[\jot]
-  \IF(r\EQ s) \THEN a[s]\GETS 1 \ELSE a[r]\GETS 1 \FI
+  \IF{r\EQ s} \THEN a[s]\GETS 1 \ELSE a[r]\GETS 1 \FI
 \end{array}\]
 and indeed an optimizing compiler might choose to rewrite
 either of these programs to be the other.
@@ -406,8 +406,8 @@ in failed speculations.
   behavior is driven by dependency analysis.  Our basic model captures this
   dependency analysis.
   %% For example,
-  %% $(\IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)$ can be optimized to
-  %% $(\aLoc\GETS1)$, whereas  %% $(\IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI)$ cannot be so
+  %% $(\IF{\aReg}\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)$ can be optimized to
+  %% $(\aLoc\GETS1)$, whereas  %% $(\IF{\aReg}\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI)$ cannot be so
   %% optimized.
 \item Pipelined micro-architectures use \emph{branch prediction}
   to speculatively execute the result of
@@ -419,7 +419,7 @@ in failed speculations.
   location has been touched. %, even in a failed speculation.
   %% This means,
   %% for example, that a single execution of
-  %% $(\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI)$ may depend on both $\aCmd$ and
+  %% $(\IF{\aExp}\THEN \aCmd \ELSE \bCmd \FI)$ may depend on both $\aCmd$ and
   %% $\bCmd$.  This differs from the standard semantics of the conditional, in
   %% which executions of $\aCmd$ and $\bCmd$ are disjoint.
 \item Some microprocessors support transactional
@@ -459,7 +459,7 @@ The novel aspect of the model is that events have
 \emph{preconditions} which may be false. These are used in giving the
 semantics of conditionals and transactions, modeling failed branch
 prediction and aborted transactions. For example the program
-$(\IF(\aLoc)\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
+$(\IF{\aLoc}\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
 has an execution:
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
@@ -493,7 +493,7 @@ straight-line code:
 to be the same as the conditional code:
 \[\begin{array}{ll}
   r\GETS x\SEMI s\GETS\SEC \SEMI \\[\jot]
-  \IF(r\EQ s) \THEN a[s]\GETS 1 \ELSE a[r]\GETS 1 \FI
+  \IF{r\EQ s} \THEN a[s]\GETS 1 \ELSE a[r]\GETS 1 \FI
 \end{array}\]
 and indeed an optimizing compiler might choose to rewrite
 either of these programs to be the other.
@@ -601,7 +601,7 @@ The novel aspect of the model is that events have
 \emph{preconditions}, which give the thread-local view of memory. These are used in giving the
 semantics of conditionals and transactions, modeling failed branch
 prediction and aborted transactions. For example the program
-$(\IF(\aLoc)\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
+$(\IF{\aLoc}\THEN \bLoc\GETS1\SEMI\cLoc\GETS1 \ELSE \bLoc\GETS2\SEMI\cLoc\GETS1\FI)$
 has an execution:
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
@@ -677,12 +677,12 @@ since the precondition $(\aReg+1-\aReg=1)$ is independent of $\aReg$.
 The main novelty of our semantics is the use of preconditions, which allow us
 to provide an unusual model of conditionals. In most
 models, an execution of
-$\sem{\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI}$ would either be
+$\sem{\IF{\aExp}\THEN \aCmd \ELSE \bCmd \FI}$ would either be
 given by an execution from $\sem{\aCmd}$ or from $\sem{\bCmd}$, but not both.
 In our semantics, a pomset
-in $\sem{\IF(\aExp)\THEN \aCmd \ELSE \bCmd \FI}$ may include
+in $\sem{\IF{\aExp}\THEN \aCmd \ELSE \bCmd \FI}$ may include
 both a pomset from $\sem{\aCmd}$ \emph{and} a pomset from $\sem{\bCmd}$.
-For example, $\sem{\IF(\aExp)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI}$
+For example, $\sem{\IF{\aExp}\THEN \aLoc\GETS1 \ELSE \aLoc\GETS2 \FI}$
 contains:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
@@ -695,7 +695,7 @@ conditional can be merged, producing a single event.
 The precondition of the merged event is the disjunction of the preconditions
 of the original events.
 For example
-$\sem{\IF(\aExp)\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
+$\sem{\IF{\aExp}\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
 contains:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wx1}{\aExp\neq0 \mid \DW{\aLoc}{1}}{}
@@ -711,7 +711,7 @@ and since $(\aExp\neq0) \lor (\aExp=0)$ is a tautology, this is:
 
 Combining this model of conditionals with the previously discussed model of memory using substitutions
 gives that
-$\sem{\IF(\cLoc)\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
+$\sem{\IF{\cLoc}\THEN \aLoc\GETS1\SEMI \bLoc\GETS3 \ELSE \aLoc\GETS2\SEMI \bLoc\GETS3 \FI}$
 contains:
 \[\begin{tikzpicture}[node distance=1em]
   \event{rz1}{\DR{\cLoc}{1}}{}
@@ -984,7 +984,7 @@ In the remainder of the paper, we drop the prefix ``3-valued'', referring to
   \sem{\SKIP} & = & \{ \emptyset \} \\
   \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
   \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
   \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel \sem{\bCmd} \\
   \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
 \end{eqnarray*}
@@ -1260,7 +1260,7 @@ $(\DW \aLoc\aVal)$.
 Conditionals introduce control dependencies, for example consider the program:
 \[
   \aReg\GETS\cLoc\SEMI
-  \IF(\aReg)\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI
+  \IF{\aReg}\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI
 \]
 This includes executions in which the false branch is taken:
 \[\begin{tikzpicture}[node distance=1em]
@@ -1298,7 +1298,7 @@ Similarly $\sem{y\GETS 2\SEMI\SKIP}$ contains:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wy2}{r=0 \mid \DW{y}{2}}{}
 \end{tikzpicture}\]
-and so $\sem{\IF(r)\THEN x\GETS 1\SEMI\SKIP \ELSE y\GETS 2\SEMI\SKIP \FI}$
+and so $\sem{\IF{r}\THEN x\GETS 1\SEMI\SKIP \ELSE y\GETS 2\SEMI\SKIP \FI}$
 contains:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wx1}{r\neq0 \mid \DW{x}{1}}{}
@@ -1334,7 +1334,7 @@ there is no control dependency. Consider a variant of the example
 from \S\ref{sec:control-dep}:
 \[
   \aReg\GETS\cLoc\SEMI
-  \IF(\aReg)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI
+  \IF{\aReg}\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI
 \]
 This has the expected execution in which the control
 dependencies exist:
@@ -1352,7 +1352,7 @@ of $1$ to $x$ are merged, resulting in no dependency:
   \event{wx1}{\DW{x}{1}}{right=of rz0}
 \end{tikzpicture}\]
 To see how this arises,
-consider the definition of $\sem{\IF(r)\THEN x\GETS1\SEMI\SKIP \ELSE x\GETS1\SEMI\SKIP \FI}$:
+consider the definition of $\sem{\IF{r}\THEN x\GETS1\SEMI\SKIP \ELSE x\GETS1\SEMI\SKIP \FI}$:
 \[\begin{array}{rl}
    \aPSS_1 \parallel \aPSS_2 \quad\mbox{where}\quad&
    \aPSS_1 = (r\neq 0) \guard \sem{x\GETS1\SEMI\SKIP} \\&
@@ -1403,7 +1403,7 @@ We can now see the counterintuitive behavior of conditionals
 in the presence of control dependencies.
 There are programs such as
 \(
-  (\IF(\cLoc)\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)
+  (\IF{\cLoc}\THEN \aLoc\GETS1 \ELSE \aLoc\GETS1 \FI)
 \)
 with executions in which  $(\DW x1)$ is independent of $(\DR z1)$:
 \[\begin{tikzpicture}[node distance=1em]
@@ -1412,7 +1412,7 @@ with executions in which  $(\DW x1)$ is independent of $(\DR z1)$:
 \end{tikzpicture}\]
 while programs such as
 \(
-  (\IF(\cLoc)\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI)
+  (\IF{\cLoc}\THEN \aLoc\GETS1 \ELSE \bLoc\GETS2 \FI)
 \)
 only have executions in which $(\DW x1)$ is dependent on $(\DR z1)$:
 \[\begin{tikzpicture}[node distance=1em]
@@ -1588,7 +1588,7 @@ whether a memory location has been touched (in practice this is
 implemented using timing attacks on the cache). For example,
 we can model Spectre by:
 \[\begin{array}{l}
-  \VAR a\SEMI \IF(\CANREAD(\SEC))\THEN a[\SEC]\GETS1
+  \VAR a\SEMI \IF{\CANREAD(\SEC})\THEN a[\SEC]\GETS1
   \brELIF(\TOUCHED a[0])\THEN x\GETS0
   \brELIF(\TOUCHED a[1])\THEN x\GETS1 \FI
 \end{array}\]
@@ -1597,7 +1597,7 @@ value of a high-security variable $\SEC$. The low-security program
 is allowed to attempt to escalate its privileges by checking that it is
 allowed to read a high-security variable:
 \[\begin{array}{l}
-  \IF(\CANREAD(\SEC))\THEN \mbox{code allowed to read $\SEC$}
+  \IF{\CANREAD(\SEC})\THEN \mbox{code allowed to read $\SEC$}
   \brELSE \mbox{code not allowed to read $\SEC$} \FI
 \end{array}\]
 In this case, $\CANREAD(\SEC)$ is false, so the fallback code
@@ -1612,7 +1612,7 @@ bounds check.
 We model the $\TOUCHED$ test by introducing a new action
 $(\DT{\aLoc})$, and defining:
 \[\begin{array}{l}
-  \sem{\IF (\TOUCHED\aLoc) \THEN \aCmd \ELSE \bCmd \FI} \\[\jot]\quad =  ((\DT\aLoc) \prefix \sem{\aCmd}) \cup \sem{\bCmd}
+  \sem{\IF{\TOUCHED\aLoc} \THEN \aCmd \ELSE \bCmd \FI} \\[\jot]\quad =  ((\DT\aLoc) \prefix \sem{\aCmd}) \cup \sem{\bCmd}
 \end{array}\]
 Implementations of $\TOUCHED$ use cache timing, but their success can be modeled
 without needing to be precise about such microarchitectural details:
@@ -1661,7 +1661,7 @@ which prevent code from being speculatively executed. For example,
 we could introduce such a $\BARRIER$, and require that
 a barrier is introduced on each security check:
 \[\begin{array}{l}
-\IF(\CANREAD(\SEC))\THEN \BARRIER\SEMI\cdots
+\IF{\CANREAD(\SEC})\THEN \BARRIER\SEMI\cdots
   \ELSE \cdots \FI
 \end{array}\]
 To model barriers, we introduce a new action $\DSB$
@@ -1695,12 +1695,12 @@ might perform common subexpression elimination on barriers, allowing
 the attacker to introduce a barrier to fool a compiler into optimizing
 the safe:
 \[\begin{array}{l}
-  \IF(\CANREAD(\SEC))\THEN \BARRIER\SEMI \cdots
+  \IF{\CANREAD(\SEC})\THEN \BARRIER\SEMI \cdots
   \ELSE \BARRIER\SEMI \cdots \FI
 \end{array}\]
 into the unsafe:
 \[\begin{array}{l}
-  \BARRIER\SEMI \IF(\CANREAD(\SEC))\THEN \cdots
+  \BARRIER\SEMI \IF{\CANREAD(\SEC})\THEN \cdots
   \ELSE \cdots \FI
 \end{array}\]
 To model the requirement that barriers are not moved past
@@ -1710,7 +1710,7 @@ With this requirement, we can show that barriers act as a
 defense against Spectre by first showing that $\sem\bCmd$ has
 the same successful executions as:
 \[
-  \sem{\IF(\CANREAD(\SEC)) \THEN \BARRIER\SEMI\aCmd \ELSE \bCmd \FI}
+  \sem{\IF{\CANREAD(\SEC}) \THEN \BARRIER\SEMI\aCmd \ELSE \bCmd \FI}
 \]
 and then showing that the semantics which only looks at successful
 executions is \emph{compositional}: if $\sem\bCmd$ has the same
@@ -2017,7 +2017,7 @@ able to begin when it is known that its commit will succeed.
 % % \end{definition}
 
 % Let ``$\END\SEMI \bCmd$'' be syntax sugar for
-% ``$\IF\COMMIT\vec\aLoc\THEN\bCmd \ELSE \bCmd$'', where $\vec\aLoc$ are the
+% ``$\IF{\COMMIT\vec\aLoc}\THEN\bCmd \ELSE \bCmd$'', where $\vec\aLoc$ are the
 % free variables of $\bCmd$.
 
 % The semantics of
@@ -2160,7 +2160,7 @@ unexpected information flows. The attacker program is:
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI\\\quad
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
-    \IF(y\EQ0)\THEN x\GETS1
+    \IF{y\EQ0}\THEN x\GETS1
     \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\end{array}\]
@@ -2235,16 +2235,16 @@ This attack is not just an artifact of the model,
 since the same behavior can be exhibited by
 compiler optimizations. Consider the program fragment:
 \[\begin{array}{l}
-    \IF(y = 0)\THEN x\GETS1
+    \IF{y = 0}\THEN x\GETS1
     \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\]
 In the case where \verb|SECRET| is a constant \verb|1|,
 the compiler can inline it
-and lift the assignment to $x$ out of the $\IF$ statement:
+and lift the assignment to $x$ out of the $\IF{}$ statement:
 \[\begin{array}{l}
     x\GETS1\SEMI
-    \IF(y = 0)\THEN
+    \IF{y = 0}\THEN
     \brELIF(\CANREAD(\SEC))\THEN
     \brELSE z\GETS1 \FI
 \end{array}\]
@@ -2289,7 +2289,7 @@ the program:
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
     x\GETS 1\SEMI\\
-    \IF(\CANREAD(\SEC))\THEN \IF(\SEC)\THEN x\GETS 2\FI
+    \IF{\CANREAD(\SEC})\THEN \IF{\SEC}\THEN x\GETS 2\FI
     \brELSE x\GETS 2\FI
 \end{array}\end{array}\]
 In the case that \verb|SECRET| is $0$, there is an execution:
@@ -2442,8 +2442,8 @@ on the value of a {\SEC}:
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
     x\GETS 1\SEMI\\
-    \IF(\texttt{canReadSecret})\THEN x\GETS\SEC\FI\\
-    \IF(y > 0)\THEN z\GETS 0 \ELSE z\GETS 1\FI
+    \IF{\texttt{canReadSecret}}\THEN x\GETS\SEC\FI\\
+    \IF{y > 0}\THEN z\GETS 0 \ELSE z\GETS 1\FI
 \end{array}\end{array}\]
 \ignore{
 \begin{verbatim}
@@ -2461,9 +2461,9 @@ on the value of a {\SEC}:
 
 Figure~\ref{fig:lsr-asm} shows the assembly output of {\GCC} on this program in the cases
 where {\SEC} is 0 and 1 respectively.
-In the case that {\SEC} is $1$, {\GCC} removes the \IF
+In the case that {\SEC} is $1$, {\GCC} removes the $\IF{}$
 statement entirely, and moves the read of $y$ above the write of $x$.
-However, when {\SEC} is $0$, the \IF statement must remain
+However, when {\SEC} is $0$, the $\IF{}$ statement must remain
 intact, and {\GCC} does not move the read of $y$.
 This means that if {\SEC} is $1$, the second thread will always
 read $y\EQ0$ and always assign $z\GETS1$.
@@ -2522,8 +2522,8 @@ The function used for reading the \verb|k|th bit is as follows (for
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
     x\GETS 1\SEMI\\
-    \IF(\texttt{canReadSecret})\THEN x\GETS\texttt{(\SEC\, \& (1 << k)) ? 1 : 0}\SEMI\FI\\
-    \IF(y > 0)\THEN \RETURN 0
+    \IF{\texttt{canReadSecret}}\THEN x\GETS\texttt{(\SEC\, \& (1 << k)) ? 1 : 0}\SEMI\FI\\
+    \IF{y > 0}\THEN \RETURN 0
     \brELSE \RETURN 1\FI
 \end{array}\end{array}\]
 Following the same analysis as above, this function will always return $1$
@@ -2549,7 +2549,7 @@ However, we wish to do this in a way that does not block the reordering of the
 read of $y$ upwards in the case where {\SEC} is $1$.
 We do this by inserting many copies of the line
 \[
-  \IF (\texttt{canReadSecret}) \THEN x\GETS\SEC\FI
+  \IF{\texttt{canReadSecret}} \THEN x\GETS\SEC\FI
 \]
 instead of just one.
 In the case where {\SEC} is $0$, this
@@ -2640,7 +2640,7 @@ The function used for reading the \verb|k|th bit is as follows (for
     r\GETS x
   \PAR\begin{array}[t]{@{}l}
     x\GETS 1\SEMI\\
-    \IF(\CANREAD(\SEC))\THEN \IF(\SEC\,\texttt{ \& (1 << k)}\NOTEQ0)\THEN x\GETS 2\FI
+    \IF{\CANREAD(\SEC})\THEN \IF{\SEC\,\texttt{ \& (1 << k}}\NOTEQ0)\THEN x\GETS 2\FI
     \brELSE x\GETS 2\FI
 \end{array}\end{array}\]
 \ignore{
@@ -2923,7 +2923,7 @@ Abramsky's bisimulation as a testing equivalence~\cite{ABRAMSKY1987225}. Models 
 information flow are similar, in that they require comparing different
 runs to test for the presence of dependencies~\cite{Clarkson:2010:HYP:1891823.1891830}. In contrast, the model
 presented here explicitly captures dependency in the pomset order, and
-models multiple runs by giving the semantics of $\IF$ in terms of a
+models multiple runs by giving the semantics of $\IF{}$ in terms of a
 concurrent semantics of both branches.
 In the parlance of information flow~\cite{Barthe:2004:SIF:1009380.1009669},
 the humble conditional suffices to construct a composition operator to detect information flow  in the presence of speculation.
@@ -3168,7 +3168,7 @@ To see this, consider the program
   \aLoc\GETS\cLoc+1\SEMI
   \bLoc\GETS\aLoc
   \PAR
-  \IF(z=2)\THEN\aReg\GETS\aLoc\FI
+  \IF{z=2}\THEN\aReg\GETS\aLoc\FI
   )
 \end{math}
 with execution:
@@ -3689,7 +3689,7 @@ Test case 8 asks whether:
 \begin{displaymath}
   \VAR x\GETS 0\SEMI
   \VAR y\GETS 0\SEMI
-  (\IF(x<2)\THEN y\GETS 1\FI 
+  (\IF{x<2}\THEN y\GETS 1\FI 
   \PAR
   x\GETS y)
 \end{displaymath}
@@ -3717,10 +3717,10 @@ Where we require $(\DW{x}{0})\lt(\DR{x}{1})$ but not $(\DR{x}{1})\lt(\DW{y}{1})$
 To see why this execution exists, consider the left thread with syntax sugar
 removed:
 \begin{displaymath}
-  r\GETS x\SEMI \IF(r<2)\THEN y\GETS 1\FI
+  r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI
 \end{displaymath}
 \begin{math}
-  \sem{\IF(r<2)\THEN y\GETS 1\FI}
+  \sem{\IF{r<2}\THEN y\GETS 1\FI}
 \end{math}
 includes
 \begin{math}
@@ -3731,7 +3731,7 @@ includes
 % \end{tikzpicture}\]
 Thus, by Figure~\ref{fig:programs}, 
 \begin{math}
-  \sem{r\GETS x\SEMI \IF(r<2)\THEN y\GETS 1\FI}
+  \sem{r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI}
 \end{math}
 includes
 \begin{math}
@@ -3776,7 +3776,7 @@ Test case 9 asks whether:
 \begin{displaymath}
   \VAR x\GETS 0\SEMI
   \VAR y\GETS 0\SEMI
-  (\IF(x<2)\THEN y\GETS 1\FI 
+  (\IF{x<2}\THEN y\GETS 1\FI 
   \PAR
   x\GETS y
   \PAR
@@ -3818,7 +3818,7 @@ Test case 14 asks whether:
   \VAR a\GETS 0\SEMI
   \VAR b\GETS 0\SEMI
   \VAR y\GETS 0\SEMI\\[-.5ex]
-  (\IF(a)\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
   \PAR\\[-.5ex]
   \WHILE(y+b==0) \THEN\SKIP\FI\; a\GETS1)
 \end{multline*}
@@ -3834,9 +3834,9 @@ Unrolling the loop once, we have:
   \VAR a\GETS 0\SEMI
   \VAR b\GETS 0\SEMI
   \VAR y\GETS 0\SEMI\\[-.5ex]
-  (\IF(a)\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
   \PAR\\[-.5ex]
-  \IF(y\lor b)\THEN a\GETS 1\FI)
+  \IF{y\lor b}\THEN a\GETS 1\FI)
 \end{multline*}
 We argue that any execution with $(\DR{a}{1})$, $(\DR{b}{1})$, and
 $(\DR{y}{0})$ must be cyclic.  The closure requirements require that
@@ -3964,13 +3964,13 @@ includes pomset:
   \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
   \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
 \end{tikzpicture}\]
-so  $\sem{\IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+so  $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
   \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
   \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
 \end{tikzpicture}\]
-which means $\sem{\IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
+which means $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wz1}{x=1 \mid \DW{z}{1}}{}
   \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
@@ -3982,7 +3982,7 @@ Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
   \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
   \event{wy1}{\DW{y}{1}}{right=of wx1a}
 \end{tikzpicture}\]
-and so $\sem{r_1 \GETS x\SEMI \IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+and so $\sem{r_1 \GETS x\SEMI \IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx1a}{\DR{x}{1}}{}
   \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
@@ -4213,10 +4213,10 @@ include environment assumptions.  Let
 be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
 closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
-  imply $\bEv\in\Event'$, and $(\labeling',\leq',\gtN')$ coincide with
-  $(\labeling,\leq,\gtN)$ for elements of $\Event'$.}.
+  imply $\bEv\in\Event'$, and $(\labeling',\le',\gtN')$ coincide with
+  $(\labeling,\le,\gtN)$ for elements of $\Event'$.}.
   % when $\aEv,\,\bEv\in\Event'$: $\labeling'(\aEv)=\labeling(\aEv)$,
-  % $\aEv\leq'\bEv$ iff $\aEv\leq\bEv$, and $\aEv\gtN'\bEv$ iff
+  % $\aEv\le'\bEv$ iff $\aEv\le\bEv$, and $\aEv\gtN'\bEv$ iff
   % $\aEv\gtN\bEv$. 
 \begin{noenv}
   Define
@@ -4270,7 +4270,7 @@ We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  \\[-.5ex] (
     y\GETS x
   \PAR
-    \IF(z)\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+    \IF{z}\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
   \PAR
     z\GETS1
   )

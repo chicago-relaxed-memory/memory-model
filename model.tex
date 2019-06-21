@@ -103,6 +103,15 @@ $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
 \subsection{3-valued pomsets}
 \label{sec:pomsets}
 
+We fix the alphabet $\Alphabet=(\Formulae\times\Act)$.  We write pairs in
+$(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide $\aForm$ when
+$\aForm$ is a tautology.  Define $\labelingForm$ and $\labelingAct$ so that
+$\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
+$\labelingForm(\aEv)=(\aForm\mid\aAct)$.
+
+In this paper, we are not investigating speculative execution.  So we make
+the global assumption formulae can only get stronger in dependent actions:
+
 \begin{definition}
   A \emph{(3-valued) pomset} with alphabet $\Alphabet$ is tuple $(\Event,
   {\le}, {\gtN}, \labeling)$, such that 
@@ -123,16 +132,44 @@ $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
     \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
     \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
     \end{itemize}
+  \item if $\bEv\lt\aEv$ then $\labelingForm(\aEv)$ implies
+    $\labelingForm(\bEv)$.
 \end{itemize}
 \end{definition}
 In the remainder of the paper, we drop the prefix ``3-valued'', referring to
 3-valued pomsets simply as \emph{pomsets}.
 
-We fix the alphabet $\Alphabet=(\Formulae\times\Act)$.  We write pairs in
-$(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide $\aForm$ when
-$\aForm$ is a tautology.  Define $\labelingForm$ and $\labelingAct$ so that
-$\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
-$\labelingForm(\aEv)=(\aForm\mid\aAct)$.
+Don't require that $\gtN$ is transitive:
+\[\begin{array}{l}
+  x\GETS0\SEMI x\GETS 1
+  \PAR
+  y\GETS0\SEMI y\GETS 1
+ \\{}
+  \PAR
+  IF x\SEMI r_2\GETS y
+  \PAR
+  s_1\GETS y\SEMI s_2\GETS x
+\end{array}\]
+which includes the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of wy0}
+  \event{ry1}{\DR{y}{1}}{below=4ex of wx0}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of rx0}
+  \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \wk{wx0}{wx1}
+  \wk{wy0}{wy1}
+  \rf{wx1}{rx1}
+  \rf{wy0}{ry0}
+  \rf[out=210,in=30]{wy1}{ry1}
+  \rf{wx0}{rx0}
+  \wk{rx0}{wx1}
+  \wk{ry0}{wy1}
+\end{tikzpicture}\]
+
 
 We lift terminology from logical formulae and actions to events, for example
 if $\labeling(\aEv)=(\aForm\mid\aAct)$ then we say $\aEv$ is unsatisfiable
@@ -192,7 +229,7 @@ For example:
   \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
   \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel \sem{\bCmd} \\
   \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
 \end{eqnarray*}
@@ -209,15 +246,15 @@ We consider a simple shared-memory concurrent language, with statements defined 
 \BNFSEP \REL\aLoc\GETS\aExp\SEMI \aCmd
 \BNFSEP \aReg\GETS\aLoc\SEMI \aCmd
 \BNFSEP \ACQ\aReg\GETS\aLoc\SEMI \aCmd \\
-\BNFSEP& \IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI
+\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
 \end{align*}
 We write $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
-We write $\IF (\aExp) \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
-shorthand for $\IF (\aExp) \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
+We write $\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
+shorthand for $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 
 We only consider programs with top level parallelism.   We expect programs to
 be of the form
@@ -228,7 +265,10 @@ be of the form
   \FENCE\SEMI
   (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
 \end{displaymath}
-where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  (More generally,
+we could allow any program where parallel composition is always preceded by
+an acquire fence --- this is needed to keep register state from percolating
+to the forked threads.)
 
 In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
 Each pomset
@@ -241,10 +281,6 @@ isomorphism and augmentation.
 NOTE: because augment closed, any event can go false, and we kill everything
 after it, so that means we do get a kind of prefix closure.
 
-In this paper, we are not investigating speculative execution.  So we make
-the global assumption formulae can only get stronger in dependent actions:
-if $\aEv\lt\bEv$ then
-$\labelingForm(\bEv)$ implies $\labelingForm(\aEv)$.
  
 \begin{definition}
   $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
@@ -602,19 +638,19 @@ because then it's not augment closed.
 An example to show that we need $[\aExp/\aLoc]$ in the rule for write, rather
 than $[\aVal/\aLoc]$:
 
-$\sem{\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
+$\sem{\IF{\bReg\EQ\aReg}\THEN \cLoc\GETS 1\FI}$
 includes
 \[\begin{tikzpicture}[node distance=1em]
   \event{c}{\bReg=\aReg \mid \DW\cLoc1}{}
 \end{tikzpicture}\]
 therefore
-$\sem{\bReg\GETS\aLoc\SEMI\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
+$\sem{\bReg\GETS\aLoc\SEMI\IF{\bReg\EQ\aReg}\THEN \cLoc\GETS 1\FI}$
 includes
 \[\begin{tikzpicture}[node distance=1em]
   \event{c}{\aLoc=\aReg \mid \DW\cLoc1}{}
 \end{tikzpicture}\]
 and
-$\sem{\aLoc\GETS\aReg\SEMI\bReg\GETS\aLoc\SEMI\IF(\bReg\EQ\aReg)\THEN \cLoc\GETS 1\FI}$
+$\sem{\aLoc\GETS\aReg\SEMI\bReg\GETS\aLoc\SEMI\IF{\bReg\EQ\aReg}\THEN \cLoc\GETS 1\FI}$
 includes
 \[\begin{tikzpicture}[node distance=1em]
   \event{c}{\aReg=\aReg \mid \DW\cLoc1}{}
@@ -629,20 +665,20 @@ up with pomsets of the form
 which depend on $\aReg$.
 
 To see why we don't mention dependency in sequential composition, consider
-$\sem{\IF(\aReg\leq1)\THEN \aLoc\GETS 2\FI}$ which includes
+$\sem{\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ which includes
 \[\begin{tikzpicture}[node distance=1em]
   \event{c}{\aReg\leq1 \mid \DW\aLoc2}{}
 \end{tikzpicture}\]
 which depends on $\aReg$.
 
-$\sem{\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN \aLoc\GETS 2\FI}$ includes
+$\sem{\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ includes
 \[\begin{tikzpicture}[node distance=1em]
     \event{b}{\DR\bLoc1}{}
     \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of b}
 \end{tikzpicture}\]
 which has no dependency between the read and write.
 
-$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN \aLoc\GETS
+$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS
   2\FI}$ discharges the precondition of the write, giving
 \[\begin{tikzpicture}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
@@ -662,7 +698,7 @@ The semantics of this program also includes
 \end{tikzpicture}\]
 
 A variant of this which indicates the branch taken:
-$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF(\aReg\leq1)\THEN
+$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN
   \aLoc\GETS2\SEMI\cLoc\GETS\aReg\FI}$
 includes
 \[\begin{tikzpicture}[node distance=1em]
@@ -675,10 +711,10 @@ includes
 
 A program to witness this is
 \begin{displaymath}
-  \IF(\bLoc\EQ0)\THEN
-    \IF(\aLoc\EQ2)\THEN
+  \IF{\bLoc\EQ0}\THEN
+    \IF{\aLoc\EQ2}\THEN
       \bLoc\GETS1\SEMI
-      \IF(\cLoc\EQ1)\THEN\PASS\FI
+      \IF{\cLoc\EQ1}\THEN\PASS\FI
     \FI
   \FI
 \end{displaymath}

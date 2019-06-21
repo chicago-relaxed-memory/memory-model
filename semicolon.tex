@@ -12,7 +12,7 @@
   \cup
   \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
   \\
-  \sem{\IF (\aExp) \THEN \aCmd \ELSE \bCmd \FI}
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
   & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
   \\
   \sem{\aCmd \SEQ \bCmd}

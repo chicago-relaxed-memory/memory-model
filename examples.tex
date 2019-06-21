@@ -4,6 +4,18 @@
 \subsection{Blockers}
 \label{app:blockers}
 
+Unfortunately by itself, this is not enough. The problem is the final
+clause saying that there does not exist an $\aLoc$-\emph{blocking}
+event $\cEv$ between $\bEv$ and $\aEv$. Unfortunately, concurrency can
+turn events that were not $\aLoc$-blockers into an $\aLoc$-blocker,
+\emph{even if the new thread does not mention $\aLoc$.}
+We give an example to show this in \refapp{blockers}.
+This is a problem in that it means the preliminary model violates
+\emph{scope extrusion}~\cite{Milner:1999:CMS:329902},
+in that we can find programs $\aCmd$ and $\bCmd$ such that
+$\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is not the same as
+$\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
+
 Recall the preliminary definition of reads-from in \S\ref{sec:pomsets}, which
 defined an $\aLoc$-blocker to be and event $\cEv$ that writes to $\aLoc$ such that
 $\bEv \lt \cEv \lt \aEv$.  Were we to adopt this definition, then concurrent
@@ -19,7 +31,7 @@ To see this, consider the program
   \aLoc\GETS\cLoc+1\SEMI
   \bLoc\GETS\aLoc
   \PAR
-  \IF(z=2)\THEN\aReg\GETS\aLoc\FI
+  \IF{z=2}\THEN\aReg\GETS\aLoc\FI
   )
 \end{math}
 with execution:
@@ -413,6 +425,8 @@ which includes the execution:
   \event{rx0}{\DR{x}{0}}{right=of ry1}
   \event{rx1}{\DR{x}{1}}{right=2.5 em of rx0}
   \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \wk{wx0}{wx1}
+  \wk{wy0}{wy1}
   \rf{wx1}{rx1}
   \rf{wy0}{ry0}
   \rf[out=210,in=30]{wy1}{ry1}
@@ -553,7 +567,7 @@ Test case 8 asks whether:
 \begin{displaymath}
   \VAR x\GETS 0\SEMI
   \VAR y\GETS 0\SEMI
-  (\IF(x<2)\THEN y\GETS 1\FI 
+  (\IF{x<2}\THEN y\GETS 1\FI 
   \PAR
   x\GETS y)
 \end{displaymath}
@@ -581,10 +595,10 @@ Where we require $(\DW{x}{0})\lt(\DR{x}{1})$ but not $(\DR{x}{1})\lt(\DW{y}{1})$
 To see why this execution exists, consider the left thread with syntax sugar
 removed:
 \begin{displaymath}
-  r\GETS x\SEMI \IF(r<2)\THEN y\GETS 1\FI
+  r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI
 \end{displaymath}
 \begin{math}
-  \sem{\IF(r<2)\THEN y\GETS 1\FI}
+  \sem{\IF{r<2}\THEN y\GETS 1\FI}
 \end{math}
 includes
 \begin{math}
@@ -595,7 +609,7 @@ includes
 % \end{tikzpicture}\]
 Thus, by Figure~\ref{fig:programs}, 
 \begin{math}
-  \sem{r\GETS x\SEMI \IF(r<2)\THEN y\GETS 1\FI}
+  \sem{r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI}
 \end{math}
 includes
 \begin{math}
@@ -640,7 +654,7 @@ Test case 9 asks whether:
 \begin{displaymath}
   \VAR x\GETS 0\SEMI
   \VAR y\GETS 0\SEMI
-  (\IF(x<2)\THEN y\GETS 1\FI 
+  (\IF{x<2}\THEN y\GETS 1\FI 
   \PAR
   x\GETS y
   \PAR
@@ -682,7 +696,7 @@ Test case 14 asks whether:
   \VAR a\GETS 0\SEMI
   \VAR b\GETS 0\SEMI
   \VAR y\GETS 0\SEMI\\[-.5ex]
-  (\IF(a)\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
   \PAR\\[-.5ex]
   \WHILE(y+b==0) \THEN\SKIP\FI\; a\GETS1)
 \end{multline*}
@@ -698,9 +712,9 @@ Unrolling the loop once, we have:
   \VAR a\GETS 0\SEMI
   \VAR b\GETS 0\SEMI
   \VAR y\GETS 0\SEMI\\[-.5ex]
-  (\IF(a)\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
   \PAR\\[-.5ex]
-  \IF(y\lor b)\THEN a\GETS 1\FI)
+  \IF{y\lor b}\THEN a\GETS 1\FI)
 \end{multline*}
 We argue that any execution with $(\DR{a}{1})$, $(\DR{b}{1})$, and
 $(\DR{y}{0})$ must be cyclic.  The closure requirements require that
@@ -828,13 +842,13 @@ includes pomset:
   \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
   \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
 \end{tikzpicture}\]
-so  $\sem{\IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+so  $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
   \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
   \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
 \end{tikzpicture}\]
-which means $\sem{\IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
+which means $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
 \[\begin{tikzpicture}[node distance=1em]
   \event{wz1}{x=1 \mid \DW{z}{1}}{}
   \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
@@ -846,7 +860,7 @@ Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
   \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
   \event{wy1}{\DW{y}{1}}{right=of wx1a}
 \end{tikzpicture}\]
-and so $\sem{r_1 \GETS x\SEMI \IF (r_1 = 1) \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+and so $\sem{r_1 \GETS x\SEMI \IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
 \[\begin{tikzpicture}[node distance=1em]
   \event{rx1a}{\DR{x}{1}}{}
   \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
