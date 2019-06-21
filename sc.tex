@@ -1,5 +1,10 @@
 \section{SC-DRF}
 
+Programs that require release sequences for happens-before always include a
+data race.  Since we are only defining hb for the purpose of defining data
+race for the DRF theorem, we do not include release sequences in our
+definition of hb.
+
 In this section, we prove the SC-DRF theorem, which states that any program
 that lacks data races under the SC semantics must only have executions that
 are compatible with SC executions.
