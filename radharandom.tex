@@ -2,10 +2,10 @@
 
 \newcommand{\acylic}{\mathit{acyclic}}
 
-\tikzstyle{varsc} = [->]
-\newcommand{\fvarsc}{\mathit{varsc}}
-\newcommand{\rvarsc}{\ensuremath{\mathrel{\mathsf{varsc}}}}%
-\newcommand{\xvarsc}{\xarrowtikz{varsc}{varsc}}
+\tikzstyle{eco} = [->]
+\newcommand{\feco}{\mathit{eco}}
+\newcommand{\reco}{\ensuremath{\mathrel{\mathsf{eco}}}}%
+\newcommand{\xeco}{\xarrowtikz{eco}{eco}}
 
 \newcommand{\reads}{\mathit{Reads}}
 \newcommand{\Seq}{{\tt Sequential}}
@@ -21,6 +21,10 @@
 \newcommand{\bWSet}{V}
 \newcommand{\aWrite}{\aAct_w}
 \newcommand{\bPS}{\aPS'}
+\newcommand{\cPS}{\aPS_1}
+\newcommand{\dPS}{\aPS'_1}
+\newcommand{\after}{\mathit{after}}
+\newcommand{\size}{\mathit{size}}
 
 
 For any $\aPS$, then $\closed(\aPS)$ is set enriched with useless reads
@@ -47,7 +51,7 @@ A thread: top level component of a parallel composition
 \end{definition}
 
 \begin{definition}
-$\aPS$ is a generator of a set of pomsets $\aPSS$ if for all $\bPS \in \aPSS$ such that $\aPS$ augments $\bPS$, $\aPS$ is isomorphic to $\bPS$.
+$\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
 \end{definition}
 
 \section{The semantics  of threads, explained}
@@ -56,16 +60,17 @@ We are considering finite programs without loops.  So,  all pomsets in the seman
 \begin{lemma}
 Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClosed{\aCmd}$  are such that:
 \begin{itemize}
-\item  If $\aEv\lt\bEv$ and $\aEv$ is a write, then $\bEv$ is a release action.
-\item  If $\aEv\lt\bEv$ and $\bEv$ is a read, then $\aEv$ is an acquire action.
-\item  If both $\aEv$ and $\bEv$ touch the same variable and at least one of them is a write, then $\bEv \gtN \aEv$ or $\bEv \gtN \aEv$.
-\item $\aEv \gtN \bEv$ if $ \bEv (\lt \cup \rvarsc)^* \aEv$, where
-            $ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\bEv \gtN \aEv$.
+\item  If $\aEv\lt\bEv$ and $\aEv$ is a release or a write, then $\bEv$ is a release action.
+\item  If $\aEv\lt\bEv$ and $\bEv$ is an acquire or a read, then $\aEv$ is an acquire action.
+\item  If both $\aEv$ and $\bEv$ touch the same variable and, then $\bEv \gtN \aEv$ or $\aEv \gtN \bEv$.
+\item  Let $ \aEv' \xeco  \bEv'$ if both $\aEv'$ and $\bEv'$ touch the same variable, $\bEv' \gtN \aEv'$, and at least one of them is a write.  
+
+$\aEv \gtN \bEv$ if and only if $ \bEv [\lt \cup (\le; \reco;\le)] \aEv$. 
+            
 \end{itemize}
 \end{lemma}
 \begin{proof}
-Formally, the proof proceeds by structural induction on the semantics of commands, by considering the minimal requirements on the order relations imposed by the semantics.
-
+Formally, the proof proceeds considering the minimal requirements on the order relations imposed by the semantics.
 
 The key case is prefixing.  
 
@@ -82,7 +87,9 @@ thus providing a particularly simple view of the semantics of threads without sy
 \begin{definition}
 $\reads$ is the finite powerset of read actions, ordered by subset.  
 
-A write multiset is a pair $(\aWSet,\gtN)$ where $\gtN$ is union of total orders, one for each variable. $\writes$ is the space of write multisets ordered as:
+A write multiset is a pair $(\aWSet,\gtN)$ where $\aWSet$ is a finite multiset of write actions and $\gtN$ is union of total orders, one for each variable. 
+
+$\writes$ is the space of write multisets ordered as:
 $(\aWSet,\gtN) \preceq (\aWSet',\gtN')$ iff $\aWSet \subseteq\aWSet'$ and $\gtN \subseteq \gtN'$.
 \end{definition}
 
@@ -91,15 +98,14 @@ $\reads$ is a lattice, with least upper bounds ($\sqcup$) (resp. greatest lower 
 \begin{definition}[Pomset Functions]
 Let $\pomFn: \reads \rightarrow \writes$ be the space of finitary monotone and stable functions, ie, $\aFn \in \pomFn$ satisfies:
 \begin{itemize}
-\item $\aRSet \subseteq \bRSet \Longrightarrow\ \aFn(\aRSet) \subseteq \aFn(\bRSet)$
+\item $\aRSet \subseteq \bRSet \Longrightarrow\ \aFn(\aRSet) \preceq \aFn(\bRSet)$
 \item There exists $\aRSet_{\aFn}$ such that $\forall \aRSet$, $\aFn(\aRSet) \preceq \aFn(\aRSet_{\aFn})$
 \item $\aFn(\aRSet \sqcap \bRSet) =  \aFn(\aRSet) \sqcap \aFn(\bRSet)$
 \end{itemize}
 \end{definition}
 Thus, for each write  $\aWrite$ in $\aFn(\aRSet)$ we have a minimum cause $\min(\aWrite) \subseteq \aRSet$ that captures the reads that need to be satisfied to cause it.   
 
-Let $\aCmd$ be a synchronization free thread.  Then, 
-With every generator $\aPS$ of  $\sem{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
+Let $\aCmd$ be a synchronization free thread.   With every generator $\aPS$ of  $\semClosed{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
 \[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \lt \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
 Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\lt$.
 
@@ -120,28 +126,81 @@ b  r =x
 
 \section{Generators for semantics of programs with parallel composition}
 \begin{lemma}\label{pargen}
-Consider the subset of pomsets of $\sem{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
-All generators $\aPS$   are such that the following hold.
+Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  All generators $\aPS$  satisfy:
 
-If $\aEv\lt\bEv$ and $\aEv \in \sem{\aCmd}$ and  $\bEv \in \sem{\bCmd}$, then at least one of the following holds:
 \begin{itemize}
-\item  $\aEv$ is a write, $\bEv$ is a read, and $\bEv$ reads-from $\aEv$.
-\item There exists a release action $\aEv'$ in $\sem{\aCmd}$, a matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
+\item  If $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd} \setminus \semClosed{\bCmd}$ and  $\bEv \in \semClosed{\bCmd} \setminus \semClosed{\aCmd}$, then there are $\aEv' \in \semClosed{\aCmd}, \bEv' \in \semClosed{\bCmd}$ such that 
+$\aEv \lt \aEv', \bEv' \lt \bEv$, 
+$\aEv'$ is a write, $\bEv'$ is a read, and $\bEv$ reads-from $\aEv$.
+
+\item $\aEv \gtN \bEv$ only if $ \bEv  [\lt \cup (\le; \reco;\le)]  \aEv$, where
+            $ \aEv \xeco  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable, at least one is a write, and  $\bEv \gtN \aEv$.
+
+% \item If $\aEv\lt\bEv$ and $\aEv, \bEv \in \semClosed{\aCmd}$, 
+%then there exists 
+
+%There exists a release action $\aEv'$ in $\sem{\aCmd}$, a 
+%matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $
+%\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
 \end{itemize}
 
-$\aEv \gtN \bEv$ if $ \bEv (\lt \cup \rvarsc)^* \aEv$, where
-            $ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\bEv \gtN \aEv$.
 
 \end{lemma}
+
+\section{Closure properties}
+
+\begin{definition}
+Let $\aEv \in \aPS$.  Then:$ \aPS \after\ \aEv = \{ \bEv \mid \aEv \le \bEv \}$
+\end{definition}
+
+\begin{lemma}\label{inputen}
+Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
+Let $\aPS \in \semClosed{\aCmd}$.  
+Let $\aEv \in \aPS$ read from $\aLoc \in \vec{\aLoc}$, such that the matching write event $\bEv$ is in a race with $\aEv$ in $\aPS$. 
+
+ Then, there exists $\bPS \in \semClosed{\aCmd}$ such that:
+\begin{itemize}
+\item There is an event $\aEv' \in \Event_{\bPS}$ such that $\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
+\item $\aEv' \in \bPS$ reads from $\aLoc$ such that the matching write event is not in a race with $\aEv'$ in $\bPS$
+\item $\aPS$ and $\bPS$ agree on the restriction of $\le$ and $\gtN$ to $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv))$.
+\end{itemize}
+\end{lemma}
+
+\begin{lemma}
+Let $\aPS \in \sem{\aCmd}$ be a generator.  Let $\aEv,\bEv$ be conflicting writes,  such that forall conflicting writes $\cEv$ 
+if $(\cEv = \bEv) \vee \bEv \gtN \cEv \gtN  \aEv$, then $ \neg(\aEv \lt \cEv) \wedge\ \neg(\aEv \xpox \cEv) ]$. 
+
+Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that:
+\begin{itemize}
+\item $\Event_{\aPS} = \Event_{\bPS}$
+\item $\le_{\aPS} = \le_{\bPS}$
+\item $\aEv \gtN \bEv$ in $\bPS$
+\end{itemize}
+\end{lemma}
+\begin{proof}
+We show how to interchange $\aEv, \bEv$ adjacent in $\gtN$, ie. we assume that  $\neg(\exists \cEv)  \bEv \gtN \cEv \gtN \aEv$.  The full proof follows by induction.
+
+Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can build $\bPS$ while satisfying the constraints between $\lt,\gtN$.  We list the changes below.
+\begin{itemize}
+\item $\aEv \gtN \bEv$ in $\bPS$
+\item Forall reads $\cEv$ matched to $\aEv$, change from $\bEv \gtN \cEv$ in $\aPS$ to $\cEv \gtN \bEv$ in $\bPS$
+\item Forall reads $\cEv$ matched to $\bEv$, change from $\cEv \gtN \aEv$ in $\aPS$ to $\aEv \gtN \cEv$ in $\bPS$
+\end{itemize}
+
+\end{proof}
+
+        
 
 \section{DRF Proof}
 
 \begin{definition}
-$ \aEv \xvarsc  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable and $\aEv \xird \bEv$ or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
+$ \aEv \xeco  \bEv$ if both $\aEv$ and $\bEv$ touch the same variable, at least one is a write, and $\aEv \xird \bEv$  or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
 \end{definition}
 
 \begin{definition}
-$\aPS$ is \Seq\ if  $\acylic(\rpox \cup \lt \cup \xvarsc)$
+$\aPS$ is \Seq\ if  $\acylic(\rpox \cup \lt \cup \xeco)$
 \end{definition}
 We argue that \Seq\ is an accurate measure of sequential consistency.  
 
@@ -156,11 +215,11 @@ Let $\aPS \in \sem{\aCmd}$ be a generator.
 If $\aPS$ does not have a race, $\aPS$ is \Seq.
 \end{theorem}
 \begin{proof}
-We first show that if $\aPS$ is not \Seq, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \lt \cup \xvarsc$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
+We first show that if $\aPS$ is not \Seq, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \lt \cup \xeco$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
 If for all $i$, $\aEv'_i  \xhb \aEv'_{i+1}$, then the above is a cycle in $\rhb$, which is a contradiction.
 So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There are two cases to consider.
 \begin{itemize}
-\item $\aEv'_i  \xvarsc \aEv'_{i+1}$.   In this case, there is a race.
+\item $\aEv'_i  \xeco \aEv'_{i+1}$.   In this case, there is a race.
 \item  $\aEv'_i  \lt \aEv'_{i+1}$.  In this case, using lemma~\ref{pargen}, we deduce that $\aEv'_i$ is a write and $\aEv'_{i+1}$ is a conflicting read, so there is a race. 
 \end{itemize}
 
@@ -169,9 +228,9 @@ So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There 
 Let $\aPS \in \sem{\aCmd}$ be a generator.   If $\aPS$ has a race, then there exists $\bPS\in \sem{\aCmd}$ that demonstrates the race.
 \end{theorem}
 \begin{proof}
-For generators $\aPS$ of $\sem{\aCmd}$, we define a size $|\aPS|$ as follows: $|\aPS|$ is the sum of the number of events in $\aPS$ and $|\rird_{\aPS}|$ (the number of tuples in the relation $\rird$).    Since we are considering loop free programs, there is a generator $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $|\aCmd|$.  
+For generators $\aPS$ of $\sem{\aCmd}$, we define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is a generator $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
 
-We prove by induction on $|\aCmd| - |\bPS|$ that given $(\aPS, \bPS)$ such that:
+We prove by induction on $\size(\aCmd) - \size(\bPS)$ that given $(\aPS, \bPS)$ such that:
 \begin{itemize}
 \item $\bPS$ is \Seq\ 
 \item $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$ 
@@ -190,10 +249,42 @@ $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ such that:
 \[
 \begin{array}{lrl}
 \aEv_i \xpox\ \aEv'_i \\
-\aEv'_i \xpox\ \aEv'_{(i+1) \mod\ n}
+\aEv'_i \  (\gtN \cup \lt)  \ \aEv_{(i+1)\mod n}
 \end{array}
 \]
 
+If forall $i$, $\aEv_i \lt \aEv'_i$, then $\aEv_0 \gtN \aEv'_n \gtN \aEv_0$, which is a contradiction since by~\ref{pargen}, $\aEv_0, \aEv'_n$ are actions on the same location.  
+
+So, there is a $j$ such that $\aEv_j \not\lt \aEv'_j$.  There are two cases depending on $\aEv_{j}$.  
+
+The first case is when $\aEv_{j}$ is a read.  In this case, we construct $(\cPS,\dPS)$ such that:
+\begin{itemize}
+\item $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\gtN,\lt$ 
+\item $\cPS$ has a race
+\item $\size(\dPS) = \size(\bPS) + 1$
+\end{itemize}
+We use lemma~\ref{inputen} on the pomset $\aPS$ and read $\aEv_{j}$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to the hb read value.  $\dPS$  is derived from $\bPS$ by adding the modified read to it. We observe that:
+\begin{itemize}
+\item There is still a race between $\aEv'_{(j-1)\mod n}$ and the modified read $\aEv_{j}$.  
+
+\item $\bPS$ is still a prefix of $\cPS$ under all of $\xpox,\gtN,\lt$, since $\bPS$ is still a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$. 
+
+\item $\dPS$ is \Seq\  since $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$.
+\end{itemize}
+
+\end{proof}
+\endinput
+
+
+
+
+
+   change the value read in $\aEv_{j}$
+
+ Case (a): ej is a read.  
+                  Use Closure (a) change read to read a value from previous(ej)
+                  (e'(j-1), ej) race is unaffected.
+                  |Q| goes up
 
 \end{proof}
 
@@ -213,29 +304,9 @@ Def: Let P be a pomset.  e an event in P
    
 
 Closure properties:
-  a. Let P in [| C |].  Let e be a read, (R x v). v' chosen as any value.   
-           Then, there is a pomset Q in [| C |]
-                     there is a maximal event e' = (R x v'), for any v'
-                     Q agrees with P on P \ after(e)
+  a. 
 
-  b. Let P in [| C |] be minimal. 
-     Let e (resp. f) be writes on same var such that 
-               e not(s-->) f
-               e w--> f
-               no other write f' (on same var) such that:
-                      e w--> f' w--> f
-
-     Then, there is a minimal pomset Q in [| C |] 
-           Q only differs from P in weak order, such that 
-                f w--> e 
-           in Q
-    Proof: Only change the weak order.
-         Changes in Q:
-           (i)      f w-->e in r     
-          (ii)  For all reads r matched to e in P, change from;
-                    r w--> f to f w--> r
-         (iii) For all reads r matched to f in P, change from;           
-                    e w--> r to r w--> e
+  b. 
 
                     
 Def: 
@@ -295,17 +366,13 @@ Let  be the next events wrt po that are minimal wrt
                 ei   po  ei'
                 ei'  WPV-> e[(i+1) mod k]
 
-  If all  ei   po  ei' is such that
-           ei s--> ei'
-  we have a  cyclt in w--> on a SingltVar.  Contradiction.
+  
 
 
   So, there is an ej po ej' is such that not(ej s--> ej').  Choose:
 
   Case (a): ej is a read.  
-                  Use Closure (a) change read to read a value from previous(ej)
-                  (e'(j-1), ej) race is unaffected.
-                  |Q| goes up
+                  Use Closure (a) change read
 
   Case (b): ej is a write.
                  ej is hb minimal.
