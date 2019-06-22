@@ -101,8 +101,8 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
-\newcommand{\DRAcq}[2]{\mathsf{R_A}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\DWRel}[2]{\mathsf{W_R}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DRAcq}[2]{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DWRel}[2]{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,#2}}
 % \newcommand{\DRAcq}[2]{\mathsf{R_{acq}}\ifnotempty{#1}{\,#1\,#2}}
 % \newcommand{\DWRel}[2]{\mathsf{W_{rel}}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,#2}}
@@ -146,38 +146,43 @@
 
 \newcommand{\aPS}{P}
 \newcommand{\aPSS}{\mathcal{P}}
+%\newcommand{\bPS}{Q}
+\newcommand{\bPSS}{\mathcal{Q}}
 
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
 \newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\textit{SC}}}
 %\newcommand{\semsc}[1]{\textit{SC}\llbracket#1\rrbracket}
-\newcommand{\REL}{\mathsf{rel}\,}
-\newcommand{\ACQ}{\mathsf{acq}\,}
+\newcommand{\REL}{^{\mathsf{rel}}}
+\newcommand{\ACQ}{^{\mathsf{acq}}}
 \newcommand{\FENCE}{\texttt{fence}}
 \newcommand{\BEGIN}{\texttt{begin}}
 \newcommand{\COMMIT}{\texttt{commit}}
-\newcommand{\RECOVERY}{\texttt{onabort}\,\{}
-\newcommand{\ENDREC}{\,\}}
+\newcommand{\RECOVERY}{\texttt{onabort}\texttt{\{}}
+\newcommand{\ENDREC}{\texttt{\}}}
 \newcommand{\BEGINVAL}{\BEGIN\,\aVal}
 \newcommand{\COMMITVAL}{\COMMIT\,\aVal}
-\newcommand{\RECOVERYVAL}{\texttt{onabort}\,\aVal\,\{\,}
+\newcommand{\RECOVERYVAL}{\texttt{onabort}\,\aVal\texttt{\{}}
 \newcommand{\END}{\texttt{end}}
 \newcommand{\SKIP}{\texttt{skip}}
 \newcommand{\GETS}{\texttt{:}\mkern-1mu\texttt{=}\,}
 \newcommand{\SEQ}{\texttt{;}\,}
 \newcommand{\SEMI}{\texttt{;}\,}
-\newcommand{\IF}[1]{\texttt{if}\,#1}
+\newcommand{\IF}[1]{\texttt{if}\texttt{(}#1\texttt{)}}
 \newcommand{\PASS}{\texttt{pass}}
 \newcommand{\WHILE}{\texttt{while}\,}
-\newcommand{\DO}[1]{\texttt{do}\,\{#1\}\,}
-\newcommand{\THEN}{\allowbreak\,\{\,}
-\newcommand{\ELSE}{\,\}\,\allowbreak\texttt{else}\allowbreak\,\{\,}
-\newcommand{\ELIF}{\,\}\,\allowbreak\texttt{else}\allowbreak\,\texttt{if}\,}
-\newcommand{\brELSE}{\,\}\\\texttt{else}\,\{\,}
-\newcommand{\brELIF}{\,\}\\\texttt{else}\,\texttt{if}\,}
-\newcommand{\FI}{\,\}}
+\newcommand{\DO}[1]{\texttt{do}\texttt{\{}#1\texttt{\}}}
+\newcommand{\THEN}{\allowbreak\texttt{\{}}
+\newcommand{\ELSE}{\texttt{\}}\,\allowbreak\texttt{else}\allowbreak\,\texttt{\{}}
+\newcommand{\ELIF}[1]{\ELSE\IF{#1}}
+\newcommand{\brELSE}{\texttt{\}}\\\texttt{else}\,\texttt{\{}}
+\newcommand{\brELIF}[1]{\texttt{\}}\\\texttt{else}\,\IF{#1}}
+\newcommand{\FI}{\texttt{\}}}
 \newcommand{\PAR}{\,\mathbin{\|}\,}
 \newcommand{\VAR}{\texttt{var}\,}
 \newcommand{\TOUCHED}{\texttt{touched}\,}
+\newcommand{\REF}[1]{\texttt{[}#1\texttt{]}}
+\newcommand{\REFAcq}[1]{\REF{#1}^{\texttt{acq}}}
+\newcommand{\REFRel}[1]{\REF{#1}^{\texttt{rel}}}
 
 \newcommand{\CANREAD}{\texttt{canRead}}
 \newcommand{\SEC}{\texttt{SECRET}}

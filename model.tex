@@ -35,6 +35,70 @@ Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 
 \section{Model}
 \label{sec:model}
+
+\subsection{3-valued pomsets}
+\label{sec:pomsets}
+
+Structures similar to 3-valued pomsets have come up in many guises, for example
+rough sets~\cite{Pawlak1982} or ultrametrics over
+$\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
+\emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
+They are the notion of pomset given by interpreting
+$\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
+
+
+\begin{definition}
+  A \emph{3-valued pomset} with alphabet $\Alphabet$ is tuple $(\Event,
+  {\le}, {\gtN}, \labeling)$, such that 
+  \begin{itemize}
+  \item $\Event$ is a set of \emph{states},
+  %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
+  \item $\labeling: \Event \fun \Alphabet$ is a \emph{labeling},
+  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
+    % \begin{enumerate}
+    % \item $\aEv \le \aEv$,
+    % \item if $\bEv \le \aEv$ and $\aEv \le \bEv$ then $\bEv = \aEv$,
+    %   \\(this follows from 5a and 5b)
+    % \item if $\cEv \le \bEv \le \aEv$ then $\cEv \le \aEv$, and
+    % \end{enumerate}
+  \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
+    \begin{itemize}
+    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
+    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
+    \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
+    \end{itemize}
+\end{itemize}
+\end{definition}
+Note that $\gtN$ is reflexive.
+
+
+We visualize a pomset as a graph where the nodes are drawn from
+$\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$,
+and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
+$\bEv\le\aEv$. For example:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{rx1}{\DR{\aLoc}{1}}{}
+  \event{wy0}{\DW{\bLoc}{0}}{right=of rx1}
+  \event{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \po{rx1}{wy0}
+  \po[out=30,in=150]{rx1}{wy1}
+\end{tikzpicture}\]
+is a visualization of the pomset where:
+\[\begin{array}{c}
+  E = \{ 0,1,2 \} \quad
+  0 \le 1 \quad
+  0 \le 2 \quad
+  \labeling(0) = \DR{\aLoc}{1}) \\
+  \labeling(1) = \DW{\bLoc}{0}) \quad
+  \labeling(2) = \DW{\bLoc}{1}) \quad
+\end{array}\]
+We visualize $(\bEv \gtN \aEv)$ as a dashed
+arrow from $\bEv$ to $\aEv$.
+We refer to edges introduced by $(\bEv \lt \aEv)$ as
+\emph{strong edges} and by $(\bEv \gtN \aEv)$
+as \emph{weak edges}.
+
+
 \subsection{Data models}
 \label{sec:preliminaries}
 
@@ -46,20 +110,24 @@ A \emph{data model} consists of:
   $\aReg$ and $\bReg$,
 \item a set of \emph{expressions} $\Exp$, ranged over by
   $\aExp$ and $\bExp$,
-\item a set of \emph{memory locations} $\Loc$, ranged over by
-  $\aLoc$ and $\bLoc$,
+\item a set of \emph{memory locations}, ranged over by $\aLoc$ and
+  $\bLoc$.
 \item a set of \emph{logical formulae} $\Formulae$, ranged over by
   $\aForm$ and $\bForm$, and
-\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$,
+\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$.
 \end{itemize}
-Let $\aSub$ range over substitutions of the form $\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
+
+Let $\aSub$ range over substitutions of the form
+$\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
 \item values include at least the constants $0$ and $1$,
+\item memory locations are tagged values of the form $\REF{\aVal}$,
 \item expressions include at least registers and values,
 \item expressions do not include memory locations,
-\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form $(\aExp=\bExp)$,
+\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
+  $(\aExp=\bExp)$ and $(\aExp=\bExp)$,
 \item formulae are closed under negation, conjunction, disjunction, and
   substitution, 
 \item there is a relation $\vDash$ between formulae, 
@@ -99,9 +167,7 @@ $\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$, and that
 $\aForm$ is \emph{independent of $\aLoc$} whenever
 $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
 
-
-\subsection{3-valued pomsets}
-\label{sec:pomsets}
+\subsection{3-valued pomsets with preconditions}
 
 We fix the alphabet $\Alphabet=(\Formulae\times\Act)$.  We write pairs in
 $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide $\aForm$ when
@@ -113,94 +179,64 @@ In this paper, we are not investigating speculative execution.  So we make
 the global assumption formulae can only get stronger in dependent actions:
 
 \begin{definition}
-  A \emph{(3-valued) pomset} with alphabet $\Alphabet$ is tuple $(\Event,
-  {\le}, {\gtN}, \labeling)$, such that 
-  \begin{itemize}
-  \item $\Event$ is a set of \emph{states},
-  %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
-  \item $\labeling: \Event \fun \Alphabet$ is a \emph{labeling},
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
-    % \begin{enumerate}
-    % \item $\aEv \le \aEv$,
-    % \item if $\bEv \le \aEv$ and $\aEv \le \bEv$ then $\bEv = \aEv$,
-    %   \\(this follows from 5a and 5b)
-    % \item if $\cEv \le \bEv \le \aEv$ then $\cEv \le \aEv$, and
-    % \end{enumerate}
-  \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
-    \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
-    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
-    \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
-    \end{itemize}
-  \item if $\bEv\lt\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$.
-\end{itemize}
+  A \emph{3-valued pomset with preconditions} is a 3-valued pomset such
+  that $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
+  $\bEv\lt\aEv$.
 \end{definition}
-In the remainder of the paper, we drop the prefix ``3-valued'', referring to
-3-valued pomsets simply as \emph{pomsets}.
 
-Don't require that $\gtN$ is transitive:
-\[\begin{array}{l}
-  x\GETS0\SEMI x\GETS 1
-  \PAR
-  y\GETS0\SEMI y\GETS 1
- \\{}
-  \PAR
-  IF x\SEMI r_2\GETS y
-  \PAR
-  s_1\GETS y\SEMI s_2\GETS x
-\end{array}\]
-which includes the execution:
-\[\begin{tikzpicture}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
-  \event{wy1}{\DW{y}{1}}{right=of wy0}
-  \event{ry1}{\DR{y}{1}}{below=4ex of wx0}
-  \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \event{rx1}{\DR{x}{1}}{right=2.5 em of rx0}
-  \event{ry0}{\DR{y}{0}}{right=of rx1}
-  \wk{wx0}{wx1}
-  \wk{wy0}{wy1}
-  \rf{wx1}{rx1}
-  \rf{wy0}{ry0}
-  \rf[out=210,in=30]{wy1}{ry1}
-  \rf{wx0}{rx0}
-  \wk{rx0}{wx1}
-  \wk{ry0}{wy1}
-\end{tikzpicture}\]
-
+In the remainder of the paper, we refer to 3-valued pomsets with
+preconditions simply as \emph{pomsets}.
 
 We lift terminology from logical formulae and actions to events, for example
 if $\labeling(\aEv)=(\aForm\mid\aAct)$ then we say $\aEv$ is unsatisfiable
 whenever $\aForm$ is unsatisfiable, $\aEv$ writes $\aVal$ to $\aLoc$ whenever
 $\aAct$ writes $\aVal$ to $\aLoc$, and so forth.
 
-We visualize a pomset as a graph where the nodes are drawn from
-$\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$,
-and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
-$\bEv\le\aEv$. For example:
-\[\begin{tikzpicture}[node distance=1em]
-  \event{rx1}{\DR{\aLoc}{1}}{}
-  \nonevent{wy0}{\DW{\bLoc}{0}}{right=of rx1}
-  \event{wy1}{\DW{\bLoc}{1}}{right=of wy0}
-  \po{rx1}{wy0}
-  \po[out=30,in=150]{rx1}{wy1}
-\end{tikzpicture}\]
-is a visualization of the pomset where:
-\[\begin{array}{c}
-  E = \{ 0,1,2 \} \quad
-  0 \le 1 \quad
-  0 \le 2 \quad
-  \labeling(0) = (\TRUE, \DR{\aLoc}{1}) \\
-  \labeling(1) = (\FALSE, \DW{\bLoc}{0}) \quad
-  \labeling(2) = (\TRUE, \DW{\bLoc}{1}) \quad
-\end{array}\]
-We visualize $(\bEv \gtN \aEv)$ as a dashed
-arrow from $\bEv$ to $\aEv$.
-We refer to edges introduced by $(\bEv \lt \aEv)$ as
-\emph{strong edges} and by $(\bEv \gtN \aEv)$
-as \emph{weak edges}.
+
+% Restriction also filters a set of pomsets; we have
+% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% The definition requires that we define
+% when a read is possible.
+
+% \begin{definition}\label{def:rf}
+%   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
+%   \begin{itemize}
+%   \item $\bEv \lt \aEv$,  
+%   \item $\aEv$ implies $\bEv$,
+%   \item $\bEv$ writes $\aVal$ to $\aLoc$,
+%     and $\aEv$ reads $\aVal$ from $\aLoc$, and
+%   \item if $\cEv$ writes to $\aLoc$
+%     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+%   \end{itemize}
+% \end{definition}
+
+A top-level, we expect the use of each variable to be \emph{closed} and \emph{coherent}.
+
+\begin{definition}
+\label{def:x-closed}
+  A pomset is \emph{$\aLoc$-closed} if, for every $\aEv\in\Event$:
+  \begin{itemize}
+  \item $\aEv$ is independent of $\aLoc$, and
+  \item if $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
+    % $\aEv$ can read $\aLoc$ from $\bEv$.
+  \begin{itemize}
+  \item $\bEv \lt \aEv$,  
+  %\item $\aEv$ implies $\bEv$,
+  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
+  \item if $\cEv$ writes to $\aLoc$
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}    
+  % \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a synchronization or there is
+  %   some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
+  \end{itemize}
+  A pomset is $\aLoc$-\emph{coherent} if, when restricted to events which
+  touch $\aLoc$, $\gtN$ forms a partial order.
+\end{definition}
+% Our model of reads-from is strong, and could be weakened by replacing the
+% requirement $\bEv\lt\aEv$ % in Definition~\ref{def:rf}
+% by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
+
+
 For readability, we often highlight the reads-from edges as well.
 % for example:
 For example:
@@ -214,21 +250,114 @@ For example:
   \wk{rx1}{wx2}
 \end{tikzpicture}\]
 
+
+Need to forbid cycles in $\gtN$ per location:
+\[
+  \IF{x\EQ1}\THEN r\GETS x \FI
+  \PAR
+  x\GETS 1
+  \PAR
+  x\GETS2
+  \PAR
+  \IF{x\EQ2}\THEN s\GETS x \FI
+\]
+which includes the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{wx2}{\DW{x}{2}}{below=of wx1}
+  \event{rx1a}{\DR{x}{1}}{left=of wx1}
+  \event{rx2a}{\DR{x}{2}}{left=of wx2}
+  \event{rx1b}{\DR{x}{1}}{right=of wx1}
+  \event{rx2b}{\DR{x}{2}}{right=of wx2}
+  \po{rx1a}{rx2a}
+  \po{rx2b}{rx1b}
+  \rf{wx1}{rx1a}
+  \rf{wx1}{rx1b}
+  \rf{wx2}{rx2a}
+  \rf{wx2}{rx2b}
+  \wk{rx1a}{wx2}
+  \wk{rx2a}{wx1}
+  \wk{rx1b}{wx2}
+  \wk{rx2b}{wx1}
+\end{tikzpicture}\]
+This satisfies the requirements for $x$-closure, but is not coherent.
+
+With the restrictions in $x$-closure, is forbidding cycles forces an order
+between any writes that are read from:
+\[
+  x\GETS 3
+  \PAR
+  \IF{x\EQ1}\THEN r\GETS x \FI
+  \PAR
+  x\GETS 1
+  \PAR
+  x\GETS2
+\]
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{wx2}{\DW{x}{2}}{below=of wx1}
+  \event{rx1a}{\DR{x}{1}}{left=of wx1}
+  \event{rx2a}{\DR{x}{2}}{left=of wx2}
+  \po{rx1a}{rx2a}
+  \rf{wx1}{rx1a}
+  \rf{wx2}{rx2a}
+  \wk{rx1a}{wx2}
+  \wk{wx1}{wx2}
+  \event{wx3}{\DW{x}{3}}{below left=-.2em and 1em of rx1a}
+  \wk{rx1a}{wx3}
+  \wk{rx2a}{wx3}
+\end{tikzpicture}\]
+
+
+Across variables, however, cycles in $\gtN$ arise naturally in non-multicopy
+atomic examples, such as IRIW.
+\[\begin{array}{rl}
+  &x\GETS0\SEMI x\GETS 1
+  \PAR
+  \IF{x}\THEN r\GETS y \FI
+ \\{}
+  \PAR&
+  y\GETS0\SEMI y\GETS 1
+  \PAR
+  \IF{y}\THEN s\GETS x \FI
+\end{array}\]
+which includes the execution:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy0}{\DW{y}{0}}{below=4ex of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of wy0}
+  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+  \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \wk{wx0}{wx1}
+  \wk{wy0}{wy1}
+  \rf{wx1}{rx1}
+  \rf[bend left]{wy0}{ry0}
+  \rf{wy1}{ry1}
+  \rf[bend right]{wx0}{rx0}
+  \wk{rx0}{wx1}
+  \wk{ry0}{wy1}
+  \po{rx1}{ry0}
+  \po{ry1}{rx0}
+\end{tikzpicture}\]
+
 \subsection{Semantics of programs}
 \label{sec:semantics}
 
 \begin{figure*}
 \begin{eqnarray*}
-  \sem{[\bExp]\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\; \textstyle\bigcup_\aVal\;
-  \bigl(([\bExp]=\aLoc \land \aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\aReg\GETS[\bExp]\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\;
-  ([\bExp]=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
   \sem{\SKIP} & = & \{ \emptyset \} \\
   \sem{\FENCE\SEMI \aCmd} & = & (\DF{}) \prefix \sem{\aCmd} \\
-  \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
+  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\; \textstyle\bigcup_\aVal\; \bigl((\REF{\bExp}=\aLoc \land \aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  \sem{\REFRel{\bExp}\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\; \textstyle\bigcup_\aVal\; \bigl((\REF{\bExp}=\aLoc \land \aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
+  \sem{\aReg\GETS\REFAcq{\bExp}\SEMI \aCmd} & = & \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
+  % \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
+  % \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
   \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel \sem{\bCmd} \\
   \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
@@ -242,10 +371,10 @@ We consider a simple shared-memory concurrent language, with statements defined 
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
 \BNFSEP \FENCE\SEMI \aCmd
-\BNFSEP \aLoc\GETS\aExp\SEMI \aCmd
-\BNFSEP \REL\aLoc\GETS\aExp\SEMI \aCmd
-\BNFSEP \aReg\GETS\aLoc\SEMI \aCmd
-\BNFSEP \ACQ\aReg\GETS\aLoc\SEMI \aCmd \\
+\BNFSEP \REF{\bExp}\GETS\aExp\SEMI \aCmd
+\BNFSEP \REF{\bExp}\REL\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\REF{\bExp}\SEMI \aCmd
+\BNFSEP \aReg\GETS\REF{\bExp}\ACQ\SEMI \aCmd \\
 \BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
@@ -276,36 +405,31 @@ $\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
 expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
 $\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, the sets of
 pomsets given by our semantics \emph{are} closed with respect to
-isomorphism and augmentation.
+isomorphism, augmentation and implication:
 
-NOTE: because augment closed, any event can go false, and we kill everything
-after it, so that means we do get a kind of prefix closure.
-
- 
 \begin{definition}
   $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that
-  % \begin{itemize}
-  % \item
-  $\labeling(\aEv)=\labeling'(f(\aEv))$,
-  % \item
-  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$, and
-  % \item
-  $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
-  % \end{itemize}
+  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$,
+  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$, and $\aEv\gtN\bEv$ iff
+  $f(\aEv)\gtN'f(\bEv)$.
+
+  $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
+  ${\labeling'}={\labeling}$, ${\le'}\supseteq{\le}$, and
+  ${\gtN'}\supseteq{\gtN}$.
+
+  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  ${\gtN'}={\gtN}$, $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
 \end{definition}
-Augmentation may create additional order and strengthening
-preconditions.
-\begin{definition}
-  $\aPS'$ is an augmentation of $\aPS$ if $\Event'=\Event$,
-  ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
-  ${\gtN}\subseteq{\gtN'}$, %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$, 
-  $\labelingAct'=\labelingAct$, and %$\labelingAct'(\aEv)=\labelingAct(\aEv)$ and
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
-  % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then
-  % $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
-  % $\bForm$.
-\end{definition}
+NOTE: because implication closed, any event can go false, and we kill everything
+after it, so that means we do get a kind of prefix closure.
+% \begin{definition}
+%   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
+%   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
+%   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
+%   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+%   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
+% \end{definition}
 
 We give the semantics using combinators over sets of pomsets, defined below.
 Using $\aPSS$ to range over sets of pomsets, these are:
@@ -314,9 +438,9 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   every precondition of $\aPSS$,
 \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
   keeping pomsets whose events have preconditions that imply $\aForm$,
-\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
-  only pomsets where every event $\aEv$ that reads from $\aLoc$ can read from
-  some $\bEv$ and where no precondition can depend on $\aLoc$,
+\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to
+  include only pomsets where every event $\aEv$ that reads from $\aLoc$ can
+  read from some $\bEv$ and where no precondition can depend on $\aLoc$,
 \item \emph{composition} $\aPSS^1\parallel\aPSS^2$, which unions pomsets from
   $\aPSS^1$ and $\aPSS^2$, allowing events to be merged, and
 \item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
@@ -338,11 +462,24 @@ speculative evaluation.
 % We have completed the formal definition of our model of speculative
 % evaluation, and now turn to examples.
 
-\subsubsection{Substitution and Guarding} 
+%\subsubsection{Substitution and Guarding} 
 
-Substitution updates the preconditions in a pomset, thus we expect the number
-of pomsets to be unchanged; in addition, the number of events in each of the
-pomsets is unchanged.
+% Substitution updates the preconditions in a pomset, thus we expect the number
+% of pomsets to be unchanged; in addition, the number of events in each of the
+% pomsets is unchanged.
+
+% Guarding and restriction filter a set of pomsets; we have
+% $(\aForm\guard\aPSS)\subseteq\aPSS$ and
+% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+
+The definitions of substitution, guarding and restriction are
+straightforward\footnote{We have chosen the definition of restriction for its
+  simplicity.  It is worth noting, however, that our definition does not
+  support renaming of variables.  In particular
+  $(\nu\aLoc\st\aPSS\parallel(\nu\aLoc\st\bPSS))$ is generally not the same
+  as $(\nu\aLoc\st\aPSS\parallel(\nu\bLoc\st\bPSS[\bLoc/\aLoc]))$.  To
+  support renaming, $(\nu\aLoc\st\aPSS)$ would need to either remove or
+  relabel events that mention $\aLoc$.}:
 \begin{definition}
   %For a substitution $\aSub$, of the form $[\aLoc/\aReg]$ or $[\bExp/\aLoc]$,
   Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
@@ -351,89 +488,52 @@ $\Event' = \Event$,
 ${\le'} = {\le}$, 
 ${\gtN'} = {\gtN}$,
 and
-$\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$, where $\labeling(\aEv) = (\bForm \mid \aAct)$.
+$\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aAct)$ then $\labeling'(\aEv) =
 %   (\bForm\aSub \mid \aAct)$, and
 % \item if $\labeling(\aEv) = (\bForm \mid \aSub)$ then $\labeling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
 %\end{itemize}
-\end{definition}
 
-Guarding filters a set of pomsets; we have
-$(\aForm\guard\aPSS)\subseteq\aPSS$.
-The definition is straightforward:
-\begin{definition}
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-$\aForm$ implies $\labelingForm(\aEv)$ if $\labelingAct(\aEv)$ writes.
+$\aForm$ implies $\labelingForm(\aEv)$ for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
+
+  Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+  and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
 \end{definition}
-Note that this liberalization allows reads more flexibility.  This is
-desirable in the language and architectural models, but not necessarily in
-microarchitectural models where reads are visible.
-
-\subsubsection{Restriction}
-\label{sec:restriction}
-
-\begin{definition}
-  A 3-valued pomset is $\aLoc$-\emph{coherent}
-  if, when restricted to events which touch $\aLoc$,
-  $\gtN$ forms a total order.
-\end{definition}
-
-% Restriction also filters a set of pomsets; we have
-% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
-% The definition requires that we define
-% when a read is possible.
-
-\begin{definition}\label{def:rf}
-  In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
-  \begin{itemize}
-  \item $\bEv \lt \aEv$,  
-  \item $\aEv$ implies $\bEv$,
-  \item $\bEv$ writes $\aVal$ to $\aLoc$,
-    and $\aEv$ reads $\aVal$ from $\aLoc$, and
-  \item if $\cEv$ writes to $\aLoc$
-    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}
-\end{definition}
+% Note that this liberalization allows reads more flexibility.  This is
+% desirable in the language and architectural models, but not necessarily in
+% microarchitectural models where reads are visible.
 
 
-\begin{definition}
-\label{def:x-closed}
-A pomset is $\aLoc$-closed if, for every $\aEv\in\Event$:
-  \begin{itemize}
-  \item $\aEv$ is independent of $\aLoc$, and
-  \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$
-    can read $\aLoc$ from $\bEv$,
-  \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a synchronization or there is
-    some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
-  \end{itemize}
-\end{definition}
-% Our model of reads-from is strong, and could be weakened by replacing the
-% requirement $\bEv\lt\aEv$ % in Definition~\ref{def:rf}
-% by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
+% \subsubsection{Restriction}
+% \label{sec:restriction}
 
-We say that $\aPS' = \aPS\restrict{\Event'}$ when 
- $\Event' \subseteq \Event$,
- ${\labeling'} = {\labeling}\restrict{\Event'}$, 
- ${\le'} = {\le}\restrict{\Event'}$, and
- ${\gtN'} = {\gtN}\restrict{\Event'}$.
 
-\begin{definition}
-  Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  whenever there is $\aPS\in\aPSS$ such that $\aPS' = \aPS\restrict{\Event'}$
-  and $\aPS'$ is $\aLoc$-coherent and $\aLoc$-closed.
-  % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-  % \begin{itemize}
-  % \item $\aEv$ is independent of $\aLoc$, and
-  % \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
-  % \end{itemize}
-\end{definition}
-This definition throws away useless writes.
+% We say that $\aPS' = \aPS\restrict{\Event'}$ when 
+%  $\Event' \subseteq \Event$,
+%  ${\labeling'} = {\labeling}\restrict{\Event'}$, 
+%  ${\le'} = {\le}\restrict{\Event'}$, and
+%  ${\gtN'} = {\gtN}\restrict{\Event'}$.
 
-\subsubsection{Composition}
+% \begin{definition}
+%   Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+%   and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
+%   % Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+%   % whenever there is $\aPS\in\aPSS$ such that $\aPS' = \aPS\restrict{\Event'}$
+%   % and $\aPS'$ is $\aLoc$-coherent and $\aLoc$-closed.
+%   % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+%   % \begin{itemize}
+%   % \item $\aEv$ is independent of $\aLoc$, and
+%   % \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
+%   % \end{itemize}
+% \end{definition}
+%This definition throws away useless writes.
+
+%\subsubsection{Composition}
 Composition is used in giving the semantics for conditionals and concurrency.
 $\aPSS^1 \parallel \aPSS^2$ contains the union of pomsets from $\aPSS^1$ and
 $\aPSS^2$, allowing overlap as long as they agree on actions. For example, if
@@ -512,7 +612,7 @@ whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that:
 % \end{tikzpicture}\]
 
 
-\subsubsection{Prefixing}
+%\subsubsection{Prefixing}
 Prefixing is used in giving the semantics of reads and writes.
 $\aAct\prefix\aPSS$ adds a new event $\cEv$ with action $\aAct$ to each
 pomset in $\aPSS$.  As in the definition of parallel composition, the
@@ -589,12 +689,12 @@ there is $\aPS\in\aPSS$ such that:
 \item if $\aAct$ reads $\aVal$ from $\aLoc$ then
    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
 \item if $\aAct$ is an acquire then $\labelingForm'(\aEv)$ is independent of every $\bLoc$,
-\item if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, 
+\item if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, and
 \item if $\aAct$ and $\labelingAct(\aEv)$ both touch the same location and one is a write,
-    then $\cEv \gtN' \aEv$, and
-\item if $\aAct$ is a read but not a synchronization then either
-  $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
-  that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
+    then $\cEv \gtN' \aEv$.
+% \item if $\aAct$ is a read but not a synchronization then either
+%   $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
+%   that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
 % \item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =
 %   (\bForm' \mid \bAct)$, where:
 %   \begin{itemize}
@@ -613,11 +713,11 @@ there is $\aPS\in\aPSS$ such that:
 %   \end{itemize}
 \end{enumerate}
 \end{definition}
-The last condition ensures that useless reads are not included.
-Otherwise, $\labelingForm'(\cEv)$ is unconstrained.
+% The last condition ensures that useless reads are not included.
+% Otherwise, $\labelingForm'(\cEv)$ is unconstrained.
 
-In order to keep augmentation closure, we need to keep the unsatisfiable
-elements in the set of pomsets.
+% In order to keep augmentation closure, we need to keep the unsatisfiable
+% elements in the set of pomsets.
 
 
 \begin{comment}

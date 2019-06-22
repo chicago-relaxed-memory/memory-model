@@ -213,7 +213,7 @@ which is a contradiction.
 To see the need for the first constraint on prefixing, consider the program:
 \[
   \VAR x\GETS0\SEMI \VAR f\GETS0\SEMI
-  (x\GETS 1\SEMI \REL f\GETS1 \PAR \ACQ r\GETS f; s\GETS x)
+  (x\GETS 1\SEMI f \REL\GETS1 \PAR \ACQ r\GETS f; s\GETS x)
 \]
 This has an execution:
 \[\begin{tikzpicture}[node distance=1em]

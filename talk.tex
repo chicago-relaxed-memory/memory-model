@@ -173,8 +173,8 @@
   A very simplified Spectre attack:
   \[\begin{array}{l}
     \IF{\CANREAD(\SEC)} \THEN a[\SEC]\GETS1
-    \brELIF \TOUCHED(a[0]) \THEN x\GETS0 
-    \brELIF \TOUCHED(a[1]) \THEN x\GETS1 \FI 
+    \brELIF{\TOUCHED(a[0])} \THEN x\GETS0 
+    \brELIF{\TOUCHED(a[1])} \THEN x\GETS1 \FI 
   \end{array}\]
   with execution
 \[\begin{tikzpicture}[node distance=1em]
@@ -220,7 +220,7 @@
   & \PAR
   & \begin{array}[t]{@{}l}
     \IF{y\EQ0}\THEN x\GETS1
-    \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
+    \brELIF{\CANREAD(\SEC)}\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\end{array}\]
 
@@ -676,8 +676,8 @@ if canRead(SECRET) {
   A very simplified Spectre attack:
   \[\begin{array}{l}
     \IF{\CANREAD(\SEC)} \THEN a[\SEC]\GETS1
-    \brELIF \TOUCHED(a[0]) \THEN x\GETS0 
-    \brELIF \TOUCHED(a[1]) \THEN x\GETS1 \FI 
+    \brELIF{\TOUCHED(a[0])} \THEN x\GETS0 
+    \brELIF{\TOUCHED(a[1])} \THEN x\GETS1 \FI 
   \end{array}\]
   \pause
   e.g.~with execution
@@ -775,7 +775,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
     \IF{y\EQ0}\THEN x\GETS1
-    \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
+    \brELIF{\CANREAD(\SEC)}\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\end{array}\]
 

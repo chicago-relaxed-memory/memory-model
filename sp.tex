@@ -1589,8 +1589,8 @@ implemented using timing attacks on the cache). For example,
 we can model Spectre by:
 \[\begin{array}{l}
   \VAR a\SEMI \IF{\CANREAD(\SEC})\THEN a[\SEC]\GETS1
-  \brELIF(\TOUCHED a[0])\THEN x\GETS0
-  \brELIF(\TOUCHED a[1])\THEN x\GETS1 \FI
+  \brELIF{\TOUCHED a[0]}\THEN x\GETS0
+  \brELIF{\TOUCHED a[1]}\THEN x\GETS1 \FI
 \end{array}\]
 This is a low-security program, which is attempting to discover the
 value of a high-security variable $\SEC$. The low-security program
@@ -2161,7 +2161,7 @@ unexpected information flows. The attacker program is:
     y\GETS x
   \PAR\begin{array}[t]{@{}l}
     \IF{y\EQ0}\THEN x\GETS1
-    \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
+    \brELIF{\CANREAD(\SEC)}\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\end{array}\]
 In the case where $\SEC$ is $2$, this has many executions,
@@ -2236,7 +2236,7 @@ since the same behavior can be exhibited by
 compiler optimizations. Consider the program fragment:
 \[\begin{array}{l}
     \IF{y = 0}\THEN x\GETS1
-    \brELIF(\CANREAD(\SEC))\THEN x\GETS\SEC
+    \brELIF{\CANREAD(\SEC)}\THEN x\GETS\SEC
     \brELSE x\GETS1\SEMI z\GETS1 \FI
 \end{array}\]
 In the case where \verb|SECRET| is a constant \verb|1|,
@@ -2245,7 +2245,7 @@ and lift the assignment to $x$ out of the $\IF{}$ statement:
 \[\begin{array}{l}
     x\GETS1\SEMI
     \IF{y = 0}\THEN
-    \brELIF(\CANREAD(\SEC))\THEN
+    \brELIF{\CANREAD(\SEC)}\THEN
     \brELSE z\GETS1 \FI
 \end{array}\]
 After this optimization, a sequentially consistent execution
@@ -3343,14 +3343,14 @@ The semantics of programs with releasing write and acquiring read are similar
 to regular write and read, with $\DWRel\aLoc\aVal$ replacing
 $\DW\aLoc\aVal$ and $\DRAcq\aLoc\aVal$ replacing $\DR\aLoc\aVal$:
 \begin{eqnarray*}
-  \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
-  \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \sem{\aLoc\REL\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+  \sem{\aReg\GETS\aLoc\ACQ\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
 \end{eqnarray*}
 
 To see the need for the first constraint on prefixing, consider the program:
 \[
   \VAR x\GETS0\SEMI \VAR f\GETS0\SEMI
-  (x\GETS 1\SEMI \REL f\GETS1 \PAR \ACQ r\GETS f; s\GETS x)
+  (x\GETS 1\SEMI f\REL\GETS1 \PAR r\GETS f\ACQ \SEMI s\GETS x)
 \]
 This has an execution:
 \[\begin{tikzpicture}[node distance=1em]
