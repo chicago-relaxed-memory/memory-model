@@ -58,6 +58,9 @@ $\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\a
  $ \aEv' \xeco  \bEv'$ if both $\aEv'$ and $\bEv'$ touch the same location, $\bEv' \gtN \aEv'$, and at least one of them is a write.  
 \end{definition}
 
+Since the program we consider are loop free, for any command $\aCmd$, the size of the pomsets in $\aCmd$ are bounded by a constant, that we denote by $\size(\aCmd)$.  
+ 
+
 \section{The semantics  of threads, explained}
 We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
 
@@ -66,17 +69,19 @@ Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClosed{\aCmd}$  a
 \begin{itemize}
 \item  If $\aEv\lt\bEv$ and $\aEv$ is a release or a write, then $\bEv$ is a release action.
 \item  If $\aEv\lt\bEv$ and $\bEv$ is an acquire or a read, then $\aEv$ is an acquire action.
-\item  If both $\aEv$ and $\bEv$ touch the same location and, then $\bEv \gtN \aEv$ or $\aEv \gtN \bEv$.
-\item  Let
-
-$\aEv \gtN \bEv$ if and only if $ \bEv [\lt \cup (\le; \reco;\le)] \aEv$. 
+%\item  If both $\aEv$ and $\bEv$ touch the same location and, 
+%then $\bEv \gtN \aEv$ or $\aEv \gtN \bEv$.
+% \item  $\aEv \gtN \bEv$ if and only if $ \aEv [\lt \cup (\le; \reco; 
+%\le)] \bEv$. 
             
 \end{itemize}
 \end{lemma}
 \begin{proof}
 The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  
 
-The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions. The only required $\gtN$ relationships arise from actions touch the same location and one of them is a write.   
+The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions. 
+% The only required $\gtN$ relationships arise from actions touch 
+% the same location and one of them is a write.   
 \end{proof}
 
 In particular, if there are no release or acquire actions in $\aCmd$:
@@ -111,11 +116,11 @@ Let $\aCmd$ be a synchronization free thread.   With every generator $\aPS$ of  
 \[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \lt \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
 Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\lt$.
 
-Similarly, given $\aFn \in \pomFn$, we can generate $\aPS$ as follows:
+Similarly, given $\aFn \in \pomFn$, we can generate $\aPS_{\aFn}$ as follows:
 \begin{itemize}
-\item There is a unique event of $\aPS$ for each element in $\aRSet_{\aFn}$ and $\aFn(\aRSet_{\aFn})$.  In the rest of this discussion, we conflate the event with its label.
+\item $\Event$, the set of events,  is induced by the actions in $\aRSet_{\aFn} \cup \aFn(\aRSet_{\aFn})$.  Each of these events are labeled with the evident actions, namely the read (resp. write) events are associated with  associated with the read (resp. write) actions.    In the rest of this discussion, we conflate the event with its label.
 \item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \lt \bEv$ for all $\aEv \in \min(\bEv)$
-\item $\aEv \gtN \bEv$ if $ \bEv\ (\lt \cup \le;\pi_2(\aFn(\aRSet_{\aFn})); \le) \  \aEv$.
+\item $\aEv \gtN \bEv$ if $ \aEv\ (\lt \cup \le;\pi_2(\aFn(\aRSet_{\aFn})); \le) \  \bEv$.
 \end{itemize}
 
 Examples??.  
@@ -127,15 +132,16 @@ b  r =x
    else      {y =2}
 
 \section{Generators for semantics of programs with parallel composition}
+All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$.  
+
 \begin{lemma}\label{pargen}
-Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  All generators $\aPS$  satisfy:
+Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
 
-\begin{itemize}
-\item  If $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd} \setminus \semClosed{\bCmd}$ and  $\bEv \in \semClosed{\bCmd} \setminus \semClosed{\aCmd}$, then there are $\aEv' \in \semClosed{\aCmd}, \bEv' \in \semClosed{\bCmd}$ such that 
-$\aEv \lt \aEv', \bEv' \lt \bEv$, 
-$\aEv'$ is a write, $\bEv'$ is a read, and $\bEv'$ reads-from $\aEv'$.
+Let $\aPS$  be any generator.  Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd} \setminus \semClosed{\bCmd}$ and  $\bEv \in \semClosed{\bCmd} \setminus \semClosed{\aCmd}$.  
 
-\item $\aEv \gtN \bEv$ only if $ \bEv  [\lt \cup (\le; \reco;\le)]  \aEv$.
+The,  then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
+% \item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)]  
+%\bEv$.
 
 % \item If $\aEv\lt\bEv$ and $\aEv, \bEv \in \semClosed{\aCmd}$, 
 %then there exists 
@@ -143,8 +149,6 @@ $\aEv'$ is a write, $\bEv'$ is a read, and $\bEv'$ reads-from $\aEv'$.
 %There exists a release action $\aEv'$ in $\sem{\aCmd}$, a 
 %matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $
 %\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
-\end{itemize}
-
 
 \end{lemma}
 
@@ -154,30 +158,57 @@ $\aEv'$ is a write, $\bEv'$ is a read, and $\bEv'$ reads-from $\aEv'$.
 Let $\aEv \in \aPS$.  Then:$ \aPS \after\ \aEv = \{ \bEv \mid \aEv \le \bEv \}$
 \end{definition}
 
+The semantics of read is ``input''-enabled, ie. it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt the $\reco$), even while  the races with existing independent writes are maintained. 
 \begin{lemma}\label{inputen}
 Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI
     \FENCE\SEMI
     (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
 Let $\aPS \in \semClosed{\aCmd}$.  
-Let $\aEv \in \aPS$ read from $\aLoc \in \vec{\aLoc}$, such that the matching write event $\bEv$ is in a race with $\aEv$ in $\aPS$. 
+Let $\aEv \in \aPS$ read from write event $\bEv$  on $\aLoc \in \vec{\aLoc}$.  Let $\neg(\bEv \xhb \aEv)$ in $\aPS$. 
 
- Then, there exists $\bPS \in \semClosed{\aCmd}$ such that:
+Then, there exists $\bPS \in \semClosed{\aCmd}$ such that:
 \begin{itemize}
-\item $(\exists \aEv' \in \Event_{\bPS})$ such that $\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
-\item $\aEv'$ reads from $\aLoc$, and the matching write event is not in a race with $\aEv'$ in $\bPS$
-\item $\aPS$ and $\bPS$ agree on the restrictions of $\le$ and $\gtN$ to $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv))$.
+%\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
+%\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
+%(\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
+\item $\aEv'$ reads from $\aLoc$, with matching write event $\bEv'$, such that $\bEv' \gtN \bEv$ in $\bPS$
+\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\bPS} \setminus  (\bPS\ \after\ \aEv)$  in  $\bPS$.  
+\end{itemize}
+\end{lemma}
+In particular, $\bEv,\bEv'$ are events of both $\aPS$ and $\bPS$, and  $\bPS$ continues to witness the race of $\aEv', \bEv$ in $\bPS$.   
+
+In the following lemma,  invert the $\reco$ relationship between a read and a write. 
+\begin{lemma}\label{removerw}
+ Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
+Let $\aPS \in \semClosed{\aCmd}$.   
+
+Let $\bEv \in \aPS$ be a write on $\aLoc$. 
+Let $\aEv_1, \ldots,\aEv_n \in \aPS$ be all the reads from $\aLoc \in \vec{\aLoc}$ such that for all $i$, $\aEv_i \xeco \bEv$ and $\neg(\aEv_i \lt \bEv)$.  
+
+Then, there exists $\bPS \in \semClosed{\aCmd}$ such that:
+\begin{itemize}
+%\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
+%\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
+%(\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
+\item  If $\aEv'$ reads from $\aLoc$ with matching write event $\bEv'$ in $\bPS$, and $\bEv' \gtN \bEv$ in $\bPS$ then $\bEv' \in 
+\Event_{\aPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$. 
+\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\bPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$  in  $\bPS$.  
 \end{itemize}
 \end{lemma}
 
-\begin{lemma}\label{cohsat}
-Let $\aPS \in \sem{\aCmd}$ be a generator.  Let $\bEv \gtN \aEv$ be writes to $\aLoc$ such that  forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\aEv \lt \cEv)$ and $\neg(\aEv \xpox \cEv) ]$. 
 
-Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that:
+The $\reco$ order between writes that are not related by $\lt$ can be reversed. 
+\begin{lemma}\label{cohww}
+Let $\aPS \in \sem{\aCmd}$ be a generator.  Let $\bEv, \aEv$ be a writes to $\aLoc$ such that:
 \begin{itemize}
-\item $\Event_{\aPS} = \Event_{\bPS}$
-\item $\le_{\aPS} = \le_{\bPS}$
-\item $\aEv \gtN \bEv$ in $\bPS$
+\item $\bEv\gtN \aEv$  
+\item forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\cEv \lt \aEv)$ and $\neg(\cEv \xpox \aEv)$
 \end{itemize}
+
+Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that $\Event_{\aPS} = \Event_{\bPS}$, $\le_{\aPS} = \le_{\bPS}$
+, and $\aEv \gtN \bEv$ in $\bPS$.
 \end{lemma}
 \begin{proof}
 We show how to interchange $\aEv, \bEv$ adjacent in $\gtN$, ie. we assume that  $\neg(\exists \cEv) \  \bEv \gtN \cEv \gtN \aEv$.  The full proof follows by induction.
@@ -191,24 +222,12 @@ Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can bui
 
 \end{proof}
 
-        
 
 \section{DRF Proof}
-
-\begin{definition}
-$ \aEv \xeco  \bEv$ if both $\aEv$ and $\bEv$ touch the same location, at least one is a write, and $\aEv \xird \bEv$  or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
-\end{definition}
-
 \begin{definition}
 $\aPS$ is \Seq\ if  $\acylic(\rpox \cup \lt \cup \xeco)$
 \end{definition}
-We argue that \Seq\ is an accurate measure of sequential consistency.  
-
-\begin{definition}
-$\aPS \in \sem{\aCmd}$ demonstrates a race if $\aPS$ is \Seq\ and  there is a race in $\aPS$.
-\end{definition}
-
-              
+\Seq\ is an accurate measure of sequential consistency.  Clearly, any total order that linearizes the acyclic relation is consistent with the dependency relation $\lt$ and the program order $\rpox$.  The consistency with $\xeco$ ensures that only the last write to a location is read in such a total order.  
 
 \begin{theorem}[DRF1]
 Let $\aPS \in \sem{\aCmd}$ be a generator.  
@@ -225,7 +244,7 @@ So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There 
 
 \end{proof}
 \begin{theorem}[DRF2]
-Let $\aPS \in \sem{\aCmd}$ be a generator.   If $\aPS$ has a race, then there exists $\bPS\in \sem{\aCmd}$ that demonstrates the race.
+Let $\aPS \in \sem{\aCmd}$ be a generator.   If $\aPS$ has a race, then there exists $\bPS\in \sem{\aCmd}$ such that $\bPS$ is \Seq\ and has a race.
 \end{theorem}
 \begin{proof}
 For generators $\aPS$ of $\sem{\aCmd}$, we define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is a generator $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
@@ -242,30 +261,90 @@ The required theorem follows by setting $\bPS$ to be the empty pomset.
 
 For the base case, $\bPS = |\aPS|$.  In this case, $\aPS$ is the required witness.
 
-Otherwise, consider a maximal prefix, extending $\bPS$, wrt to all of  $\xpox,\gtN,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
+Otherwise, consider a maximal \Seq\ prefix, extending $\bPS$, wrt to all of  $\rpox,\reco,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
 
-If not, $\bPS$ is already maximal.  Choose events in $\aPS \setminus \bPS$ that are minimal wrt the lexicographic ordering $\langle \xpox, \lt \rangle$.    Thus, there are events
-$\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ such that:
+If not, $\bPS$ is already maximal.  Consider the set of all events in $\aPS \setminus \bPS$ that are minimal wrt $\rhb$.  In particular, these events will also be minimal wrt $\rpox$.  
+
+If one of these events, say $\aEv$  is a write, we proceed as follows.   Using lemma~\ref{pargen} and $\rhb$-minimality of $\aEv$, we deduce that $\aEv$ is $\lt$-minimal .  Using lemma~\ref{removerw}, we build $\aPS_1$ from $\aPS$ without changing $\bPS$ to ensure that there are is no read $\bEv \in \aPS_1 \setminus \bPS$ such that $\bEv \xeco \aEv$.  Using lemma~\ref{cohww}, we build $\aPS_2$ from $\aPS_1$ without changing $\bPS$ to ensure that there are is no write $\bEv \in \aPS_2 \setminus \bPS$ such that $\bEv \xeco \aEv$.  Thus, $\aEv$ is $\reco$-minimal in $\aPS_2 \setminus \bPS$.  Result follows from induction hypothesis by considering $(\aPS_2,\bPS_1)$ where $\bPS_1$ is got from $\bPS$ by adding $\aEv$.  
+
+
+So, we can assume that  all events in $\aPS \setminus \bPS$, say $\aEv_0, \ldots, \aEv_n$  that are minimal wrt $\rhb$ are reads, and we have  events 
+$\aEv'_0, \aEv'_1, \ldots, \aEv'_n, \aEv_0$ such that:
 \[
 \begin{array}{lrl}
 \aEv_i \xpox\ \aEv'_i \\
-\aEv'_i \  (\gtN \cup \lt)  \ \aEv_{(i+1)\mod n}
+\aEv'_i \  (\reco\ \cup \lt)  \ \aEv_{(i+1)\mod n}
 \end{array}
 \]
+Let $\bEv$ be the matching write for $\aEv_{(i+1)\mod n}$. If $\bEv_i \in \bPS$bEv , then by $\reco$ prefix closure of $\bPS$, $\bEv \xeco\ \aEv'_i$ and $\aEv_{(i+1)\mod n} \reco\ \aEv'_i$, which is a contradiction to $\reco$ being a total order per location.  So, we can assume that $\aEv'_i \  \lt  \ \aEv_{(i+1)\mod n}$. 
 
-If there is a $j$ such that $\aEv_{j}$ is a write, $\aEv_{(j-1)\mod n}$ is also a write.  Since $\aEv_{j}$ is minimal in $\le$, we deduce that $\aEv_j \gtN \aEv_{(j-1)\mod n}$ and that the hypothesis of lemma~\ref{cohsat} are satisfied.  Thus, we can use lemma~\ref{cohsat} to construct $\aPS' \in \sem{C}$  such that $\aEv_{j}$ is also minimal in $\reco$.  Let $\bPS'$ be derived from $\bPS$ by adding $\aEv_j$.  Proof follows from inductive hypothesis by considering $(\aPS', \bPS')$.  
+We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and read $\aEv_{(i+1)\mod n}$ and write $\aEv'_i$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to a value from $\bPS$.  $\dPS$  is derived adding the modified read yielded by lemma~\ref{inputen} to $\bPS$.  Result follows by induction hypothesis since $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\lt, \reco$,  $\cPS$ has a race, and $\size(\dPS) = \size(\bPS) + 1$. 
+
+
+\end{proof}
+\endinput
+
+The proof of lemma~\ref{cohsat} yields the following two corollaries.
+\begin{corollary}\label{cohrw}
+Let $\aPS \in \sem{\aCmd}$ be a generator. Let 
+\begin{itemize}
+\item $\bEv'$ be a read from $\aLoc$ with matching write $\bEv$.  \item $\aEv$ be a write to $\aLoc$ such that  $\bEv' \gtN \aEv$.   \item Forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\bEv' \lt \cEv)$ and $\neg(\bEv \xpox \cEv) ]$
+\end{itemize}
+
+Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that $\Event_{\aPS} = \Event_{\bPS}$, $\le_{\aPS} = \le_{\bPS}$, and $\aEv \gtN \bEv'$ in $\bPS$.
+\end{corollary}
+\begin{corollary}\label{cohwr}
+Let $\aPS \in \sem{\aCmd}$ be a generator. Let 
+\begin{itemize}
+\item $\aEv'$  read from $\aLoc$ with matching write $\aEv$. 
+\item $\bEv$ be a  write to $\aLoc$ such that  $\bEv \gtN \aEv'$.  \item Forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$ and $\cEv \not= \aEv$,  it is the case that  $ \neg(\cEv \lt \aEv')$ and $\neg(\cEv \xpox \aEv) ]$. 
+\end{itemize}
+
+Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that:
+$\Event_{\aPS} = \Event_{\bPS}$, $\le_{\aPS} = \le_{\bPS}$, and 
+$\aEv' \gtN \bEv$ in $\bPS$.  
+
+\end{corollary}
+        
+
+===============good lemma. Not used. ==================
+
+
+
+
+
+
+
+ 
+
+We first consider the case when there is a $j$ such that 
+   $\aEv'_{(j-1)\mod n}  \gtN\ \aEv_{j}$ and $\aEv'_{(j-1)\mod n}  \not\lt  \ \aEv_{j}$.  We proceed by cases on the types of the two actions involved.
+\begin{itemize}
+\item Both are writes.  Since $\aEv_{j}$ is $\xpox$ and $\lt$ minimal, we deduce that forall writes $\cEv$ to $\aLoc \in \aPS \setminus \bPS$ such that  $ \aEv'_{(j-1)\mod n}  \gtN \cEv \gtN \aEv_{j} $,  it is the case that  $ \neg(\cEv \lt \aEv_j)$ and $\neg(\cEv \xpox \aEv_J) ]$.  So, the hypothesis of lemma~\ref{ww} apply.
+
+\item $\aEv'_{(j-1)\mod n}$ is a write and $\aEv_{j}$ is a read.  Since $\aEv_{j}$ is $\lt$  minimal, the matching write $\bEv$ is in $\bPS$.  But, that leads to a contradiction to closure of $\bPS$ under $\\gtN$ because because $\aEv'_{(j-1)\mod n} \gTn \bEv$.
+
+\item $\aEv'_{(j-1)\mod n}$ is a read and $\aEv_{j}$ is a write. Let $\bEv$ be the matching write to $\aEv'_{(j-1)\mod n}$.   Since $\aEv_{j}$ is $\xpox$ and $\lt$ minimal, we deduce that 
+
+If there is a read event $\aEv$ in this set, .   There 
+
+
+We construct $(\cPS,\dPS)$ such that:
+\begin{itemize}
+\item 
+\end{itemize}
+
+
+
+
+
+If there is a $j$ such that $\aEv_{j}$ is a write.  Since $\aEv_{j}$ is minimal in $\le$, we deduce that $\aEv_j \gtN \aEv_{(j-1)\mod n}$ and that the hypothesis of lemma~\ref{cohsat}  are satisfied.  Thus, we can use lemma~\ref{cohsat} to construct $\aPS' \in \sem{C}$  such that $\aEv_{j}$ is also minimal in $\reco$.  Let $\bPS'$ be derived from $\bPS$ by adding $\aEv_j$.  Proof follows from inductive hypothesis by considering $(\aPS', \bPS')$.  
 
 So, we are left with the case when $\aEv_i$ is a read forall $i$.  
 
 In this case, if forall $i$, $\aEv_i \lt \aEv'_i$, then $\aEv_0 \gtN \aEv'_n \gtN \aEv_0$, which is a contradiction since by~\ref{pargen}, $\aEv_0, \aEv'_n$ are actions on the same location.  
 
-So, there is a $j$ such that $\aEv_j \not\lt \aEv'_j$. We construct $(\cPS,\dPS)$ such that:
-\begin{itemize}
-\item $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\gtN,\lt$ 
-\item $\cPS$ has a race
-\item $\size(\dPS) = \size(\bPS) + 1$
-\end{itemize}
-We use lemma~\ref{inputen} on the pomset $\aPS$ and read $\aEv_{j}$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to the hb read value.  $\dPS$  is derived from $\bPS$ by adding the modified read to it. We observe that:
+So, there is a $j$ such that $\aEv_j \not\lt \aEv'_j$.  We observe that:
 \begin{itemize}
 \item There is still a race between $\aEv'_{(j-1)\mod n}$ and the modified read $\aEv_{j}$.  
 
@@ -274,14 +353,19 @@ We use lemma~\ref{inputen} on the pomset $\aPS$ and read $\aEv_{j}$ to construct
 \item $\dPS$ is \Seq\  since $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$.
 \end{itemize}
 
-\end{proof}
+
+
+
+
+
+
 \endinput
 
+\begin{definition}
+$ \aEv \xeco  \bEv$ if both $\aEv$ and $\bEv$ touch the same location, at least one is a write, and $\aEv \xird \bEv$  or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
+\end{definition}
 
 
-
-
-\endinput
 ===================
 
 Def: Let P be a pomset.  e an event in P
