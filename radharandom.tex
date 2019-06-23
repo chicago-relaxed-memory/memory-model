@@ -91,6 +91,8 @@ In particular, if there are no release or acquire actions in $\aCmd$:
 \end{itemize}
 thus providing a particularly simple view of the semantics of threads without synchronization primitives.   
 
+Below, we develop a correspondence between pomsets and a refined view of state transformers.  These results follow the well known adjunctions involving event structures~\citet{Winskel:1995:MC:218623.218630}.  
+
 \begin{definition}
 $\reads$ is the finite powerset of read actions, ordered by subset.  
 
@@ -102,6 +104,8 @@ $(\aWSet,\gtN) \preceq (\aWSet',\gtN')$ iff $\aWSet \subseteq\aWSet'$ and $\gtN 
 
 $\reads$ is a lattice, with least upper bounds ($\sqcup$) (resp. greatest lower bound, $\sqcap$)  induced by union (resp. intersection).  Similarly for $\writes$. 
 
+
+Every pomset induces a stable function~\cite{DBLP:conf/icalp/Berry78}.  
 \begin{definition}[Pomset Functions]
 Let $\pomFn: \reads \rightarrow \writes$ be the space of finitary monotone and stable functions, ie, $\aFn \in \pomFn$ satisfies:
 \begin{itemize}

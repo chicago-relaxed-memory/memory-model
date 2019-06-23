@@ -94,7 +94,10 @@ The proof for both rules proceeds by induction on the length of the maximal path
 % \end{description}
 
 
-We now present two proof rules.  The first rule captures the semantics of
+We now present two proof rules for programs. 
+
+\paragraph*{Proof rules for programs}
+The first rule captures the semantics of
 local variables.  Define
 \begin{math}
   \closed(\aLoc) = (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}).
@@ -179,6 +182,7 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   deduce that $\aPS \models \afo$.
 \end{proof}
 
+
 We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
 \begin{multline*}
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
@@ -233,14 +237,39 @@ Simplifying, we have, as required:
 
 
 \subsection{RNG example}
+The following example is drawn from~\citet{DBLP:conf/lics/JeffreyR16,DBLP:conf/esop/SvendsenPDLV18}.  We show that the following program never writes $2$ to $z$. 
+\begin{multline*}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
+  (
+    y\GETS x+1\SEMI z \GETS y
+  \PAR
+    x\GETS y
+  )
+\end{multline*}
+We start with the following invariant, which holds for each of the two threads, and thus, by composition, for the aggregate program:
+\begin{align*}
+  &[(\once(\DW{y}{v_1}) \land \once(\DW{y}{v_2})) \Rightarrow ((v_1 == v_2) \vee (v_1 == 0) \vee (v_2 == 0))] \land\\[-.5ex]
+  &[\DW{x}{1} \Rightarrow (\once(\DR{y}{1}))] \land \\[-.5ex]
+  &[\DW{y}{2} \Rightarrow (\once(\DR{x}{1}))]  \land \\[-.5ex]
+  &[\DW{z}{2} \Rightarrow (\once(\DR{y}{2}))]
+\end{align*}
+Closing both $x,y$ and substituting, we deduce:
+\[ \DW{z}{2} \Rightarrow (\once(\DW{y}{2})  \land \once(\DW{y}{2})) \]
+Using the first conjunct, we deduce the required conclusion $\DW{z}{2} \Rightarrow \FALSE$. 
+
+
+
+
 \begin{verbatim}
+
+
+
 y=x+1; a=y || x=y
 prove a!=2
 
 Wyv_1 /\ Wyv_2 => v_1 == v_2 (and maybe v_1==0 \/ v_2==0)
 Wx1 => <>-1 Ry1
 Wy1 => <>-1 Rx1
-
 \end{verbatim}
 
 % Local Variables:
