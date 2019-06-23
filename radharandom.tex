@@ -112,16 +112,20 @@ Let $\pomFn: \reads \rightarrow \writes$ be the space of finitary monotone and s
 \end{definition}
 Thus, for each write  $\aWrite$ in $\aFn(\aRSet)$ we have a minimum cause $\min(\aWrite) \subseteq \aRSet$ that captures the reads that need to be satisfied to cause it.   
 
-Let $\aCmd$ be a synchronization free thread.   With every generator $\aPS$ of  $\semClosed{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
+\begin{definition}[Functions from Pomsets]
+Let $\aCmd$ be a command without synchronization and parallel composition.   With every generator $\aPS$ of  $\semClosed{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
 \[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \lt \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
+\end{definition}
 Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\lt$.
 
-Similarly, given $\aFn \in \pomFn$, we can generate $\aPS_{\aFn}$ as follows:
+\begin{definition}[Pomsets from Functions]
+Given $\aFn \in \pomFn$, we can generate $\aPS_{\aFn}$ as follows:
 \begin{itemize}
-\item $\Event$, the set of events,  is induced by the actions in $\aRSet_{\aFn} \cup \aFn(\aRSet_{\aFn})$.  Each of these events are labeled with the evident actions, namely the read (resp. write) events are associated with  associated with the read (resp. write) actions.    In the rest of this discussion, we conflate the event with its label.
-\item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \lt \bEv$ for all $\aEv \in \min(\bEv)$
+\item $\Event = \aRSet_{\aFn} \cup \aFn(\aRSet_{\aFn}$.  The action label of the events are the actions themselves.  
+\item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \lt \bEv$ if and only if $\aEv \in \min(\bEv)$.
 \item $\aEv \gtN \bEv$ if $ \aEv\ (\lt \cup \le;\pi_2(\aFn(\aRSet_{\aFn})); \le) \  \bEv$.
 \end{itemize}
+\end{definition}
 
 Examples??.  
 a) x= 1
@@ -158,7 +162,7 @@ The,  then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \
 Let $\aEv \in \aPS$.  Then:$ \aPS \after\ \aEv = \{ \bEv \mid \aEv \le \bEv \}$
 \end{definition}
 
-The semantics of read is ``input''-enabled, ie. it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt the $\reco$), even while  the races with existing independent writes are maintained. 
+The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt $\reco$), even while  the races with existing independent writes are maintained. 
 \begin{lemma}\label{inputen}
 Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI
     \FENCE\SEMI
@@ -171,11 +175,16 @@ Then, there exists $\bPS \in \semClosed{\aCmd}$ such that:
 %\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
 %\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
 %(\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
-\item $\aEv'$ reads from $\aLoc$, with matching write event $\bEv'$, such that $\bEv' \gtN \bEv$ in $\bPS$
-\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\bPS} \setminus  (\bPS\ \after\ \aEv)$  in  $\bPS$.  
+\item $\aEv'$ reads from $\aLoc$, with matching write event $\bEv'$, such that $\bEv' \xeco \bEv$ in $\bPS$
+\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS\ \after\ \aEv)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS\ \after\ \aEv)$  in  $\bPS$.  
 \end{itemize}
 \end{lemma}
-In particular, $\bEv,\bEv'$ are events of both $\aPS$ and $\bPS$, and  $\bPS$ continues to witness the race of $\aEv', \bEv$ in $\bPS$.   
+\begin{proof}
+The key observation behind the proof is that change in a  prefixing read action can only affect the events that are dependent, ie. in the $\lt$ order to the read action.  
+
+The form of the command in the hypothesis of the proof initializes the locations in $\vec{\aLoc}$, thus  ensuring that there is always a value visible to be read. 
+\end{proof}
+In particular, in the above lemma, $\bEv,\bEv'$ are events of both $\aPS$ and $\bPS$, and  $\bPS$ continues to witness the race of $\aEv', \bEv$ in $\bPS$.   
 
 In the following lemma,  invert the $\reco$ relationship between a read and a write. 
 \begin{lemma}\label{removerw}
@@ -192,11 +201,14 @@ Then, there exists $\bPS \in \semClosed{\aCmd}$ such that:
 %\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
 %\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
 %(\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
-\item  If $\aEv'$ reads from $\aLoc$ with matching write event $\bEv'$ in $\bPS$, and $\bEv' \gtN \bEv$ in $\bPS$ then $\bEv' \in 
+\item  If $\aEv'$ reads from $\aLoc$ with matching write event $\bEv'$ in $\bPS$, and $\bEv' \xeco \bEv$ in $\bPS$ then $\bEv' \in 
 \Event_{\aPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$. 
-\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\bPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$  in  $\bPS$.  
+\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\bPS$ to $\Event_{\bPS} \setminus \bigcup_i (\aPS\ \after\ \aEv_i)$.  
 \end{itemize}
 \end{lemma}
+\begin{proof}
+The proof proceeds as follows.  Similar to the above proof, replace the values read in the events $\aEv_i$ to come from a write that precedes $\bEv$ in  $\reco$.  The process is repeated if the new pomset is has any new reads that precede $\bEv$ in $\reco$.  The termination of the process is guaranteed by the finite bound on the size of pomsets in $ \sem{\aCmd}$.
+\end{proof}
 
 
 The $\reco$ order between writes that are not related by $\lt$ can be reversed. 
