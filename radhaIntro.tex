@@ -1,12 +1,23 @@
+\newcommand{\oota}{{\sc OOTA}}
 \section{Introduction}
+\citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper proposes a solution to the problem.
 
-Desiderata for a memory model.
+In order to sharpen the criteria to evaluate memory models, we first outline desiderata  that concretize the above prescription.  
 
-1. Facilitating compiler transformations.   Ideally, all valid single threaded transformations on synchronization free code.  A prototypical example is commuting of independent statements
+There are two dimensions to implementation flexibility, namely:
+\begin{itemize}
+\item The memory model should facilitate compiler transformations.    Ideally, the model should support the known transformations used to optimize  synchronization free single threaded code.  A canonical example is the  commuting of independent statements.
 
-2. Compiling to hardware models.  Minimize the amount of synchronization needed for implementation on hardware models.  Ideally, the relaxed atomics of C11 or the raw variables of Java should not require any extra synchronization.
+\item Compiling to hardware models.  The model should be realizable on modern hardware with minimal synchronization.  A canonical example is that the relaxed atomics of C11 (or the raw variables of Java) should not require any extra synchronization.
+\end{itemize}
 
-3. Reasoning.  A memory model should support compositional reasoning on safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  In a simple form of preserving temporal invariants:
+There are two dimensions to ``ease-of-use'', namely:
+\begin{itemize}
+\item The ``DRF'' criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs without data races.  
+
+\item All programs, racy or not,  should support compositional reasoning on safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  
+\end{itemize}
+The presentation of the last criterion in this context is novel.  So, we illustrate.  In a simple form, merely serving temporal invariants, such a principle could be formalized as:
 \[
   \frac{
       \afo, \aPSS_1 \models\afo
@@ -14,28 +25,36 @@ Desiderata for a memory model.
       \afo, \aPSS_2 \models\afo
     }{\aPSS_1 \parallel \aPSS_2 \models \afo}
 \]
-where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$.
+where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$.  Thus, the compositional proof rule, on the face of it cyclical, permits us to reason about individual threads separately by incorporating environment assumptions.   Two important applications illustate the consequences. 
+\begin{itemize}
+\item ``Out Of Thin Air''(\oota)  violates the principle.  For example, consider the program:
+\begin{align*}
+& \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI  \\[-.5ex]
+\mbox{Thread 1: } & y\GETS x \\[-.5ex]
+\mbox{Thread 2: } & x \GETS y
+\end{align*}
+Informally, we proceed as follows.   Both programs satisfy the invariant that conjoins ``1 is not written to x  if there is no prior read  of 1 from y'' and `` 1 is not written to y  if there is no prior read  of 1 from x''.  If composition holds, the composite program satisfies the invariant.  Since, the variable declaration closes the program, we are able to deduce the conjunction of  ``1 is not written to x  if there is no prior write of 1 to y'' and `` 1 is not written to y  if there is no prior write  of 1 to x''. 
 
-Type safety is a special case of this principle. 
+\item   Type safety is a special case of this principle .... elaborate
+\end{itemize}
+More generally, composability of safety properties provides a concrete and objectively {\em falsifiable} measurement of \oota\ in a relaxed memory model.
 
-OATA violates this. eg....
+None of the extant memory models validate both ``implementation flexibility'' and ``ease-of-use''.  
 
-Relationship to the State of the art.
-\citet{Manson:2005:JMM:1047659.1040336} and similar models
-  \cite{DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17} 
- \citet{DBLP:conf/lics/JeffreyR16}.
-       * Do not support Compositional Reasoning.  
-          Support (1,2) mostly.
+Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{Lamport:1979:MMC:1311099.1311750}, \citet{Dolan:2018:BDR:3192366.3192421}, \citet{RC11refs}, \citet{DBLP:conf/lics/JeffreyR16} and~\citet{BoehmOOTA}.  All of them invalidate reordering of independent statements; they forbid breaking of the program order from reads to writes and thus require extra fences for read actions in hardware implementations.
 
-\citet{RC11refs,Dolan:2018:BDR:3192366.3192421}. 
-           Forbid breaking of PO from reads--> writes.  
-           Evidence for (1,2) from Dolan.  Though, extra fence after reads.
-           We show (3)
+The JMM\citet{Manson:2005:JMM:1047659.1040336} and similar models~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} invalidate compositional reasoning.  
 
-Relationship to \citet{BoehmOOTA}.
-   Use to classify into decreasing worlds.
+Two comments:
+1. Clarify implementability of \citet{DBLP:conf/lics/JeffreyR16}.
+2. Use\cite{BoehmOOTA} to 
+classify into decreasing worlds.
            OOTA world
               Our paper
                  RC11, Boehm,LDRF
+
+
+
+
 
 
