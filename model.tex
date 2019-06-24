@@ -817,7 +817,21 @@ with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 \subsection{Semantics of programs}
 \label{sec:semantics}
 
-We consider a simple shared-memory concurrent language, with statements defined as follows.
+We consider a simple shared-memory concurrent language, with statements
+defined as follows\footnote{We only consider executions where register state
+  is empty in forked threads.  Given item~\ref{pre-acquire} of
+  Definition~\ref{def:prefix}, a sufficient condition is that parallel
+  composition is always preceded by an acquire fence, as in programs of the
+  form:
+\begin{displaymath}
+  \VAR\vec{\aLoc}\SEMI
+  \vec{\aLoc}\GETS\vec{0}\SEMI
+  \vec{\bLoc}\GETS\vec{0}\SEMI
+  \FENCE\SEMI
+  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+\end{displaymath}
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
+in drawings, we often drop the explicit fence.}.
 % \begin{align*}
 % \aCmd,\,\bCmd
 % \BNFDEF& \SKIP \tag{No Operation}
@@ -881,18 +895,7 @@ The semantics of programs is as follows:
 % \end{figure*}
 \end{align*}
 
-We only consider programs where generally, register state is empty in forked
-threads.  A sufficient condition is that parallel composition is always
-preceded by an acquire fence.  We only consider programs with top level
-parallelism.  We expect programs to be of the form
-\begin{displaymath}
-  \VAR\vec{\aLoc}\SEMI
-  \vec{\aLoc}\GETS\vec{0}\SEMI
-  \vec{\bLoc}\GETS\vec{0}\SEMI
-  \FENCE\SEMI
-  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
-\end{displaymath}
-where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  
+
 
 
 
