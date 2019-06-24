@@ -35,11 +35,11 @@ ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
   ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
   when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
-Let $\IDA$ be the identity relation on acquire events, and likewise $\IDR$ on release events.
+Let $\IDAcq$ be the identity relation on acquire events, and likewise $\IDRel$ on release events.
 We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
 Now define $\rsw$ and $\rhb$.
 \begin{align*}
-  {\rsw} &= \IDR; ({\rrf}\setminus{\rpox}); \IDA
+  {\rsw} &= \IDRel; ({\rrf}\setminus{\rpox}); \IDAcq
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
