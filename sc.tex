@@ -1,5 +1,19 @@
 \section{SC-DRF}
 
+% For any $\aPSS$, then $\closed(\aPSS)$ is set enriched with useless reads
+% (preserving augmentation closure) and where we remove any event whose
+% precondition is not a tautology.
+% \begin{definition}
+%   Let $\addRead(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+%   there is $\aPS\in\aPSS$ such that:
+%   $\Event' = \Event\cup{\cEv}$,
+%   ${\le'} \supseteq {\le}$, 
+%   ${\gtN'} \supseteq {\gtN}$,
+%   and
+%   $\labelingAct'(\cEv) = (\DR{\aLoc}{\aVal})$ and $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
+% \end{definition}
+% Then $\fclosed(\aPSS)$ 
+
 Programs that require release sequences for happens-before always include a
 data race.  Since we are only defining hb for the purpose of defining data
 race for the DRF theorem, we do not include release sequences in our
@@ -17,7 +31,7 @@ $\sem{x\GETS1\SEMI a\GETS y}=\sem{a\GETS y\SEMI x\GETS1}$, yet these two must
 be distinguished in SC, as per the load-buffering litmus test.
 
 In order to define SC executions and SC data races, it is necessary to
-augment our semantics to record program order.  We extend the definitions in
+augment our semantics to record program order and internal reads.  We extend the definitions in
 \textsection\ref{sec:semantics} with
 ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
 \begin{itemize}
@@ -35,153 +49,167 @@ ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
   ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
   when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
-Let $\IDAcq$ be the identity relation on acquire events, and likewise $\IDRel$ on release events.
-We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
-Now define $\rsw$ and $\rhb$.
+In addition, we re-define the read rule as follows:
 \begin{align*}
-  {\rsw} &= \IDRel; ({\rrf}\setminus{\rpox}); \IDAcq
-  \\
-  {\rhb} &= ({\rpox} \cup {\rsw})^+
+  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard ((\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) 
 \end{align*}
-A pomset has a \emph{data race} if there are events
-$\aEv$ and $\bEv$ such that 
-\begin{itemize}
-\item $\aEv$ and $\bEv$ are unordered by $\rhb$,
-\item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict, and
-\item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies.
-\end{itemize}
-The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
-executions where
-\begin{itemize}
-\item ${\gtN}\cup{\rpox}$ is acyclic (and therefore ${\le}\cup{\rpox}$ is acyclic),
-\item prefixing ($\prefix$) and composition ($\parallel$) take disjoint union, and
-\item all reads are denoted by explicit actions.
-\end{itemize}
-Our semantics already ensures ${\le}\subseteq{\rsw}$.
+The difference is that we record internal reads using the action
+$\iDR{\aLoc}{0}$.  (The value in this action is ignored.)
 
-We say that $\aCmd$ has an \emph{SC race} if there is some pomset in $\semsc{\aCmd}$
-that contains a data race.
+Throughout our discussion of data races, we assume that programs do not use
+restriction, and therefore that all internal actions arise from this rule.
 
-In this section we show that if $\semsc{\aCmd}\subseteq\sem{\aCmd}$ has only
-race-free executions, then each pomset $\aPS\in\sem{\aCmd}$ is ``equivalent''
-to some $\aPS'\in\semsc{\aCmd}$, where $\aPS'$ may have more events, but
-preserves labeling and has less order.
 
-We say that $\aPS\suborder\aPS'$ if there is an injection
-$\inj:\Event'\rightarrow\Event$ such that:
-\begin{itemize}
-\item $\labelingAct'(\aEv) = \labelingAct(\inj(\aEv))$
-\item $\labelingForm'(\aEv)$ implies $\labelingForm(\inj(\aEv))$
-\item $\labelingForm(\bEv)$ implies $\bigvee_{\aEv\in\inj^{-1}(\bEv)}(\labelingForm'(\aEv))$
-\item $\aEv\le'\bEv$ implies $\inj(\aEv)\le\inj(\bEv)$
-\item $\aEv\gtN'\bEv$ implies $\inj(\aEv)\gtN\inj(\bEv)$
-\end{itemize}
 
-\begin{theorem}
-  If $\semsc{\aCmd}$ contains only race-free executions and
-  $\aPS\in\sem{\aCmd}$ then there exists some $\aPS'\in\semsc{\aCmd}$ such
-  that $\aPS\suborder\aPS'$.
-\begin{proof}
-  \begin{itemize}
-  \item
-    \begin{math}
-      \sem{\SKIP}
-      =
-      \{ \emptyset \} 
-    \end{math}
-  \item
-    \begin{math}
-      \sem{\FENCE_{\aF}\SEMI \aCmd}
-      =
-      (\DF{\aF}) \prefix \sem{\aCmd}
-    \end{math}
-  \item
-    \begin{math}
-      \sem{\aLoc\GETS\aExp\SEMI \aCmd}
-      =
-      \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-    \end{math}
-  % \item
-  %   \begin{math}
-  %     \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd}
-  %     =
-  %     \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  %   \end{math}
-  \item
-    \begin{math}
-      \sem{\aReg\GETS\aLoc\SEMI \aCmd}
-      =
-      \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
-    \end{math}
-  % \item
-  %   \begin{math}
-  %     \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd}
-  %     =
-  %     \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
-  %   \end{math}
-  \item
-    \begin{math}
-      \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-      =
-      \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
-    \end{math}
-  \item
-    \begin{math}
-      \sem{\aCmd \PAR \bCmd}
-      =
-      \sem{\aCmd} \parallel \sem{\bCmd}
-    \end{math}
-  \item
-    \begin{math}
-      \sem{\VAR\aLoc\SEMI \aCmd}
-      =
-      \nu \aLoc \st \sem{\aCmd}
-    \end{math}
-\end{itemize}
+% Let $\IDAcq$ be the identity relation on acquire events, and likewise $\IDRel$ on release events.
+% We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
+% Now define $\rsw$ and $\rhb$.
+% \begin{align*}
+%   {\rsw} &= \IDRel; ({\rrf}\setminus{\rpox}); \IDAcq
+%   \\
+%   {\rhb} &= ({\rpox} \cup {\rsw})^+
+% \end{align*}
+% A pomset has a \emph{data race} if there are events
+% $\aEv$ and $\bEv$ such that 
+% \begin{itemize}
+% \item $\aEv$ and $\bEv$ are unordered by $\rhb$,
+% \item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies,
+% \item either $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict or one is
+%   an internal read of some memory location and the other is a write to the
+%   same location.
+% \end{itemize}
+% The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
+% executions where
+% \begin{itemize}
+% \item ${\gtN}\cup{\rpox}$ is acyclic (and therefore ${\le}\cup{\rpox}$ is acyclic),
+% \item prefixing ($\prefix$) and composition ($\parallel$) take disjoint union, and
+% \item all reads are denoted by explicit actions.
+% \end{itemize}
+% Our semantics already ensures ${\le}\subseteq{\rsw}$.
+
+% We say that $\aCmd$ has an \emph{SC race} if there is some pomset in $\semsc{\aCmd}$
+% that contains a data race.
+
+% In this section we show that if $\semsc{\aCmd}\subseteq\sem{\aCmd}$ has only
+% race-free executions, then each pomset $\aPS\in\sem{\aCmd}$ is ``equivalent''
+% to some $\aPS'\in\semsc{\aCmd}$, where $\aPS'$ may have more events, but
+% preserves labeling and has less order.
+
+% We say that $\aPS\suborder\aPS'$ if there is an injection
+% $\inj:\Event'\rightarrow\Event$ such that:
+% \begin{itemize}
+% \item $\labelingAct'(\aEv) = \labelingAct(\inj(\aEv))$
+% \item $\labelingForm'(\aEv)$ implies $\labelingForm(\inj(\aEv))$
+% \item $\labelingForm(\bEv)$ implies $\bigvee_{\aEv\in\inj^{-1}(\bEv)}(\labelingForm'(\aEv))$
+% \item $\aEv\le'\bEv$ implies $\inj(\aEv)\le\inj(\bEv)$
+% \item $\aEv\gtN'\bEv$ implies $\inj(\aEv)\gtN\inj(\bEv)$
+% \end{itemize}
+
+% \begin{theorem}
+%   If $\semsc{\aCmd}$ contains only race-free executions and
+%   $\aPS\in\sem{\aCmd}$ then there exists some $\aPS'\in\semsc{\aCmd}$ such
+%   that $\aPS\suborder\aPS'$.
+% \begin{proof}
+%   \begin{itemize}
+%   \item
+%     \begin{math}
+%       \sem{\SKIP}
+%       =
+%       \{ \emptyset \} 
+%     \end{math}
+%   \item
+%     \begin{math}
+%       \sem{\FENCE_{\aF}\SEMI \aCmd}
+%       =
+%       (\DF{\aF}) \prefix \sem{\aCmd}
+%     \end{math}
+%   \item
+%     \begin{math}
+%       \sem{\aLoc\GETS\aExp\SEMI \aCmd}
+%       =
+%       \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+%     \end{math}
+%   % \item
+%   %   \begin{math}
+%   %     \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd}
+%   %     =
+%   %     \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+%   %   \end{math}
+%   \item
+%     \begin{math}
+%       \sem{\aReg\GETS\aLoc\SEMI \aCmd}
+%       =
+%       \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+%     \end{math}
+%   % \item
+%   %   \begin{math}
+%   %     \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd}
+%   %     =
+%   %     \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+%   %   \end{math}
+%   \item
+%     \begin{math}
+%       \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+%       =
+%       \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
+%     \end{math}
+%   \item
+%     \begin{math}
+%       \sem{\aCmd \PAR \bCmd}
+%       =
+%       \sem{\aCmd} \parallel \sem{\bCmd}
+%     \end{math}
+%   \item
+%     \begin{math}
+%       \sem{\VAR\aLoc\SEMI \aCmd}
+%       =
+%       \nu \aLoc \st \sem{\aCmd}
+%     \end{math}
+% \end{itemize}
   
-\end{proof}
-\end{theorem}
+% \end{proof}
+% \end{theorem}
 
 
-To define compatibility, we extend the definitions of
-\textsection\ref{sec:semantics} to include an additional order: $\rird$.
-\begin{itemize}
-\item
-  ${\rird'} = {\rird}$
-  when $\aPSS'=\aPSS\aSub$
-  or $\aPSS'=\aForm\guard\aPSS$
-\item
-  ${\rird'} = {\rird}\restrict{\Event'}$
-  when $\aPSS'=\nu\aLoc\st\aPSS$
-\item
-  ${\rird'} = {\rird}^1\cup{\rird}^2$
-  when $\aPSS'=\aPSS^1\parallel\aPSS^2$
-\item
-  ${\rird'} = {\rird}\cup\{(\cEv,\aEv)\mid\labelingForm(\aEv) \;\text{is dependent on}\; \aLoc\}$
-  when $\aPSS'=\aAct\prefix\aPSS$, $\aAct$ writes $\aLoc$, and $\Event' = \Event \cup \{\cEv\}$
-\end{itemize}
+% To define compatibility, we extend the definitions of
+% \textsection\ref{sec:semantics} to include an additional order: $\rird$.
+% \begin{itemize}
+% \item
+%   ${\rird'} = {\rird}$
+%   when $\aPSS'=\aPSS\aSub$
+%   or $\aPSS'=\aForm\guard\aPSS$
+% \item
+%   ${\rird'} = {\rird}\restrict{\Event'}$
+%   when $\aPSS'=\nu\aLoc\st\aPSS$
+% \item
+%   ${\rird'} = {\rird}^1\cup{\rird}^2$
+%   when $\aPSS'=\aPSS^1\parallel\aPSS^2$
+% \item
+%   ${\rird'} = {\rird}\cup\{(\cEv,\aEv)\mid\labelingForm(\aEv) \;\text{is dependent on}\; \aLoc\}$
+%   when $\aPSS'=\aAct\prefix\aPSS$, $\aAct$ writes $\aLoc$, and $\Event' = \Event \cup \{\cEv\}$
+% \end{itemize}
 
-From $\rird$, we define ${\rrb}={\rird}^{-1};{\gtN}$.
+% From $\rird$, we define ${\rrb}={\rird}^{-1};{\gtN}$.
 
-We want that if there is an execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{a}{\DW{\aLoc}{1}}{}
-  \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
-  \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
-  \wk{a}{c}
-  \ird{a}{b}
-  \rb{b}{c}
-\end{tikzdisplay}
-Then there is also
-\begin{tikzdisplay}[node distance=1em]
-  \event{a}{\DW{\aLoc}{1}}{}
-  \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
-  \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
-  \event{r}{\DR{\aLoc}{1}}{below right=.1em and 2em of a} 
-  \wk{a}{c}
-  \rf{a}{r}
-  \po{r}{b}
-\end{tikzdisplay}
+% We want that if there is an execution:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\DW{\aLoc}{1}}{}
+%   \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
+%   \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
+%   \wk{a}{c}
+%   \ird{a}{b}
+%   \rb{b}{c}
+% \end{tikzdisplay}
+% Then there is also
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\DW{\aLoc}{1}}{}
+%   \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
+%   \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
+%   \event{r}{\DR{\aLoc}{1}}{below right=.1em and 2em of a} 
+%   \wk{a}{c}
+%   \rf{a}{r}
+%   \po{r}{b}
+% \end{tikzdisplay}
 
 
 % To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$

@@ -1,10 +1,13 @@
-\newenvironment{tikzinline}[1][]{\begin{math}\small\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}}
-\newenvironment{tikzdisplay}[1][]{\begin{displaymath}\small\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\ignorespacesafterend}
-\newenvironment{tikzsmall}[1][]{\bgroup\small\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\egroup}
+\newenvironment{displaymathsmall}{\bgroup\small\begin{displaymath}\ignorespaces}{\end{displaymath}\egroup\ignorespacesafterend}
+\newenvironment{scope}{\bgroup\ignorespaces}{\egroup\ignorespacesafterend}
+\newenvironment{tikzinline}[1][]{\bgroup\small\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
+\newenvironment{tikzdisplay}[1][]{\bgroup\small\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
+\newenvironment{tikzcenter}[1][]{\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}}
 \newcommand{\fdom}{\mathsf{domain}}
 \newcommand{\fcodom}{\mathsf{codomain}}
 \newcommand{\semClosed}[1]{\closed\sem{#1}}
 \newcommand{\closed}{\textsf{closed}}
+\newcommand{\addRead}{\textsf{addRead}}
 \newcommand{\pLTL}{\textsf{PLTL}}
 \newcommand{\once}{\Diamond^{-1}}
 \newcommand{\always}{\Box^{-1}}
@@ -109,15 +112,15 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
-\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,#2}}}
-\newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,#2}}}
-\newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
 \newcommand{\DF}[1]{\mathsf{F}_{#1}}
-\newcommand{\iDRAcq}[2]{\mathsf{\tau^{acq}}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\iDWRel}[2]{\mathsf{\tau^{rel}}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\iDR}[2]{\mathsf{\tau}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\iDW}[2]{\mathsf{\tau}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\iDRAcq}[2]{\mathsf{\tau^{acq}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDWRel}[2]{\mathsf{\tau^{rel}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDR}[2]{\mathsf{\tau}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDW}[2]{\mathsf{\tau}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
 %\newcommand{\iDF}[1]{\mathsf{\tau F}_{#1}}
 
 \newcommand{\DSB}{\mathsf{SB}}

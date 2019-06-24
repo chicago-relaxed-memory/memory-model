@@ -36,7 +36,8 @@ Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \section{Model}
 \label{sec:model}
 
-\subsection{3-valued pomsets}
+
+\subsection{Background: 3-valued pomsets}
 \label{sec:pomsets}
 
 Structures similar to 3-valued pomsets have come up in many guises, for example
@@ -689,22 +690,22 @@ For example, if $\aPSS$ contains %a pomset with only
   \event{c}{x>0 \mid \DW{z}{1}}{right=of b}
 \end{tikzinline}
 then $(\DR{x}{1})\prefix\aPSS$ contains:
-\begin{displaymath}
-\begin{tikzsmall}[node distance=1em]
+\begin{displaymathsmall}
+\begin{tikzcenter}[node distance=1em]
   \event{a}{\DR{x}{1}}{}
   \event{b}{y=1 \mid \DW{x}{1}}{above right=0em and 2em of a}
   \event{c}{1>0 \mid \DW{z}{1}}{below right=0em and 2em of a}
   \po{a}{c}
   \wk{a}{b}
-\end{tikzsmall}
+\end{tikzcenter}
 \qquad\text{and}\qquad
-\begin{tikzsmall}[node distance=1em]
+\begin{tikzcenter}[node distance=1em]
   \event{a2}{\DR{x}{1}}{right=4em of a}
   \event{b2}{y=1 \mid \DW{x}{1}}{above right=0em and 2em of a2}
   \event{c2}{x>0 \mid \DW{z}{1}}{below right=0em and 2em of a2}
   \wk{a2}{b2}
-\end{tikzsmall}
-\end{displaymath}
+\end{tikzcenter}
+\end{displaymathsmall}
 In order to weaken the predicate on $(\DW{z}{1})$, item~\ref{pre-implies}
 requires that we include the order from $(\DR{x}{1})$ to $(\DW{z}{1})$.
 If the precondition on $(\DW{z}{1})$ in $\aPSS$ was $x<0$, then, by
@@ -811,6 +812,18 @@ with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 \label{sec:semantics}
 
 We consider a simple shared-memory concurrent language, with statements defined as follows.
+% \begin{align*}
+% \aCmd,\,\bCmd
+% \BNFDEF& \SKIP \tag{No Operation}
+% \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
+% \\[-1ex]\BNFSEP& \REF{\bExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
+% \\[-1ex]\BNFSEP& \REF{\bExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\bExp}\SEMI \aCmd \tag{Relaxed read from memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\bExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+% \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
+% \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
+% \end{align*}
 \begin{align*}
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
@@ -823,11 +836,11 @@ We consider a simple shared-memory concurrent language, with statements defined 
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
 \end{align*}
+We write $\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
+shorthand for $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 We write $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
-We write $\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
-shorthand for $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 
 We only consider programs with top level parallelism.   We expect programs to
 be of the form
