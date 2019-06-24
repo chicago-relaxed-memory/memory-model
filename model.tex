@@ -72,29 +72,30 @@ $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}.
 Note that $\gtN$ is reflexive.
 
 
-We visualize a pomset as a graph where the nodes are drawn from
-$\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$,
-and an edge $\bEv \rightarrow \aEv$ corresponds to an ordering
-$\bEv\le\aEv$. For example:
+We visualize a pomset as a graph where the nodes are drawn from $\Event$,
+each node $\aEv$ is labeled with $\labeling(\aEv)$, and an edge
+$\bEv \rightarrow \aEv$ corresponds to an ordering $\bEv\le\aEv$.  We
+visualize $(\bEv \gtN \aEv)$ as a dashed arrow from $\bEv$ to $\aEv$.  For
+example:
 \[\begin{tikzpicture}[node distance=1em]
-  \event{rx1}{\DR{\aLoc}{1}}{}
-  \event{wy0}{\DW{\bLoc}{0}}{right=of rx1}
-  \event{wy1}{\DW{\bLoc}{1}}{right=of wy0}
+  \event{rx1}{a}{}
+  \event{wy0}{b}{below right=of rx1}
+  \event{wy1}{c}{above right=of wy0}
   \po{rx1}{wy0}
-  \po[out=30,in=150]{rx1}{wy1}
+  \po{rx1}{wy1}
+  \wk{wy0}{wy1}
 \end{tikzpicture}\]
 is a visualization of the pomset where:
 \[\begin{array}{c}
-  E = \{ 0,1,2 \} \quad
-  0 \le 1 \quad
-  0 \le 2 \quad
-  \labeling(0) = \DR{\aLoc}{1}) \\
-  \labeling(1) = \DW{\bLoc}{0}) \quad
-  \labeling(2) = \DW{\bLoc}{1}) \quad
+    E = \{ 0,1,2 \}
+    \quad
+    {\labeling} = \{(0,a),\,(1,b),\,(2,c)\}
+    \\
+    {\le} = \{(0,1),\,(0,2)\}\cup\{(0,0),\,(1,1),\,(2,2)\}
+    \quad
+    {\gtN} = {\le}\cup\{(2,3)\}
 \end{array}\]
-We visualize $(\bEv \gtN \aEv)$ as a dashed
-arrow from $\bEv$ to $\aEv$.
-We refer to edges introduced by $(\bEv \lt \aEv)$ as
+We refer to edges introduced by $(\bEv \leq \aEv)$ as
 \emph{strong edges} and by $(\bEv \gtN \aEv)$
 as \emph{weak edges}.
 
@@ -110,8 +111,8 @@ A \emph{data model} consists of:
   $\aReg$ and $\bReg$,
 \item a set of \emph{expressions} $\Exp$, ranged over by
   $\aExp$ and $\bExp$,
-\item a set of \emph{memory locations}, ranged over by $\aLoc$ and
-  $\bLoc$.
+\item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
+  $\bLoc$, 
 \item a set of \emph{logical formulae} $\Formulae$, ranged over by
   $\aForm$ and $\bForm$, and
 \item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$.
@@ -122,58 +123,100 @@ $\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
+\item the sets of values, registers and memory locations are disjoint,
 \item values include at least the constants $0$ and $1$,
-\item memory locations are tagged values of the form $\REF{\aVal}$,
 \item expressions include at least registers and values,
-\item expressions do not include memory locations,
+\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
 \item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
-  $(\aExp=\bExp)$ and $(\aExp=\bExp)$,
+  $(\aExp=\aVal)$ and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
-  substitution, 
-\item there is a relation $\vDash$ between formulae, 
-\item there are partial functions $\rreads$ and $\rwrites: \Act \fun (\Loc
-  \times \Val)$, and
-\item there are sets $\Rel$ and $\Acq \subseteq\Act$.
+  substitution\footnote{Since formulae are closed under substitutions of the
+    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
+    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
+    \emph{extended expression} that includes memory locations.  We elide the
+    details.  By composition of the closure conditions, formulae must also be
+    closed under that substitutions of the form
+    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
+\item there is a relation $\vDash$ between formulae.
 \end{itemize}
-Since formulae are closed under substitutions of the form
-$\aForm[\aLoc/\aReg]$, they must include equalities of the form
-$(\aEExp=\bEExp)$, where $\aEExp$ and $\bEExp$ are \emph{extended
-  expressions} that include memory locations.  We elide the details.
-(By composition of the closure conditions, formulae must also be closed
-under that substitutions of the form $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.)
+
+We say that $\aForm$ is \emph{independent of $\aLoc$} whenever
+$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$, and that
+$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$
+\emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$, that $\aForm$ is a
+\emph{tautology} whenever $\TRUE\vDash\aForm$, that $\aForm$ is
+\emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
+
+For the actions of a data model, we require that
+\begin{itemize}
+\item there are partial functions $\rreads$ and
+  $\rwrites: \Act \fun (\Loc \times \Val)$,
+\item there are sets $\Rel$ and $\Acq \subseteq\Act$, and
+\item there is a function $\finternalize: (\Loc\times\Act) \fun \Act$ that
+  satisfies the restrictions given below.
+\end{itemize}
 
 We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
 $\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
-\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.  In examples,
-the actions are of the form $(\DR{\aLoc}{\aVal})$, which reads $\aVal$ from
-$\aLoc$, and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$.
+\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.
+Actions that read or write are \emph{external}, other actions are \emph{internal}.
+% Actions in
+% $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
+% in $\Int=\Act\setminus\Ext$ are \emph{internal}.
 
 We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
-is a \emph{release} if $\aAct\in\Rel$.  We say that $\aAct$ is a
-\emph{synchronization} if it is either a release or an acquire.  In examples,
-the actions are of the form $(\DRAcq{\aLoc}{\aVal})$, which is an acquire
-that reads $\aVal$ from $\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release
-that writes $\aVal$ to $\aLoc$, and $(\DF{})$, which is both an acquire and a
-release and neither reads nor writes.
+is a \emph{release} if $\aAct\in\Rel$.  Actions that acquire or release are
+\emph{synchronizations}, other actions are \emph{relaxed}.
+% We say that $\aAct$ is a
+% \emph{synchronization} if it is either a release or an acquire.
+
+We require that $\finternalize$ satisfy the following:
+\begin{itemize}
+\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
+\item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, and 
+\item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release.
+\end{itemize}
+
+
+In examples, we use actions of the form $(\DR{\aLoc}{\aVal})$, which reads
+$\aVal$ from $\aLoc$, and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to
+$\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$
+from $\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release that writes
+$\aVal$ to $\aLoc$, and $(\DF{})$, which is internal and both an acquire and
+a release.  For each external action, we also define a corresponding internal
+action which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
+For example, $(\iDRAcq{\aLoc}{\aVal})$ is an acquiring internal action, which
+neither reads nor writes. In pictures, we draw internal actions grayed out,
+rather than using $\tau$.  For example, the ``read'' action is internal in:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \internal{rx1}{\DR{x}{1}}{below right=of rx1}
+  \event{wy1}{\DW{y}{1}}{above right=of wy0}
+  \po{wx1}{wy1}
+\end{tikzpicture}\]
+
+
 % In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
 % indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
 % \begin{displaymath}
 %   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
 % \end{displaymath}
 
-We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
-that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
-$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$, and that
-$\aForm$ is \emph{independent of $\aLoc$} whenever
-$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$.
-
 \subsection{3-valued pomsets with preconditions}
 
-We fix the alphabet $\Alphabet=(\Formulae\times\Act)$.  We write pairs in
-$(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide $\aForm$ when
-$\aForm$ is a tautology.  Define $\labelingForm$ and $\labelingAct$ so that
+Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
+Define %$\labelingForm$ and $\labelingAct$ so that
 $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
 $\labelingForm(\aEv)=(\aForm\mid\aAct)$.
+
+We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
+$\aForm$ when it is a tautology.
+
+We lift terminology from logical formulae and actions to events. For example,
+we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
+and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
+
 
 In this paper, we are not investigating speculative execution.  So we make
 the global assumption formulae can only get stronger in dependent actions:
@@ -181,16 +224,12 @@ the global assumption formulae can only get stronger in dependent actions:
 \begin{definition}
   A \emph{3-valued pomset with preconditions} is a 3-valued pomset such
   that $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-  $\bEv\lt\aEv$.
+  $\bEv\le\aEv$.
 \end{definition}
 
 In the remainder of the paper, we refer to 3-valued pomsets with
 preconditions simply as \emph{pomsets}.
 
-We lift terminology from logical formulae and actions to events, for example
-if $\labeling(\aEv)=(\aForm\mid\aAct)$ then we say $\aEv$ is unsatisfiable
-whenever $\aForm$ is unsatisfiable, $\aEv$ writes $\aVal$ to $\aLoc$ whenever
-$\aAct$ writes $\aVal$ to $\aLoc$, and so forth.
 
 
 % Restriction also filters a set of pomsets; we have
@@ -229,8 +268,8 @@ A top-level, we expect the use of each variable to be \emph{closed} and \emph{co
   % \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a synchronization or there is
   %   some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
   \end{itemize}
-  A pomset is $\aLoc$-\emph{coherent} if, when restricted to events which
-  touch $\aLoc$, $\gtN$ forms a partial order.
+  A pomset is $\aLoc$-\emph{coherent} if, when restricted to events that read
+  or write $\aLoc$, $\gtN$ forms a partial order.
 \end{definition}
 % Our model of reads-from is strong, and could be weakened by replacing the
 % requirement $\bEv\lt\aEv$ % in Definition~\ref{def:rf}
@@ -399,14 +438,14 @@ we could allow any program where parallel composition is always preceded by
 an acquire fence --- this is needed to keep register state from percolating
 to the forked threads.)
 
-In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
-Each pomset
-$\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do not
-expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
-$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, the sets of
-pomsets given by our semantics \emph{are} closed with respect to
-isomorphism, augmentation and implication:
-
+In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  Each
+pomset $\aPS\in\sem{\aCmd}$ represents a single execution of $\aCmd$.  We do
+not expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
+$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution\footnote{NOTE: because
+  implication closed, any event can go false, and we kill everything after
+  it, so that means we do get a kind of prefix closure.}.  However, the sets
+of pomsets given by our semantics are closed with respect to
+\emph{isomorphism}, \emph{augmentation} and \emph{implication}.
 \begin{definition}
   $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
   $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$,
@@ -421,8 +460,6 @@ isomorphism, augmentation and implication:
   ${\gtN'}={\gtN}$, $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
 \end{definition}
-NOTE: because implication closed, any event can go false, and we kill everything
-after it, so that means we do get a kind of prefix closure.
 % \begin{definition}
 %   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
 %   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
@@ -434,15 +471,13 @@ after it, so that means we do get a kind of prefix closure.
 We give the semantics using combinators over sets of pomsets, defined below.
 Using $\aPSS$ to range over sets of pomsets, these are:
 \begin{itemize}
-\item \emph{substitution} $\aPSS\aSub$, which applies substitution $\aSub$ to
-  every precondition of $\aPSS$,
+\item \emph{substitution} $\aPSS\aSub$, which applies the substitution to
+  every precondition,
+\item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
+  pomsets that are $\aLoc$-closed and $\aLoc$-coherent,
 \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
-  keeping pomsets whose events have preconditions that imply $\aForm$,
-\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to
-  include only pomsets where every event $\aEv$ that reads from $\aLoc$ can
-  read from some $\bEv$ and where no precondition can depend on $\aLoc$,
-\item \emph{composition} $\aPSS^1\parallel\aPSS^2$, which unions pomsets from
-  $\aPSS^1$ and $\aPSS^2$, allowing events to be merged, and
+  keeping pomsets where all events imply $\aForm$,
+\item \emph{composition} $\aPSS^1\parallel\aPSS^2$, which unions pomsets, allowing events to be merged, and
 \item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
   $\aAct$ to pomsets in $\aPSS$, ordering $\aAct$ before any $\aEv$ whose predicate
   depends on the value read by $\aAct$.
@@ -472,7 +507,7 @@ speculative evaluation.
 % $(\aForm\guard\aPSS)\subseteq\aPSS$ and
 % $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
 
-The definitions of substitution, guarding and restriction are
+The definitions of substitution, restriction and guarding are
 straightforward\footnote{We have chosen the definition of restriction for its
   simplicity.  It is worth noting, however, that our definition does not
   support renaming of variables.  In particular
@@ -495,14 +530,22 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 % \item if $\labeling(\aEv) = (\bForm \mid \aSub)$ then $\labeling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
 %\end{itemize}
 
+  % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+  % and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
+
+  Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aLoc$-coherent and $\aLoc$-closed $\aPS\in\aPSS$ such that:
+$\Event' = \Event$,
+${\le'} = {\le}$, 
+${\gtN'} = {\gtN}$,
+and
+$\labeling'(\aEv) = (\bForm \mid \finternalize(\aAct))$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
+
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
 $\aForm$ implies $\labelingForm(\aEv)$ for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
-
-  Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-  and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
