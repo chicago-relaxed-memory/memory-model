@@ -61,54 +61,56 @@ restriction, and therefore that all internal actions arise from this rule.
 
 
 
-% Let $\IDAcq$ be the identity relation on acquire events, and likewise $\IDRel$ on release events.
-% We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
-% Now define $\rsw$ and $\rhb$.
-% \begin{align*}
-%   {\rsw} &= \IDRel; ({\rrf}\setminus{\rpox}); \IDAcq
-%   \\
-%   {\rhb} &= ({\rpox} \cup {\rsw})^+
-% \end{align*}
-% A pomset has a \emph{data race} if there are events
-% $\aEv$ and $\bEv$ such that 
-% \begin{itemize}
-% \item $\aEv$ and $\bEv$ are unordered by $\rhb$,
-% \item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies,
-% \item either $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict or one is
-%   an internal read of some memory location and the other is a write to the
-%   same location.
-% \end{itemize}
-% The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
-% executions where
-% \begin{itemize}
-% \item ${\gtN}\cup{\rpox}$ is acyclic (and therefore ${\le}\cup{\rpox}$ is acyclic),
-% \item prefixing ($\prefix$) and composition ($\parallel$) take disjoint union, and
-% \item all reads are denoted by explicit actions.
-% \end{itemize}
-% Our semantics already ensures ${\le}\subseteq{\rsw}$.
+Let $\IDAcq$ be the identity relation on acquire events, and likewise $\IDRel$ on release events.
+We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
+Now define $\rsw$ and $\rhb$.
+\begin{align*}
+  {\rsw} &= \IDRel; ({\rrf}\setminus{\rpox}); \IDAcq
+  \\
+  {\rhb} &= ({\rpox} \cup {\rsw})^+
+\end{align*}
+A pomset has a \emph{data race} if there are events
+$\aEv$ and $\bEv$ such that 
+\begin{itemize}
+\item $\aEv$ and $\bEv$ are unordered by $\rhb$,
+\item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies,
+\item either $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict or one is
+  an internal read of some memory location and the other is a write to the
+  same location.
+\end{itemize}
 
-% We say that $\aCmd$ has an \emph{SC race} if there is some pomset in $\semsc{\aCmd}$
-% that contains a data race.
+The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
+executions where
+\begin{itemize}
+\item ${\gtN}\cup{\rpox}$ is acyclic (and therefore ${\le}\cup{\rpox}$ is acyclic),
+\item prefixing ($\prefix$) and composition ($\parallel$) take disjoint union, and
+\item all reads are denoted by explicit actions.
+\end{itemize}
+Our semantics already ensures ${\le}\subseteq{\rsw}$.
 
-% In this section we show that if $\semsc{\aCmd}\subseteq\sem{\aCmd}$ has only
-% race-free executions, then each pomset $\aPS\in\sem{\aCmd}$ is ``equivalent''
-% to some $\aPS'\in\semsc{\aCmd}$, where $\aPS'$ may have more events, but
-% preserves labeling and has less order.
+We say that $\aCmd$ has an \emph{SC race} if there is some pomset in $\semsc{\aCmd}$
+that contains a data race.
 
-% We say that $\aPS\suborder\aPS'$ if there is an injection
-% $\inj:\Event'\rightarrow\Event$ such that:
-% \begin{itemize}
-% \item $\labelingAct'(\aEv) = \labelingAct(\inj(\aEv))$
-% \item $\labelingForm'(\aEv)$ implies $\labelingForm(\inj(\aEv))$
-% \item $\labelingForm(\bEv)$ implies $\bigvee_{\aEv\in\inj^{-1}(\bEv)}(\labelingForm'(\aEv))$
-% \item $\aEv\le'\bEv$ implies $\inj(\aEv)\le\inj(\bEv)$
-% \item $\aEv\gtN'\bEv$ implies $\inj(\aEv)\gtN\inj(\bEv)$
-% \end{itemize}
+In this section we show that if $\semsc{\aCmd}\subseteq\sem{\aCmd}$ has only
+race-free executions, then each pomset $\aPS\in\sem{\aCmd}$ is ``equivalent''
+to some $\aPS'\in\semsc{\aCmd}$, where $\aPS'$ may have more events, but
+preserves labeling and has less order.
 
-% \begin{theorem}
-%   If $\semsc{\aCmd}$ contains only race-free executions and
-%   $\aPS\in\sem{\aCmd}$ then there exists some $\aPS'\in\semsc{\aCmd}$ such
-%   that $\aPS\suborder\aPS'$.
+We say that $\aPS\suborder\aPS'$ if there is an injection
+$\inj:\Event'\rightarrow\Event$ such that:
+\begin{itemize}
+\item $\labelingAct'(\aEv) = \labelingAct(\inj(\aEv))$
+\item $\labelingForm'(\aEv)$ implies $\labelingForm(\inj(\aEv))$
+\item $\labelingForm(\bEv)$ implies $\bigvee_{\aEv\in\inj^{-1}(\bEv)}(\labelingForm'(\aEv))$
+\item $\aEv\le'\bEv$ implies $\inj(\aEv)\le\inj(\bEv)$
+\item $\aEv\gtN'\bEv$ implies $\inj(\aEv)\gtN\inj(\bEv)$
+\end{itemize}
+
+\begin{theorem}
+  If $\semsc{\aCmd}$ contains only race-free executions and
+  $\aPS\in\sem{\aCmd}$ then there exists some $\aPS'\in\semsc{\aCmd}$ such
+  that $\aPS\suborder\aPS'$.
+\end{theorem}
 % \begin{proof}
 %   \begin{itemize}
 %   \item
