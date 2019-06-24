@@ -429,6 +429,8 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   pomsets that are $\aLoc$-closed and $\aLoc$-coherent,
 \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
   keeping pomsets where all events imply $\aForm$,
+\item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which filters
+  $\aPSS$, keeping pomsets that have an initial write to $\aLoc$,
 \item \emph{composition} $\aPSS^1\parallel\aPSS^2$, which unions pomsets, allowing events to be merged, and
 \item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
   $\aAct$ to pomsets in $\aPSS$, ordering $\aAct$ before any $\aEv$ whose predicate
@@ -459,9 +461,9 @@ speculative evaluation.
 % $(\aForm\guard\aPSS)\subseteq\aPSS$ and
 % $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
 
-The definitions of substitution, restriction and guarding are
-straightforward\footnote{We have chosen the definition of restriction for its
-  simplicity.  It is worth noting, however, that our definition does not
+The definitions of substitution, restriction and guarding and write filtering
+are straightforward\footnote{We have chosen the definition of restriction for
+  its simplicity.  It is worth noting, however, that our definition does not
   support renaming of variables.  In particular
   $(\nu\aLoc\st\aPSS\parallel(\nu\aLoc\st\bPSS))$ is generally not the same
   as $(\nu\aLoc\st\aPSS\parallel(\nu\bLoc\st\bPSS[\bLoc/\aLoc]))$.  To
@@ -485,7 +487,7 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
   % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
   % and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
 
-  Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aLoc$-coherent and $\aLoc$-closed $\aPS\in\aPSS$ such that:
 $\Event' = \Event$,
 ${\le'} = {\le}$, 
@@ -498,6 +500,10 @@ $\aForm$ implies $\labelingForm(\aEv)$ for every $\aEv\in\Event$. % if $\labelin
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
+
+Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+there is some $\aEv$ that writes $\aLoc$ such that for every release
+$\bEv\in\Event$, $\aEv\leq\bEv$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
@@ -836,25 +842,18 @@ We consider a simple shared-memory concurrent language, with statements defined 
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
 \end{align*}
-We write $\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as
-shorthand for $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
-We write $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+We use common syntax sugar, such as \emph{extended expressions}, which include
+memory locations.  For example, if the extended expression $\aEExp$ includes
+a single occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is
+shorthand for $\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.
+Each occurrence of $\aLoc$ in an extended expression corresponds to an
+independent read.  We also write
+$\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as shorthand for
+$\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$ and
+$\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
+$\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
-
-We only consider programs with top level parallelism.   We expect programs to
-be of the form
-\begin{displaymath}
-  \VAR\vec{\aLoc}\SEMI
-  \vec{\aLoc}\GETS\vec{0}\SEMI
-  \vec{\bLoc}\GETS\vec{0}\SEMI
-  \FENCE\SEMI
-  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
-\end{displaymath}
-where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  (More generally,
-we could allow any program where parallel composition is always preceded by
-an acquire fence --- this is needed to keep register state from percolating
-to the forked threads.)
 
 % In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
 % \begin{figure*}
@@ -863,12 +862,15 @@ The semantics of programs is as follows:
 \begin{align*}
   \sem{\SKIP} & = \{ \emptyset \} \\
   \sem{\FENCE\SEMI \aCmd} & = (\DF{}) \prefix \sem{\aCmd} \\
-  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; \textstyle\bigcup_\aVal\; \bigl((\REF{\bExp}=\aLoc \land \aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\REFRel{\bExp}\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; \textstyle\bigcup_\aVal\; \bigl((\REF{\bExp}=\aLoc \land \aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  \sem{\REFRel{\bExp}\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
+  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]\\
+  & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]\\
   % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
-  \sem{\aReg\GETS\REFAcq{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
+  \sem{\aReg\GETS\REFAcq{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
+  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
+  & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]\\
+  % \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
   % \sem{\aReg\GETS\aLoc\SEMI \aCmd} & =  \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   % \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & =  \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =  \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
@@ -878,6 +880,21 @@ The semantics of programs is as follows:
 % \label{fig:programs}
 % \end{figure*}
 \end{align*}
+
+We only consider programs where generally, register state is empty in forked
+threads.  A sufficient condition is that parallel composition is always
+preceded by an acquire fence.  We only consider programs with top level
+parallelism.  We expect programs to be of the form
+\begin{displaymath}
+  \VAR\vec{\aLoc}\SEMI
+  \vec{\aLoc}\GETS\vec{0}\SEMI
+  \vec{\bLoc}\GETS\vec{0}\SEMI
+  \FENCE\SEMI
+  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+\end{displaymath}
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  
+
+
 
 Note that the rule for write uses the substitution $[\aExp/\aLoc]$ with
 precondition $\aExp=\aVal$, rather than using $[\aVal/\aLoc]$ directly.
@@ -926,11 +943,11 @@ Then $\sem{\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ includes
 which has no order between the read and write.
 By prefixing a write to $\bLoc$, $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS
   2\FI}$ discharges the precondition of the write to $\aLoc$, giving
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzinline}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
     \event{b}{\DR\bLoc1}{right=of a}
     \event{c}{0\leq1 \mid \DW\aLoc2}{right=of b}
-\end{tikzdisplay}
+\end{tikzinline}
 which is simply:
 \begin{tikzdisplay}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
@@ -939,12 +956,12 @@ which is simply:
 \end{tikzdisplay}
 Here the thread-local value of $\bLoc$ discharges the predicate.
 Using the left-hand side of the read rule, the semantics of this program also includes
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzinline}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
     \event{c}{\DW\aLoc2}{right=of a}
-\end{tikzdisplay}
+\end{tikzinline}.
 
-A variant of this which indicates the branch taken:
+A variant which indicates the branch taken:
 $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN
   \aLoc\GETS2\SEMI\cLoc\GETS\aReg\FI}$
 includes

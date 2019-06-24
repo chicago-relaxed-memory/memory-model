@@ -184,7 +184,7 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
 
 
 We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
-\begin{multline*}
+\begin{displaymath}
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
   (
     y\GETS x
@@ -193,7 +193,7 @@ We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 
   \PAR
     z\GETS1
   )
-\end{multline*}
+\end{displaymath}
 This program is allowed to write $1$ to $a$ under many speculative
 memory models
 \cite{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17},
@@ -238,14 +238,14 @@ Simplifying, we have, as required:
 
 \subsection{RNG example}
 The following example is drawn from~\citet{DBLP:conf/lics/JeffreyR16,DBLP:conf/esop/SvendsenPDLV18}.  We show that the following program never writes $2$ to $z$. 
-\begin{multline*}
+\begin{displaymath}
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
   (
     y\GETS x+1\SEMI z \GETS y
   \PAR
     x\GETS y
   )
-\end{multline*}
+\end{displaymath}
 We start with the following invariant, which holds for each of the two threads, and thus, by composition, for the aggregate program:
 \begin{align*}
   &[(\once(\DW{y}{v_1}) \land \once(\DW{y}{v_2})) \Rightarrow ((v_1 == v_2) \vee (v_1 == 0) \vee (v_2 == 0))] \land\\[-.5ex]
