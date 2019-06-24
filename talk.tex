@@ -88,13 +88,13 @@
 
   has execution\only<2>{ where $\DW\bLoc1$ might happen first}:
   
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
   \event{wx2}{\DW{\aLoc}{2}}{right=of rx1}
   \event{wy1}{\DW{\bLoc}{1}}{right=of wx2}
   \po{rx1}{wx2}
   \only<1>{\po{wx2}{wy1}}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   \pause
 
@@ -118,7 +118,7 @@
   \only<3>{ where $\DW\bLoc2$ might happen, then get rolled back}%
   \only<4>{ where $\DW\cLoc1$ might happen first}:
  
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
   \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
   \event{wz1}{\DW{\cLoc}{1}}{right=of wy1}
@@ -129,7 +129,7 @@
   \onslide<2-3>{\po[out=30,in=150]{rx1}{wz1}}
   \onslide<3->{\po{rx1}{nwy2}}
   \onslide<3>{\po{rx1}{nwz1}}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   \pause\pause\pause\pause
   No language-level model for this!
@@ -148,7 +148,7 @@
      \IF{\CANREAD(\SEC)} \THEN \dots\mbox{use } \SEC\dots \ELSE \dots \FI
   \]
   For attacker code $\CANREAD(\SEC)$ is always false\pause, e.g.
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{ry1}{\DR{y}{1}}{}
   \event{wx2}{\DW{x}{2}}{right=of ry1}
   \nonevent{rs1}{\DR{\SEC}{1}}{below=of wx2}
@@ -156,7 +156,7 @@
   \po{ry1}{wx2}
   \po{ry1}{rs1}
   \po{rs1}{wx1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   is an execution of
   \(
      \IF{y} \THEN \IF{\CANREAD(\SEC)} \THEN x\GETS\SEC \ELSE x\GETS2 \FI \FI
@@ -177,7 +177,7 @@
     \brELIF{\TOUCHED(a[1])} \THEN x\GETS1 \FI 
   \end{array}\]
   with execution
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \nonevent{rs1}{\DR{\SEC}{1}}{}
   \nonevent{wa1}{\DW{a[1]}{1}}{right=of rs1}
   \cloud{ta1}{magic!} {right=of wa1}
@@ -185,7 +185,7 @@
   \po{rs1}{wa1}
   \po{wa1}{ta1}
   \po{ta1}{wx1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   Information flow from $\SEC$ to $x$,
   \emph{if} there's an implementation of ``magic''.
 
@@ -225,7 +225,7 @@
 \end{array}\end{array}\]
 
 If $\SEC$ is $1$, there is an execution:
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{below=of rx1}
   \event{ry1}{\DR{y}{1}}{right=5em of wy1}
@@ -235,10 +235,10 @@ If $\SEC$ is $1$, there is an execution:
   \po{ry1}{wz1}
   \rf{wx1}{rx1}
   \rf{wy1}{ry1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
 If $\SEC$ is $2$, there is no execution (due to cyclic dependency):
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{below=of rx1}
   \event{ry1}{\DR{y}{1}}{right=5em of wy1}
@@ -251,7 +251,7 @@ If $\SEC$ is $2$, there is no execution (due to cyclic dependency):
   \po{ry1}{wz1}
   \rf{wx1}{rx1}
   \rf{wy1}{ry1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
 \end{frame}
 
@@ -487,12 +487,12 @@ if canRead(SECRET) {
   \pause\bigskip
   \emph{New idea}: put preconditions on events\pause, e.g.
 
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \onslide<5->{\event{rx1}{\DR{\aLoc}{1}}{}}
   \onslide<4->{\event{wy1}{\DW{\bLoc}{1}}{right=of rx1}}
   \onslide<3->{\event{wz2}{\only<3-4>{r=1\mid}\only<5>{1=1\mid} \DW{\cLoc}{2}}{right=of wy1}}
   \onslide<5->{\po[out=25,in=155]{rx1}{wz2}}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   is an execution of $(\onslide<5->{\aReg\GETS\aLoc\SEMI} \onslide<4->{\bLoc\GETS1\SEMI} \cLoc\GETS\aReg+1)$.
 
@@ -516,7 +516,7 @@ if canRead(SECRET) {
   \emph{New idea}: an execution of $\IF{M}\THEN \aCmd \ELSE \bCmd \FI$\\
   comes from an execution of $\aCmd$ \emph{and} an execution of $\bCmd$\pause, e.g.
 
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \onslide<6->{\event{rx1}{\DR{\aLoc}{1}}{}}
   \onslide<3,5->{\event{wy1}{\only<3,5>{\aReg\neq0 \mid}\only<6>{1\neq0 \mid} \DW{\bLoc}{1}}{right=of rx1}}
   \onslide<4-6>{\event{wy2}{\only<4,5>{\aReg=0 \mid}\only<6->{1=0 \mid} \DW{\bLoc}{2}}{below=of wy1}}
@@ -524,7 +524,7 @@ if canRead(SECRET) {
   \onslide<6->{\po{rx1}{wy1}}
   \onslide<6>{\po{rx1}{wy2}}
   \onslide<7>{\po{rx1}{nwy2}}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   is an execution of \((
     \onslide<6->{\aReg\GETS\aLoc\SEMI}
@@ -550,19 +550,19 @@ if canRead(SECRET) {
   any execution of $\aCmd$ should be\\
   an execution of $\IF{M}\THEN \aCmd \ELSE \aCmd \FI$\pause, e.g.
 
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
   \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
   \nonevent{nwy1}{\DW{\bLoc}{1}}{below=of wy1}
   \po{rx1}{wy1}
   \po{rx1}{nwy1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   is an execution of $(\IF{\aLoc}\THEN \bLoc\GETS1 \ELSE \bLoc\GETS1 \FI)$\pause,
   but so is
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{\aLoc}{1}}{}
   \event{wy1}{\DW{\bLoc}{1}}{right=of rx1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   \pause
   \emph{New idea}: events from different branches can merge.
@@ -579,7 +579,7 @@ if canRead(SECRET) {
   \emph{Old idea}: match reads with matching
   writes (\`a la C11)\pause, e.g.
 
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{ry1}{\DR{y}{1}}{}
   \event{wx1}{\DW{x}{1}}{below=of ry1}
   \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
@@ -587,7 +587,7 @@ if canRead(SECRET) {
   \po{ry1}{wx1}
   \rf{wx1}{rx1}
   \rf{wy1}{ry1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   is an execution of
 \((
@@ -620,7 +620,7 @@ if canRead(SECRET) {
      \IF{\CANREAD(\SEC)} \THEN \dots\mbox{use } \SEC\dots \ELSE \dots \FI
   \]
   For attacker code $\CANREAD(\SEC)$ is always false\pause, e.g.
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{ry1}{\DR{y}{1}}{}
   \event{wx2}{\DW{x}{2}}{right=of ry1}
   \nonevent{rs1}{\DR{\SEC}{1}}{below=of wx2}
@@ -628,7 +628,7 @@ if canRead(SECRET) {
   \po{ry1}{wx2}
   \po{ry1}{rs1}
   \po{rs1}{wx1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   is an execution of
   \(
      \IF{y} \THEN \IF{\CANREAD(\SEC)} \THEN x\GETS\SEC \ELSE x\GETS2 \FI \FI
@@ -654,11 +654,11 @@ if canRead(SECRET) {
 
   \pause
   Modeled with a new action $(\DT{x})$\pause, e.g.
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{tx}{\DT{x}}{}
   \event{wy1}{\DW{y}{1}}{right=of tx}
   \po{tx}{wy1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   is an execution of
   \(
      \IF{\TOUCHED(x)} \THEN y\GETS1 \FI
@@ -681,7 +681,7 @@ if canRead(SECRET) {
   \end{array}\]
   \pause
   e.g.~with execution
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \nonevent{rs1}{\DR{\SEC}{1}}{}
   \nonevent{wa1}{\DW{a[1]}{1}}{right=of rs1}
   \event{ta1}{\DT{a[1]}} {right=of wa1}
@@ -689,7 +689,7 @@ if canRead(SECRET) {
   \po{rs1}{wa1}
   \po{wa1}{ta1}
   \po{ta1}{wx1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   Information flow from $\SEC$ to $x$.
   
 \end{frame}
@@ -701,7 +701,7 @@ if canRead(SECRET) {
   Prime+Abort is an information flow attack on Intel's transactional memory.
   So first model transactions\pause, e.g.
 
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{b}{\DB}{}
   \event{rx1}{\DR{x}{1}}{right=of b}
   \event{wx2}{\DW{x}{2}}{right=of rx1}
@@ -709,9 +709,9 @@ if canRead(SECRET) {
   \po{b}{rx1}
   \po{rx1}{wx2}
   \po{wx2}{c}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   and
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{b}{\DB}{}
   \nonevent{rx1}{\DR{x}{1}}{right=of b}
   \nonevent{wx2}{\DW{x}{2}}{right=of rx1}
@@ -719,9 +719,9 @@ if canRead(SECRET) {
   \po{b}{rx1}
   \po{rx1}{wx2}
   \po{wx2}{c}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{b}{\DB}{}
   \event{rx1}{\DR{x}{1}}{right=of b}
   \nonevent{wx2}{\DW{x}{2}}{right=of rx1}
@@ -729,7 +729,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
   \po{b}{rx1}
   \po{rx1}{wx2}
   \po{wx2}{c}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
   
 \end{frame}
@@ -748,7 +748,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
   \end{array}\]
   the transaction aborts only when $\SEC$ is $1$.
 
-  \[\begin{tikzpicture}[node distance=1em]
+  \begin{tikzdisplay}[node distance=1em]
   \nonevent{rs1}{\DR{\SEC}{1}}{}
   \nonevent{wa1}{\DW{a[1]}{1}}{right=of rs1}
   \event{b}{\DB}{below=of rs1}
@@ -760,7 +760,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
   \po{wa2}{c}
   \po{c}{wx1}
   \rf{wa1}{wa2}
-\end{tikzpicture}\]
+\end{tikzdisplay}
   Information flow from $\SEC$ to $x$.
 
 \end{frame}
@@ -780,7 +780,7 @@ are executions of \(\BEGIN\SEMI x\GETS x+1\SEMI \END\)\pause, but \emph{not}
 \end{array}\end{array}\]
 
 If $\SEC$ is $1$, there is an execution:
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{below=of rx1}
   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
@@ -790,10 +790,10 @@ If $\SEC$ is $1$, there is an execution:
   \po{ry1}{wz1}
   \rf{wx1}{rx1}
   \rf{wy1}{ry1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
 If $\SEC$ is $2$, there is no execution:
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{below=of rx1}
   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
@@ -806,7 +806,7 @@ If $\SEC$ is $2$, there is no execution:
   \po{ry1}{wz1}
   \rf{wx1}{rx1}
   \rf{wy1}{ry1}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
 \end{frame}
 
@@ -828,7 +828,7 @@ If $\SEC$ is $2$, there is no execution:
     \brELSE x\GETS 2\FI
 \end{array}\end{array}\]
 If $\SEC$ is $1$, there is an execution:
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \event{wx1}{\DW{x}{1}}{right=2.5em of wy1}
@@ -836,10 +836,10 @@ If $\SEC$ is $1$, there is an execution:
   \rf[out=160,in=20]{wx1}{rx1}
   \po{rx1}{wy1}
   \po{wx1}{wx2}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 \pause
 If dead store elimination is performed, there is \emph{no} execution:
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \nonevent{nwx1}{\DW{x}{1}}{right=2.5em of wy1}
@@ -847,7 +847,7 @@ If dead store elimination is performed, there is \emph{no} execution:
   \rf[out=160,in=20]{wx1}{rx1}
   \po{rx1}{wy1}
   \po{nwx1}{wx2}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
 \end{frame}
 

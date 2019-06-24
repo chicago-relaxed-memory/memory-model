@@ -1,3 +1,6 @@
+\newenvironment{tikzinline}[1][]{\begin{math}\small\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}}
+\newenvironment{tikzdisplay}[1][]{\begin{displaymath}\small\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\ignorespacesafterend}
+\newenvironment{tikzsmall}[1][]{\bgroup\small\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\egroup}
 \newcommand{\fdom}{\mathsf{domain}}
 \newcommand{\fcodom}{\mathsf{codomain}}
 \newcommand{\semClosed}[1]{\closed\sem{#1}}
@@ -106,8 +109,8 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
-\newcommand{\DRAcq}[2]{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,#2}}
-\newcommand{\DWRel}[2]{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,#2}}
+\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,#2}}}
+\newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,#2}}}
 \newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,#2}}
 \newcommand{\DF}[1]{\mathsf{F}_{#1}}
@@ -148,7 +151,7 @@
 
 \newcommand{\partialfun}{\mathbin\rightharpoonup}
 \newcommand{\fun}{\mathbin\rightarrow}
-\newcommand{\prefix}{\mathbin\rightarrow}
+\newcommand{\prefix}{\mathbin\Rightarrow}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
 \newcommand{\st}{\mathbin.}
@@ -176,7 +179,7 @@
 \newcommand{\GETS}{\texttt{:}\mkern-1mu\texttt{=}\,}
 \newcommand{\SEQ}{\texttt{;}\,}
 \newcommand{\SEMI}{\texttt{;}\,}
-\newcommand{\IF}[1]{\texttt{if}\texttt{(}#1\texttt{)}}
+\newcommand{\IF}[1]{\texttt{if}\allowbreak\texttt{(}#1\texttt{)}}
 \newcommand{\PASS}{\texttt{pass}}
 \newcommand{\WHILE}{\texttt{while}\,}
 \newcommand{\DO}[1]{\texttt{do}\texttt{\{}#1\texttt{\}}}

@@ -43,13 +43,12 @@ Now define $\rsw$ and $\rhb$.
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
-Two actions \emph{conflict} if they touch the same location and at least one
-is a write action.  A pomset has a \emph{data race} if there are events
+A pomset has a \emph{data race} if there are events
 $\aEv$ and $\bEv$ such that 
 \begin{itemize}
 \item $\aEv$ and $\bEv$ are unordered by $\rhb$,
 \item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict, and
-\item $\labelingForm(\aEv)\land\labelingForm(\bEv)$ is satisfiable.
+\item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies.
 \end{itemize}
 The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the
 executions where
@@ -165,16 +164,16 @@ To define compatibility, we extend the definitions of
 From $\rird$, we define ${\rrb}={\rird}^{-1};{\gtN}$.
 
 We want that if there is an execution:
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{a}{\DW{\aLoc}{1}}{}
   \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
   \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
   \wk{a}{c}
   \ird{a}{b}
   \rb{b}{c}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 Then there is also
-\[\begin{tikzpicture}[node distance=1em]
+\begin{tikzdisplay}[node distance=1em]
   \event{a}{\DW{\aLoc}{1}}{}
   \event{b}{\DW{\bLoc}{1}}{below right=1em and 6em of a}
   \event{c}{\DW{\aLoc}{2}}{above right=1em and 1em of b}
@@ -182,7 +181,7 @@ Then there is also
   \wk{a}{c}
   \rf{a}{r}
   \po{r}{b}
-\end{tikzpicture}\]
+\end{tikzdisplay}
 
 
 % To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
