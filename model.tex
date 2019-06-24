@@ -501,9 +501,9 @@ $\aForm$ implies $\labelingForm(\aEv)$ for every $\aEv\in\Event$. % if $\labelin
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
 
-Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-there is some $\aEv$ that writes $\aLoc$ such that for every release
-$\bEv\in\Event$, $\aEv\leq\bEv$.
+Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
+$\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
+$\bEv\leq\aEv$ for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
