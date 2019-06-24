@@ -131,7 +131,13 @@ We require that data models satisfy the following:
 \item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
   $(\aExp=\aVal)$ and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
-  substitution, and
+  substitution\footnote{Since formulae are closed under substitutions of the
+    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
+    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
+    \emph{extended expression} that includes memory locations.  We elide the
+    details.  By composition of the closure conditions, formulae must also be
+    closed under that substitutions of the form
+    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
 \item there is a relation $\vDash$ between formulae.
 \end{itemize}
 
@@ -141,15 +147,6 @@ $\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$
 \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$, that $\aForm$ is a
 \emph{tautology} whenever $\TRUE\vDash\aForm$, that $\aForm$ is
 \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
-
-
-Since formulae are closed under substitutions of the form
-$\aForm[\aLoc/\aReg]$, they must include equalities of the form
-$(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
-\emph{extended expression} that includes memory locations.  We elide the
-details.  (By composition of the closure conditions, formulae must also be
-closed under that substitutions of the form
-$\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.)
 
 For the actions of a data model, we require that
 \begin{itemize}
@@ -190,9 +187,14 @@ $\aVal$ to $\aLoc$, and $(\DF{})$, which is internal and both an acquire and
 a release.  For each external action, we also define a corresponding internal
 action which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
 For example, $(\iDRAcq{\aLoc}{\aVal})$ is an acquiring internal action, which
-neither reads nor writes.
-
-
+neither reads nor writes. In pictures, we draw internal actions grayed out,
+rather than using $\tau$.  For example, the ``read'' action is internal in:
+\[\begin{tikzpicture}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \internal{rx1}{\DR{x}{1}}{below right=of rx1}
+  \event{wy1}{\DW{y}{1}}{above right=of wy0}
+  \po{wx1}{wy1}
+\end{tikzpicture}\]
 
 
 % In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation

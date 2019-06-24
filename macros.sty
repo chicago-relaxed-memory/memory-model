@@ -242,6 +242,8 @@
 %\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
 \tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]
 \newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
+\tikzstyle{internal} = [color=gray, draw=gray, dashed, fill=gray!10, rectangle, rounded corners, minimum size=3ex]
+\newcommand{\internal}[3]{\node[internal](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{cloudy} = [draw=black, fill=blue!10, cloud, aspect=2]
 \newcommand{\cloud}[3]{\node[cloudy](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{final} = [draw=black, fill=blue!10, rectangle, rounded corners, double, minimum size=3ex]
