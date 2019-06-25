@@ -54,9 +54,7 @@ A thread: top level component of a parallel composition
 $\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
 \end{definition}
 
-\begin{definition}
- $ \aEv' \xeco  \bEv'$ if both $\aEv'$ and $\bEv'$ touch the same location, $\bEv' \gtN \aEv'$, and at least one of them is a write.  
-\end{definition}
+
 
 Since the program we consider are loop free, for any command $\aCmd$, the size of the pomsets in $\aCmd$ are bounded by a constant, that we denote by $\size(\aCmd)$.  
  
@@ -64,32 +62,7 @@ Since the program we consider are loop free, for any command $\aCmd$, the size o
 \section{The semantics  of threads, explained}
 We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
 
-\begin{lemma}
-Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClosed{\aCmd}$  are such that:
-\begin{itemize}
-\item  If $\aEv\lt\bEv$ and $\aEv$ is a release or a write, then $\bEv$ is a release action.
-\item  If $\aEv\lt\bEv$ and $\bEv$ is an acquire or a read, then $\aEv$ is an acquire action.
-%\item  If both $\aEv$ and $\bEv$ touch the same location and, 
-%then $\bEv \gtN \aEv$ or $\aEv \gtN \bEv$.
-% \item  $\aEv \gtN \bEv$ if and only if $ \aEv [\lt \cup (\le; \reco; 
-%\le)] \bEv$. 
-            
-\end{itemize}
-\end{lemma}
-\begin{proof}
-The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  
 
-The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions. 
-% The only required $\gtN$ relationships arise from actions touch 
-% the same location and one of them is a write.   
-\end{proof}
-
-In particular, if there are no release or acquire actions in $\aCmd$:
-\begin{itemize}
-\item Writes are maximal
-\item Reads are minimal
-\end{itemize}
-thus providing a particularly simple view of the semantics of threads without synchronization primitives.   
 
 Below, we develop a correspondence between pomsets and a refined view of state transformers.  These results follow the well known adjunctions involving event structures~\citet{Winskel:1995:MC:218623.218630}.  
 
