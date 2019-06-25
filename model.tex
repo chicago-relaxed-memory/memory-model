@@ -676,7 +676,7 @@ there is $\aPS\in\aPSS$ such that:
 %   \end{itemize}
 \item\label{pre-act} $\labelingAct'(\cEv) = \aAct$ and $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
 \item\label{pre-implies} either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or
-  $\aAct$ is a read and if $\cEv$ is a write then $\cEv\lt'\aEv$,
+  $\aAct$ is a read and if $\aEv$ is a write then $\cEv\lt'\aEv$,
 % \item if $\aAct$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 % \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
 \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
@@ -718,7 +718,9 @@ item~\ref{pre-read} ensures that the precondition is not \emph{too} weak.  In
 the case that one chooses the weaker precondition, item~\ref{pre-implies}
 requires that there be an order from the new event to $\aEv$ when $\aEv$ is a
 write.  No additional order is required when $\aEv$ is a pure read or an
-internal action.
+internal action\footnote{The absence of order between reads is required for
+  our compilation result, since the IMM does not enforce order between reads
+  of a single thread.}.
 
 
 $\aAct\prefix\aPSS$ adds a new event $\cEv$ with action $\aAct$ to each
