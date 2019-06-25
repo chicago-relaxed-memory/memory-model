@@ -1,0 +1,111 @@
+\newcommand{\rel}{{\tt rel}}
+
+
+\section{Single Threaded Optimizations}
+
+As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations in two ways; firstly, by considering concrete examples of single threaded optimizations, and secondly, by proving a full abstraction theorem for single threads.  
+
+In this section, we only consider commands $\aCmd$ that do not have any occurrence of $\PAR$. 
+
+\begin{definition}
+$\aCmd \unrhd \bCmd$ if $\sem{\aCmd} \supseteq \sem{\bCmd}$
+\end{definition}
+Thus, in this case $\aCmd$ can be transformed into $\bCmd$ in any program context.  
+
+We follow the terminology and presentation of section~7.1 of
+~\citet{Dolan:2018:BDR:3192366.3192421}, to maintain a clear comparison with models that enforce extra ordering.
+
+\paragraph*{Peephole optimizations. } 
+Certain transformations involving adjacent operations on the same location are permissible. 
+ 
+\begin{lemma}
+Forall $\PAR$-free $\aCmd$,
+\begin{eqnarray*}
+\mbox{Redundant load} &&\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \aCmd \unrhd\  \aReg \GETS \aLoc \SEMI \bReg \GETS \aReg \SEMI \aCmd \\
+\mbox{Store forwarding} &&
+\aLoc \GETS \aReg \SEMI \bReg \GETS \aLoc \SEMI \aCmd\unrhd\ \aLoc \GETS \aReg \SEMI \bReg \GETS \aReg \SEMI \aCmd \\
+\mbox{Dead Store} && \aLoc \GETS \aReg \SEMI \aLoc \GETS \bReg \SEMI \aCmd \unrhd\ \aLoc \GETS \bReg \SEMI \aCmd
+\end{eqnarray*}
+\end{lemma}
+The proof of correctness of peephole optimisations goes via arguing directly with the semantic definitions.  
+
+Dead store follows from the definition of write, by noting that  $\guard \DW{\aLoc}{} \guard \sem{\aLoc \GETS \bReg \SEMI \aCmd}[\aExp/\aLoc] =  \sem{\aLoc \GETS \bReg \SEMI \aCmd}[\aExp/\aLoc]$. 
+  
+\paragraph*{Reorderings of independent statements}
+
+$\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads from $\aLoc$ in $\aCmd$.  
+\begin{lemma}[Reorderings]
+Let $\aLoc$ and $\aCmd$ be independent.  Let there be no release actions in $\aCmd$.  Then:
+\begin{align*}
+& \sem{\aLoc = \aReg \SEMI \aCmd} = \sem{\aLoc = \aReg \PAR \aCmd} \\
+& \sem{\aReg = \aLoc \SEMI \aCmd} = \sem{\aReg= \aLoc \PAR \aCmd} 
+\end{align*}
+\end{lemma}
+The proof follows immediately from the semantics of prefixing where the only enforced $\lt,\gtN$ relationships come from conflict on $\aLoc$ or release actions in $\aCmd$.
+
+\paragraph*{Compiler optimisations.} Reordering and peephole optimisations can be combined to  to describe common  compiler optimizations.  We illustrate following~\citet{Dolan:2018:BDR:3192366.3192421}.
+
+Common subexpression elimination. Consider the command 
+\[ \aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2 \]
+where $\aCmd$ is independent of $\bReg$.  Then, reordering yields
+\[\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2 \]
+followed by redundant load to yield:
+\[\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg\]
+
+Similarly, the treatment of loop-invariant code motion, dead-store elimination and constant propagation from~\citet{Dolan:2018:BDR:3192366.3192421} follows mutatis-mutandis, since our model is more generous about permitted reorderings.  Thus, we permit  redundant store elimination that they forbid.
+Consider:
+\[ \aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS \aReg \]
+Reordering, permitted by us, but forbidden by them, yields
+\[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
+followed by the valid elimination of redundant load:
+\[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
+
+\endinput
+
+
+
+
+
+
+
+
+
+
+\subsection{Single thread full abstraction}
+We first develop some infrastructure to identify the minimal elements, wrt augmentation, $\aCmd$.  
+\begin{definition}
+$\aPS$ is a generator of  $\sem{\aCmd}$ if for all $\bPS \in \sem{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
+\end{definition}
+
+$\reco$ is the specialization of the $\gtN$ to a per-location basis.  
+\begin{definition}
+ $ \aEv' \xeco  \bEv'$ if both $\aEv'$ and $\bEv'$ touch the same location, $\bEv' \gtN \aEv'$, and at least one of them is a write.  
+\end{definition}
+
+\begin{lemma}\label{onethread}
+Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClosed{\aCmd}$  are such that:
+\begin{itemize}
+\item  If $\aEv\lt\bEv$ and $\aEv$ is a release or a write, then $\bEv$ is a release action.
+\item  If $\aEv\lt\bEv$ and $\bEv$ is an acquire or a read, then $\aEv$ is an acquire action.
+%\item  If both $\aEv$ and $\bEv$ touch the same location and, 
+%then $\bEv \gtN \aEv$ or $\aEv \gtN \bEv$.
+ \item  $\aEv \gtN \bEv$ if and only if $ \aEv [\lt \cup (\le; \reco; 
+\le)] \bEv$. 
+\end{itemize}
+\end{lemma}
+The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions. 
+
+Any optimisation which does not shrink the subrelations of $\rpox$ listed in lemma~\ref{onethread} is permissible.  
+
+
+
+
+
+
+
+In particular, if there are no release or acquire actions in $\aCmd$:
+\begin{itemize}
+\item Writes are maximal
+\item Reads are minimal
+\end{itemize}
+thus providing a particularly simple view of the semantics of threads without synchronization primitives.   
