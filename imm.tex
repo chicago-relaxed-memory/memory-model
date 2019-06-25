@@ -4,7 +4,72 @@
   Memory Model (IMM)} and provide efficient implementations of the IMM into
 several processor architectures, including TSO, ARMv8 and Power.
 
-In this section, we show that any execution allowed by the IMM is also
-allowed by our semantics.
+In this section, we show that any execution allowed by a sublanguage of the
+IMM is also allowed by our semantics.  The sublanguage we consider bans
+loops, read-modify-write (RMW) operations, and fences.  In addition, we take
+the set of memory locations, $\Loc$, to be finite.  Syntactically, we drop
+the superscript \textsf{rlx} on relaxed reads and writes; in addition, we use
+structured conditionals rather than the more general \textsf{goto}.  We refer
+to this sublanguage as $\muIMM$.
 
-Our language is a sublanguage of the IMM
+$\muIMM$ programs sit in the restriction-free fragment of our language, where
+all memory locations are initialized to $0$ and parallel-composition occurs
+only at top level.  In other words, $\muIMM$ programs have the form
+\begin{displaymath}
+  {\aLoc_1}\GETS{0}\SEMI
+  \cdots\SEMI
+  {\aLoc_m}\GETS{0}\SEMI
+  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+\end{displaymath}
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include either composition or
+restriction.
+
+Due to space limitations, we do not include a full description of the IMM.
+The broad strokes of the argument given here should be clear, but interested
+readers will need to refer to \citep{DBLP:journals/pacmpl/PodkopaevLV19} for
+details.
+
+Let $G$ be an execution graph for a $\muIMM$ program satisfying the
+consistency requirements in \textsection3.4 of
+\citep{DBLP:journals/pacmpl/PodkopaevLV19}. (Because the source language
+lacks RMW operations, the ``is exclusive'' flag on every read will be
+\textsf{not-ex} and the RMW mode on every write will be \textsf{normal}.)
+
+From $G$ we construct a candidate pomset $\aPS$ as follows:
+\begin{itemize}
+\item $\Event$ is the event set of $G$,
+\item $\labelingAct$ is the labeling of $G$,
+\item $\labelingForm$ maps every event to $\TRUE$,
+\item $\leq$ is $G.{\rar}$
+\item $\gtN$ is $G.{\rar}\cup G.{\reco}$
+\end{itemize}
+
+We show that $\aPS$ is a top-level pomset, reasoning as follows.
+First, we establish the criteria for a 3-valued pomset (Definition~\ref{def:3valued}).
+\begin{itemize}
+\item ${\le} \subseteq (\Event\times\Event)$ is a partial order.
+\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.
+\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.
+\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
+\end{itemize}
+
+Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
+\begin{itemize}
+\item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
+  $\bEv\le\aEv$.  This is trivial, since every formula is $\TRUE$.
+\item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
+  read or write $\aLoc$, $\gtN$ forms a partial order.
+\end{itemize}
+
+Finally, we establish the criteria for a top-level pomset
+(Definition~\ref{def:x-closed}).
+\begin{itemize}
+\item $\aEv$ is location independent.
+\item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
+  \begin{itemize}
+  \item $\bEv \lt \aEv$,  
+  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
+  \item if $\cEv$ writes to $\aLoc$
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}    
+\end{itemize}

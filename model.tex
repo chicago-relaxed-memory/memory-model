@@ -56,6 +56,7 @@ $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}.
 
 
 \begin{definition}
+  \label{def:3valued}
   A \emph{3-valued pomset} with alphabet $\Alphabet$ is tuple $(\Event,
   {\le}, {\gtN}, \labeling)$, such that 
   \begin{itemize}
@@ -73,7 +74,7 @@ $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}.
     \begin{itemize}
     \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
     \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
-    \item if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
+    \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
     \end{itemize}
 \end{itemize}
 \end{definition}
@@ -242,6 +243,7 @@ that $\gtN$ forms a total order.
 In this paper, we are not investigating microarchitecture.  So we make the
 global assumption formulae can only get stronger in dependent actions:
 \begin{definition}
+  \label{def:3pre}
   A \emph{3-valued pomset with preconditions} is a 3-valued pomset such
   that
   \begin{itemize}
@@ -906,10 +908,12 @@ defined as follows.
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
 %\BNFSEP \FENCE\SEMI \aCmd
-\BNFSEP \REF{\cExp}\GETS\aExp\SEMI \aCmd
-\BNFSEP \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd 
 \BNFSEP \aReg\GETS\REF{\cExp}\SEMI \aCmd
-\BNFSEP \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd \\
+\BNFSEP \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
+\BNFSEP \REF{\cExp}\GETS\aExp\SEMI \aCmd
+\\
 \BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
@@ -938,19 +942,22 @@ The semantics of programs is as follows:
   % \sem{\FENCE\SEMI \aCmd} & =
   % (\DF{}) \prefix \sem{\aCmd}
   % \\
-  \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
-  \\
-  \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
-  \\
+  \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
+  \sem{\aCmd}[\aExp/\aReg] 
+  \\  
   \sem{\aReg\GETS\REFAcq{\cExp}\SEMI \aCmd} & =
   \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \\
   \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
   \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]
+  \\
+  \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
+  \\
+  \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
   \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
