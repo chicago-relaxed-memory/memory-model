@@ -118,7 +118,7 @@ A \emph{data model} consists of:
 \item a set of \emph{registers} $\Reg$, ranged over by
   $\aReg$ and $\bReg$,
 \item a set of \emph{expressions} $\Exp$, ranged over by
-  $\aExp$ and $\bExp$,
+  $\aExp$, $\bExp$, $\cExp$ and $\dExp$,
 \item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
   $\bLoc$, 
 \item a set of \emph{logical formulae} $\Formulae$, ranged over by
@@ -232,15 +232,23 @@ we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
 and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
 
 
-In this paper, we are not investigating speculative execution.  So we make
-the global assumption formulae can only get stronger in dependent actions:
+\begin{definition}
+  A pomset is $\aLoc$-\emph{coherent} if, when restricted to events that read
+  or write $\aLoc$, $\gtN$ forms a partial order.
+\end{definition}
+As we shall see below, for top-level pomsets we could equivalently require
+that $\gtN$ forms a total order.
 
+In this paper, we are not investigating microarchitecture.  So we make the
+global assumption formulae can only get stronger in dependent actions:
 \begin{definition}
   A \emph{3-valued pomset with preconditions} is a 3-valued pomset such
-  that $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-  $\bEv\le\aEv$.
-
-  ADD COHERENCE.
+  that
+  \begin{itemize}
+  \item it is $\aLoc$-coherent for every $\aLoc$, and
+  \item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
+    $\bEv\le\aEv$.
+  \end{itemize}
 \end{definition}
 
 In the remainder of the paper, we refer to 3-valued pomsets with
@@ -294,7 +302,7 @@ to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
 %   \end{itemize}
 % \end{definition}
 
-At top-level, we expect the use of each variable to be \emph{closed} and \emph{coherent}.
+At top-level, we expect the use of each variable to be \emph{closed}.
 
 \begin{definition}
 \label{def:x-closed}
@@ -314,10 +322,7 @@ At top-level, we expect the use of each variable to be \emph{closed} and \emph{c
   %   some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
   \end{itemize}
 
-  A pomset is $\aLoc$-\emph{coherent} if, when restricted to events that read
-  or write $\aLoc$, $\gtN$ forms a partial order.
-
-  A pomset is \emph{top-level} if it is $\aLoc$-closed and $\aLoc$-coherent,
+  A pomset is \emph{top-level} if it is $\aLoc$-closed
   for every $\aLoc$.
 \end{definition}
 % Our model of reads-from is strong, and could be weakened by replacing the
@@ -370,7 +375,7 @@ which includes the execution:
 \end{tikzdisplay}
 This satisfies the requirements for $x$-closure, but is not coherent.
 
-With the restrictions in $x$-closure, is forbidding cycles forces an order
+With the restrictions in $x$-closure, forbidding cycles forces an order
 between any writes that are read from:
 \[
   x\GETS 3
@@ -842,32 +847,57 @@ since no order is required between $(\DW x1)$ and $(\DW f1)$.
 Symmetrically, if we replace the acquire of the original program
 with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 
+We end this section with the following lemma, which is immediate from the definitions.
+\begin{lemma}
+  \label{lem:monotone}
+  All combinators are monotone with respect to subset order.  For example, 
+  $\aAct\prefix\aPSS \subseteq \aAct\prefix\aPSS'$ whenever
+  $\aPSS\subseteq\aPSS'$.
+%   Suppose
+%   $\aPSS'\supseteq\aPSS$, $\aPSS_1'\supseteq\aPSS_1$ and
+%   $\aPSS_2'\supseteq\aPSS_2$.  Then we have the following.
+% \begin{itemize}
+% \item $\aPSS'\aSub \supseteq \aPSS\aSub$,
+% \item $\nu\aLoc\st\aPSS' \supseteq \nu\aLoc\st\aPSS$,
+% \item $\aForm\guard\aPSS' \supseteq \aForm\guard\aPSS$,
+% \item $\Loc\guard\aPSS' \supseteq \Loc\guard\aPSS$,
+% \item $\DW{\aLoc}{}\guard\aPSS' \supseteq \DW{\aLoc}{}\guard\aPSS$,
+% \item $\aPSS'_1\parallel\aPSS'_2 \supseteq \aPSS_1\parallel\aPSS_2$, and
+% \item $\aAct\prefix\aPSS' \supseteq \aAct\prefix\aPSS$.
+% \end{itemize}
+\end{lemma}
+
 \subsection{Semantics of programs}
 \label{sec:semantics}
 
 We consider a simple shared-memory concurrent language, with statements
-defined as follows\footnote{We only consider executions where register state
-  is empty in forked threads.  Given item~\ref{pre-acquire} of
+defined as follows.
+
+\begin{comment}
+\footnote{We only consider executions where register state is empty in
+  forked threads.  Given item~\ref{pre-acquire} of
   Definition~\ref{def:prefix}, a sufficient condition is that parallel
   composition is always preceded by an acquire fence, as in programs of the
   form:
-\begin{displaymath}
-  \VAR\vec{\aLoc}\SEMI
-  \vec{\aLoc}\GETS\vec{0}\SEMI
-  \vec{\bLoc}\GETS\vec{0}\SEMI
-  \FENCE\SEMI
-  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
-\end{displaymath}
-where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
-in drawings, we often drop the explicit fence.}.
+  \begin{displaymath}
+    \VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+  \end{displaymath}
+  where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
+  in drawings, we often drop the explicit fence.}.
+\end{comment}
+
 % \begin{align*}
 % \aCmd,\,\bCmd
 % \BNFDEF& \SKIP \tag{No Operation}
 % \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
-% \\[-1ex]\BNFSEP& \REF{\bExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
-% \\[-1ex]\BNFSEP& \REF{\bExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\bExp}\SEMI \aCmd \tag{Relaxed read from memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\bExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
+% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
 % \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 % \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
@@ -875,11 +905,11 @@ in drawings, we often drop the explicit fence.}.
 \begin{align*}
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
-\BNFSEP \FENCE\SEMI \aCmd
-\BNFSEP \REF{\bExp}\GETS\aExp\SEMI \aCmd
-\BNFSEP \REF{\bExp}\REL\GETS\aExp\SEMI \aCmd
-\BNFSEP \aReg\GETS\REF{\bExp}\SEMI \aCmd
-\BNFSEP \aReg\GETS\REF{\bExp}\ACQ\SEMI \aCmd \\
+%\BNFSEP \FENCE\SEMI \aCmd
+\BNFSEP \REF{\cExp}\GETS\aExp\SEMI \aCmd
+\BNFSEP \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\REF{\cExp}\SEMI \aCmd
+\BNFSEP \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd \\
 \BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
@@ -905,22 +935,22 @@ The semantics of programs is as follows:
   \sem{\SKIP} & =
   \{ \emptyset \}
   \\
-  \sem{\FENCE\SEMI \aCmd} & =
-  (\DF{}) \prefix \sem{\aCmd}
+  % \sem{\FENCE\SEMI \aCmd} & =
+  % (\DF{}) \prefix \sem{\aCmd}
+  % \\
+  \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
   \\
-  \sem{\REFRel{\bExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
+  \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
   \\
-  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
+  \sem{\aReg\GETS\REFAcq{\cExp}\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \\
-  \sem{\aReg\GETS\REFAcq{\bExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\
-  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]
+  \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
@@ -932,7 +962,7 @@ The semantics of programs is as follows:
   \nu \aLoc \st \sem{\aCmd}
   % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  % \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
+  % \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
   % \sem{\aReg\GETS\aLoc\SEMI \aCmd} & =  \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   % \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & =  \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
 % \caption{Semantics of a concurrent shared-memory language}
@@ -940,9 +970,13 @@ The semantics of programs is as follows:
 % \end{figure*}
 \end{align*}
 
+The semantics of relaxed writes is the union of two sets.  The first set adds
+a write action to each pomset in $\sem{\aCmd}$; the second does not.  In
+discussion we refer to these respectively as \emph{explicit} and
+\emph{implicit} writes.  The semantics of relaxed reads is similar.  We
+collectively refer to these as explicit and implicit \emph{actions}.
 
-
-
+Note that synchronizing actions are always explicit.
 
 Note that the rule for write uses the substitution $[\aExp/\aLoc]$ with
 precondition $\aExp=\aVal$, rather than using $[\aVal/\aLoc]$ directly.

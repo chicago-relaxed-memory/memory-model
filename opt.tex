@@ -3,47 +3,84 @@
 
 \section{Single Threaded Optimizations}
 
-As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations in two ways; firstly, by considering concrete examples of single threaded optimizations, and secondly, by proving a full abstraction theorem for single threads.  
+As we have seen already, our model {\em invalidates} thread inlining.  We
+argue that our model is fully flexible with respect to single threaded
+optimizations in two ways; firstly, by considering concrete examples of
+single threaded optimizations, and secondly, by proving a full abstraction
+theorem for single threads without synchronization.  
 
-In this section, we only consider commands $\aCmd$ that do not have any occurrence of $\PAR$. 
+%In this section, we only consider commands $\aCmd$ that do not have any occurrence of $\PAR$. 
 
-\begin{definition}
-$\aCmd \unrhd \bCmd$ if $\sem{\aCmd} \supseteq \sem{\bCmd}$
-\end{definition}
-Thus, in this case $\aCmd$ can be transformed into $\bCmd$ in any program context.  
+% \begin{definition}
+% $\aCmd \unrhd \bCmd$ if $\sem{\aCmd} \supseteq \sem{\bCmd}$
+% \end{definition}
+% Thus, in this case $\aCmd$ can be transformed into $\bCmd$ in any program context.  
+
+By Lemma~\ref{lem:monotone}, if $\sem{\aCmd} \supseteq \sem{\bCmd}$
+then $\aCmd$ can be transformed into $\bCmd$ in any program context.
 
 We follow the terminology and presentation of section~7.1 of
 ~\citet{Dolan:2018:BDR:3192366.3192421}, to maintain a clear comparison with models that enforce extra ordering.
 
 \paragraph*{Peephole optimizations. } 
-Certain transformations involving adjacent operations on the same location are permissible. 
+Certain transformations involving adjacent operations on the same location
+are permissible. 
  
 \begin{lemma}
-Forall $\PAR$-free $\aCmd$,
-\begin{eqnarray*}
-\mbox{Redundant load} &&\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \aCmd \unrhd\  \aReg \GETS \aLoc \SEMI \bReg \GETS \aReg \SEMI \aCmd \\
-\mbox{Store forwarding} &&
-\aLoc \GETS \aReg \SEMI \bReg \GETS \aLoc \SEMI \aCmd\unrhd\ \aLoc \GETS \aReg \SEMI \bReg \GETS \aReg \SEMI \aCmd \\
-\mbox{Dead Store} && \aLoc \GETS \aReg \SEMI \aLoc \GETS \bReg \SEMI \aCmd \unrhd\ \aLoc \GETS \bReg \SEMI \aCmd
-\end{eqnarray*}
+  Suppose $\cExp=\dExp$ is a tautology.  Then the following optimizations hold.
+% \begin{eqnarray*}
+% \mbox{Redundant load} &&\sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} \supseteq  \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]} \\
+% \mbox{Store forwarding} &&\sem{\aLoc \GETS \aReg \SEMI \bReg \GETS \aLoc \SEMI \aCmd} \supseteq \sem{\aLoc \GETS \aReg \SEMI \aCmd[\aReg/\bReg]} \\
+% \mbox{Dead Store} && \sem{\aLoc \GETS \aReg \SEMI \aLoc \GETS \bReg \SEMI \aCmd} \supseteq \sem{\aLoc \GETS \bReg \SEMI \aCmd}
+% \end{eqnarray*}
+\begin{align*}
+  \tag{Redundant load}
+  \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}  \SEMI \aCmd} &\supseteq
+  \sem{\aReg \GETS \REF{\cExp} \SEMI \aCmd[\aReg/\bReg]} \\
+  \tag{Store forwarding} 
+  \sem{\REF{\cExp} \GETS \aExp \SEMI \bReg \GETS \REF{\dExp} \SEMI \aCmd} &\supseteq 
+  \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/\bReg]} \\
+  \tag{Dead Store} 
+  \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq 
+  \sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}
+\end{align*}
+\begin{proof}
+  In each case, the proof proceeds by observing that the semantics allows us
+  to use an implicit action on the lefthand side.  For dead store
+  elimination, note that
+  $\sem{\aLoc \GETS \bReg \SEMI \aCmd} = \DW{\aLoc}{} \guard \sem{\aLoc \GETS
+    \bReg \SEMI \aCmd}$.
+\end{proof}
 \end{lemma}
-The proof of correctness of peephole optimisations goes via arguing directly with the semantic definitions.  
-
-Dead store follows from the definition of write, by noting that  $\guard \DW{\aLoc}{} \guard \sem{\aLoc \GETS \bReg \SEMI \aCmd}[\aExp/\aLoc] =  \sem{\aLoc \GETS \bReg \SEMI \aCmd}[\aExp/\aLoc]$. 
   
 \paragraph*{Reorderings of independent statements}
 
 $\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads from $\aLoc$ in $\aCmd$.  
-\begin{lemma}[Reorderings]
-Let $\aLoc$ and $\aCmd$ be independent.  Let there be no release actions in $\aCmd$.  Then:
-\begin{align*}
-& \sem{\aLoc = \aReg \SEMI \aCmd} = \sem{\aLoc = \aReg \PAR \aCmd} \\
-& \sem{\aReg = \aLoc \SEMI \aCmd} = \sem{\aReg= \aLoc \PAR \aCmd} 
-\end{align*}
+\begin{lemma}%[Reorderings]
+  Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
+  \begin{align*}
+    \tag{Read-read}
+    \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} \SEMI \aCmd} &=
+    \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+    &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+    \\
+    \tag{Read-write}
+    \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &=
+    \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+    \\
+    \tag{Write-write}
+    \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &=
+    \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI \aCmd}
+  \end{align*}
+\begin{proof}
+  The result follows immediately from the semantics of prefixing where the
+  only enforced $\lt$ and $\gtN$ relationships come from conflict on $\aLoc$ or
+  release actions in $\aCmd$.
+\end{proof}
 \end{lemma}
-The proof follows immediately from the semantics of prefixing where the only enforced $\lt,\gtN$ relationships come from conflict on $\aLoc$ or release actions in $\aCmd$.
 
-\paragraph*{Compiler optimisations.} Reordering and peephole optimisations can be combined to  to describe common  compiler optimizations.  We illustrate following~\citet{Dolan:2018:BDR:3192366.3192421}.
+\paragraph*{Compiler optimizations.} Reordering and peephole optimizations can be combined to describe common  compiler optimizations.  We illustrate following~\citet{Dolan:2018:BDR:3192366.3192421}.
 
 Common subexpression elimination. Consider the command 
 \[ \aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2 \]
