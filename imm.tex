@@ -35,28 +35,38 @@ consistency requirements in \textsection3.4 of
 lacks RMW operations, the ``is exclusive'' flag on every read will be
 \textsf{not-ex} and the RMW mode on every write will be \textsf{normal}.)
 
+Let $R^*$ denotes the reflexive and transitive closure of relation $R$.  Let
+$R;S$ denote the composition of relations $R$ and $S$.
+
+Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
+$\aEv\in\fcodom(G.\mathsf{po}\cap G.\mathsf{rf})$.
+
 From $G$ we construct a candidate pomset $\aPS$ as follows:
 \begin{itemize}
-\item $\Event$ is the event set of $G$,
-\item $\labelingAct$ is the labeling of $G$,
-\item $\labelingForm$ maps every event to $\TRUE$,
-\item $\leq$ is $G.{\rar}$
-\item $\gtN$ is $G.{\rar}\cup G.{\reco}$
+\item $\Event= G.\textsf{E}$,
+\item $\labelingAct(\aEv)=\tau G.\mathsf{lab}(e)$, if $\aEv$ is a relaxed
+  internal read, 
+\item $\labelingAct(\aEv)=G.\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
+  internal read,
+\item $\labelingForm(\aEv)=\TRUE$,
+\item ${\leq} = G.{\rar}^*$, and
+\item ${\gtN} = {\leq} \cup {\leq}; {G.{\reco}} \cup {G.{\reco}} ; {\leq}$
 \end{itemize}
 
 We show that $\aPS$ is a top-level pomset, reasoning as follows.
 First, we establish the criteria for a 3-valued pomset (Definition~\ref{def:3valued}).
 \begin{itemize}
-\item ${\le} \subseteq (\Event\times\Event)$ is a partial order.
-\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.
-\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.
-\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
+\item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is acyclic.
+\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
+\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  ????
+\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
+  $\cEv \gtN \aEv$. By construction.
 \end{itemize}
 
 Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
 \begin{itemize}
 \item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-  $\bEv\le\aEv$.  This is trivial, since every formula is $\TRUE$.
+  $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
 \item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
   read or write $\aLoc$, $\gtN$ forms a partial order.
 \end{itemize}
@@ -64,7 +74,7 @@ Next, we establish the criteria for a 3-valued pomset with preconditions (Defini
 Finally, we establish the criteria for a top-level pomset
 (Definition~\ref{def:x-closed}).
 \begin{itemize}
-\item $\aEv$ is location independent.
+\item $\aEv$ is location independent. Trivial, since every formula is $\TRUE$.
 \item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
   \begin{itemize}
   \item $\bEv \lt \aEv$,  
