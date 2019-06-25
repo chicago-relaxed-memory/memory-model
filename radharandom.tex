@@ -118,7 +118,7 @@ All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$
 \begin{lemma}\label{pargen}
 Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
 
-Let $\aPS$  be any generator.  Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd} \setminus \semClosed{\bCmd}$ and  $\bEv \in \semClosed{\bCmd} \setminus \semClosed{\aCmd}$.  
+Let $\aPS$  be any generator.  Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd}$ and  $\bEv \in \semClosed{\bCmd} $.  
 
 The,  then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
 % \item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)]  
@@ -149,9 +149,9 @@ Let $(\aPS \after \aEv) = {\{ \bEv\in\Event \mid \aEv \le \bEv
 The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt $\reco$), even while  the races with existing independent writes are maintained. 
 \begin{lemma}\label{inputen}
 %Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI \FENCE\SEMI (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
+Let $\aCmd$ have an initial value for $\aLoc$.   
 Let $\aPS \in \sem{\aCmd}$.  
 Let $\aEv \in \aPS$ read from write event $\bEv$  on $\aLoc \in \vec{\aLoc}$.  Let $\neg(\bEv \xhb \aEv)$ in $\aPS$. 
-
 Then, there exists $\bPS \in \sem{\aCmd}$ such that:
 \begin{itemize}
 %\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
@@ -170,24 +170,21 @@ In particular, in the above lemma, $\bEv,\bEv'$ are events of both $\aPS$ and $\
 
 In the following lemma,  invert the $\reco$ relationship between a read and a write. 
 \begin{lemma}\label{removerw}
-% Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI \FENCE\SEMI (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
 Let $\aPS \in \sem{\aCmd}$.   
 Let $\bEv \in \aPS$ be a write on $\aLoc$. 
-Let $\aEv_1, \ldots,\aEv_n \in \aPS$ be all the reads from $\aLoc \in \vec{\aLoc}$ such that for all $i$, $\aEv_i \xeco \bEv$ and $\neg(\aEv_i \lt \bEv)$.  
-
-Then, there exists $\bPS \in \sem{\aCmd}$ such that:
+Let $\aEv \in \aPS$ read from $\aLoc \in \vec{\aLoc}$ such that $\aEv \xeco \bEv$ and $\neg(\aEv \lt \bEv)$.  Then, there exists $\bPS \in \sem{\aCmd}$ such that:
 \begin{itemize}
 %\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
 %\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
-%(\aPS \after \aEv))$ and $(\bPS \after \aEv')$.
-\item  If $\aEv'$ reads from $\aLoc$ with matching write event $\bEv'$ in $\bPS$, and $\bEv' \xeco \bEv$ in $\bPS$ then $\bEv' \in 
-\Event_{\aPS} \setminus \bigcup_i (\aPS \after \aEv_i)$. 
-\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus \bigcup_i (\aPS \after \aEv_i)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\bPS$ to $\Event_{\bPS} \setminus \bigcup_i (\aPS \after \aEv_i)$.  
+%(\aPS\ \after\ \aEv))$ and $(\bPS\ \after\ \aEv')$.
+\item $\aEv' \in \bPS \setminus \aPS$ reads from $\aLoc$, with matching write $\bEv$.
+\item The restriction of $\le$ (resp. $\gtN$) in $\aPS$ to $\Event_{\aPS} \setminus (\aPS\ \after\ \aEv)$ agrees with the the restriction of $\le$ (resp. $\gtN$) in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS\ \after\ \aEv)$.  
 \end{itemize}
 \end{lemma}
 \begin{proof}
-The proof proceeds as follows.  Similar to the above proof, replace the values read in the events $\aEv_i$ to come from a write that precedes $\bEv$ in  $\reco$.  The process is repeated if the new pomset is has any new reads that precede $\bEv$ in $\reco$.  The termination of the process is guaranteed by the finite bound on the size of pomsets in $ \sem{\aCmd}$.
+The proof proceeds similar to the above proof; in this case, replace the value read in $\aEv$ to come from $\bEv$.  
 \end{proof}
+Any new  event $\bEv'$ in $\bPS \after \aEv'$ reading from $\aLoc$ cannot have a matching write event $\bEv'' \xeco \bEv$ since that  implies $\bEv' \xeco \bEv$ and a $\reco$ cycle $\bEv \lt \aEv \lt \aEv' \xeco \bEv$.  Thus, the above lemma can be iterated if the new pomset is has any further reads that precede $\bEv$ in $\reco$, so we can finally derive a pomset with no reads and writes satisfying the hypothesis of the lemma.   
 
 
 The $\reco$ order between writes that are not related by $\lt$ can be reversed. 
@@ -274,6 +271,9 @@ We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and rea
 
 \end{proof}
 \endinput
+
+
+
 
 The proof of lemma~\ref{cohsat} yields the following two corollaries.
 \begin{corollary}\label{cohrw}
