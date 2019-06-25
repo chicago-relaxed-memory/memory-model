@@ -1,3 +1,10 @@
+Merge order.
+Augment order.
+Implication order.
+Generator is minimal in all of these, so po has unique predecessors.
+
+cross thread edges in generator are write-to-read and not from augmentation.
+
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
@@ -232,6 +239,8 @@ the global assumption formulae can only get stronger in dependent actions:
   A \emph{3-valued pomset with preconditions} is a 3-valued pomset such
   that $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
   $\bEv\le\aEv$.
+
+  ADD COHERENCE.
 \end{definition}
 
 In the remainder of the paper, we refer to 3-valued pomsets with
