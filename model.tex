@@ -144,10 +144,12 @@ We require that data models satisfy the following:
 
 We say that $\aForm$ is \emph{independent of $\aLoc$} whenever
 $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$, and that
-$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$
-\emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$, that $\aForm$ is a
-\emph{tautology} whenever $\TRUE\vDash\aForm$, that $\aForm$ is
-\emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
+$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$ is
+\emph{location independent} if it is independent of every location.
+
+We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
+that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
+$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
 
 For the actions of a data model, we require that
 \begin{itemize}
@@ -188,7 +190,9 @@ $\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$
 from $\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release that writes
 $\aVal$ to $\aLoc$, and $(\DF{})$, which is internal and both an acquire and
 a release.  For each external action, we also define a corresponding internal
-action which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
+action
+% which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
+denoted by prefixing $\tau$.
 For example, $(\iDRAcq{\aLoc}{\aVal})$ is an acquiring internal action, which
 neither reads nor writes. In pictures, we draw internal actions grayed out,
 rather than using $\tau$.  For example, the ``read'' action is internal in:
@@ -427,10 +431,12 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   every precondition,
 \item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
   pomsets that are $\aLoc$-closed and $\aLoc$-coherent,
-\item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
-  keeping pomsets where all events imply $\aForm$,
-\item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which filters
-  $\aPSS$, keeping pomsets that have an initial write to $\aLoc$,
+% \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
+%   keeping pomsets where all events imply $\aForm$,
+% \item \emph{independency filtering} $\Loc\guard\aPSS$, which filters
+%   $\aPSS$, keeping pomsets all events are independent of every location,
+% \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which filters
+%   $\aPSS$, keeping pomsets that have an initial write to $\aLoc$,
 \item \emph{composition} $\aPSS^1\parallel\aPSS^2$, which unions pomsets, allowing events to be merged, and
 \item \emph{prefixing} $\aAct\prefix\aPSS$, which adds an event with action
   $\aAct$ to pomsets in $\aPSS$, ordering $\aAct$ before any $\aEv$ whose predicate
@@ -439,6 +445,16 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 These operations are similar to those from models of concurrency such
 as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
 speculative evaluation.
+
+We also define three filtering operations:
+\begin{itemize}
+\item \emph{guarding} $\aForm\guard\aPSS$, which
+  keeps pomsets where all preconditions imply $\aForm$,
+\item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
+  where all preconditions are location independent,
+\item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
+  that have an initial write to $\aLoc$,
+\end{itemize}
 
 %% A write generates a write event that may be visible
 %% to other threads.  A read may see a
@@ -461,7 +477,7 @@ speculative evaluation.
 % $(\aForm\guard\aPSS)\subseteq\aPSS$ and
 % $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
 
-The definitions of substitution, restriction and guarding and write filtering
+The definitions of substitution, restriction and the filtering operations %guarding and write filtering
 are straightforward\footnote{We have chosen the definition of restriction for
   its simplicity.  It is worth noting, however, that our definition does not
   support renaming of variables.  In particular
@@ -496,14 +512,17 @@ and
 $\labeling'(\aEv) = (\bForm \mid \finternalize(\aAct))$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
 
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-$\aForm$ implies $\labelingForm(\aEv)$ for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
+$\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
 
+Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
+$\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
+
 Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
 $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
-$\bEv\leq\aEv$ for every release $\aEv\in\Event$.
+$\bEv\leq\aEv$, for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
@@ -649,7 +668,7 @@ there is $\aPS\in\aPSS$ such that:
 \item\label{pre-coherence} if $\aAct$ conflicts with $\labelingAct(\aEv)$ 
     then $\cEv \gtN' \aEv$,
 \item\label{pre-sync} if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, and
-\item\label{pre-acquire} if $\aAct$ is an acquire then $\labelingForm(\aEv)$ is independent of every $\bLoc$.
+\item\label{pre-acquire} if $\aAct$ is an acquire then $\labelingForm(\aEv)$ is location independent.
 % \item if $\aAct$ is a read but not a synchronization then either
 %   $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
 %   that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
@@ -874,22 +893,39 @@ $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 The semantics of programs is as follows:
 \allowdisplaybreaks
 \begin{align*}
-  \sem{\SKIP} & = \{ \emptyset \} \\
-  \sem{\FENCE\SEMI \aCmd} & = (\DF{}) \prefix \sem{\aCmd} \\
-  \sem{\REFRel{\bExp}\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]\\
-  & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]\\
+  \sem{\SKIP} & =
+  \{ \emptyset \}
+  \\
+  \sem{\FENCE\SEMI \aCmd} & =
+  (\DF{}) \prefix \sem{\aCmd}
+  \\
+  \sem{\REFRel{\bExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
+  \\
+  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
+  \\
+  \sem{\aReg\GETS\REFAcq{\bExp}\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\
+  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]
+  \\
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
+  \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
+  \\
+  \sem{\aCmd \PAR \bCmd} & =
+  \sem{\aCmd} \parallel \Loc \guard \sem{\bCmd} 
+  \\
+  \sem{\VAR\aLoc\SEMI \aCmd} & =
+  \nu \aLoc \st \sem{\aCmd}
   % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  \sem{\aReg\GETS\REFAcq{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]\\
   % \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
   % \sem{\aReg\GETS\aLoc\SEMI \aCmd} & =  \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   % \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & =  \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =  \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
-  \sem{\aCmd \PAR \bCmd} & =  \sem{\aCmd} \parallel \sem{\bCmd} \\
-  \sem{\VAR\aLoc\SEMI \aCmd} & =  \nu \aLoc \st \sem{\aCmd}
 % \caption{Semantics of a concurrent shared-memory language}
 % \label{fig:programs}
 % \end{figure*}

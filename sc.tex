@@ -49,12 +49,18 @@ ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
   ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
   when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
-In addition, we re-define the read rule as follows:
+In addition, we re-define the rules for relaxed reads and writes as follows:
 \begin{align*}
-  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard ((\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) 
+  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \DW{\aLoc}{} \guard (\iDW{\aLoc}{0}) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \\
+  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & =
+  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
 \end{align*}
-The difference is that we record internal reads using the action
-$\iDR{\aLoc}{0}$.  (The value in this action is ignored.)
+The difference is that we record internal action
+$(\iDR{\aLoc}{})$ or $(\iDW{\aLoc}{})$.  (The value in this action is ignored.)
 
 Throughout our discussion of data races, we assume that programs do not use
 restriction, and therefore that all internal actions arise from this rule.
@@ -69,14 +75,14 @@ Now define $\rsw$ and $\rhb$.
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
-A pomset has a \emph{data race} if there are events
-$\aEv$ and $\bEv$ such that 
+We say that two actions have a \emph{data-race conflict} if at least one
+action is a write or internal write to a location $\aLoc$ and the other is a
+read, write, internal read or internal write to the same location.  A pomset
+has a \emph{data race} if there are events $\aEv$ and $\bEv$ such that
 \begin{itemize}
 \item $\aEv$ and $\bEv$ are unordered by $\rhb$,
 \item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies,
-\item either $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict or one is
-  an internal read of some memory location and the other is a write to the
-  same location.
+\item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ have a data-race conflict.
 \end{itemize}
 
 The semantics of programs includes SC executions.  Let $\semsc{\aCmd}$ be the

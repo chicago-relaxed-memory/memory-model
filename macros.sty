@@ -117,10 +117,10 @@
 \newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
 \newcommand{\DF}[1]{\mathsf{F}_{#1}}
-\newcommand{\iDRAcq}[2]{\mathsf{\tau^{acq}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
-\newcommand{\iDWRel}[2]{\mathsf{\tau^{rel}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
-\newcommand{\iDR}[2]{\mathsf{\tau}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\iDW}[2]{\mathsf{\tau}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDRAcq}[2]{\mathsf{\tau R^{acq}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDWRel}[2]{\mathsf{\tau W^{rel}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDR}[2]{\mathsf{\tau R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDW}[2]{\mathsf{\tau W}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
 %\newcommand{\iDF}[1]{\mathsf{\tau F}_{#1}}
 
 \newcommand{\DSB}{\mathsf{SB}}
@@ -192,7 +192,8 @@
 \newcommand{\brELSE}{\texttt{\}}\\\texttt{else}\,\texttt{\{}}
 \newcommand{\brELIF}[1]{\texttt{\}}\\\texttt{else}\,\IF{#1}}
 \newcommand{\FI}{\texttt{\}}}
-\newcommand{\PAR}{\,\mathbin{\|}\,}
+%\newcommand{\PAR}{\,\mathbin{\|}\,}
+\newcommand{\PAR}{\,\mathbin{\rrceil}\,}
 \newcommand{\VAR}{\texttt{var}\,}
 \newcommand{\TOUCHED}{\texttt{touched}\,}
 \newcommand{\REF}[1]{\texttt{[}#1\texttt{]}}
