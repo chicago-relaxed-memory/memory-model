@@ -1,39 +1,90 @@
 \begin{verbatim}
+ob does not contradict eco
+
 ob does not contradict (co cap po):
 
-Suppose that w1(x) po w2(x) then it cannot be that w2 ob w1.
-We know that w1 co w2 by SC-PER-LOC
+Suppose that wx1 po wx2 then it cannot be that wx2 ob wx1.
+We know that wx1 co wx2 by SC-PER-LOC
 
-Case 1. w1 is read externally, then we have
-  w1 rfe r
-and
-  r fre w2
-so
-  w1 obs+ w2
-which contradicts EXTERNAL
+% Case 1. w1 is read externally, then we have
+%   wx1 rfe r
+% and
+%   r fre w2
+% so
+%   wx1 obs+ wx2
+% which contradicts EXTERNAL
 
-Case 2. w1 is not read externally.
+% Case 2. wx1 is not read externally.
 We show this by contradiction
 Assume
-  w1 co w2
+  wx1 co wx2
 and
-  w2 ob w1
+  wx2 ob wx1
 
 Note that
   po supseteq dob cup aob cup bob
-So in order to get order into w1, we must have
-  w2 (ob?; obs; ob?; obs; ob?) w1
+So in order to get order into wx1, we must have
+  wx2 (ob?; obs; ob?; obs; ob?) wx1
 
-Note that we cannot have dob or bob into w1 after obs, since then we would
-also have it into w2, creating a cycle in EXTERNAL.  This holds because both
+Note that we cannot have dob or bob into wx1 after obs, since then we would
+also have it into wx2, creating a cycle in EXTERNAL.  This holds because both
 dob and bob are closed on the right w.r.t. coi
 
 So it must be that 
-  w2 (ob?; obs; ob?; w0; coe) w1, 
-in which case we also have w0 coe w2, contradicting EXTERNAL
+  wx2 (ob?; obs; ob?; wx0; coe) wx1, 
+in which case we also have wx0 coe wx2, contradicting EXTERNAL
 or 
-  w2 (ob?; obs; ob?; r0; fre) w1
-in which case we also have r0 fre w2, contradicting EXTERNAL
+  wx2 (ob?; obs; ob?; rx0; fre) wx1
+in which case we also have rx0 fre wx2, contradicting EXTERNAL
+
+
+
+
+Internal reads do not need to respect ob:
+Arm allows the following:
+
+  Ra1 -ctrl-> Wx1 -rfi-> Rx1 ---> Wb1    if(a){x=1}; b=x
+   |                               |
+  Wa1 <-------------------------- Rb1    a=b
+
+
+Suppose that wx1 po rx2 and rx2 is read externally.
+Then it cannot be that rx2 ob wx1.
+
+Case 1: if wx1 co wx2, then we have wx1 coe wx2 rfe rx2, contradicting EXTERNAL
+Case 2: if wx2 co wx1, then we have rx2 fr wx1, contradicting SC-PER-LOC
+
+
+
+Suppose that rx1 po wx2 and rx1 is read externally.
+Then it cannot be that wx2 ob rx1.
+
+Case 1: if wx2 co wx1, then wx2 co wx1 rf rx1 po wx2, contradicting SC-PER-LOC 
+Case 2: if wx1 co wx2, ....
+
+Counterexample.
+I believe ARM allows the following:
+
+              Wx1                 x=1
+               |
+  Ra2 -ctrl-> Rx1 - - -> Wx2      if(a){r=x}; x=2
+   |                      |
+  Wa2 <----------------- Rx2      a=x
+
+In ARM - - -> is an internal from-read
+
+
+
+Other examples to type in:
+Allowed:
+Rx1 -> Wy0  Wy1
+Ry1 -> Wz0  Wz1
+Rz1 -> Wx0  Wx1
+
+Forbidden:
+Rx1 -> Wy0 Wy1
+Ry1 -> Wx0 Wx1
+
 \end{verbatim}
 
 

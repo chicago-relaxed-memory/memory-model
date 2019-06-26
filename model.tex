@@ -95,7 +95,11 @@ subject to substitution.
 \citet{2019-sp} model microarchitecture using pomsets in order to capture
 security flaws, such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}.  In
 this paper, we study the extent to which pomsets can serve as a model of
-relaxed memory architectures.
+relaxed memory architectures.  As a result, our use of pomsets is more
+abstract than that of \citeauthor{2019-sp}.  For example, at top-level, we
+ignore events whose preconditions are not tautologies; \citeauthor{2019-sp}
+use such events to model the influence of ``unexecuted'' conditional code on
+executed code, as found in Spectre.
 
 Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
 \begin{definition}
@@ -253,7 +257,23 @@ which includes the execution:
   %\po{rx1}{ry0}
   %\po{ry1}{rx0}
 \end{tikzdisplay}
-
+Note that if you enforce the dependency between the reads, then the execution
+is disallowed, because the is a cycle on weak edges restricted to $x$:
+\begin{math}
+  (\DW{x}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
+\end{math}
+therefore
+\begin{math}
+  (\DW{x}{1}) \gtN  (\DW{y}{1});
+\end{math}
+then
+\begin{math}
+  (\DW{y}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
+\end{math}
+therefore
+\begin{math}
+  (\DW{x}{1}) \gtN  (\DW{y}{1});
+\end{math}
 The model ensures that events are ordered before a release and
 after an acquire.
 As an example, consider the program:
@@ -765,7 +785,7 @@ there is $\aPS\in\aPSS$ such that:
 % \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
 \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
-\item\label{pre-coherence} if $\aAct$ conflicts with $\labelingAct(\aEv)$ 
+\item\label{pre-coherence} if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
     then $\cEv \gtN' \aEv$,
 \item\label{pre-sync} if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, and
 \item\label{pre-acquire} if $\aAct$ is an acquire then $\labelingForm(\aEv)$ is location independent.
