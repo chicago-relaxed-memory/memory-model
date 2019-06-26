@@ -1,3 +1,42 @@
+\begin{verbatim}
+ob does not contradict (co cap po):
+
+Suppose that w1(x) po w2(x) then it cannot be that w2 ob w1.
+We know that w1 co w2 by SC-PER-LOC
+
+Case 1. w1 is read externally, then we have
+  w1 rfe r
+and
+  r fre w2
+so
+  w1 obs+ w2
+which contradicts EXTERNAL
+
+Case 2. w1 is not read externally.
+We show this by contradiction
+Assume
+  w1 co w2
+and
+  w2 ob w1
+
+Note that
+  po supseteq dob cup aob cup bob
+So in order to get order into w1, we must have
+  w2 (ob?; obs; ob?; obs; ob?) w1
+
+Note that we cannot have dob or bob into w1 after obs, since then we would
+also have it into w2, creating a cycle in EXTERNAL.  This holds because both
+dob and bob are closed on the right w.r.t. coi
+
+So it must be that 
+  w2 (ob?; obs; ob?; w0; coe) w1, 
+in which case we also have w0 coe w2, contradicting EXTERNAL
+or 
+  w2 (ob?; obs; ob?; r0; fre) w1
+in which case we also have r0 fre w2, contradicting EXTERNAL
+\end{verbatim}
+
+
 \section{Compiling to hardware}
 
 \citet{DBLP:journals/pacmpl/PodkopaevLV19} define the \emph{Intermediate

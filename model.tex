@@ -1,10 +1,3 @@
-Merge order.
-Augment order.
-Implication order.
-Generator is minimal in all of these, so po has unique predecessors.
-
-cross thread edges in generator are write-to-read and not from augmentation.
-
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
@@ -40,20 +33,17 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-\section{Model}
-\label{sec:model}
+\section{scribbles}
+Merge order.
+Augment order.
+Implication order.
+Generator is minimal in all of these, so po has unique predecessors.
+
+cross thread edges in generator are write-to-read and not from augmentation.
 
 
-\subsection{Background: 3-valued pomsets}
-\label{sec:pomsets}
-
-Structures similar to 3-valued pomsets have come up in many guises, for example
-rough sets~\cite{Pawlak1982} or ultrametrics over
-$\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
-\emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
-They are the notion of pomset given by interpreting
-$\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
-
+\section{Model Introduction}
+\label{sec:model:intro}
 
 \begin{definition}
   \label{def:3valued}
@@ -72,278 +62,104 @@ $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}.
     % \end{enumerate}
   \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
     \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$,
-    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,
-    \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.
+    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$, \hfill (Inclusion)
+    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,  \hfill (Consistency)
+    \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.  \hfill (Semi-transitivity)
     \end{itemize}
 \end{itemize}
 \end{definition}
 Note that $\gtN$ is reflexive.
 
+In the next section, we define \emph{3-valued pomsets with preconditions},
+which we refer to simply as \emph{pomsets}.  In this section we give an
+informal introduction to these pomsets and to the semantics of programs as
+sets of pomsets.
+
+We fix the alphabet of pomsets to be $\Alphabet=(\Formulae\times\Act)$, where
+$\Formulae$ is a set of logical formula and $\Act$ is a set of actions.  We
+write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
+$\aForm$ when it is a tautology.
+
+Actions have the form $(\DR{\aLoc}{\aVal})$, which reads value $\aVal$
+from $\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads
+$\aVal$ from $\aLoc$, $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$,
+and $(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$ to
+$\aLoc$.
+
+Formulae are \emph{open}, in that occurrences of register names and memory
+locations are subject to substitutions of the form $\aForm[\aLoc/\aReg]$ and
+$\aForm[\bExp/\aLoc]$, where $\aLoc$ is a memory location, $\aReg$ is a
+register and $\bExp$ is an memory-location-free expression.  Actions are not
+subject to substitution.
+
+\citet{2019-sp} model microarchitecture using pomsets in order to capture
+security flaws, such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}.  In
+this paper, we study the extent to which pomsets can serve as a model of
+relaxed memory architectures.
+
+Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
+\begin{definition}
+  A pomset \emph{coherent} if, when restricted to events that read or write
+  any single location $\aLoc$, $\gtN$ forms a partial order.
+  % As we shall see below, for top-level pomsets we could equivalently require
+  % that $\gtN$ forms a total order.
+\end{definition}
+
+\begin{definition}
+  \label{def:rf}
+  We say that $\aEv$ \emph{reads $\aLoc$ from} $\bEv$ if $\aEv$ reads $\aVal$
+  from $\aLoc$, $\bEv$ writes $\aVal$ to $\aLoc$, 
+  \begin{itemize}
+  \item $\bEv \lt \aEv$, and
+  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}    
+\end{definition}
+
 
 We visualize a pomset as a graph where the nodes are drawn from $\Event$,
 each node $\aEv$ is labeled with $\labeling(\aEv)$, and an edge
 $\bEv \rightarrow \aEv$ corresponds to an ordering $\bEv\le\aEv$.  We
-visualize $(\bEv \gtN \aEv)$ as a dashed arrow from $\bEv$ to $\aEv$.  For
-example:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1}{a}{}
-  \event{wy0}{b}{below right=of rx1}
-  \event{wy1}{c}{above right=of wy0}
-  \po{rx1}{wy0}
-  \po{rx1}{wy1}
-  \wk{wy0}{wy1}
-\end{tikzdisplay}
-is a visualization of the pomset where:
-\[\begin{array}{c}
-    E = \{ 0,1,2 \}
-    \quad
-    {\labeling} = \{(0,a),\,(1,b),\,(2,c)\}
-    \\
-    {\le} = \{(0,1),\,(0,2)\}\cup\{(0,0),\,(1,1),\,(2,2)\}
-    \quad
-    {\gtN} = {\le}\cup\{(2,3)\}
-\end{array}\]
-We refer to edges introduced by $(\bEv \leq \aEv)$ as
-\emph{strong edges} and by $(\bEv \gtN \aEv)$
-as \emph{weak edges}.
-
-
-\subsection{Data models}
-\label{sec:preliminaries}
-
-A \emph{data model} consists of:
-\begin{itemize}
-\item a set of \emph{values} $\Val$, ranged over by
-  $\aVal$ and $\bVal$,
-\item a set of \emph{registers} $\Reg$, ranged over by
-  $\aReg$ and $\bReg$,
-\item a set of \emph{expressions} $\Exp$, ranged over by
-  $\aExp$, $\bExp$, $\cExp$ and $\dExp$,
-\item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
-  $\bLoc$, 
-\item a set of \emph{logical formulae} $\Formulae$, ranged over by
-  $\aForm$ and $\bForm$, and
-\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$.
-\end{itemize}
-
-Let $\aSub$ range over substitutions of the form
-$\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
-
-We require that data models satisfy the following:
-\begin{itemize}
-\item the sets of values, registers and memory locations are disjoint,
-\item values include at least the constants $0$ and $1$,
-\item expressions include at least registers and values,
-\item memory locations have the form $\REF{\aVal}$,
-\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
-\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
-  $(\aExp=\aVal)$ and $(\REF{\aExp}=\aLoc)$,
-\item formulae are closed under negation, conjunction, disjunction, and
-  substitution\footnote{Since formulae are closed under substitutions of the
-    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
-    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
-    \emph{extended expression} that includes memory locations.  We elide the
-    details.  By composition of the closure conditions, formulae must also be
-    closed under that substitutions of the form
-    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
-\item there is a relation $\vDash$ between formulae.
-\end{itemize}
-
-We say that $\aForm$ is \emph{independent of $\aLoc$} whenever
-$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$, and that
-$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$ is
-\emph{location independent} if it is independent of every location.
-
-We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
-that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
-$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
-
-For the actions of a data model, we require that
-\begin{itemize}
-\item there are partial functions $\rreads$ and
-  $\rwrites: \Act \fun (\Loc \times \Val)$,
-\item there are sets $\Rel$ and $\Acq \subseteq\Act$, and
-\item there is a function $\finternalize: (\Loc\times\Act) \fun \Act$ that
-  satisfies the restrictions given below.
-\end{itemize}
-
-We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
-$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
-\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.  Two actions
-\emph{conflict} if at least one action writes a location and the other either
-reads or writes the same location.  Actions that read or write are
-\emph{external}, other actions are \emph{internal}.
-% Actions in
-% $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
-% in $\Int=\Act\setminus\Ext$ are \emph{internal}.
-
-We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
-is a \emph{release} if $\aAct\in\Rel$.  Actions that acquire or release are
-\emph{synchronizations}, other actions are \emph{relaxed}.
-% We say that $\aAct$ is a
-% \emph{synchronization} if it is either a release or an acquire.
-
-We require that $\finternalize$ satisfy the following:
-\begin{itemize}
-\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
-\item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, and 
-\item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release.
-\end{itemize}
-
-
-In examples, we use actions of the form $(\DR{\aLoc}{\aVal})$, which reads
-$\aVal$ from $\aLoc$, and $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to
-$\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$
-from $\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a release that writes
-$\aVal$ to $\aLoc$, and $(\DF{})$, which is internal and both an acquire and
-a release.  For each external action, we also define a corresponding internal
-action
-% which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
-denoted by prefixing $\tau$.
-For example, $(\iDRAcq{\aLoc}{\aVal})$ is an acquiring internal action, which
-neither reads nor writes. In pictures, we draw internal actions grayed out,
-rather than using $\tau$.  For example, the ``read'' action is internal in:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{x}{1}}{}
-  \internal{rx1}{\DR{x}{1}}{below right=of rx1}
-  \event{wy1}{\DW{y}{1}}{above right=of wy0}
-  \po{wx1}{wy1}
-\end{tikzdisplay}
-
-
-% In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
-% indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
-% \begin{displaymath}
-%   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
-% \end{displaymath}
-
-\subsection{3-valued pomsets with preconditions}
-
-Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
-Define %$\labelingForm$ and $\labelingAct$ so that
-$\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
-$\labelingForm(\aEv)=(\aForm\mid\aAct)$.
-
-We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
-$\aForm$ when it is a tautology.
-
-We lift terminology from logical formulae and actions to events. For example,
-we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
-and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
-
-
-\begin{definition}
-  A pomset is $\aLoc$-\emph{coherent} if, when restricted to events that read
-  or write $\aLoc$, $\gtN$ forms a partial order.
-\end{definition}
-As we shall see below, for top-level pomsets we could equivalently require
-that $\gtN$ forms a total order.
-
-In this paper, we are not investigating microarchitecture.  So we make the
-global assumption formulae can only get stronger in dependent actions:
-\begin{definition}
-  \label{def:3pre}
-  A \emph{3-valued pomset with preconditions} is a 3-valued pomset such
-  that
-  \begin{itemize}
-  \item it is $\aLoc$-coherent for every $\aLoc$, and
-  \item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-    $\bEv\le\aEv$.
-  \end{itemize}
-\end{definition}
-
-In the remainder of the paper, we refer to 3-valued pomsets with
-preconditions simply as \emph{pomsets}.
-
-We give the semantics of programs as sets of pomsets.  Each pomset
-$\aPS\in\sem{\aCmd}$ will represent a single execution of $\aCmd$.  We do not
-expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
-$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution\footnote{NOTE: because
-  implication closed, any event can go false, and we kill everything after
-  it, so that means we do get a kind of prefix closure.}.  However, we do
-expect the sets of pomsets given by the semantics to be closed with respect
-to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
-\begin{definition}
-  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$,
-  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$, and $\aEv\gtN\bEv$ iff
-  $f(\aEv)\gtN'f(\bEv)$.
-
-  $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
-  ${\labeling'}={\labeling}$, ${\le'}\supseteq{\le}$, and
-  ${\gtN'}\supseteq{\gtN}$.
-
-  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
-  ${\gtN'}={\gtN}$, $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
-  implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
-\end{definition}
-% \begin{definition}
-%   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
-%   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
-%   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
-%   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
-%   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
-% \end{definition}
-
-
-% Restriction also filters a set of pomsets; we have
-% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
-% The definition requires that we define
-% when a read is possible.
-
-% \begin{definition}\label{def:rf}
-%   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
-%   \begin{itemize}
-%   \item $\bEv \lt \aEv$,  
-%   \item $\aEv$ implies $\bEv$,
-%   \item $\bEv$ writes $\aVal$ to $\aLoc$,
-%     and $\aEv$ reads $\aVal$ from $\aLoc$, and
-%   \item if $\cEv$ writes to $\aLoc$
-%     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-%   \end{itemize}
-% \end{definition}
-
-At top-level, we expect the use of each variable to be \emph{closed}.
-
-\begin{definition}
-\label{def:x-closed}
-  A pomset is \emph{$\aLoc$-closed} if, for every $\aEv\in\Event$:
-  \begin{itemize}
-  \item $\aEv$ is independent of $\aLoc$, and
-  \item if $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
-    % $\aEv$ can read $\aLoc$ from $\bEv$.
-  \begin{itemize}
-  \item $\bEv \lt \aEv$,  
-  %\item $\aEv$ implies $\bEv$,
-  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
-  \item if $\cEv$ writes to $\aLoc$
-    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}    
-  % \item if $\aEv$ writes $\aLoc$, then either $\aEv$ is a synchronization or there is
-  %   some $\bEv$ such that $\bEv$ can read $\aLoc$ from $\aEv$.
-  \end{itemize}
-
-  A pomset is \emph{top-level} if it is $\aLoc$-closed
-  for every $\aLoc$.
-\end{definition}
-% Our model of reads-from is strong, and could be weakened by replacing the
-% requirement $\bEv\lt\aEv$ % in Definition~\ref{def:rf}
-% by $\bEv\gtN\aEv$. It remains to be seen how this impacts the model.
-
-
-For readability, we often highlight the reads-from edges as well.
+visualize $(\bEv \gtN \aEv)$ as a dashed arrow from $\bEv$ to $\aEv$.
+% For example:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{rx1}{a}{}
+%   \event{wy0}{b}{below right=of rx1}
+%   \event{wy1}{c}{above right=of wy0}
+%   \po{rx1}{wy0}
+%   \po{rx1}{wy1}
+%   \wk{wy0}{wy1}
+% \end{tikzdisplay}
+% is a visualization of the pomset where:
+% \[\begin{array}{c}
+%     E = \{ 0,1,2 \}
+%     \quad
+%     {\labeling} = \{(0,a),\,(1,b),\,(2,c)\}
+%     \\
+%     {\le} = \{(0,1),\,(0,2)\}\cup\{(0,0),\,(1,1),\,(2,2)\}
+%     \quad
+%     {\gtN} = {\le}\cup\{(2,3)\}
+% \end{array}\]
 % for example:
-For example:
+For example, the semantics of
+\begin{math}
+  x\GETS 0\SEMI
+  x\GETS 1
+  \PAR
+  \IF{x}\THEN y\GETS 1\FI
+\end{math}
+includes the pomset:
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{\aLoc}{0}}{}
-  \event{wx1}{\DW{\aLoc}{1}}{right=of wx0}
-  \event{rx1}{\DR{\aLoc}{1}}{right=2.5 em of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rx1}
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
   \rf{wx1}{rx1}
   \wk{wx0}{wx1}
-  \wk{rx1}{wx2}
+  \po{rx1}{wy1}
 \end{tikzdisplay}
+We refer to edges introduced by $(\bEv \leq \aEv)$ as \emph{strong edges} and
+by $(\bEv \gtN \aEv)$ as \emph{weak edges}.
+Reads-from is included in strong order, and we often highlight it in red, as above.
 
 
 Need to forbid cycles in $\gtN$ per location:
@@ -434,9 +250,277 @@ which includes the execution:
   \rf[bend right]{wx0}{rx0}
   \wk{rx0}{wx1}
   \wk{ry0}{wy1}
-  \po{rx1}{ry0}
-  \po{ry1}{rx0}
+  %\po{rx1}{ry0}
+  %\po{ry1}{rx0}
 \end{tikzdisplay}
+
+The model ensures that events are ordered before a release and
+after an acquire.
+As an example, consider the program:
+\[
+  x\GETS0\SEMI f\GETS0\SEMI x\GETS 1\SEMI f \REL\GETS1 \PAR r\GETS f\ACQ; s\GETS x
+\]
+This has a top-level execution:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wf0}{\DW{f}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wf1}{\DWRel{f}{1}}{right=of wf0}
+  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
+  \event{rx1}{\DR{x}{1}}{above=of rf1}
+  \po{wx0}{wf1}
+  \po{wf0}{wf1}
+  \po{wx1}{wf1}
+  \po{rf1}{rx1}
+  \rf{wf1}{rf1}
+  \rf{wx1}{rx1}
+  \wk{wx0}{wx1}
+\end{tikzdisplay}
+but \emph{not}:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wf0}{\DW{f}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wf1}{\DWRel{f}{1}}{right=of wf0}
+  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
+  \event{rx0}{\DR{x}{0}}{above=of rf1}
+  \po{wx0}{wf1}
+  \po{wf0}{wf1}
+  \po{wx1}{wf1}
+  \po{rf1}{rx1}
+  \rf{wf1}{rf1}
+  \rf[bend left]{wx0}{rx0}
+  \wk{wx0}{wx1}
+\end{tikzdisplay}
+since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, so this pomset does not satisfy the
+requirements to be $x$-closed.
+If we replace the release
+with a plain write, then the outcome $(\DRAcq f1)$ and $(\DR x0)$ is possible:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wf0}{\DW{f}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wf1}{\DW{f}{1}}{right=of wf0}
+  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
+  \event{rx0}{\DR{x}{0}}{above=of rf1}
+  \wk{wf0}{wf1}
+  \po{rf1}{rx0}
+  \rf{wf1}{rf1}
+  \rf[bend left]{wx0}{rx0}
+  \wk{wx0}{wx1}
+\end{tikzdisplay}
+since no order is required between $(\DW x1)$ and $(\DW f1)$.  
+Symmetrically, if we replace the acquire of the original program
+with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
+
+\section{Model}
+\label{sec:model}
+
+
+\subsection{Background: 3-valued pomsets}
+\label{sec:pomsets}
+
+Structures similar to 3-valued pomsets have come up in many guises, for example
+rough sets~\cite{Pawlak1982} or ultrametrics over
+$\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
+\emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
+They are the notion of pomset given by interpreting
+$\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
+
+
+
+
+\subsection{Data models}
+\label{sec:preliminaries}
+
+A \emph{data model} consists of:
+\begin{itemize}
+\item a set of \emph{values} $\Val$, ranged over by
+  $\aVal$ and $\bVal$,
+\item a set of \emph{registers} $\Reg$, ranged over by
+  $\aReg$ and $\bReg$,
+\item a set of \emph{expressions} $\Exp$, ranged over by
+  $\aExp$, $\bExp$, $\cExp$ and $\dExp$,
+\item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
+  $\bLoc$, 
+\item a set of \emph{logical formulae} $\Formulae$, ranged over by
+  $\aForm$ and $\bForm$, and
+\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$.
+\end{itemize}
+
+Let $\aSub$ range over substitutions of the form
+$\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
+
+We require that data models satisfy the following:
+\begin{itemize}
+\item the sets of values, registers and memory locations are disjoint,
+\item values include at least the constants $0$ and $1$,
+\item expressions include at least registers and values,
+\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
+\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
+  $(\aExp=\aVal)$ and $(\REF{\aExp}=\aLoc)$,
+\item formulae are closed under negation, conjunction, disjunction, and
+  substitution\footnote{Since formulae are closed under substitutions of the
+    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
+    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
+    \emph{extended expression} that includes memory locations.  We elide the
+    details.  By composition of the closure conditions, formulae must also be
+    closed under that substitutions of the form
+    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
+\item there is a relation $\vDash$ between formulae.
+\end{itemize}
+
+We say that $\aForm$ is \emph{independent of $\aLoc$} whenever
+$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$, and that
+$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$ is
+\emph{location independent} if it is independent of every location.
+
+We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
+that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
+$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
+
+For the actions of a data model, we require that
+\begin{itemize}
+\item there are partial functions $\rreads$ and
+  $\rwrites: \Act \fun (\Loc \times \Val)$,
+\item there are sets $\Rel$ and $\Acq \subseteq\Act$, and
+\item there is a function $\finternalize: (\Loc\times\Act) \fun \Act$ that
+  satisfies the restrictions given below.
+\end{itemize}
+
+We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
+$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
+\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.  Two actions
+\emph{conflict} if at least one action writes a location and the other either
+reads or writes the same location.  Actions that read or write are
+\emph{external}, other actions are \emph{internal}.
+% Actions in
+% $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
+% in $\Int=\Act\setminus\Ext$ are \emph{internal}.
+
+We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
+is a \emph{release} if $\aAct\in\Rel$.  Actions that acquire or release are
+\emph{synchronizations}, other actions are \emph{relaxed}.
+% We say that $\aAct$ is a
+% \emph{synchronization} if it is either a release or an acquire.
+
+We require that $\finternalize$ satisfy the following:
+\begin{itemize}
+\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
+\item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, and 
+\item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release.
+\end{itemize}
+
+As noted in \textsection\ref{sec:model:intro}, our example language includes acquiring
+read $(\DRAcq{\aLoc}{\aVal})$, relaxed read $(\DR{\aLoc}{\aVal})$, releasing
+write $(\DWRel{\aLoc}{\aVal})$, and relaxed write $(\DW{\aLoc}{\aVal})$.
+For each external action, we also define a corresponding internal action
+% which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
+denoted by prefixing $\tau$.
+For example, $(\iDRAcq{\aLoc}{\aVal})$ is an acquiring internal action, which
+neither reads nor writes. In pictures, we draw internal actions grayed out,
+rather than using $\tau$.  For example, the ``read'' action is internal in:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \internal{rx1}{\DR{x}{1}}{below right=of rx1}
+  \event{wy1}{\DW{y}{1}}{above right=of wy0}
+  \po{wx1}{wy1}
+\end{tikzdisplay}
+
+
+% In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
+% indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
+% \begin{displaymath}
+%   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
+% \end{displaymath}
+
+\subsection{3-valued pomsets with preconditions}
+
+Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
+Define %$\labelingForm$ and $\labelingAct$ so that
+$\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
+$\labelingForm(\aEv)=(\aForm\mid\aAct)$.
+
+We lift terminology from logical formulae and actions to events. For example,
+we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
+and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
+
+
+
+In this paper, we are not investigating microarchitecture.  So we make the
+global assumption formulae can only get stronger in dependent actions:
+\begin{definition}
+  \label{def:3pre}
+  A \emph{3-valued pomset with preconditions} is a 3-valued pomset 
+  \begin{itemize}
+  \item that is coherent, and
+  \item where $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
+    $\bEv\le\aEv$.
+  \end{itemize}
+\end{definition}
+In the remainder of the paper, we refer to 3-valued pomsets with
+preconditions simply as \emph{pomsets}.
+
+At top-level, we expect the use of each variable to be \emph{closed}.
+\begin{definition}
+\label{def:x-closed}
+  A pomset is \emph{$\aLoc$-closed} if, for every $\aEv\in\Event$:
+  \begin{itemize}
+  \item $\aEv$ is independent of $\aLoc$, and
+  \item if $\aEv$ reads from $\aLoc$, then there is some $\bEv$ such that
+    $\aEv$ reads $\aLoc$ from $\bEv$.
+  \end{itemize}
+  A pomset is \emph{top-level} if it is $\aLoc$-closed for every $\aLoc$.
+\end{definition}
+
+We give the semantics of programs as sets of pomsets.  Each pomset
+$\aPS\in\sem{\aCmd}$ will represent a single execution of $\aCmd$.  We do not
+expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
+$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution\footnote{NOTE: because
+  implication closed, any event can go false, and we kill everything after
+  it, so that means we do get a kind of prefix closure.}.  However, we do
+expect the sets of pomsets given by the semantics to be closed with respect
+to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
+\begin{definition}
+  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
+  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$,
+  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$, and $\aEv\gtN\bEv$ iff
+  $f(\aEv)\gtN'f(\bEv)$.
+
+  $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
+  ${\labeling'}={\labeling}$, ${\le'}\supseteq{\le}$, and
+  ${\gtN'}\supseteq{\gtN}$.
+
+  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  ${\gtN'}={\gtN}$, $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
+\end{definition}
+% \begin{definition}
+%   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
+%   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
+%   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
+%   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+%   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
+% \end{definition}
+
+
+% Restriction also filters a set of pomsets; we have
+% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% The definition requires that we define
+% when a read is possible.
+
+% \begin{definition}\label{def:rf}
+%   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
+%   \begin{itemize}
+%   \item $\bEv \lt \aEv$,  
+%   \item $\aEv$ implies $\bEv$,
+%   \item $\bEv$ writes $\aVal$ to $\aLoc$,
+%     and $\aEv$ reads $\aVal$ from $\aLoc$, and
+%   \item if $\cEv$ writes to $\aLoc$
+%     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+%   \end{itemize}
+% \end{definition}
 
 \subsection{Combinators}
 
@@ -817,62 +901,7 @@ In item~\ref{pre-acquire}, we do not require that $\bForm'$ is independent of
 every $\bLoc$; were we to require this, the definition would not be augment closed.
 
 Item~\ref{pre-sync} ensures that events are ordered before a release and
-after an acquire.  As an example, consider the program:
-\[
-  x\GETS0\SEMI f\GETS0\SEMI x\GETS 1\SEMI f \REL\GETS1 \PAR r\GETS f\ACQ; s\GETS x
-\]
-This has a top-level execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wf0}{\DW{f}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wf1}{\DWRel{f}{1}}{right=of wf0}
-  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
-  \event{rx1}{\DR{x}{1}}{above=of rf1}
-  \po{wx0}{wf1}
-  \po{wf0}{wf1}
-  \po{wx1}{wf1}
-  \po{rf1}{rx1}
-  \rf{wf1}{rf1}
-  \rf{wx1}{rx1}
-  \wk{wx0}{wx1}
-\end{tikzdisplay}
-but \emph{not}:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wf0}{\DW{f}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wf1}{\DWRel{f}{1}}{right=of wf0}
-  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
-  \event{rx0}{\DR{x}{0}}{above=of rf1}
-  \po{wx0}{wf1}
-  \po{wf0}{wf1}
-  \po{wx1}{wf1}
-  \po{rf1}{rx1}
-  \rf{wf1}{rf1}
-  \rf[bend left]{wx0}{rx0}
-  \wk{wx0}{wx1}
-\end{tikzdisplay}
-since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, so this pomset does not satisfy the
-requirements to be $x$-closed.
-If we replace the release
-with a plain write, then the outcome $(\DRAcq f1)$ and $(\DR x0)$ is possible:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wf0}{\DW{f}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wf1}{\DW{f}{1}}{right=of wf0}
-  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
-  \event{rx0}{\DR{x}{0}}{above=of rf1}
-  \wk{wf0}{wf1}
-  \po{rf1}{rx0}
-  \rf{wf1}{rf1}
-  \rf[bend left]{wx0}{rx0}
-  \wk{wx0}{wx1}
-\end{tikzdisplay}
-since no order is required between $(\DW x1)$ and $(\DW f1)$.  
-Symmetrically, if we replace the acquire of the original program
-with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
+after an acquire.
 
 We end this section with the following lemma, which is immediate from the definitions.
 \begin{lemma}
