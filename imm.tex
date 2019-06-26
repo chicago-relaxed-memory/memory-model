@@ -60,10 +60,11 @@ Suppose that rx1 po wx2 and rx1 is read externally.
 Then it cannot be that wx2 ob rx1.
 
 Case 1: if wx2 co wx1, then wx2 co wx1 rf rx1 po wx2, contradicting SC-PER-LOC 
-Case 2: if wx1 co wx2, ....
-
-Counterexample.
-I believe ARM allows the following:
+Case 2: if wx1 co wx2, for a contradiction, suppose wx2 ob rx1.
+then we need another thread involved to get order from wx2 to rx1.
+To get order into the read, there are several options:
+- use cross thread read, then dob; but dob does not include reads in it's domain.
+  An attempt to do this is something like:
 
               Wx1                 x=1
                |
@@ -71,7 +72,20 @@ I believe ARM allows the following:
    |                      |
   Wa2 <----------------- Rx2      a=x
 
+  But the ctrl dependency is not included in ob between reads.
+- use cross thread read then barrier, but then you contradict EXTERNAL
+- create and ob edge from Rx2 to Wx1.
+  An attempt to do this is:
+
+  Wx1 <-------------- Ra1         Wx1 <----- Rx2
+   |                   |           |          | 
+  Rx1 - - -> Wx2 ---> Wa1         Rx1 - - -> Wx2
+
+  But then 
+
 In ARM - - -> is an internal from-read
+
+Externally 
 
 
 
