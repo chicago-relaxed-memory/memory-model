@@ -45,11 +45,23 @@ are permissible.
   \sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}
 \end{align*}
 \begin{proof}
-  In each case, the proof proceeds by observing that the semantics allows us
-  to use an implicit action on the lefthand side.  For dead store
-  elimination, note that
-  $\sem{\aLoc \GETS \bReg \SEMI \aCmd} = \DW{\aLoc}{} \guard \sem{\aLoc \GETS
-    \bReg \SEMI \aCmd}$.
+  In each case, the proof proceeds by observing that the semantics allows us to use an implicit action on the lefthand side to mimic the right hand side.  
+
+For dead store,
+  $\sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd} = \REF{\dExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}$.
+
+
+For redundant load, 
+\begin{eqnarray*}
+&& \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}  \SEMI \aCmd} \\
+&\supseteq&  \bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard  \sem{ \bReg  \GETS \REF{\dExp} \SEMI \aCmd[\aLoc/\aReg]} \\
+&\supseteq&  \bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard  ( \REF{\dExp}=\aLoc \guard [ \sem{\aCmd}[\aLoc/\aReg,\aLoc/\bReg] \bigcup\  \bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg,\aLoc/\bReg]]\\
+&=& \bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard  [ \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg] \bigcup\  \bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg]]\\
+&=& \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \aReg \SEMI \aCmd} 
+\end{eqnarray*}
+
+Similarly, store forwarding is proved by considering the implicit read subset of $\sem{\bReg \GETS \REF{\dExp} \SEMI \aCmd}$.
+
 \end{proof}
 \end{lemma}
   
@@ -73,6 +85,7 @@ $\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads f
     \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &=
     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI \aCmd}
   \end{align*}
+
 \begin{proof}
   The result follows immediately from the semantics of prefixing where the
   only enforced $\lt$ and $\gtN$ relationships come from conflict on $\aLoc$ or
@@ -97,52 +110,7 @@ Reordering, permitted by us, but forbidden by them, yields
 followed by the valid elimination of redundant load:
 \[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
 
-\endinput
+\endinput 
 
 
 
-
-
-
-
-
-
-
-\subsection{Single thread full abstraction}
-We first develop some infrastructure to identify the minimal elements, wrt augmentation, $\aCmd$.  
-\begin{definition}
-$\aPS$ is a generator of  $\sem{\aCmd}$ if for all $\bPS \in \sem{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
-\end{definition}
-
-$\reco$ is the specialization of the $\gtN$ to a per-location basis.  
-\begin{definition}
- $ \aEv' \xeco  \bEv'$ if both $\aEv'$ and $\bEv'$ touch the same location, $\bEv' \gtN \aEv'$, and at least one of them is a write.  
-\end{definition}
-
-\begin{lemma}\label{onethread}
-Let $\aCmd$ be a thread.  Then, all generators $\aPS$ of  $\semClosed{\aCmd}$  are such that:
-\begin{itemize}
-\item  If $\aEv\lt\bEv$ and $\aEv$ is a release or a write, then $\bEv$ is a release action.
-\item  If $\aEv\lt\bEv$ and $\bEv$ is an acquire or a read, then $\aEv$ is an acquire action.
-%\item  If both $\aEv$ and $\bEv$ touch the same location and, 
-%then $\bEv \gtN \aEv$ or $\aEv \gtN \bEv$.
- \item  $\aEv \gtN \bEv$ if and only if $ \aEv [\lt \cup (\le; \reco; 
-\le)] \bEv$. 
-\end{itemize}
-\end{lemma}
-The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions. 
-
-Any optimisation which does not shrink the subrelations of $\rpox$ listed in lemma~\ref{onethread} is permissible.  
-
-
-
-
-
-
-
-In particular, if there are no release or acquire actions in $\aCmd$:
-\begin{itemize}
-\item Writes are maximal
-\item Reads are minimal
-\end{itemize}
-thus providing a particularly simple view of the semantics of threads without synchronization primitives.   

@@ -1,6 +1,7 @@
 \section{RadhaRandomness}
 
 \newcommand{\acylic}{\mathit{acyclic}}
+\newcommand{\pomspace}{{\cal P}}
 
 \tikzstyle{eco} = [->]
 \newcommand{\feco}{\mathit{eco}}
@@ -54,63 +55,10 @@ A thread: top level component of a parallel composition
 $\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
 \end{definition}
 
-
+We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
 
 Since the program we consider are loop free, for any command $\aCmd$, the size of the pomsets in $\aCmd$ are bounded by a constant, that we denote by $\size(\aCmd)$.  
  
-
-\section{The semantics  of threads, explained}
-We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
-
-
-
-Below, we develop a correspondence between pomsets and a refined view of state transformers.  These results follow the well known adjunctions involving event structures~\citet{Winskel:1995:MC:218623.218630}.  
-
-\begin{definition}
-$\reads$ is the finite powerset of read actions, ordered by subset.  
-
-A write multiset is a pair $(\aWSet,\gtN)$ where $\aWSet$ is a finite multiset of write actions and $\gtN$ is union of total orders, one for each location. 
-
-$\writes$ is the space of write multisets ordered as:
-$(\aWSet,\gtN) \preceq (\aWSet',\gtN')$ iff $\aWSet \subseteq\aWSet'$ and $\gtN \subseteq \gtN'$.
-\end{definition}
-
-$\reads$ is a lattice, with least upper bounds ($\sqcup$) (resp. greatest lower bound, $\sqcap$)  induced by union (resp. intersection).  Similarly for $\writes$. 
-
-
-Every pomset induces a stable function~\cite{DBLP:conf/icalp/Berry78}.  
-\begin{definition}[Pomset Functions]
-Let $\pomFn: \reads \rightarrow \writes$ be the space of finitary monotone and stable functions, ie, $\aFn \in \pomFn$ satisfies:
-\begin{itemize}
-\item $\aRSet \subseteq \bRSet \Longrightarrow\ \aFn(\aRSet) \preceq \aFn(\bRSet)$
-\item There exists $\aRSet_{\aFn}$ such that $\forall \aRSet$, $\aFn(\aRSet) \preceq \aFn(\aRSet_{\aFn})$
-\item $\aFn(\aRSet \sqcap \bRSet) =  \aFn(\aRSet) \sqcap \aFn(\bRSet)$
-\end{itemize}
-\end{definition}
-Thus, for each write  $\aWrite$ in $\aFn(\aRSet)$ we have a minimum cause $\min(\aWrite) \subseteq \aRSet$ that captures the reads that need to be satisfied to cause it.   
-
-\begin{definition}[Functions from Pomsets]
-Let $\aCmd$ be a command without synchronization and parallel composition.   With every generator $\aPS$ of  $\semClosed{\aCmd}$, we associate $\pomf{\aPS}$ as follows:
-\[ \pomf{\aPS}(\aRSet) = \langle \aWSet = \{ \bAct \mid \aAct \in \aRSet, \aAct \lt \bAct \}, \gtN_{\aPS} \restrict \aWSet \rangle \]
-\end{definition}
-Multiplicativity  of $\pomf{\aPS}$ is ensured because every write in $\aPS$ has a unique cause, namely the reads that precede it in $\lt$.
-
-\begin{definition}[Pomsets from Functions]
-Given $\aFn \in \pomFn$, we can generate $\aPS_{\aFn}$ as follows:
-\begin{itemize}
-\item $\Event = \aRSet_{\aFn} \cup \aFn(\aRSet_{\aFn}$.  The action label of the events are the actions themselves.  
-\item For each event $\bEv$ from $\aFn(\aRSet_{\aFn})$, $\aEv \lt \bEv$ if and only if $\aEv \in \min(\bEv)$.
-\item $\aEv \gtN \bEv$ if $ \aEv\ (\lt \cup \le;\pi_2(\aFn(\aRSet_{\aFn})); \le) \  \bEv$.
-\end{itemize}
-\end{definition}
-
-Examples??.  
-a) x= 1
-x=2
-
-b  r =x
-   if r =1  {y=1}
-   else      {y =2}
 
 \section{Generators for semantics of programs with parallel composition}
 All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$.  
@@ -118,10 +66,14 @@ All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$
 \begin{lemma}\label{pargen}
 Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
 
-Let $\aPS$  be any generator.  Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd}$ and  $\bEv \in \semClosed{\bCmd} $.  
+Let $\aPS$  be any generator.  
+%\begin{itemize}
+% \item
+ Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd}$ and  $\bEv \in \semClosed{\bCmd} $.
+  
+Then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
 
-The,  then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
-% \item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)]  
+%\item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)^{\star}]  
 %\bEv$.
 
 % \item If $\aEv\lt\bEv$ and $\aEv, \bEv \in \semClosed{\aCmd}$, 
@@ -303,147 +255,9 @@ $\aEv' \gtN \bEv$ in $\bPS$.
 
 
 
-
-
-
- 
-
-We first consider the case when there is a $j$ such that 
-   $\aEv'_{(j-1)\mod n}  \gtN\ \aEv_{j}$ and $\aEv'_{(j-1)\mod n}  \not\lt  \ \aEv_{j}$.  We proceed by cases on the types of the two actions involved.
-\begin{itemize}
-\item Both are writes.  Since $\aEv_{j}$ is $\xpox$ and $\lt$ minimal, we deduce that forall writes $\cEv$ to $\aLoc \in \aPS \setminus \bPS$ such that  $ \aEv'_{(j-1)\mod n}  \gtN \cEv \gtN \aEv_{j} $,  it is the case that  $ \neg(\cEv \lt \aEv_j)$ and $\neg(\cEv \xpox \aEv_J) ]$.  So, the hypothesis of lemma~\ref{ww} apply.
-
-\item $\aEv'_{(j-1)\mod n}$ is a write and $\aEv_{j}$ is a read.  Since $\aEv_{j}$ is $\lt$  minimal, the matching write $\bEv$ is in $\bPS$.  But, that leads to a contradiction to closure of $\bPS$ under $\\gtN$ because because $\aEv'_{(j-1)\mod n} \gTn \bEv$.
-
-\item $\aEv'_{(j-1)\mod n}$ is a read and $\aEv_{j}$ is a write. Let $\bEv$ be the matching write to $\aEv'_{(j-1)\mod n}$.   Since $\aEv_{j}$ is $\xpox$ and $\lt$ minimal, we deduce that 
-
-If there is a read event $\aEv$ in this set, .   There 
-
-
-We construct $(\cPS,\dPS)$ such that:
-\begin{itemize}
-\item 
-\end{itemize}
-
-
-
-
-
-If there is a $j$ such that $\aEv_{j}$ is a write.  Since $\aEv_{j}$ is minimal in $\le$, we deduce that $\aEv_j \gtN \aEv_{(j-1)\mod n}$ and that the hypothesis of lemma~\ref{cohsat}  are satisfied.  Thus, we can use lemma~\ref{cohsat} to construct $\aPS' \in \sem{C}$  such that $\aEv_{j}$ is also minimal in $\reco$.  Let $\bPS'$ be derived from $\bPS$ by adding $\aEv_j$.  Proof follows from inductive hypothesis by considering $(\aPS', \bPS')$.  
-
-So, we are left with the case when $\aEv_i$ is a read forall $i$.  
-
-In this case, if forall $i$, $\aEv_i \lt \aEv'_i$, then $\aEv_0 \gtN \aEv'_n \gtN \aEv_0$, which is a contradiction since by~\ref{pargen}, $\aEv_0, \aEv'_n$ are actions on the same location.  
-
-So, there is a $j$ such that $\aEv_j \not\lt \aEv'_j$.  We observe that:
-\begin{itemize}
-\item There is still a race between $\aEv'_{(j-1)\mod n}$ and the modified read $\aEv_{j}$.  
-
-\item $\bPS$ is still a prefix of $\cPS$ under all of $\xpox,\gtN,\lt$, since $\bPS$ is still a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$. 
-
-\item $\dPS$ is \Seq\  since $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$.
-\end{itemize}
-
-
-
-
-
-
-
-\endinput
-
 \begin{definition}
 $ \aEv \xeco  \bEv$ if both $\aEv$ and $\bEv$ touch the same location, at least one is a write, and $\aEv \xird \bEv$  or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
 \end{definition}
 
 
-===================
 
-Def: Let P be a pomset.  e an event in P
-   after(e) = {f in P | f = e (OR) e s--> f }
-   strictlyAfter(e) = {f in P | f = e (OR) e s--> f }
-
-   
-
-Closure properties:
-  a. 
-
-  b. 
-
-                    
-Def: 
-
-Def: If P is SEQ, def Explicate(P):
-For each ird edge
-      W x i --> f
-add a new event R x i and edges:
-      R x i s--> f
-      W x i s--> R x i
-and any induced edges
-   e s--> W x i  ==> e s--> R x i  [same for weak]
-   f s--> e      ==> R x i s--> e  [same for weak]
-  
-Lemma:
-   If P is SEQ, explicate(P) is a valid pomset
-Proof:
-      * No s--> cyclts (since any cyclt in explicate(P) involving new event induces a cyclt in P)
-      * Visibility maintained since W x i is immediate s--> predecessor of new event
-
-Lemma.  Let P in [| C |] is SEQ,  then explicate(P) in SEQ[| C |]
-
-Proof: (* Structural induction *)
-  
-
-Def: Two events are in conflict if they are on same variablt and at ltast one of them is a write 
-
-Def: A race is a pair of conflicting events unrelated by hb
- 
-
-  
-Thm:
-Given a minimal P.
-    if P does not have a race, then P is SEQ
-    if P has a race, then there exists Q in [| C |] that demonstrates a race
-
-Lemma.Given (P,Q) where:
-          a) P, Q are minimal eltments of an execution.  P has a race
-          b) Q is a prefix of P under all of po, s-->, WeakPerVar
-          c) Q is SEQ
-    Then,Q can be extended into a SEQ Q' in [| C |] that demonstrates a race.
-          
-Proof:    
-Count size of events for W with ird inedges as 1 + #Ird-Edges 
-
-Indn on -|Q|
-
-
-
-Otherwise, 
-
-Let this subset be e0... en
-
-Let  be the next events wrt po that are minimal wrt 
-
-  There are e0'..en'  such that:
-                ei   po  ei'
-                ei'  WPV-> e[(i+1) mod k]
-
-  
-
-
-  So, there is an ej po ej' is such that not(ej s--> ej').  Choose:
-
-  Case (a): ej is a read.  
-                  Use Closure (a) change read
-
-  Case (b): ej is a write.
-                 ej is hb minimal.
-                 So, for all writes f on same var such that f w--> ej, we know that not (f s--> ej) 
-                 Use Closure (b) to move ej after such fs.
-
-                 So, wlog we can assume that e'(j-1) is a read.  
-                 Use Closure (a) change read to read ej
-                 (e'(j-1), ej) race is unaffected.
-                 |Q| goes up
-
-      
