@@ -3,8 +3,16 @@
 
 Differences with \cite{2019-sp}:
 \begin{itemize}
-\item Assume that if $\bEv\lt\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$.
+\item We only consider pomsets where $\lt$-greater elements have stronger
+  preconditions (Definition~\ref{def:3pre}).
+\item We only consider pomsets that are coherent (Definition~\ref{def:3pre}).
+\item Prefixing only introduces required order from read to write in item~\ref{pre-implies} (Definition~\ref{def:prefix}).
+\item We provide semantics for computed addresses of memory locations.
+\item The semantics of relaxed write includes internal actions, symmetric
+  with the treatment of relaxed read.
+\item The semantics of parallel composition is asymmetric.  This ensures that
+  in $\aCmd;(\bCmd_1\PAR\bCmd_2)$, $\bCmd_1$ may read internally from $\aCmd$,
+  but all reads in $\bCmd_2$ must be explicit.
 \end{itemize}
 
 % Local Variables:

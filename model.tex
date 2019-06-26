@@ -722,6 +722,19 @@ internal action\footnote{The absence of order between reads is required for
   our compilation result, since the IMM does not enforce order between reads
   of a single thread.}.
 
+``Similar to syntactic dependencies, \textsc{rfi} edges are guaranteed to be preserved
+only on dependency paths from a read to a write, not otherwise.''
+Our language does not preserve these dependencies, since compiler
+optimizations may be able to remove them.
+% \begin{displaymath}
+%   r \GETS x \SEMI
+%   \REF{r}\GETS 1\SEMI 
+%   s\GETS \REF{r}\SEMI
+%   y\GETS{s}
+% \end{displaymath}
+% In the calculation of the pomset, the precondition on $\DW{y}{1}$ goes from
+% $s\EQ1$ to $\REF{r}\EQ1$
+
 
 $\aAct\prefix\aPSS$ adds a new event $\cEv$ with action $\aAct$ to each
 pomset in $\aPSS$.  As in the definition of parallel composition, the
@@ -793,8 +806,9 @@ the ordering of the events.
 % $\aAct$ and $\bAct$ touch the same location, and either
 % $\aAct$ or $\bAct$ is a write.
 
-Item~\ref{pre-acquire} ensures that thread-local reads do
-not cross acquire fences.  This prevents bad executions like the following:
+Item~\ref{pre-acquire} filters the executions of $\aPSS$, ensuring that
+thread-local reads do not cross acquire fences.  This prevents bad executions
+like the following:
 \begin{verbatim}
    x=1; rel; acq; if (x) {y=1};  ||  acq; x=0; rel; 
 \end{verbatim}
