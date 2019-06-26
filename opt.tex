@@ -110,6 +110,90 @@ Reordering, permitted by us, but forbidden by them, yields
 followed by the valid elimination of redundant load:
 \[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
 
+\subsection{Full abstraction for synchronization free threads}
+We provide some evidence that our semantics incorporates a complete suite of optimizations for single threaded and synchronization free programs.
+
+\paragraph*{Generators}
+We first examine the structure of the generators of single threaded and synchronization free code.  
+
+$\TRUE\guard \sem{\aCmd}$ captures the behavior of $\aCmd$ as a top-level thread; since, it is not part of a bigger sequential composition, we can eliminate the events that are not guarded by tautologies.
+\begin{lemma}
+Let $\aCmd$ be $\PAR$-free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\aCmd}$ satisfy:
+\begin{itemize}
+\item If $\aEv$ is a write or a release, and $\aEv \lt\ \bEv$, then $\bEv$ is a release.
+\item If $\bEv$ is a read or an acquire, and $\aEv \lt \bEv$, then $\aEv$ is an acquire.
+\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le; \reco;le)^{\star}]) \  \bEv$.
+\end{itemize}
+\end{lemma}
+The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions.  The only required $\gtN$-edges arise from conflicts on a location.
+
+In the case where $\aCmd$ has no synchronization constructs, the structure of the generators simplifies further.
+\begin{corollary}
+Let $\aCmd$ be $\PAR$-free and synchronization free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\aCmd}$ satisfy:
+\begin{itemize}
+\item Writes are maximal and Reads are minimal in $\lt$.
+\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le; \reco;le)^{\star}]) \  \bEv$.
+\end{itemize}
+\end{corollary}
+
+We define $\aPS \unrhd \bPS$ if $\bPS$ can be derived from $\aPS$ by removing writes and ``adjacent'' duplicate reads.
+\begin{definition}
+$\aPS \unrhd \bPS$ if 
+\begin{itemize}
+\item $\Event_{\bPS} \subseteq \Event_{\aPS}$ and $ \bPS$ is the restriction of $\aPS$ to $\Event_{\bPS}$.
+\item if $\aEv \in \aPS \setminus \bPS$, then $\aEv$ is a write or there exists $\bEv$ in $\bPS$ with the same read label that agrees with $\aEv$ on all orders. ie.  forall $\cEv$ in $\aEv$:
+$\cEv \lt \bEv \Leftrightarrow \cEv \lt \aEv,\bEv \lt \cEv \Leftrightarrow \aEv \lt \cEv, \cEv \xeco \bEv \Leftrightarrow \cEv \xeco \aEv, \bEv \xeco \cEv \Leftrightarrow \aEv \xeco \cEv$
+\end{itemize}
+\end{definition}
+The generators of $\TRUE\guard \sem{\aCmd}$ are closed under $\unrhd$.  
+\begin{lemma}\label{unrhd}
+Let $\aCmd$ be $\PAR$-free and synchronization free.  Let $\aPS$ be a generator of $\sem{\aCmd}$.  Then, $\bPS$ is also a generator of $\sem{\aCmd}$, where $\aPS \unrhd \bPS$.
+\end{lemma}
+The proof uses the implicit actions in the semantics of write and read prefixing to remove the missing read and write actions.  
+
+\paragraph{Testers for generators}
+
+
+Let $\aPS$ be a generator of $\TRUE\guard \sem{\aCmd}$.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
+
+\begin{definition}[Tester program]
+For each $\aEv_i$, we define a command with a hole, called $\test{\aEv_i}$ as follows:
+\[
+\test{\aEv_i} = \left\{ 
+                             \begin{array}{l}
+                              \aLoc\GETS\aVal \SEMI \hole{\cdot}, \ \labeling(\aEv_i) = \DR{\aLoc}{\aVal} \\
+                              \aLoc\GETS\freshaval\SEMI \aReg_i \GETS\aLoc \SEMI \IF{\aReg_i == \aVal} \THEN \hole{\cdot} \FI , \ \labeling(\aEv_i) = \DW{\aLoc}{\aVal} \\
+                           \end{array}
+                       \right.
+\]    
+The tester program for $\aPS$ for $\aLoc$, $\testP{\aPS}{\aLoc}$ is \[ \test{\aEv_1}[\test{\aEv_2}[\ldots [\test{\aEv_n}[b_{\aLoc} = \TRUE]]\ldots]] \]
+The tester program for $\aPS$, $\testP{\aPS}{}$ is 
+\[
+\begin{array}{ll}
+& b_{\aPS}\GETS b_{\aLoc} \star b_{\bLoc} \star  \ldots   \\
+\PAR & \testP{\aPS}{\aLoc} \\
+\PAR & \testP{\aPS}{\bLoc} \\
+ \PAR  & \ldots 
+\end{array}
+\]
+\end{definition}
+ $\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The matching read for a write in $\aPS$ on $\aLoc$ has an extra write of a fresh value in order to flush prior potential writes of the same value.  
+
+The tester program works as expected to detect $\aPS$.  
+\begin{lemma}\label{testcorrect}
+$\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{b}\GETS\vec{0} \SEMI b_{\aPS}\GETS 0 [\sem{\testP{\aPS}{\aLoc}} \parallel \bPS]$
+includes a pomset with an event writting 1 to $b_{\aPS}$ to 1 iff $\aPS \unrhd \bPS$.
+\end{lemma}
+As a corollary, using lemma~\ref{unrhd}, we deduce that parallel contexts suffice to distinguish  $\PAR$-free and synchronization free code.
+\begin{theorem}
+Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then $\TRUE\guard \sem{\aCmd_1}  \supseteq \TRUE\guard \sem{\aCmd_2}$ iff for all $\bCmd$,  $\sem{\aCmd_1\PAR \bCmd}  \supseteq \sem{\aCmd_2 \PAR \bCmd}$.
+\end{theorem}
+\begin{proof}
+The forward implication follows from the compositionality of the semantics. For the converse, pick $\aPS \in \TRUE\guard \sem{\aCmd_1} \setminus \TRUE\guard \sem{\aCmd_2} $.  Definition~\ref{testAPS} defines a tester that works as required via lemma~\ref{testcorrect}.
+\end{proof}
+
 \endinput 
 
 
