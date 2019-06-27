@@ -1,6 +1,6 @@
 \newcommand{\oota}{{\sc OOTA}}
 \section{Introduction}
-\citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of software relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper proposes a solution to the problem.
+\citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of software relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper provides a solution  in the context of multi-copy atomicity.
 
 In order to sharpen the criteria to evaluate memory models, we first outline desiderata  that concretize the above prescription.  
 
@@ -52,12 +52,19 @@ Composability of safety properties provides the temporal context needed to preve
 \end{itemize}
 None of the extant memory models validate both ``implementation flexibility'' and ``ease-of-use''.  
 
-Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{Lamport:1979:MMC:1311099.1311750}, \citet{Dolan:2018:BDR:3192366.3192421}, \citet{RC11refs}, \citet{DBLP:conf/lics/JeffreyR16} and~\citet{BoehmOOTA}.  All of them invalidate reordering of independent statements; they forbid breaking of the program order from reads to writes and thus require extra fences for read actions in hardware implementations.
+Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{Lamport:1979:MMC:1311099.1311750}, \citet{Dolan:2018:BDR:3192366.3192421}, \citet{DBLP:conf/pldi/LahavVKHD17}, \citet{DBLP:conf/lics/JeffreyR16} and~\citet{BoehmOOTA}.  However, {\em all} of them invalidate reordering of independent statements.  \cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/lics/JeffreyR16} forbid breaking of the program order from reads to writes and thus require extra fences after read actions in hardware implementations.  ~\citet{Boehm:2014:OGA:2618128.2618134} show that the RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} forces a dependency or a fence between between a relaxed atomic
+read and a subsequent relaxed atomic write.  
 
-The JMM\citet{Manson:2005:JMM:1047659.1040336} and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} invalidate compositional reasoning.    It is also known that the JMM does not support reordering of independent statements.  
+
+As the quote reveals, the JMM\citet{Manson:2005:JMM:1047659.1040336} was motivated by these two aims.  However, the JMM and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} invalidate compositional reasoning\footnote{We show an example to demonstrate.} It is also known that the JMM does not support reordering of independent statements.  
 
 Two comments:
 1. Clarify implementability of \citet{DBLP:conf/lics/JeffreyR16}.
+
+\section{Related work}
+
+\citet{BoehmOOTA} revisits \oota.  The solution p
+The work on re
 2. Use\cite{BoehmOOTA} to 
 classify into decreasing worlds.
            OOTA world

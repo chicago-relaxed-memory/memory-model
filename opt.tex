@@ -122,7 +122,7 @@ Let $\aCmd$ be $\PAR$-free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\a
 \begin{itemize}
 \item If $\aEv$ is a write or a release, and $\aEv \lt\ \bEv$, then $\bEv$ is a release.
 \item If $\bEv$ is a read or an acquire, and $\aEv \lt \bEv$, then $\aEv$ is an acquire.
-\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le; \reco;le)^{\star}]) \  \bEv$.
+\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le;\reco) \cup (\reco;\le)]) \  \bEv$.
 \end{itemize}
 \end{lemma}
 The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions.  The only required $\gtN$-edges arise from conflicts on a location.
@@ -132,7 +132,7 @@ In the case where $\aCmd$ has no synchronization constructs, the structure of th
 Let $\aCmd$ be $\PAR$-free and synchronization free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\aCmd}$ satisfy:
 \begin{itemize}
 \item Writes are maximal and Reads are minimal in $\lt$.
-\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le; \reco;le)^{\star}]) \  \bEv$.
+\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le; \reco) \cup (\reco;\le)] \  \bEv$.
 \end{itemize}
 \end{corollary}
 
@@ -177,14 +177,15 @@ The tester program for $\aPS$, $\testP{\aPS}{}$ is
 \end{array}
 \]
 \end{definition}
- $\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The matching read for a write in $\aPS$ on $\aLoc$ has an extra write of a fresh value in order to flush prior potential writes of the same value.  
+ $\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The matching read for a write in $\aPS$ on $\aLoc$ has an extra write of a fresh value in order to flush prior potential writes of the same value.    
 
-The tester program works as expected to detect $\aPS$.  
+The tester program works as expected to detect $\aPS$ as a parallel context.  
+The write of $1$ to the testing variable $b_{\aPS}$ is possible only by the paral
 \begin{lemma}\label{testcorrect}
 $\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
     \vec{\aLoc}\GETS\vec{0}\SEMI
     \vec{b}\GETS\vec{0} \SEMI b_{\aPS}\GETS 0 [\sem{\testP{\aPS}{\aLoc}} \parallel \bPS]$
-includes a pomset with an event writting 1 to $b_{\aPS}$ to 1 iff $\aPS \unrhd \bPS$.
+includes a pomset with an event writting 1 to $b_{\aPS}$ to 1 iff $\bPS$ augments a $\bPS'$ such that $\aPS \unrhd \bPS'$
 \end{lemma}
 As a corollary, using lemma~\ref{unrhd}, we deduce that parallel contexts suffice to distinguish  $\PAR$-free and synchronization free code.
 \begin{theorem}
