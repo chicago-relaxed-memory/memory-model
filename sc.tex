@@ -50,29 +50,16 @@ ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows
   ${\rpox'} = {\rpox}\cup\{(\cEv,\aEv)\mid\aEv\in\Event\}$
   when $\aPSS'=\aAct\prefix\aPSS$ and $\Event' = \Event \cup \{\cEv\}$
 \end{itemize}
-In addition, we re-define the rules for relaxed reads and writes as follows:
-\begin{align*}
-  \sem{\REF{\bExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \DW{\aLoc}{} \guard (\iDW{\aLoc}{0}) \prefix \sem{\aCmd}[\aExp/\aLoc]
-  \\
-  \sem{\aReg\GETS\REF{\bExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\bExp}=\aLoc) \guard (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
-\end{align*}
-The difference is that we record internal action
-$(\iDR{\aLoc}{})$ or $(\iDW{\aLoc}{})$.  (The value in this action is ignored.)
-
 Throughout our discussion of data races, we assume that programs do not use
-restriction, and therefore that all internal actions arise from this rule.
+restriction, and therefore that all internal actions are internal reads.
 
 
 
 Let $\IDAcq$ be the identity relation on acquire events, and likewise $\IDRel$ on release events.
-We say $\aEv\rrf\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
+We say $\aEv\rrfx\bEv$ if $\aEv$ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$ either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.
 Now define $\rsw$ and $\rhb$.
 \begin{align*}
-  {\rsw} &= \IDRel; ({\rrf}\setminus{\rpox}); \IDAcq
+  {\rsw} &= \IDRel; ({\rrfx}\setminus{\rpox}); \IDAcq
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
