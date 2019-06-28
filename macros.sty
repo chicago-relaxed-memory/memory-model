@@ -1,3 +1,6 @@
+\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
+
+\newcommand{\fsat}{\mathsf{sat}}
 \newcommand{\ID}[1]{[#1]}
 \newcommand{\IDAcq}{\ID{\Acq}}
 \newcommand{\IDRel}{\ID{\Rel}}
@@ -138,6 +141,7 @@
 \newcommand{\Val}{\mathcal{V}}
 \newcommand{\aVal}{v}
 \newcommand{\bVal}{w}
+\newcommand{\cVal}{\ell}
 
 \newcommand{\Exp}{\mathcal{E}}
 \newcommand{\aExp}{M}
@@ -194,7 +198,7 @@
 \newcommand{\comEv}{c}
 \newcommand{\ltN}{\mathrel{{\color{blue}\,\mid\!\!\!<}}}
 \newcommand{\lessdoteq}{\mathrel{\raisebox{-.7ex}{$\mkern1mu\mathord{\relbar}$}\mkern-13mu\mathord{\lessdot}}}
-\newcommand{\gtN}{\lessdoteq}
+\newcommand{\gtN}{\mathrel{{\color{blue}\lessdoteq}}}
 %\newcommand{\gtN}{\mathrel{{\color{blue}\mkern4mu\mid\!\!\!>}}}
 \renewcommand{\le}{\mathrel{{\color{blue}\leq}}}
 \newcommand{\lt}{\mathrel{{\color{blue}<}}}

@@ -1,3 +1,6 @@
+\section{The Model,  Informally}
+\label{sec:model:intro}
+
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
@@ -33,8 +36,12 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-\section{The Model,  Informally}
-\label{sec:model:intro}
+DRF: we use weaker def of hb than normal and so have more races.
+(in particular, Rel(x)1 ; Wx2 || Acq(x)2 is a race in our system)
+(also we ignore fences for the purposes of defining a race)
+
+OPT:  optimization requires that perform operation that removes
+unsatisfiable preconditions.
 
 \begin{definition}
   \label{def:3valued}
@@ -92,13 +99,13 @@ ignore events whose preconditions are not tautologies; \citeauthor{2019-sp}
 use such events to model the influence of ``unexecuted'' conditional code on
 executed code, as found in Spectre.
 
-Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
-\begin{definition}
-  A pomset \emph{coherent} if, when restricted to events that read or write
-  any single location $\aLoc$, $\gtN$ forms a partial order.
-  % As we shall see below, for top-level pomsets we could equivalently require
-  % that $\gtN$ forms a total order.
-\end{definition}
+% Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
+% \begin{definition}
+%   A pomset \emph{coherent} if, when restricted to events that read or write
+%   any single location $\aLoc$, $\gtN$ forms a partial order.
+%   % As we shall see below, for top-level pomsets we could equivalently require
+%   % that $\gtN$ forms a total order.
+% \end{definition}
 
 \begin{definition}
   \label{def:rf}
@@ -347,7 +354,7 @@ $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}.
 A \emph{data model} consists of:
 \begin{itemize}
 \item a set of \emph{values} $\Val$, ranged over by
-  $\aVal$ and $\bVal$,
+  $\aVal$, $\bVal$ and $\cVal$,
 \item a set of \emph{registers} $\Reg$, ranged over by
   $\aReg$ and $\bReg$,
 \item a set of \emph{expressions} $\Exp$, ranged over by
@@ -541,7 +548,7 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 \item \emph{substitution} $\aPSS\aSub$, which applies the substitution to
   every precondition,
 \item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
-  pomsets that are $\aLoc$-closed and $\aLoc$-coherent,
+  pomsets that are $\aLoc$-closed,
 % \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
 %   keeping pomsets where all events imply $\aForm$,
 % \item \emph{independency filtering} $\Loc\guard\aPSS$, which filters
@@ -615,7 +622,7 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
   % and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
 
 Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aLoc$-coherent and $\aLoc$-closed $\aPS\in\aPSS$ such that:
+there is $\aPS\in\aPSS$ such that $\aPS$ is $\aLoc$-closed and:
 $\Event' = \Event$,
 ${\le'} = {\le}$, 
 ${\gtN'} = {\gtN}$,
@@ -978,7 +985,7 @@ defined as follows.
 \begin{align*}
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
-%\BNFSEP \FENCE\SEMI \aCmd
+\BNFSEP \FENCE\SEMI \aCmd
 \BNFSEP \aReg\GETS\aExp\SEMI \aCmd
 \BNFSEP \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd 
 \BNFSEP \aReg\GETS\REF{\cExp}\SEMI \aCmd
@@ -1010,25 +1017,25 @@ The semantics of programs is as follows:
   \sem{\SKIP} & =
   \{ \emptyset \}
   \\
-  % \sem{\FENCE\SEMI \aCmd} & =
-  % (\DF{}) \prefix \sem{\aCmd}
-  % \\
+  \sem{\FENCE\SEMI \aCmd} & =
+  (\DF{}) \prefix \sem{\aCmd}
+  \\
   \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
   \sem{\aCmd}[\aExp/\aReg] 
   \\  
   \sem{\aReg\GETS\REFAcq{\cExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \\
   \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \mkern21mu\; (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \mkern21mu\; (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
   \\
   \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  %\\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  %\\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
   \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 

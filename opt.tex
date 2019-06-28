@@ -14,52 +14,70 @@ theorem for single threads without synchronization.
 % \end{definition}
 % Thus, in this case $\aCmd$ can be transformed into $\bCmd$ in any program context.  
 
+Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}\}$,
+${\labeling'} = {\labeling}\restrict{\Event'}$, 
+${\le'} = {\le}\restrict{\Event'}$, and
+${\gtN'} = {\gtN}\restrict{\Event'}$.
+
 By Lemma~\ref{lem:monotone}, if $\sem{\aCmd} \supseteq \sem{\bCmd}$
-then $\aCmd$ can be transformed into $\bCmd$ in any program context.
+then $\aCmd$ can be transformed into $\bCmd$ in any program context.  Since
+unsatisfiable events are ignored in our architecture model, it is
+an immediate corollary that it is sufficient to show that
+
+
+
+
 
 We follow the terminology and presentation of section~7.1 of
-~\citet{Dolan:2018:BDR:3192366.3192421}, to maintain a clear comparison with models that enforce extra ordering.
+\citet{Dolan:2018:BDR:3192366.3192421}, to maintain a clear comparison with
+models that enforce extra ordering.
 
 \paragraph*{Peephole optimizations. } 
 Certain transformations involving adjacent operations on the same location
 are permissible. 
  
 \begin{lemma}
-  Suppose $\cExp=\dExp$ is a tautology.  Then the following optimizations hold.
+  Suppose $\aExp=0$ is a tautology and $\cExp=\dExp$ is a tautology.  Then the following optimizations hold.
 % \begin{eqnarray*}
 % \mbox{Redundant load} &&\sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} \supseteq  \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]} \\
 % \mbox{Store forwarding} &&\sem{\aLoc \GETS \aReg \SEMI \bReg \GETS \aLoc \SEMI \aCmd} \supseteq \sem{\aLoc \GETS \aReg \SEMI \aCmd[\aReg/\bReg]} \\
 % \mbox{Dead Store} && \sem{\aLoc \GETS \aReg \SEMI \aLoc \GETS \bReg \SEMI \aCmd} \supseteq \sem{\aLoc \GETS \bReg \SEMI \aCmd}
 % \end{eqnarray*}
-\begin{align*}
+  \begin{align*}
+  \tag{Dead Code} 
+  \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &\supseteq 
+  \fsat\sem{\bCmd} \\
+  \tag{Dead Store} 
+  \fsat\sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq 
+  \fsat\sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}\\    
   \tag{Redundant load}
   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}  \SEMI \aCmd} &\supseteq
   \sem{\aReg \GETS \REF{\cExp} \SEMI \aCmd[\aReg/\bReg]} \\
   \tag{Store forwarding} 
   \sem{\REF{\cExp} \GETS \aExp \SEMI \bReg \GETS \REF{\dExp} \SEMI \aCmd} &\supseteq 
-  \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/\bReg]} \\
-  \tag{Dead Store} 
-  \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq 
-  \sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}
+  \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}
 \end{align*}
 \begin{proof}
-  In each case, the proof proceeds by observing that the semantics allows us to use an implicit action on the lefthand side to mimic the right hand side.  
-
-For dead store,
-  $\sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd} = \REF{\dExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}$.
-
-
-For redundant load, 
-\begin{eqnarray*}
-&& \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}  \SEMI \aCmd} \\
-&\supseteq&  \bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard  \sem{ \bReg  \GETS \REF{\dExp} \SEMI \aCmd[\aLoc/\aReg]} \\
-&\supseteq&  \bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard  ( \REF{\dExp}=\aLoc \guard [ \sem{\aCmd}[\aLoc/\aReg,\aLoc/\bReg] \bigcup\  \bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg,\aLoc/\bReg]]\\
-&=& \bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard  [ \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg] \bigcup\  \bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg]]\\
-&=& \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \aReg \SEMI \aCmd} 
-\end{eqnarray*}
-
-Similarly, store forwarding is proved by considering the implicit read subset of $\sem{\bReg \GETS \REF{\dExp} \SEMI \aCmd}$.
-
+  For dead code elimination, the result is immediate from the semantics.
+  
+  For dead store, note that no event in $\aCmd$ can depend on the first store,
+  therefore it may be taken with precondition $\FALSE$.
+  
+  For the others, the proof proceeds by observing that the semantics allows us
+  to use an implicit action on the lefthand side to mimic the right hand side.
+  For example, taking $\REF{\cExp}=\REF{\dExp}=\aLoc$, the argument for
+  redundant load is as follows.
+  \begin{align*}
+    \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} 
+    \supseteq&  \sem{ \bReg  \GETS \aLoc \SEMI \aCmd[\aLoc/\aReg]} \\
+    \supseteq&  \sem{\aCmd}[\aLoc/\aReg][\aLoc/\bReg] \cup  \textstyle\bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg][\aLoc/\bReg]\\
+    =& \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg] \cup  \textstyle\bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg]\\
+    =& \sem{\aReg \GETS \aLoc\SEMI \aCmd[\aReg/\bReg]}
+    \tag*{\qedhere}
+  \end{align*}
+  % Similarly, store forwarding is proved by considering the implicit read subset of $\sem{\bReg \GETS \REF{\dExp} \SEMI \aCmd}$.
 \end{proof}
 \end{lemma}
   
