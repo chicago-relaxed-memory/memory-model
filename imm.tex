@@ -1,4 +1,13 @@
 \begin{verbatim}
+Operation        Implementation
+Relaxed read     ldr                     
+Relaxed write    str             
+Acquiring read   ldar            
+Releasing write  stlr
+Fence            dmb.sy
+\end{verbatim}
+
+\begin{verbatim}
 ob does not contradict eco
 
 ob does not contradict (co cap po):

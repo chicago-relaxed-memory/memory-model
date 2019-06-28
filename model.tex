@@ -472,15 +472,15 @@ In this paper, we are not investigating microarchitecture.  So we make the
 global assumption formulae can only get stronger in dependent actions:
 \begin{definition}
   \label{def:3pre}
-  A \emph{3-valued pomset with preconditions} is a 3-valued pomset 
+  A \emph{Memory model pomset} is a 3-valued pomset such that
   \begin{itemize}
-  \item that is coherent, and
+  \item $\gtN$ is acyclic, and
   \item where $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
     $\bEv\le\aEv$.
   \end{itemize}
 \end{definition}
-In the remainder of the paper, we refer to 3-valued pomsets with
-preconditions simply as \emph{pomsets}.
+In the remainder of the paper, we refer to memory model pomsets simply as
+\emph{pomsets}.
 
 At top-level, we expect the use of each variable to be \emph{closed}.
 \begin{definition}
@@ -566,14 +566,14 @@ These operations are similar to those from models of concurrency such
 as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
 speculative evaluation.
 
-We also define three filtering operations:
+We also define two filtering operations:
 \begin{itemize}
 \item \emph{guarding} $\aForm\guard\aPSS$, which
-  keeps pomsets where all preconditions imply $\aForm$,
+  keeps pomsets where all preconditions imply $\aForm$, and
 \item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
-  where all preconditions are location independent,
-\item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
-  that have an initial write to $\aLoc$,
+  where all preconditions are location independent.
+% \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
+%   that have an initial write to $\aLoc$,
 \end{itemize}
 
 %% A write generates a write event that may be visible
@@ -639,10 +639,9 @@ $\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labeli
 
 Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
 $\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
-
-Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
-$\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
-$\bEv\leq\aEv$, for every release $\aEv\in\Event$.
+% Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
+% $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
+% $\bEv\leq\aEv$, for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
@@ -779,12 +778,20 @@ there is $\aPS\in\aPSS$ such that:
 %     then $\cEv \gtN' \aEv$, and
 %   \end{itemize}
 \item\label{pre-act} $\labelingAct'(\cEv) = \aAct$ and $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-\item\label{pre-implies} either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or
-  $\aAct$ is a read and if $\aEv$ is a write then $\cEv\lt'\aEv$,
+% \item\label{pre-implies} either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or
+%   $\aAct$ is a read and if $\aEv$ is a write then $\cEv\lt'\aEv$,
+% \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
+%    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
+\item\label{pre-write} if $\aAct$ is not a read, then $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$,
+\item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
+  \begin{enumerate}
+  \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
+  \item[(\ref{pre-read}b)] if $\aEv$ is a write then either $\cEv\lt'\aEv$
+    or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+  \end{enumerate}
 % \item if $\aAct$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 % \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
-\item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
-   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
 \item\label{pre-coherence} if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
     then $\cEv \gtN' \aEv$,
 \item\label{pre-sync} if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, and
@@ -816,15 +823,14 @@ there is $\aPS\in\aPSS$ such that:
 % In order to keep augmentation closure, we need to keep the unsatisfiable
 % elements in the set of pomsets.
 
-Item~\ref{pre-implies} allows one to choose a weaker precondition for $\aEv$
-in $\aPS'$ (right side of the or) if $\aAct$ is a read.  In this case,
-item~\ref{pre-read} ensures that the precondition is not \emph{too} weak.  In
-the case that one chooses the weaker precondition, item~\ref{pre-implies}
-requires that there be an order from the new event to $\aEv$ when $\aEv$ is a
-write.  No additional order is required when $\aEv$ is a pure read or an
-internal action\footnote{The absence of order between reads is required for
-  our compilation result, since the IMM does not enforce order between reads
-  of a single thread.}.
+Item~\ref{pre-read}b allows one to choose a weaker precondition for $\aEv$ in
+$\aPS'$ when $\aAct$ is a read.  In this case, item~\ref{pre-read}a ensures
+that the precondition is not \emph{too} weak.  In the case that one chooses
+the weaker precondition, item~\ref{pre-read}b requires that there be an order
+from the new event to $\aEv$ when $\aEv$ is a write.  No additional order is
+required when $\aEv$ is a pure read or an internal action\footnote{The
+  absence of order between reads is required for our compilation result,
+  since the IMM does not enforce order between reads of a single thread.}.
 
 ``Similar to syntactic dependencies, \textsc{rfi} edges are guaranteed to be preserved
 only on dependency paths from a read to a write, not otherwise.''
@@ -1020,18 +1026,18 @@ The semantics of programs is as follows:
   \sem{\aCmd}[\aExp/\aReg] 
   \\  
   \sem{\aReg\GETS\REFAcq{\cExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \\
   \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \sem{\aCmd}[\aLoc/\aReg]
+  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \mkern21mu\; (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
+  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
   \\
   \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
+  \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  %\\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
   \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 

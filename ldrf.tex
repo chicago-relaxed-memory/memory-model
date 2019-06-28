@@ -1,0 +1,19 @@
+
+\section{Strong Models}
+\label{sec:ldrf}
+
+In order to capture strong models, we change the system two ways:
+\begin{itemize}
+\item Modify the semantic rule for read to remove the possibility of an internal read:
+  \begin{align*}
+    \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
+    \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \end{align*}
+\item Modify item \ref{pre-read}b in the definition of prefixing to require
+  order from a read to subsequent write:
+  \begin{enumerate}
+  \item[(\ref{pre-read}b$'$)] if $\aEv$ is a write then  $\cEv\lt'\aEv$ 
+  \end{enumerate}
+\end{itemize}
+In \ref{pre-read}b$'$ we removed the ``or or $\labelingForm'(\aEv)$ implies
+$\labelingForm(\aEv)$.''
