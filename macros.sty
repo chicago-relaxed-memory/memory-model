@@ -1,3 +1,47 @@
+\newcommand{\rel}{{\tt rel}}
+
+
+\newcommand{\acylic}{\mathit{acyclic}}
+\newcommand{\pomspace}{{\cal P}}
+
+\newcommand{\feco}{\mathit{eco}}
+\newcommand{\reco}{\ensuremath{\mathrel{\mathsf{eco}}}}%
+
+\newcommand{\reads}{\mathit{Reads}}
+\newcommand{\Seq}{{\tt Sequential}}
+
+\newcommand{\writes}{\mathit{Writes}}
+\newcommand{\pomf}[1]{Fun_{#1}}
+\newcommand{\pomFn}{\mathit{PomFn}}
+\newcommand{\power}{\mathcal{P}}
+\newcommand{\aFn}{F}
+\newcommand{\aRSet}{R}
+\newcommand{\bRSet}{S}
+\newcommand{\aWSet}{U}
+\newcommand{\bWSet}{V}
+\newcommand{\aWrite}{\aAct_w}
+\newcommand{\bPS}{\aPS'}
+\newcommand{\cPS}{\aPS_1}
+\newcommand{\dPS}{\aPS'_1}
+\newcommand{\after}{\mathrel{\mathsf{after}}}
+\newcommand{\size}{\mathsf{size}}
+
+\newcommand{\test}[1]{\overline{#1}}
+\newcommand{\testP}[2]{{\tt test}^{#1}_{#2}}
+\newcommand{\hole}[1]{[#1]}
+\newcommand{\freshaval}{\aVal_{{\tt fr}}}
+
+\newcommand{\oota}{{\sc OOTA}}
+\newcommand{\tso}{{\sc tso}}
+\newcommand{\armseven}{{\sc armv7}}
+\newcommand{\armeight}{{\sc armv8}}
+\newcommand{\ppc}{{\sc ppc}}
+\newcommand{\mca}{{\sc MCA}}
+
+
+
+
+
 \newcommand{\rar}{\mathrel{\mathsf{ar}}}
 \newcommand{\muIMM}{\ensuremath{\mu\text{IMM}}}
 \newcommand{\free}{\mathsf{fn}}
@@ -252,6 +296,9 @@
 \pgfsetlayers{background,main,foreground}
 
 %\tikzset{baselinecenter/.style= {baseline=([yshift=-1ex]current bounding box.west)} }
+\tikzstyle{eco} = [->]
+\newcommand{\xeco}{\xarrowtikz{eco}{eco}}
+
 \tikzstyle{baselinecenter} = [baseline={([yshift=-.5ex]current bounding box.west)}]
 %\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
 \tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]

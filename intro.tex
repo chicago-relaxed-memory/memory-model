@@ -1,10 +1,3 @@
-\newcommand{\oota}{{\sc OOTA}}
-
-\newcommand{\tso}{{\sc tso}}
-\newcommand{\armseven}{{\sc armv7}}
-\newcommand{\armeight}{{\sc armv8}}
-\newcommand{\ppc}{{\sc ppc}}
-\newcommand{\mca}{{\sc MCA}}
 
 \section{Introduction}
 \citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of software relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper provides a solution  in the context of multi-copy atomicity.
@@ -85,18 +78,23 @@ In addition, the presentation of our model provides a simple way to adapt it to 
 
     
 
-\section{Related work}
+Informal intro \textsection\ref{sec:model:intro}.
 
-\citet{BoehmOOTA} revisits \oota.  The solution p
-The work on re
-2. Use\cite{BoehmOOTA} to 
-classify into decreasing worlds.
-           OOTA world
-              Our paper
-                 RC11, Boehm,LDRF
+Formalities \textsection\ref{sec:model}.
 
+DRF-SC \textsection\ref{sec:sc}.
 
+ARMv8 \textsection\ref{sec:imm}.
 
+Single-threaded optimizations \textsection\ref{sec:opt}.
 
+Logic \textsection\ref{sec:logic}.
 
+Single-threaded optimizations \textsection\ref{sec:opt}.
+
+More Examples \textsection\ref{sec:examples}.
+
+Strong models \textsection\ref{sec:ldrf}.
+
+Related work and conclusions at the end.
 

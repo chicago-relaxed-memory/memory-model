@@ -33,16 +33,7 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-\section{scribbles}
-Merge order.
-Augment order.
-Implication order.
-Generator is minimal in all of these, so po has unique predecessors.
-
-cross thread edges in generator are write-to-read and not from augmentation.
-
-
-\section{Model Introduction}
+\section{The Model,  Informally}
 \label{sec:model:intro}
 
 \begin{definition}
@@ -333,7 +324,7 @@ since no order is required between $(\DW x1)$ and $(\DW f1)$.
 Symmetrically, if we replace the acquire of the original program
 with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 
-\section{Model}
+\section{The Model,  Formally}
 \label{sec:model}
 
 
