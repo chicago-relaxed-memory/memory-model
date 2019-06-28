@@ -1,7 +1,20 @@
-\section{A Variant that Captures Strong Models}
+\section{Modeling the invalidation of load buffering}
 \label{sec:ldrf}
+In this section, we argue that our paper is relevant even to the reader who desires a semantics that invalidates load buffering.  
 
-In order to capture strong models, we change the system two ways:
+
+There are two related lines of research that suggest to prohibit the reordering of loads with following stores.  
+\begin{itemize}
+\item 
+~\citet{Dolan:2018:BDR:3192366.3192421} imposes this restriction in order to ``bound data races in space and time''.  Thus, in their model, one can reason sequentially about the the assignment to $w$ and deduce that $x=1 \Rightarrow\ z= 1$ despite the concurrent races on $u$, and  the past and future races on $y$\footnote{Concurrent, past and future stated wrt assignment to $w$.}.   In this program $r,s$ are registers, and $x,y,z,u,v,w$ are shared variables.
+\begin{align*}
+\mbox{Thread 1: } & u \GETS 0 \SEMI y \GETS 1 \SEMI v^{rel}  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3 \SEMI \\[-.5ex]
+\mbox{Thread 2: } & y \GETS 2 \SEMI  \IF{v^{acq}==1} \THEN\ w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2 \SEMI
+\end{align*}
+\item ~\citet{BoehmOOTA} describes a series of ``\oota'' like examples, and uses this restriction to rule out example~\ref{rfub}.  
+\end{itemize}
+
+This restriction can be captured naturally in our model.  We make two changes.
 \begin{itemize}
 \item Modify the semantic rule for read to remove the possibility of an internal read:
   \begin{align*}
@@ -16,3 +29,13 @@ In order to capture strong models, we change the system two ways:
 \end{itemize}
 In \ref{pre-read}b$'$ we removed the ``or or $\labelingForm'(\aEv)$ implies
 $\labelingForm(\aEv)$.''
+
+While~\citet{Dolan:2018:BDR:3192366.3192421} already describes DRF and  the compilation to \armeight, our approach yields the following new insights.
+\begin{itemize}
+\item Compositional treatment of temporal invariants from\textsection\ref{sec:logic} holds mutatis mutandis, since all executions of the restricted model are already accounted for in the general model.
+
+\item With regards to single-threaded optimizations in \textsection\ref{sec:opt}, our approach provides different methods to prove optimizations, that complement the extant methods of~\citet{Dolan:2018:BDR:3192366.3192421} with data sensitivity; for example, our methods provides a simple proof of  the transformation of $
+\IF{\aExp}\THEN\ x \GETS 1 \SEMI \aCmd \ELSE x\GETS 1 \SEMI \bCmd\FI$ to 
+$x \GETS 1 \SEMI \IF{\aExp}\THEN\  \aCmd \ELSE  \bCmd\FI$.
+
+\end{itemize}
