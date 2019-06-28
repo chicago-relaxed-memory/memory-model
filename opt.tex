@@ -127,6 +127,25 @@ followed by the valid elimination of redundant load:
 \[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
 
 \subsection{Full abstraction for synchronization free threads}
+
+Let $\aCmd$ be a command without either synchronization or parallelism.
+Suppose $\sem{\aCmd}$ contains an execution that includes
+\begin{tikzdisplay}[node distance=1em]
+  \event{r}{\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+  \event{w1}{\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+  \wk{w1}{w2}
+  \po{r}{w2}
+\end{tikzdisplay}
+where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
+$\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+Then the following Hoare triple is valid:
+\begin{displaymath}
+  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+\end{displaymath}
+
+
+
 We provide some evidence that our semantics incorporates a complete suite of optimizations for single threaded and synchronization free programs.
 
 \paragraph*{Generators}

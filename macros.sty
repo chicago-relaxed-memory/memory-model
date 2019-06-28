@@ -1,4 +1,4 @@
-\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
+%\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
 
 \newcommand{\fsat}{\mathsf{sat}}
 \newcommand{\ID}[1]{[#1]}
@@ -142,6 +142,7 @@
 \newcommand{\aVal}{v}
 \newcommand{\bVal}{w}
 \newcommand{\cVal}{\ell}
+\newcommand{\dVal}{u}
 
 \newcommand{\Exp}{\mathcal{E}}
 \newcommand{\aExp}{M}
@@ -310,6 +311,10 @@
 %\tikzstyle{baselinecenter} = [baseline=(current bounding box.west)]
 \tikzstyle{event} = [draw=black, fill=blue!10, rectangle, rounded corners, minimum size=3ex]
 \newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
+\tikzstyle{zlbl} = [black]
+\newcommand{\@zz}[1]{\makebox[0ex]{\smash{\raisebox{-.5ex}{{${#1}{:}\;$}}}}}
+\newcommand{\eventl}[4]{\node[event](#2)[#4,label={[zlbl]left:\@zz{#1}}]{$\mathstrut#3$};}
+\newcommand{\eventr}[4]{\node[event](#2)[#4,label={[zlbl]right:\@zz{#1}}]{$\mathstrut#3$};}
 \tikzstyle{internal} = [color=gray, draw=gray, dashed, fill=gray!10, rectangle, rounded corners, minimum size=3ex]
 \newcommand{\internal}[3]{\node[internal](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{cloudy} = [draw=black, fill=blue!10, cloud, aspect=2]
