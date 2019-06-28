@@ -1,7 +1,8 @@
-\newcommand{\IDAcq}{[\mathsf{Acq}]}
-\newcommand{\IDRel}{[\mathsf{Rel}]}
-\newcommand{\IDR}{[\mathsf{R}]}
-\newcommand{\IDW}{[\mathsf{W}]}
+\newcommand{\ID}[1]{[#1]}
+\newcommand{\IDAcq}{\ID{\Acq}}
+\newcommand{\IDRel}{\ID{\Rel}}
+\newcommand{\IDR}{\ID{\mathsf{R}}}
+\newcommand{\IDW}{\ID{\mathsf{W}}}
 
 
 \newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
@@ -364,6 +365,10 @@
 \NewDocumentCommand \eco {O{} m O{} m} {\draw[eco,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{eco}$}  (#4);}
 \newcommand{\reco}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{eco}}}}%
 \newcommand{\xeco}{\xarrowtikz{eco}{eco}}%
+\tikzstyle{co} = [->,color=orange!90!black,thick]
+\NewDocumentCommand \co {O{} m O{} m} {\draw[co,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{co}$}  (#4);}
+\newcommand{\rco}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{co}}}}%
+\newcommand{\xco}{\xarrowtikz{co}{co}}%
 \tikzstyle{coi} = [->,color=orange!90!black,thick]
 \NewDocumentCommand \coi {O{} m O{} m} {\draw[coi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coi}$}  (#4);}
 \newcommand{\rcoi}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{coi}}}}%
@@ -428,14 +433,18 @@
 \NewDocumentCommand \sw {O{} m O{} m} {\draw[sw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{sw}$}  (#4);}
 \newcommand{\rsw}{\ensuremath{\mathrel{\mathsf{sw}}}}%
 \newcommand{\xsw}{\xarrowtikz{sw}{sw}}%
-\tikzstyle{ird} = [->,thick,color=green!50!black,]
-\NewDocumentCommand \ird {O{} m O{} m} {\draw[ird,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ird}$}  (#4);}
-\newcommand{\rird}{\ensuremath{\mathrel{\color{green!50!black}\mathsf{ird}}}}%
-\newcommand{\xird}{\xarrowtikz{ird}{ird}}%
+% \tikzstyle{ird} = [->,thick,color=green!50!black,]
+% \NewDocumentCommand \ird {O{} m O{} m} {\draw[ird,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ird}$}  (#4);}
+% \newcommand{\rird}{\ensuremath{\mathrel{\color{green!50!black}\mathsf{ird}}}}%
+% \newcommand{\xird}{\xarrowtikz{ird}{ird}}%
 \tikzstyle{pox} = [->,thick,color=blue!50!black,]
 \NewDocumentCommand \pox {O{} m O{} m} {\draw[pox,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{po}$}  (#4);}
 \newcommand{\rpox}{\ensuremath{\mathrel{\color{blue!50!black}\mathsf{po}}}}%
 \newcommand{\xpox}{\xarrowtikz{pox}{po}}%
+\tikzstyle{poloc} = [->,thick,color=blue!50!black,]
+\NewDocumentCommand \poloc {O{} m O{} m} {\draw[poloc,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{po}$}  (#4);}
+\newcommand{\rpoloc}{\ensuremath{\mathrel{\color{blue!50!black}\mathsf{po}}}}%
+\newcommand{\xpoloc}{\xarrowtikz{poloc}{poloc}}%
 
 \newsavebox{\mytempbox}
 \newcommand{\xarrowtikz}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%

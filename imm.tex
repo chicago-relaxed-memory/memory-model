@@ -2,25 +2,50 @@
 \label{sec:imm}
 \begin{align*}
   \tag{Observed externally}
-  {\robs} &\eqdef
-  {\rrfe} \cup {\rfre} \cup {\rcoe}
+  {\robs} &\eqdef \smash{
+    {\rrfe} \cup {\rfre} \cup {\rcoe}
+  }
   \\
-  % \tag{Dependency ordered before}
-  % {\rdob} &\eqdef
-  % ({\raddr}\cup{\rdata}); {\rfi}^?
-  % \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-  % \cup {\raddr}; {\rpox}; {\IDW}
-  % \\
-  % \tag{Barrier ordered before}
-  % {\rbob} &\eqdef
-  % {\IDACQ}; {\rpox}
-  % \cup {\rpox};{\IDREL}; {\rcoi}^?
-  % \\
+  \tag{Dependency ordered}
+  {\rdob} &\eqdef\smash{
+    ({\raddr}\cup{\rdata}); {\rrfi}^?
+    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW}
+  }
+  \\
+  \tag{Barrier ordered}
+  {\rbob} &\eqdef\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?
+  }
+  \\
   \tag{Acyclic order}
-  {\rob} &\eqdef
-  ({\robs} \cup {\rdob} \cup {\rbob})^*
+  {\rob} &\eqdef\smash{
+    ({\robs} \cup {\rdob} \cup {\rbob})^*
+  }
 \end{align*}
-
+\begin{definition}
+  An execution is \emph{ARM-consistent}
+  if
+  \begin{align*}&
+    \tag{\textsc{$\rrfx$-completeness}}\label{rf-comp}
+    \fcodom(\rrfx)=\fdom(\rreads)
+    \\[-1ex]&
+    \tag{\textsc{$\rco$-totality}}\label{co-tot}
+    \text{For every location $\aLoc$, $\rco$ totally orders the writes of $\aLoc$}  
+    \\[-1ex]&
+    \tag{\textsc{sc-per-loc}}\label{sc-per-loc}
+    {\rpoloc} \cup {\rrfx} \cup {\rfr} \cup {\rco}\;\text{is acyclic}
+    \\[-1ex]&
+    \tag{\textsc{external}}\label{external}
+    {\rob}\;\text{is acyclic}
+  \end{align*}
+\end{definition}
+Use these to refer to the rules in text:
+\ref{rf-comp} 
+\ref{co-tot}
+\ref{sc-per-loc}
+\ref{external}
 
 \begin{verbatim}
 Operation        Implementation
