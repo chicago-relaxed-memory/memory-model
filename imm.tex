@@ -5,17 +5,17 @@
   {\robs} &\eqdef
   {\rrfe} \cup {\rfre} \cup {\rcoe}
   \\
-  \tag{Dependency ordered before}
-  {\rdob} &\eqdef
-  ({\raddr}\cup{\rdata}); {\rfi}^?
-  \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-  \cup {\raddr}; {\rpox}; {\IDW}
-  \\
-  \tag{Barrier ordered before}
-  {\rbob} &\eqdef
-  {\IDACQ}; {\rpox}
-  \cup {\rpox};{\IDREL}; \rcoi^?
-  \\
+  % \tag{Dependency ordered before}
+  % {\rdob} &\eqdef
+  % ({\raddr}\cup{\rdata}); {\rfi}^?
+  % \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+  % \cup {\raddr}; {\rpox}; {\IDW}
+  % \\
+  % \tag{Barrier ordered before}
+  % {\rbob} &\eqdef
+  % {\IDACQ}; {\rpox}
+  % \cup {\rpox};{\IDREL}; {\rcoi}^?
+  % \\
   \tag{Acyclic order}
   {\rob} &\eqdef
   ({\robs} \cup {\rdob} \cup {\rbob})^*
