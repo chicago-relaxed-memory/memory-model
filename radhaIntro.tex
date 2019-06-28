@@ -1,4 +1,11 @@
 \newcommand{\oota}{{\sc OOTA}}
+
+\newcommand{\tso}{{\sc tso}}
+\newcommand{\armseven}{{\sc armv7}}
+\newcommand{\armeight}{{\sc armv8}}
+\newcommand{\ppc}{{\sc ppc}}
+\newcommand{\mca}{{\sc MCA}}
+
 \section{Introduction}
 \citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of software relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper provides a solution  in the context of multi-copy atomicity.
 
@@ -15,7 +22,7 @@ There are two dimensions to ``ease-of-use'', namely:
 \begin{itemize}
 \item The ``DRF'' criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs without data races.  
 
-\item All programs, racy or not,  should support compositional reasoning on safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  The simplest form of such a composition principle, addressing only temporal invariants is:
+\item All programs, racy or not,  should support compositional reasoning on safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  The simplest form of such a composition principle, addressing temporal invariants is:
 \[
   \frac{
       \afo, \aPSS_1 \models\afo
@@ -58,8 +65,25 @@ read and a subsequent relaxed atomic write.
 
 As the quote reveals, the JMM\citet{Manson:2005:JMM:1047659.1040336} was motivated by these two aims.  However, the JMM and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} invalidate compositional reasoning\footnote{We show an example to demonstrate.} It is also known that the JMM does not support reordering of independent statements.  
 
-Two comments:
-1. Clarify implementability of \citet{DBLP:conf/lics/JeffreyR16}.
+\paragraph{Our results. } We describe a software relaxed memory model based on pomsets whose events are decorated by logical  preconditions.   Our model satisfies the desiderata outlined earlier.
+
+\begin{itemize}
+\item The model satisfies the ``DRF criterion''.  
+
+\item The model validates a variety of single threaded transformations including reordering of independent statements and roach motel laws for synchronization.  
+
+We provide two forms of abstract evidence that our model supports as many sequential transformations as can be expected.  First, we show a precise relationship with standard Hoare-triples for sequential code provides abstract evidence for the support afforded for compiler  transformations of traditional sequential code.  Second, we prove a ``full abstraction'' style completeness  theorem : any two synchronization free threads that are distinguished by our model can be done so with a parallel thread that is also synchronization free. 
+
+\item The model compiles to \armeight\ and \tso\ {\em without} any extra synchronization for raw variables.  
+
+However, a semantic version of \mca\ in our model means that a compilation to \armseven\ or \ppc\ requires extra synchronization.  
+
+\item The model validates compositional reasoning on safety properties.  Thus, it supports the infrastructure required to prove a realistic type safety theorem that includes racy programs without requiring that that the type information is included in the address itself.
+\end{itemize}
+In addition, the presentation of our model provides a simple way to adapt it to forbid the relaxing of the program order from reads to writes, thus modeling\cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA}.  Perforce, this variant p limits the compiler transformations; however, it still satisfies the properties of ``DRF'', hardware compilation and compositional reasoning. 
+
+
+    
 
 \section{Related work}
 

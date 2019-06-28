@@ -122,7 +122,7 @@ Let $\aCmd$ be $\PAR$-free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\a
 \begin{itemize}
 \item If $\aEv$ is a write or a release, and $\aEv \lt\ \bEv$, then $\bEv$ is a release.
 \item If $\bEv$ is a read or an acquire, and $\aEv \lt \bEv$, then $\aEv$ is an acquire.
-\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le;\reco) \cup (\reco;\le)]) \  \bEv$.
+\item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star}  \  \bEv$.
 \end{itemize}
 \end{lemma}
 The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions.  The only required $\gtN$-edges arise from conflicts on a location.
@@ -132,7 +132,7 @@ In the case where $\aCmd$ has no synchronization constructs, the structure of th
 Let $\aCmd$ be $\PAR$-free and synchronization free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\aCmd}$ satisfy:
 \begin{itemize}
 \item Writes are maximal and Reads are minimal in $\lt$.
-\item $\aEv \gtN \bEv$ only if $ \aEv\ [\lt \cup (\le; \reco) \cup (\reco;\le)] \  \bEv$.
+\item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
 \end{itemize}
 \end{corollary}
 
