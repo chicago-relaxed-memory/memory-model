@@ -75,18 +75,15 @@ To get order into the read, there are several options:
   But the ctrl dependency is not included in ob between reads.
 - use cross thread read then barrier, but then you contradict EXTERNAL
 - create and ob edge from Rx2 to Wx1.
-  An attempt to do this is:
+  An attempt to do this is, 
 
-  Wx1 <-------------- Ra1         Wx1 <----- Rx2
-   |                   |           |          | 
-  Rx1 - - -> Wx2 ---> Wa1         Rx1 - - -> Wx2
+  Wx1 <-------------- Ra1       
+   |                   |        But cannot get Wx2 --> Wa1 without a barrier
+  Rx1 - - -> Wx2 ---> Wa1       
 
-  But then 
-
-In ARM - - -> is an internal from-read
-
-Externally 
-
+  Wx1 <----- Rx2                         
+   |          |                 contradicts SC-PER-LOC 
+  Rx1 - - -> Wx2                         
 
 
 Other examples to type in:

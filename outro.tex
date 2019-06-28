@@ -8,8 +8,8 @@ Differences with \cite{2019-sp}:
 \item We only consider pomsets that are coherent (Definition~\ref{def:3pre}).
 \item Prefixing only introduces required order from read to write in item~\ref{pre-implies} (Definition~\ref{def:prefix}).
 \item We provide semantics for computed addresses of memory locations.
-\item The semantics of relaxed write includes internal actions, symmetric
-  with the treatment of relaxed read.
+\item The semantics of relaxed read internal actions.
+\item restriction introduces internal actions.
 \item The semantics of parallel composition is asymmetric.  This ensures that
   in $\aCmd;(\bCmd_1\PAR\bCmd_2)$, $\bCmd_1$ may read internally from $\aCmd$,
   but all reads in $\bCmd_2$ must be explicit.
