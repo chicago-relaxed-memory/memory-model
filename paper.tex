@@ -1,7 +1,9 @@
 %% For double-blind review submission
 \documentclass[acmsmall,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true}
-\theoremstyle{acmdefinition}
-\newtheorem{remark}[theorem]{Remark}
+\AtEndPreamble{%
+  \theoremstyle{acmdefinition}
+  \newtheorem{remark}[theorem]{Remark}
+}
 %% For single-blind review submission
 
 % \documentclass[acmsmall]{acmart}\settopmatter{printfolios=true}
