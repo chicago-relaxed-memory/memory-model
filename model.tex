@@ -159,7 +159,7 @@ includes the pomset:
   \wk{wx0}{wx1}
   \po{rx1}{wy1}
 \end{tikzdisplay}
-We refer to edges introduced by $(\bEv \leq \aEv)$ as \emph{strong edges} and
+We refer to edges introduced by $(\bEv \le \aEv)$ as \emph{strong edges} and
 by $(\bEv \gtN \aEv)$ as \emph{weak edges}.
 Reads-from is included in strong order, and we often highlight it in green, as above.
 
@@ -333,6 +333,20 @@ with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 
 \section{The Model,  Formally}
 \label{sec:model}
+
+Differences with \cite{2019-sp}:
+\begin{itemize}
+\item We only consider pomsets where $\lt$-greater elements have stronger
+  preconditions (Definition~\ref{def:3pre}).
+\item We only consider pomsets that are coherent (Definition~\ref{def:3pre}).
+\item Prefixing only introduces required order from read to write in item~\ref{pre-implies} (Definition~\ref{def:prefix}).
+\item We provide semantics for computed addresses of memory locations.
+\item The semantics of relaxed read internal actions.
+\item restriction introduces internal actions.
+\item The semantics of parallel composition is asymmetric.  This ensures that
+  in $\aCmd;(\bCmd_1\PAR\bCmd_2)$, $\bCmd_1$ may read internally from $\aCmd$,
+  but all reads in $\bCmd_2$ must be explicit.
+\end{itemize}
 
 
 \subsection{Background: 3-valued pomsets}
@@ -639,7 +653,7 @@ Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
 $\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
 % Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
 % $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
-% $\bEv\leq\aEv$, for every release $\aEv\in\Event$.
+% $\bEv\le\aEv$, for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in

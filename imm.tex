@@ -1,6 +1,119 @@
 \section{Efficient Implementation on ARMv8}
 \label{sec:imm}
+
+In this section, we consider the fragment of our language without
+restriction.  For simplicity, we allow release and acquire synchronization
+but ban fences.  We assume that all memory locations are initialized to $0$
+and parallel-composition occurs only at top level.  We take the set of memory
+locations to be finite.  In other words, we assume that programs have the
+form
+\begin{displaymath}
+  {\aLoc_1}\GETS{0}\SEMI
+  \cdots\SEMI
+  {\aLoc_m}\GETS{0}\SEMI
+  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+\end{displaymath}
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include composition, restriction or
+fence operations.
+
+Our language can be translated to ARM using \textsf{ldr} for relaxed read,
+\textsf{ldar} for acquiring read, \textsf{str} for relaxed write, and
+\textsf{stlr} for releasing write.  Relative to the ARM specification, we
+have removed loops and read-modify-write (RMW) operations, in addition to
+fences.
+
+We show that any ARM-consistent execution graph for this sublanguage can be
+considered an execution of our semantics.  
+
+% Syntactically, we drop the superscript \textsf{rlx} on relaxed reads and
+% writes; in addition, we use structured conditionals rather than the more
+% general \textsf{goto}.  We refer to this sublanguage as $\muIMM$.
+% (Because the source language lacks RMW operations, the ``is
+% exclusive'' flag on every read will be \textsf{not-ex} and the RMW mode on
+% every write will be \textsf{normal}.)
+
+Due to space limitations, we do not include a full description ARM
+consistency.  Interested readers should see \textsection\ref{sec:arm:proof}
+for further details.  Here we mention only a few details.
+
+An ARM execution graph $G$ defines many relations, including program order
+($\rpox$), reads-from ($\rrfx$), coherence ($\rco$) and several dependency
+orders.  From these are derived:
+\begin{itemize}
+\item ${\rpoloc}$, which is the subrelation of $\rpox$ that only relates
+  actions on the same location,
+\item ${\rob}$, which is required to be acyclic, and
+\item $\reco$, with the requirement that ${\rpoloc}\cup{\reco}$ be acyclic.
+\end{itemize}
+% Let $G$ be an execution graph satisfying the ARM consistency requirements.
+
+Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
+$\aEv\in\fcodom({\rpox}\cap {\rrfx})$.
+
+From $G$ we construct a candidate pomset $\aPS$ as follows:
+\begin{itemize}
+\item $\Event= \textsf{E}$,
+\item $\labelingAct(\aEv)=\tau \mathsf{lab}(e)$, if $\aEv$ is a relaxed
+  internal read, 
+\item $\labelingAct(\aEv)=\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
+  internal read,
+\item $\labelingForm(\aEv)=\TRUE$,
+\item ${\le} = {\rob}$, and
+\item ${\gtN} = ({\rob} \cup {\reco})^*$
+\end{itemize}
+
+\begin{theorem}
+  If $G$ is ARM consistent, the constructed candidate satisfying the
+  requirements for a top-level memory model pomset.
+\end{theorem}
+
+The proof uses the following facts about ARM-consistent execution graphs, 
+which we establish in \textsection\ref{sec:arm:proof}.  Suppose $\aEv$,
+$\bEv$ and $\aEv$ are distinct events.
+\begin{itemize}
+\item If $\cEv\xob\bEv\xeco\aEv$ then $\cEv\xob\aEv$.
+\item If $\cEv\xeco\bEv\xob\aEv$ then $\cEv\xob\aEv$.
+\item If $\cEv\xob\bEv$ then $\lnot(\bEv\xeco\cEv)$.
+\end{itemize}
+
+\subsection{Proof for ARMv8}
+\label{sec:arm:proof}
+
+Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
+transitive closure and $R^*$ denotes reflexive and transitive closure.  Given
+relations $R$ and $S$, $R;S$ denotes composition.
+
+
+The ARMv8 model is described using the following relations.
+\begin{itemize}
+\item $\IDR$, $\IDW$, $\IDAcq$, $\IDRel$: identity on reads, writes, acquires
+  and releases.
+% \item $\IDR$ identity on reads
+% \item $\IDW$: identity on writes
+% \item $\IDAcq$: identity on acquires
+% \item $\IDRel$: identity on releases
+\item $\IDLoc$: relates any two events that touch the same location.
+\item $\rpox$: program order.
+\item $\rdata$, $\rctrl$, $\raddr$: data, control and address dependencies.
+\item $\rrfx$: reads-from. $\rrfx^{-1}$ relates each read to a matching write
+  on the same location.
+\item $\rco$: coherence, which is a total order on the writes to a single
+  location.
+\item ${\rfr}\eqdef{\rco};\rrfx^{-1}$: from-read, which relates reads to
+  subsequent writes.
+\end{itemize}
+For any relation, the cross-thread subrelation is denoted by appending $e$;
+the intra-thread subrelation is denoted by appending $i$.  For example,
+${\rrfe}\eqdef{\rrfx}\setminus{\rpox}$ and ${\rrfi}\eqdef{\rrfx}\cap{\rpox}$.
+The subrelation restriction attention to actions on the same location is
+given by appending $\mathsf{loc}$.  For example, ${\rpoloc}\eqdef{\rpox}\cap{\IDLoc}$.
+
+The ARMv8 model defines the following relations.
+In our presentation, we have elided rules concerning fences and RMW operations.
 \begin{align*}
+  \tag{Extended coherence}
+  {\reco} &\eqdef {\rrf} \cup {\rfr} \cup {\rco}
+  \\
   \tag{Observed externally}
   {\robs} &\eqdef \smash{
     {\rrfe} \cup {\rfre} \cup {\rcoe}
@@ -25,8 +138,7 @@
   }
 \end{align*}
 \begin{definition}
-  An execution is \emph{ARM-consistent}
-  if
+  An RMW-free and fence-free execution is \emph{ARM-consistent} if
   \begin{align*}&
     \tag{\textsc{$\rrfx$-completeness}}\label{rf-comp}
     \fcodom(\rrfx)=\fdom(\rreads)
@@ -47,16 +159,66 @@ Use these to refer to the rules in text:
 \ref{sc-per-loc}
 \ref{external}
 
-\begin{verbatim}
+
+Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
+$\aEv\in\fcodom(\mathsf{po}\cap \mathsf{rf})$.
+
+From $G$ we construct a candidate pomset $\aPS$ as follows:
+\begin{itemize}
+\item $\Event= \textsf{E}$,
+\item $\labelingAct(\aEv)=\tau \mathsf{lab}(e)$, if $\aEv$ is a relaxed
+  internal read, 
+\item $\labelingAct(\aEv)=\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
+  internal read,
+\item $\labelingForm(\aEv)=\TRUE$,
+\item ${\le} = {\rob}$, and
+\item ${\gtN} = ({\rob} \cup {\reco})^*$
+\end{itemize}
+
+We show that $\aPS$ is a top-level pomset, reasoning as follows.
+
+ First, we establish the criteria for a 3-valued pomset (Definition~\ref{def:3valued}).
+\begin{itemize}
+\item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is acyclic.
+\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
+\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  ????
+\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
+  $\cEv \gtN \aEv$. By construction.
+\end{itemize}
+
+Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
+\begin{itemize}
+\item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
+  $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
+\item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
+  read or write $\aLoc$, $\gtN$ forms a partial order.
+\end{itemize}
+
+Finally, we establish the criteria for a top-level pomset
+(Definition~\ref{def:x-closed}).
+\begin{itemize}
+\item $\aEv$ is location independent. Trivial, since every formula is $\TRUE$.
+\item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
+  \begin{itemize}
+  \item $\bEv \lt \aEv$,  
+  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
+  \item if $\cEv$ writes to $\aLoc$
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}    
+\end{itemize}
+
+
+
+\begin{comment}
 Operation        Implementation
 Relaxed read     ldr                     
 Relaxed write    str             
 Acquiring read   ldar            
 Releasing write  stlr
 Fence            dmb.sy
-\end{verbatim}
+\end{comment}
 
-\begin{verbatim}
+\begin{comment}
 ob does not contradict eco
 
 ob does not contradict (co cap po):
@@ -154,9 +316,11 @@ Forbidden:
 Rx1 -> Wy0 Wy1
 Ry1 -> Wx0 Wx1
 
-\end{verbatim}
+\end{comment}
 
 
+
+\begin{comment}
 \citet{DBLP:journals/pacmpl/PodkopaevLV19} define the \emph{Intermediate
   Memory Model (IMM)} and provide efficient implementations of the IMM into
 several processor architectures, including TSO, ARMv8 and Power.
@@ -185,58 +349,4 @@ Due to space limitations, we do not include a full description of the IMM.
 The broad strokes of the argument given here should be clear, but interested
 readers will need to refer to \citep{DBLP:journals/pacmpl/PodkopaevLV19} for
 details.
-
-Let $G$ be an execution graph for a $\muIMM$ program satisfying the
-consistency requirements in \textsection3.4 of
-\citep{DBLP:journals/pacmpl/PodkopaevLV19}. (Because the source language
-lacks RMW operations, the ``is exclusive'' flag on every read will be
-\textsf{not-ex} and the RMW mode on every write will be \textsf{normal}.)
-
-Let $R^*$ denotes the reflexive and transitive closure of relation $R$.  Let
-$R;S$ denote the composition of relations $R$ and $S$.
-
-Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
-$\aEv\in\fcodom(G.\mathsf{po}\cap G.\mathsf{rf})$.
-
-From $G$ we construct a candidate pomset $\aPS$ as follows:
-\begin{itemize}
-\item $\Event= G.\textsf{E}$,
-\item $\labelingAct(\aEv)=\tau G.\mathsf{lab}(e)$, if $\aEv$ is a relaxed
-  internal read, 
-\item $\labelingAct(\aEv)=G.\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
-  internal read,
-\item $\labelingForm(\aEv)=\TRUE$,
-\item ${\leq} = G.{\rar}^*$, and
-\item ${\gtN} = {\leq} \cup {\leq}; {G.{\reco}} \cup {G.{\reco}} ; {\leq}$
-\end{itemize}
-
-We show that $\aPS$ is a top-level pomset, reasoning as follows.
-First, we establish the criteria for a 3-valued pomset (Definition~\ref{def:3valued}).
-\begin{itemize}
-\item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is acyclic.
-\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
-\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  ????
-\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
-  $\cEv \gtN \aEv$. By construction.
-\end{itemize}
-
-Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
-\begin{itemize}
-\item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-  $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
-\item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
-  read or write $\aLoc$, $\gtN$ forms a partial order.
-\end{itemize}
-
-Finally, we establish the criteria for a top-level pomset
-(Definition~\ref{def:x-closed}).
-\begin{itemize}
-\item $\aEv$ is location independent. Trivial, since every formula is $\TRUE$.
-\item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
-  \begin{itemize}
-  \item $\bEv \lt \aEv$,  
-  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
-  \item if $\cEv$ writes to $\aLoc$
-    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}    
-\end{itemize}
+\end{comment}

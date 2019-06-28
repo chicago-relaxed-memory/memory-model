@@ -25,7 +25,7 @@ By Lemma~\ref{lem:monotone}, if $\sem{\aCmd} \supseteq \sem{\bCmd}$
 then $\aCmd$ can be transformed into $\bCmd$ in any program context.  Since
 unsatisfiable events are ignored in our architecture model, it is
 an immediate corollary that it is sufficient to show that
-
+$\fsat\sem{\aCmd} \supseteq \fsat\sem{\bCmd}$.
 
 
 
@@ -34,7 +34,7 @@ We follow the terminology and presentation of section~7.1 of
 \citet{Dolan:2018:BDR:3192366.3192421}, to maintain a clear comparison with
 models that enforce extra ordering.
 
-\paragraph*{Peephole optimizations. } 
+%\paragraph*{Peephole optimizations. } 
 Certain transformations involving adjacent operations on the same location
 are permissible. 
  
@@ -81,9 +81,11 @@ are permissible.
 \end{proof}
 \end{lemma}
   
-\paragraph*{Reorderings of independent statements}
+%\paragraph*{Reorderings of independent statements}
+Certain reorderings involving adjacent operations on the distinct locations
+are also permissible. 
 
-$\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads from $\aLoc$ in $\aCmd$.  
+% $\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads from $\aLoc$ in $\aCmd$.  
 \begin{lemma}%[Reorderings]
   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
   \begin{align*}
