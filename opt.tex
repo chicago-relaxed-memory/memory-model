@@ -131,8 +131,8 @@ followed by the valid elimination of redundant load:
 Let $\aCmd$ be a command without either synchronization or parallelism.
 Suppose $\sem{\aCmd}$ contains an execution that includes
 \begin{tikzdisplay}[node distance=1em]
-  \event{r}{\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-  \event{w1}{\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+  \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
   \wk{w1}{w2}
   \po{r}{w2}
