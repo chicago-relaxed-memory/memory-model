@@ -1,63 +1,8 @@
-\section{RadhaRandomness}
+\section{Proof of DRF}\label{drfproof}
 
-For any $\aPS$, then $\closed(\aPS)$ is set enriched with useless reads
-(preserving augmentation closure) and where we remove any event whose
-precondition is not a tautology.
+In this section of the appendix, we develop a proof of DRF.  In this section, we first develop closure conditions on semantics.  Next, we prove DRF.
 
-For top level programs:
-\begin{displaymath}
-  \semClosed{\VAR\vec{\aLoc}\SEMI
-    \vec{\aLoc}\GETS\vec{0}\SEMI
-    \vec{\bLoc}\GETS\vec{0}\SEMI
-    \FENCE\SEMI
-    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)}
-  =
-  \VAR\vec{\aLoc}\SEMI
-    \vec{\aLoc}\GETS\vec{0}\SEMI
-    \vec{\bLoc}\GETS\vec{0}\SEMI
-    \FENCE\SEMI
-    (\semClosed{\aCmd^1} \PAR \cdots \PAR \semClosed{\aCmd^n})
-\end{displaymath}
-
-\begin{definition}
-A thread: top level component of a parallel composition
-\end{definition}
-
-\begin{definition}
-$\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
-\end{definition}
-
-We are considering finite programs without loops.  So,  all pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations, and  generators exist for semantics of threads.
-
-Since the program we consider are loop free, for any command $\aCmd$, the size of the pomsets in $\aCmd$ are bounded by a constant, that we denote by $\size(\aCmd)$.  
- 
-
-\section{Generators for semantics of programs with parallel composition}
-All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$.  
-
-\begin{lemma}\label{pargen}
-Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
-
-Let $\aPS$  be any generator.  
-%\begin{itemize}
-% \item
- Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd}$ and  $\bEv \in \semClosed{\bCmd} $.
-  
-Then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
-
-%\item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)^{\star}]  
-%\bEv$.
-
-% \item If $\aEv\lt\bEv$ and $\aEv, \bEv \in \semClosed{\aCmd}$, 
-%then there exists 
-
-%There exists a release action $\aEv'$ in $\sem{\aCmd}$, a 
-%matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $
-%\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
-
-\end{lemma}
-
-\section{Closure properties}
+\subsection{Closure properties}
 
 We say that $\aPS' = \aPS\restrict{\Event'}$ when 
  $\Event' \subseteq \Event$,
@@ -70,7 +15,39 @@ Let $(\aPS \after \aEv) = {\{ \bEv\in\Event \mid \aEv \le \bEv
   \}}$ be the set of events that follow $\aEv$ in $\aPS$.
 \end{definition}
 
-The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt $\reco$), even while  the races with existing independent writes are maintained. 
+The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt $\reco$), even while  the races with existing independent writes are maintained.   A canonical example to keep in mind for this lemma is the program:
+\begin{align*}
+\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1  \SEMI \\[-.5ex]
+\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1  \SEMI 
+\end{align*}
+with both registers getting value $1$ via the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{ry1}{\DR{y}{1}}{right=of wy0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{rx1}{\DR{x}{1}}{right=of wx0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx1}{rx1}
+\rf{wy1}{ry1}
+\wk{wx0}{rx1}
+\wk{wy0}{ry1}
+\end{tikzdisplay}
+The lemma constructs the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{ry1}{\DR{y}{0}}{right=of wy0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{rx1}{\DR{x}{0}}{right=of wx0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx0}{rx1}
+\rf{wy0}{ry1}
+\wk{rx1}{wx1}
+\wk{ry1}{wy1}
+\end{tikzdisplay}
+
+
 \begin{lemma}\label{inputen}
 %Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI \FENCE\SEMI (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
 Let $\aCmd$ have an initial value for $\aLoc$.   
@@ -92,7 +69,42 @@ The form of the command in the hypothesis of the proof initializes the locations
 \end{proof}
 In particular, in the above lemma, $\bEv,\bEv'$ are events of both $\aPS$ and $\bPS$, and  $\bPS$ continues to witness the race of $\aEv', \bEv$ in $\bPS$.   
 
-In the following lemma,  invert the $\reco$ relationship between a read and a write. 
+In the following lemma,  invert the $\reco$ relationship between a read and a write.   A canonical example to keep in mind for this lemma is the program:
+\begin{align*}
+\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y  \SEMI \\[-.5ex]
+\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x \SEMI
+\end{align*}
+with both registers getting value $0$ via the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=of wy0}
+\event{ry0}{\DR{y}{0}}{right=of wx1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{wy1}{\DW{y}{1}}{right=of wx0}
+\event{rx0}{\DR{x}{0}}{right=of wy1}
+\rf[bend right]{wx0}{rx0}
+\rf[bend left]{wy0}{ry0}
+\wk{rx0}{wx1}
+\wk{ry0}{wy1}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\end{tikzdisplay}
+The lemma constructs the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=of wy0}
+\event{ry0}{\DR{y}{1}}{right=of wx1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{wy1}{\DW{y}{1}}{right=of wx0}
+\event{rx0}{\DR{x}{1}}{right=of wy1}
+\rf{wx1}{rx0}
+\rf{wy1}{ry0}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\end{tikzdisplay}
+
+
+
 \begin{lemma}\label{removerw}
 Let $\aPS \in \sem{\aCmd}$.   
 Let $\bEv \in \aPS$ be a write on $\aLoc$. 
@@ -110,8 +122,24 @@ The proof proceeds similar to the above proof; in this case, replace the value r
 \end{proof}
 Any new  event $\bEv'$ in $\bPS \after \aEv'$ reading from $\aLoc$ cannot have a matching write event $\bEv'' \xeco \bEv$ since that  implies $\bEv' \xeco \bEv$ and a $\reco$ cycle $\bEv \lt \aEv \lt \aEv' \xeco \bEv$.  Thus, the above lemma can be iterated if the new pomset is has any further reads that precede $\bEv$ in $\reco$, so we can finally derive a pomset with no reads and writes satisfying the hypothesis of the lemma.   
 
-
 The $\reco$ order between writes that are not related by $\lt$ can be reversed. 
+A canonical example to keep in mind for this lemma is the program:
+\begin{align*}
+\mbox{Thread 1: } &\VAR x\GETS 1 \\[-.5ex]
+\mbox{Thread 2: } &\VAR x\GETS 0 
+\end{align*}
+with both registers getting value $0$ via the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{x}{1}}{}
+\event{wx0}{\DW{x}{0}}{below=of wx0}
+\wk{wy0}{wx0}
+\end{tikzdisplay}
+The lemma constructs the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{x}{1}}{}
+\event{wx0}{\DW{x}{0}}{below=of wx0}
+\wk{wx0}{wy0}
+\end{tikzdisplay}
 \begin{lemma}\label{cohww}
 Let $\aPS \in \sem{\aCmd}$.  Let $\bEv, \aEv$ be a writes to $\aLoc$ such that:
 \begin{itemize}
@@ -135,31 +163,28 @@ Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can bui
 \end{proof}
 
 
-\section{DRF Proof}
-\begin{definition}
-$\aPS$ is \Seq\ if  $\acylic(\rpox \cup \lt \cup \xeco)$
-\end{definition}
-\Seq\ is an accurate measure of sequential consistency.  Clearly, any total order that linearizes the acyclic relation is consistent with the dependency relation $\lt$ and the program order $\rpox$.  The consistency with $\xeco$ ensures that only the last write to a location is read in such a total order.  
+\subsection{DRF Proof}
+In the rest of this section, we assume that $\aPS$ and $\aCmd$ are as per remark~\ref{generator}.
 
-\begin{theorem}[DRF1]
-Let $\aPS \in \sem{\aCmd}$ be a generator.  
-If $\aPS$ does not have a race, $\aPS$ is \Seq.
-\end{theorem}
-\begin{proof}
+We prove:
+\begin{description}
+\item[DRF1: ] If $\aPS$ does not have a race, $\aPS \in \semsc{\aCmd}$. 
+\item[DRF2: ] If $\aPS$ has a race, then there exists $\bPS\in \semClosed{\aCmd}$ such that $\bPS \in \semsc{\aCmd}$ and has a race.
+\end{description}
+
+\paragraph*{Proof of DRF1}
 We first show that if $\aPS$ is not \Seq, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \lt \cup \xeco$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
 If for all $i$, $\aEv'_i  \xhb \aEv'_{i+1}$, then the above is a cycle in $\rhb$, which is a contradiction.
 So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There are two cases to consider.
 \begin{itemize}
 \item $\aEv'_i  \xeco \aEv'_{i+1}$.   In this case, there is a race.
-\item  $\aEv'_i  \lt \aEv'_{i+1}$.  In this case, using lemma~\ref{pargen}, we deduce that $\aEv'_i$ is a write and $\aEv'_{i+1}$ is a conflicting read, so there is a race. 
+\item  $\aEv'_i  \lt \aEv'_{i+1}$.  In this case, $\aEv'_i$ is a write and $\aEv'_{i+1}$ is a conflicting read, so there is a race. 
 \end{itemize}
 
-\end{proof}
-\begin{theorem}[DRF2]
-Let $\aPS \in \sem{\aCmd}$ be a generator.   If $\aPS$ has a race, then there exists $\bPS\in \sem{\aCmd}$ such that $\bPS$ is \Seq\ and has a race.
-\end{theorem}
-\begin{proof}
-For generators $\aPS$ of $\sem{\aCmd}$, we define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is a generator $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
+
+\paragraph*{Proof of DRF2}
+
+We define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is an $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
 
 We prove by induction on $\size(\aCmd) - \size(\bPS)$ that given $(\aPS, \bPS)$ such that:
 \begin{itemize}
@@ -193,8 +218,69 @@ Let $\bEv$ be the matching write for $\aEv_{(i+1)\mod n}$. If $\bEv_i \in \bPS$b
 We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and read $\aEv_{(i+1)\mod n}$ and write $\aEv'_i$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to a value from $\bPS$.  $\dPS$  is derived adding the modified read yielded by lemma~\ref{inputen} to $\bPS$.  Result follows by induction hypothesis since $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\lt, \reco$,  $\cPS$ has a race, and $\size(\dPS) = \size(\bPS) + 1$. 
 
 
-\end{proof}
 \endinput
+
+\section{Proof of DRF}
+
+For any $\aPS$, then $\closed(\aPS)$ is set enriched with useless reads
+(preserving augmentation closure) and where we remove any event whose
+precondition is not a tautology.
+
+For top level programs:
+\begin{displaymath}
+  \semClosed{\VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)}
+  =
+  \VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\semClosed{\aCmd^1} \PAR \cdots \PAR \semClosed{\aCmd^n})
+\end{displaymath}
+
+\begin{definition}
+A thread: top level component of a parallel composition
+\end{definition}
+
+\begin{definition}
+$\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
+\end{definition}
+
+
+Since the program we consider are loop free, for any command $\aCmd$, the size of the pomsets in $\aCmd$ are bounded by a constant, that we denote by $\size(\aCmd)$.  
+ 
+
+\section{Generators for semantics of programs with parallel composition}
+All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$.  
+
+\begin{lemma}\label{pargen}
+Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
+
+Let $\aPS$  be any generator.  
+%\begin{itemize}
+% \item
+ Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd}$ and  $\bEv \in \semClosed{\bCmd} $.
+  
+Then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
+
+%\item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)^{\star}]  
+%\bEv$.
+
+% \item If $\aEv\lt\bEv$ and $\aEv, \bEv \in \semClosed{\aCmd}$, 
+%then there exists 
+
+%There exists a release action $\aEv'$ in $\sem{\aCmd}$, a 
+%matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $
+%\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
+
+\end{lemma}
+
+
+
+
 
 
 

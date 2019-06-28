@@ -98,14 +98,12 @@ $.
 
 We will consider closed and complete executions of $\aCmd$. We use $\semClosed{\aCmd}$ to stand for the subset of $\sem{\aCmd}$  with only  the pomsets that are $\vec{\aLoc}, \vec{\bLoc}$ closed.  
 
-Furthermore, we will only consider the pomsets $\aPS \in\semClosed{\aCmd}$ that that satisfy the following property.   We write the condition for the case $n=2$ for notational convenience.
+Since we are considering finite programs without loops, the pomsets in the semantics of threads are finite.  Thus, there are no infinite descending chains of augmentations.  We will only consider the minimal elements.  In these minimal elements $\aPS \in\semClosed{\aCmd}$, $\gtN$ is the transitive closure of $(\le \cup \reco)$ and furthermore they satisfy the following properties.   We write the condition for the case $n=2$ for notational convenience.
 
 Let $\aEv, \bEv$ in $\aPS$ such that $\aEv\lt\bEv$ and $\aEv \in \sem{\aCmd_1}$ and  $\bEv \in \sem{\aCmd_2} $.  Then there is a write  $\aEv' \in \sem{\aCmd_1}$, and  a read $\bEv' \in \sem{\aCmd_2}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
-
-Any pomset in $\semClosed{\aCmd_1 \PAR \aCmd_2}$ is necessarily an augment of such an $\aPS$.
 \end{remark}
 
-Let $\aPS$ in $\aCmd$, as per remark~\ref{generator}. 
+Let $\aPS$ in $\aCmd$, as per remark~\ref{generator}.   The following theorem is proved in Appendix~\ref{drfproof}. 
 \begin{theorem} [DRF] \hfill\\
 \begin{itemize}
 \item If $\aPS$ does not have a race, $\aPS \in \semsc{\aCmd}$. 
