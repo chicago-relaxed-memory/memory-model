@@ -49,14 +49,14 @@ Now we consider the ``type unsafety'' example, from
 \end{align*}
 Prima facie, the allocation operation can pick the same address for the two new objects, because only one of them occurs in any one execution.   This causes type safety to break for racy programs in the JMM, forcing~\citeauthor{DBLP:journals/toplas/Lochbihler13} to include the type information in the address itself.
 %
-Informally, all threads satisfy the invariant that conjoins ``a creation of a \texttt{C} object is preceded by a read of \texttt{b} as $1$'' and ``a creation of a \texttt{D} object is preceded by a read of \texttt{b} as $0$''.  If composition holds, the the full program satisfies the invariant.   
+Informally, all threads satisfy the invariant that conjoins ``a creation of a \texttt{C} object is preceded by a read of \texttt{b} as $1$'' and ``a creation of a \texttt{D} object is preceded by a read of \texttt{b} as $0$''.  If composition holds, the full program satisfies the invariant.   
 %
 Composability of safety properties provides the temporal context needed to prevent the ``pointer forging''  within a single execution.  
 
 
 None of the extant memory models validate both ``implementation flexibility'' and ``ease-of-use''.  
 
-Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{Lamport:1979:MMC:1311099.1311750}, \citet{Dolan:2018:BDR:3192366.3192421}, \citet{DBLP:conf/pldi/LahavVKHD17}, \citet{DBLP:conf/lics/JeffreyR16}, RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} and~\citet{BoehmOOTA}.  However, {\em all} of them invalidate reordering of independent statements.  \cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/lics/JeffreyR16} forbid breaking of the program order from reads to writes and thus require extra fences after read actions in hardware implementations.  \citet{Boehm:2014:OGA:2618128.2618134} show that the RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} forces a dependency or a fence between between a relaxed atomic
+Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{Lamport:1979:MMC:1311099.1311750}, \citet{Dolan:2018:BDR:3192366.3192421}, \citet{DBLP:conf/pldi/LahavVKHD17}, \citet{DBLP:conf/lics/JeffreyR16}, RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} and~\citet{BoehmOOTA}.  However, {\em all} of them invalidate reordering of independent statements.  \cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/lics/JeffreyR16} forbid breaking of the program order from reads to writes and thus require extra fences after read actions in hardware implementations.  \citet{Boehm:2014:OGA:2618128.2618134} show that the RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} forces a dependency or a fence between a relaxed atomic
 read and a subsequent relaxed atomic write.  
 
 
@@ -76,12 +76,13 @@ In order to capture security flaws, such as Spectre
 microarchitecture using two well-understood relations over events that have
 been in the literature since the 1980s.
 
-\paragraph{Our results. }
 In this paper, we show that (with small adjustments) the model of
 \citep{2019-sp} provides a natural, abstract view of \mca\ architectures,
-without the necessity of additional relations, thread ids, and similar
-machinery that complicates many relaxed memory models.
+without the necessity of additional relations, thread ids, or similar
+machinery, which complicates many relaxed memory models.
+We show the following.
 
+%\paragraph{Our results. }
 
 % \paragraph{Our results. } We describe a software relaxed memory model based on pomsets whose events are decorated by logical  preconditions.   Our model satisfies the desiderata outlined earlier.
 
@@ -97,7 +98,7 @@ We provide two forms of abstract evidence that our model supports as many sequen
 
 \item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  Thus, it supports the infrastructure required to prove a realistic type safety theorem that includes racy programs without requiring that that the type information is included in the address itself.
 \end{itemize}
-In addition, the presentation of our model provides a simple way to adapt it to forbid the relaxing of the program order from reads to writes, thus modeling\cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA}.  Perforce, this variant limits the compiler transformations, and it is already know that it satisfies the properties of ``DRF'' and hardware compilation.   To the reader interested in models that forbid load buffering, we gently suggest reading our paper as providing an appraoch to validate data-sensitive compiler optimizations and compositional reasoning of temporal properties.   
+In addition, the presentation of our model provides a simple way to adapt it to forbid the relaxing of the program order from reads to writes, thus modeling\cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA}.  Perforce, this variant limits the compiler transformations, and it is already know that it satisfies the properties of ``DRF'' and hardware compilation.   The reader interested in models that forbid load buffering, can read this paper as providing an approach to validating data-sensitive compiler optimizations and compositional reasoning of temporal properties.   
 
 
 %\paragraph*{Rest of the paper. }  We begin with an informal introduction to the modeling ideas in \textsection\ref{sec:model:intro}, developing the precise formalities in \textsection\ref{sec:model}.   \textsection\ref{sec:sc} proves the DRF theorem, whereas \textsection\ref{sec:arm} provides a compilation into \armeight\ and \tso.  Single threaded optimizations, and the associated completeness theorems are addressed in \textsection\ref{sec:opt}.  \textsection\ref{sec:logic} describes a temporal logic, and a compositional proof principle for proving safety properties.  \textsection\ref{sec:examples}.develops more illustrative examples.  We address related work in \textsection\ref{sec:ldrf} and conclude after.  An appendix contains details of proofs and further examples.
