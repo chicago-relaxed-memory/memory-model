@@ -36,14 +36,35 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
+\citet{2019-sp} model microarchitecture using pomsets in order to capture
+security flaws, such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}.
+Perhaps surprisingly, these pomsets provide a natural, abstract view of
+\emph{multi-copy atomic (MCA)} memory architectures, using only two
+well-understood relations that have been around since the 1980s.  
+
+Let $\Act$ be a set of \emph{actions}, that includes actions of the form
+$(\DR{\aLoc}{\aVal})$, which reads value $\aVal$ from location $\aLoc$,
+$(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$ from
+$\aLoc$, $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$, and
+$(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$ to $\aLoc$.
+
+Let $\Formulae$ be a set of logical formula, such as $(\aLoc=1)$ or
+$(\aReg=\bReg+1)$, where $\aReg$ and $\bReg$ are register names.
+
+Formulae are \emph{open}, in that occurrences of register names and memory
+locations are subject to substitutions of the form $\aForm[\aLoc/\aReg]$ and
+$\aForm[\bExp/\aLoc]$, where $\aLoc$ is a memory location, $\aReg$ is a
+register and $\bExp$ is an memory-location-free expression.  Actions are not
+subject to substitution.
+
 \begin{definition}
   \label{def:3valued}
-  A \emph{3-valued pomset} with alphabet $\Alphabet$ is tuple $(\Event,
+  A \emph{(3-valued) pomset} with alphabet $(\Formulae\times\Act)$ is tuple $(\Event,
   {\le}, {\gtN}, \labeling)$, such that 
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
-  \item $\labeling: \Event \fun \Alphabet$ is a \emph{labeling},
+  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
     % \begin{enumerate}
     % \item $\aEv \le \aEv$,
@@ -59,38 +80,10 @@ Bizarrely, it seems this is not supported in C++... You have to go to assembly.
     \end{itemize}
 \end{itemize}
 \end{definition}
-Note that $\gtN$ is reflexive.
-
-In the next section, we define \emph{3-valued pomsets with preconditions},
-which we refer to simply as \emph{pomsets}.  In this section we give an
-informal introduction to these pomsets and to the semantics of programs as
-sets of pomsets.
-
-We fix the alphabet of pomsets to be $\Alphabet=(\Formulae\times\Act)$, where
-$\Formulae$ is a set of logical formula and $\Act$ is a set of actions.  We
-write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
+%Note that $\gtN$ is reflexive.
+We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
 $\aForm$ when it is a tautology.
 
-Actions have the form $(\DR{\aLoc}{\aVal})$, which reads value $\aVal$
-from $\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads
-$\aVal$ from $\aLoc$, $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$,
-and $(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$ to
-$\aLoc$.
-
-Formulae are \emph{open}, in that occurrences of register names and memory
-locations are subject to substitutions of the form $\aForm[\aLoc/\aReg]$ and
-$\aForm[\bExp/\aLoc]$, where $\aLoc$ is a memory location, $\aReg$ is a
-register and $\bExp$ is an memory-location-free expression.  Actions are not
-subject to substitution.
-
-\citet{2019-sp} model microarchitecture using pomsets in order to capture
-security flaws, such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}.  In
-this paper, we study the extent to which pomsets can serve as a model of
-relaxed memory architectures.  As a result, our use of pomsets is more
-abstract than that of \citeauthor{2019-sp}.  For example, at top-level, we
-ignore events whose preconditions are not tautologies; \citeauthor{2019-sp}
-use such events to model the influence of ``unexecuted'' conditional code on
-executed code, as found in Spectre.
 
 % Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
 % \begin{definition}
@@ -156,6 +149,12 @@ We refer to edges introduced by $(\bEv \le \aEv)$ as \emph{strong edges} and
 by $(\bEv \gtN \aEv)$ as \emph{weak edges}.
 Reads-from is included in strong order, and we often highlight it in green, as above.
 
+
+Because we are modeling architecture rather than microarchitecture, result,
+our use of pomsets is more abstract than that of \citeauthor{2019-sp}.  For
+example, at top-level, we ignore events whose preconditions are not
+tautologies; \citeauthor{2019-sp} use such events to model the influence of
+``unexecuted'' conditional code on executed code, as found in Spectre.
 
 Need to forbid cycles in $\gtN$ per location:
 \[

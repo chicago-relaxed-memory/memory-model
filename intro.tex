@@ -1,6 +1,6 @@
 
 \section{Introduction}
-\citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of software relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper provides a solution  in the context of multi-copy atomicity.
+\citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the design of software relaxed memory models: ``The memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''   This paper provides a solution.
 
 %In order to sharpen the criteria to evaluate memory models, we first outline desiderata  that concretize the above prescription.  
 
@@ -60,10 +60,30 @@ Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{
 read and a subsequent relaxed atomic write.  
 
 
-As the quote reveals, the JMM\citet{Manson:2005:JMM:1047659.1040336} was motivated by these two aims.  However, the JMM and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} invalidate compositional reasoning.  In \textsection\ref{sec:logic} we formalize a variant of \citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example which demonstrates this.  
+As quoted at the beginning of this section, the JMM was designed with these two aims.  However, the JMM and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} invalidate compositional reasoning.  In \textsection\ref{sec:logic} we formalize a variant of \citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example which demonstrates this.  
 %It is also known that the JMM does not support reordering of independent statements.
 
-\paragraph{Our results. } We describe a software relaxed memory model based on pomsets whose events are decorated by logical  preconditions.   Our model satisfies the desiderata outlined earlier.
+Recently, multi-copy atomicity (\mca) has been proposed as a sensible
+restriction on processor architecture that improves understandability without
+compromising performance. Under \mca, it is not possible for a write to
+become ``visible to some other threads before becoming visible to all''
+\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  \tso\ and recent architectures,
+such as \armeight, are \mca, but not older architectures, such as \ppc\ or
+\armseven.
+
+In order to capture security flaws, such as Spectre
+\cite{DBLP:journals/corr/abs-1801-01203}, \citet{2019-sp} model
+microarchitecture using two well-understood relations over events that have
+been in the literature since the 1980s.
+
+\paragraph{Our results. }
+In this paper, we show that (with small adjustments) the model of
+\citep{2019-sp} provides a natural, abstract view of \mca\ architectures,
+without the necessity of additional relations, thread ids, and similar
+machinery that complicates many relaxed memory models.
+
+
+% \paragraph{Our results. } We describe a software relaxed memory model based on pomsets whose events are decorated by logical  preconditions.   Our model satisfies the desiderata outlined earlier.
 
 \begin{itemize}
 \item The model satisfies the ``DRF criterion''  (\textsection\ref{sec:sc}).
