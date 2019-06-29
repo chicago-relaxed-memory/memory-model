@@ -503,7 +503,11 @@ At top-level, we expect the use of each variable to be \emph{closed}.
   \item if $\aEv$ reads from $\aLoc$, then there is some $\bEv$ such that
     $\aEv$ reads $\aLoc$ from $\bEv$.
   \end{itemize}
-  A pomset is \emph{top-level} if it is $\aLoc$-closed for every $\aLoc$.
+  A pomset is \emph{top-level} if
+  \begin{itemize}
+  \item it is $\aLoc$-closed for every $\aLoc$, and
+  \item every precondition is either a tautology or is unsatisfiable.
+  \end{itemize}
 \end{definition}
 
 We give the semantics of programs as sets of pomsets.  Each pomset

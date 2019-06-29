@@ -67,23 +67,21 @@ define $\rsw$ and $\rhb$\footnote{For simplicity, the definition of $\rsw$
   \\
   {\rhb} &= ({\rpox} \cup {\rsw})^+
 \end{align*}
-Note that for top-level pomsets, our semantics guarantees that
-${\rsw}\subseteq{\le}$.
+Note that our semantics guarantees that ${\rsw}\subseteq{\lt}$.
 
 A pomset has a \emph{data race} if there are events $\aEv$ and $\bEv$ such
 that
 \begin{itemize}
 \item $\aEv$ and $\bEv$ are unordered by $\rhb$,
-\item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies,
+\item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies, and
 \item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ have a data-race conflict.
 \end{itemize}
 
 %The semantics of programs includes SC executions.
 \begin{definition}
-  Let $(\SC \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$
-  whenever $\aPS$ is a top-level pomset and ${\lt}\cup{\rpox} \cup {\reco}$
-  is acyclic.
-  Let $\semsc{\aCmd} = \SC\guard\sem{\aCmd}$. 
+  Let $\semsc{\aCmd}$ be the subset of $\sem{\aCmd}$ such that
+  $\aPS\in\semsc{\aCmd}$ whenever $\aPS$ is a top-level pomset and
+  ${\lt}\cup{\rpox} \cup {\reco}$ is acyclic.
 \end{definition}
 %\begin{itemize}
 %\item ${\le}\cup{\rpox} \cup {\reco}$ is acyclic ,
@@ -105,10 +103,11 @@ read in such a total order.
 %     (\aCmd_1 \PAR \cdots \PAR \aCmd_n)
 % $.
 % We will consider closed and complete executions of $\aCmd$. We use $\semClosed{\aCmd}$ to stand for the subset of $\sem{\aCmd}$  with only  the pomsets that are $\vec{\aLoc}, \vec{\bLoc}$ closed.  
-We only consider \emph{generators}, which are pomsets that are minimal with
-respect to augmentation and implication.  Since we are considering finite
-programs without loops, the pomsets in the semantics of threads are finite.
-Thus, there are no infinite descending chains of augmentations.
+We only consider \emph{generators}, which are top-level pomsets that are
+minimal with respect to augmentation and implication.  Since we are
+considering finite programs without loops, the pomsets in the semantics of
+threads are finite.  Thus, there are no infinite descending chains of
+augmentations.
 
 In generators, $\gtN$ is the transitive closure of $(\le \cup
 \reco)$. Furthermore, any strong order that is outside of program order must
