@@ -1,18 +1,6 @@
-A memory model, designed to be as weak as possible.
-\begin{itemize}
-\item Compilation result (compile to C++, or LLVM, or hardware models) without fences
-\item Soundness of optimizations (list from LDRF paper + those from promising
-  semantics)  Follow dolan.
-\item DRF programs have SC semantics
-\item satisfies JMM test cases and other examples
-\item supports a program logic and no-TAR
-\item is compositional
-\end{itemize}  
-
-Other things:
-\begin{itemize}
-\item Full abstraction:  If two programs are different, then there is a
-  distinguishing context of the form P; [] || Q; R
-\item precisely models dependency
-\end{itemize}
-
+We define a relaxed memory model for multi-copy atomic architectures.  The
+model has simple mathematical foundations, using only two relations between
+events.  We show that the model (1) satisfies the \drfsc\ criterion, (2)
+compiles to \tso\ and \armeight\ without fences on relaxed operations, (3)
+supports compiler optimizations, and (4) supports compositional reasoning
+using temporal properties.

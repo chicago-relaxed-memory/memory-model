@@ -13,7 +13,7 @@ There are two dimensions to ``implementation flexibility'':
 
 There are also two dimensions to ``ease-of-use'':
 \begin{itemize}
-\item The \emph{data race free-sequentially consistent (DRF-SC)} criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs.  
+\item The \emph{data race free-sequentially consistent (\drfsc)} criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs.  
 
 \item All programs, including those with data races,  should support compositional reasoning on temporal safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  The simplest form of such a composition principle is:
 \[
@@ -87,7 +87,7 @@ We show the following.
 % \paragraph{Our results. } We describe a software relaxed memory model based on pomsets whose events are decorated by logical  preconditions.   Our model satisfies the desiderata outlined earlier.
 
 \begin{itemize}
-\item The model satisfies the ``DRF criterion''  (\textsection\ref{sec:sc}).
+\item The model satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}).
 
 \item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables  (\textsection\ref{sec:arm}).
 However, a semantic version of \mca\ in our model means that a compilation to \armseven\ or \ppc\ requires extra synchronization.  
@@ -98,7 +98,7 @@ We provide two forms of abstract evidence that our model supports as many sequen
 
 \item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  Thus, it supports the infrastructure required to prove a realistic type safety theorem that includes racy programs without requiring that that the type information is included in the address itself.
 \end{itemize}
-In addition, the presentation of our model provides a simple way to adapt it to forbid the relaxing of the program order from reads to writes, thus modeling\cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA}.  Perforce, this variant limits the compiler transformations, and it is already know that it satisfies the properties of ``DRF'' and hardware compilation.   The reader interested in models that forbid load buffering, can read this paper as providing an approach to validating data-sensitive compiler optimizations and compositional reasoning of temporal properties.   
+In addition, the presentation of our model provides a simple way to adapt it to forbid the relaxing of the program order from reads to writes, thus modeling\cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA}.  Perforce, this variant limits the compiler transformations, and it is already know that it satisfies the properties of \drfsc\ and hardware compilation.   The reader interested in models that forbid load buffering, can read this paper as providing an approach to validating data-sensitive compiler optimizations and compositional reasoning of temporal properties.   
 
 
 %\paragraph*{Rest of the paper. }  We begin with an informal introduction to the modeling ideas in \textsection\ref{sec:model:intro}, developing the precise formalities in \textsection\ref{sec:model}.   \textsection\ref{sec:sc} proves the DRF theorem, whereas \textsection\ref{sec:arm} provides a compilation into \armeight\ and \tso.  Single threaded optimizations, and the associated completeness theorems are addressed in \textsection\ref{sec:opt}.  \textsection\ref{sec:logic} describes a temporal logic, and a compositional proof principle for proving safety properties.  \textsection\ref{sec:examples}.develops more illustrative examples.  We address related work in \textsection\ref{sec:ldrf} and conclude after.  An appendix contains details of proofs and further examples.
