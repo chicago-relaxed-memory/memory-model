@@ -1,7 +1,7 @@
 \section{Examples}
 \label{sec:examples}
 
-\subsection{RFUB}\label{rfub}
+\subsection{RFUB}
 \url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1217r0.html}
 \begin{verbatim}
 RFUB Example 1
@@ -20,11 +20,6 @@ x.store(r1, memory_order_relaxed);
 assert_not(assigned_42);
 \end{verbatim}
 
-This requires that we express assignment to registers, with the obvious
-semantics:
-\begin{align*}
-  \sem{\aReg\GETS\aExp\SEMI \aCmd} & = \sem{\aCmd}[\aExp/\aReg]
-\end{align*}
 Then
 \begin{math}
   y\GETS x
@@ -33,7 +28,8 @@ Then
   \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\SEMI x\GETS r \ELSE x\GETS r \FI
 \end{math}
 has execution
-\begin{displaymathsmall}
+\begin{equationsmall}
+  \label{rfub}
   \begin{tikzcenter}[node distance=1em]
     \event{a1}{\DR{x}{1}}{}
     \event{a2}{\DW{y}{1}}{below=of a1}
@@ -52,7 +48,7 @@ has execution
       \event{c1}{r\EQ1\mid\DW{x}{1}}{}
     \end{tikzcenter}
   \right)
-\end{displaymathsmall}
+\end{equationsmall}
 With an internal read of $y$, we have
 \begin{displaymathsmall}
   \begin{tikzcenter}[node distance=1em]

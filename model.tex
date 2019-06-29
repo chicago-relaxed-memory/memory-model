@@ -36,11 +36,16 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-\citet{2019-sp} defined a model of computer \emph{microarchitecture}, in
-order to capture Spectre \cite{DBLP:journals/corr/abs-1801-01203} and similar
-security flaws that arise from speculative evaluation.  We build on their
-work to define a model of relaxed memory \emph{architecture}.  Interestingly,
-the model naturally captures multi-copy atomicity (\mca).
+\citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
+security flaws that arise from speculative evaluation in computer
+microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
+We build on their work to define a model of relaxed memory
+\emph{architecture}.  Interestingly, the model naturally captures multi-copy
+atomicity (\mca).
+
+In this section, we define the model, provide some intuitions about the
+semantics, and work through a series of illustrative examples.  We present
+precise details of the semantics in \textsection\ref{sec:model}.
 
 Let $\Act$ be a set of \emph{actions}, that includes actions of the form
 $(\DR{\aLoc}{\aVal})$, which reads value $\aVal$ from location $\aLoc$,
@@ -61,8 +66,8 @@ subject to substitution.
 
 \begin{definition}
   \label{def:3valued}
-  A \emph{3-valued pomset} with alphabet $(\Formulae\times\Act)$ is tuple $(\Event,
-  {\le}, {\gtN}, \labeling)$, such that 
+  A \emph{3-valued pomset with preconditions} %over $(\Formulae\times\Act)$
+  is tuple $(\Event, {\le}, {\gtN}, \labeling)$, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
@@ -85,7 +90,7 @@ subject to substitution.
 % \begin{definition}
 
   \label{def:3pre}
-  A \emph{(memory model) pomset} is a 3-valued pomset such that
+  A \emph{(memory model) pomset} is a 3-valued pomset with preconditions, such that
   \begin{itemize}
   \item $\gtN$ is acyclic, and
   \item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
@@ -99,53 +104,12 @@ We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
 $\aForm$ when it is a tautology.  We write $\bEv\lt\aEv$ when $\bEv\le\aEv$
 and $\bEv\neq\aEv$, and similarly for $\gtN$.
 
-Within a single thread, $\lt$ captures the notion of \emph{dependency}:
-$\bEv\lt\aEv$ indicates that these events cannot appear in the reverse order.
-In the absence of synchronization, this relation always goes from reads to
-writes.  The formula decorating the event is used to calculate these
-single-threaded dependencies using semantic entailment.
-
-Between threads, $\lt$ indicates that one thread has \emph{read-from}
-another.  This relation always goes from writes to reads.  Since new threads
-may introduce order from write to read, we define our semantics to be closed
-with respect to augmentation of $\le$.
-
-We give the semantics of a program as a set of pomsets.  At top level, we
-expect that every read event is fulfilled by a matching write.  We define
-fulfillment in terms of $\gtN$, rather than $\le$, so that it is monotone
-with respect to addition of new threads.  This suffices since $\bEv\geN\aEv$
-implies that we cannot have $\aEv\lt\aEv$ in any augmentation. (In
-\textsection\ref{app:blockers} we show that the obvious definition of
-fulfillment in terms of $\le$ does not enjoy this property.)
-
-% Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
-% \begin{definition}
-%   A pomset \emph{coherent} if, when restricted to events that read or write
-%   any single location $\aLoc$, $\gtN$ forms a partial order.
-%   % As we shall see below, for top-level pomsets we could equivalently require
-%   % that $\gtN$ forms a total order.
-% \end{definition}
-
-\begin{definition}
-  \label{def:rf}
-  We say that $\aEv$ \emph{reads $\aLoc$ from} $\bEv$ if $\aEv$ reads $\aVal$
-  from $\aLoc$, $\bEv$ writes $\aVal$ to $\aLoc$, 
-  \begin{itemize}
-  \item $\bEv \lt \aEv$, and
-  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}
-  We say that $\aEv$ is \emph{fulfilled} if $\aEv$ \emph{reads $\aLoc$ from}
-  some $\bEv$ whenever $\aEv$ reads $\aLoc$.
-\end{definition}
-
-Within a single thread, $\geN$ orders conflicting events: Two actions
-\emph{conflict} if one action writes a location and the other either reads or
-writes the same location.
-
+We give the semantics of a program as a set of pomsets, where each pomset
+corresponds to a single execution.
 We visualize a pomset as a graph where the nodes are drawn from $\Event$,
-each node $\aEv$ is labeled with $\labeling(\aEv)$, and an edge
-$\bEv \rightarrow \aEv$ corresponds to an ordering $\bEv\le\aEv$.  We
-visualize $(\bEv \gtN \aEv)$ as a dashed arrow from $\bEv$ to $\aEv$.
+each node $\aEv$ is labeled with $\labeling(\aEv)$.
+We visualize $(\bEv \lt \aEv)$ as a \emph{strong edge},  $\bEv \xpo \aEv$.
+We visualize$(\bEv \geN \aEv)$ as a \emph{weak edge},  $\bEv \xwk \aEv$.
 % For example:
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{rx1}{a}{}
@@ -171,10 +135,11 @@ For example, the semantics of
   x\GETS 0\SEMI
   x\GETS 1
   \PAR
-  \IF{x}\THEN y\GETS 1\FI
+  \aReg\GETS x\SEMI
+  y\GETS \aReg
 \end{math}
 includes the pomset:
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzdisplaylabel}[node distance=1em]{m1}
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
   \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
@@ -182,10 +147,66 @@ includes the pomset:
   \rf{wx1}{rx1}
   \wk{wx0}{wx1}
   \po{rx1}{wy1}
-\end{tikzdisplay}
-We refer to edges introduced by $(\bEv \le \aEv)$ as \emph{strong edges} and
-by $(\bEv \gtN \aEv)$ as \emph{weak edges}.
-Reads-from is included in strong order, and we often highlight it in green, as above.
+\end{tikzdisplaylabel}
+We often highlight the strong
+edge from a write to the read actions it fulfills, as above.
+
+Within a single thread, $\lt$ captures the notion of \emph{dependency}:
+indicating that the related events cannot appear in the opposite order.  In
+the absence of synchronization, this relation always goes \emph{from reads to
+  writes within a thread}.  The formula decorating the event is used to
+calculate these single-threaded dependencies, using semantic entailment.  For
+example, the subprogram $y\GETS \aReg$ of \eqref{m1} has an event
+with label $(\aReg=1\mid\DW{y}{1})$, indicating that the subprogram can write
+$1$ to $y$ whenever $\aReg$ is $1$.  The full thread
+\begin{math}
+  \aReg\GETS x\SEMI
+  y\GETS \aReg
+\end{math}
+has the semantics shown.  The assignment to $\aReg$ causes a substitution in
+the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  By introducing
+strong order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition can be
+weakened by further substitution to $1=1$, which is a tautology and therefore
+elided.
+
+Between threads, $\lt$ indicates that one thread has \emph{read-from}
+another.  This relation always goes \emph{from writes to reads across
+  threads}.  Since new threads may introduce order from write to read, we
+define our semantics to be closed with respect to augmentation of $\le$.
+
+At top level, we expect that every read event is \emph{fulfilled} by a
+matching write.  We define fulfillment in terms of $\gtN$, rather than $\le$,
+so that it is monotone with respect to addition of new threads.  This
+suffices since $\bEv\geN\aEv$ implies that we cannot have $\aEv\lt\bEv$ in
+any augmentation. (In \textsection\ref{app:blockers} we show that the obvious
+definition of fulfillment in terms of $\le$ does not enjoy this property.)
+
+% Two basic concepts derived from pomsets are \emph{coherence} and \emph{reads-from}.
+% \begin{definition}
+%   A pomset \emph{coherent} if, when restricted to events that read or write
+%   any single location $\aLoc$, $\gtN$ forms a partial order.
+%   % As we shall see below, for top-level pomsets we could equivalently require
+%   % that $\gtN$ forms a total order.
+% \end{definition}
+
+\begin{definition}
+  \label{def:rf}
+  We say that $\bEv$ \emph{fulfills $\aLoc$ on} $\aEv$ if $\bEv$ writes
+  $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
+  \begin{itemize}
+  \item $\bEv \lt \aEv$, and
+  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}
+  We say that an event \emph{is fulfilled} if it is fulfilled on $\aLoc$ for
+  every $\aLoc$ it reads.
+  % $\aLoc$ from $\bEv$,
+  % for some $\bEv$, whenever $\aEv$ reads $\aLoc$.
+\end{definition}
+
+Within a single thread, $\geN$ orders \emph{conflicting} events.  Two actions
+\emph{conflict} if one action writes a location and the other either reads or
+writes the same location.
+
 
 
 Because we are modeling architecture rather than microarchitecture, result,

@@ -59,8 +59,10 @@
 \newcommand{\muIMM}{\ensuremath{\mu\text{IMM}}}
 \newcommand{\free}{\mathsf{fn}}
 \newenvironment{displaymathsmall}{\bgroup\small\begin{displaymath}\ignorespaces}{\end{displaymath}\egroup\ignorespacesafterend}
+\newenvironment{equationsmall}{\bgroup\small\begin{equation}\ignorespaces}{\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{scope}{\bgroup\ignorespaces}{\egroup\ignorespacesafterend}
 \newenvironment{tikzinline}[1][]{\bgroup\small\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
+\newenvironment{tikzdisplaylabel}[2][]{\bgroup\small\begin{equation}\label{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{tikzdisplay}[1][]{\bgroup\small\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{tikzcenter}[1][]{\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}}
 \newcommand{\fdom}{\mathsf{domain}}
@@ -345,14 +347,14 @@
 \tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=orange!90!black]
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
 
-\tikzstyle{po} = [->]
+\tikzstyle{po} = [->,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
 \newcommand{\xpo}{\xarrowtikz{po}{}}%
 \tikzstyle{lift} = [->,double]
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
-\tikzstyle{wk} = [->,dashed]
+\tikzstyle{wk} = [->,dashed,color=orange!90!black,]
 \newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
-\newcommand{\xwk}{\xarrowtikz{wk}{}}%
+\newcommand{\xwk}{\xarrowtikzlong{wk}{}}%
 
 \tikzstyle{rmw} = [->,thick]
 \NewDocumentCommand \rmw {O{} m O{} m} {\draw[rmw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rmw}$}  (#4);}
@@ -468,6 +470,8 @@
 \newsavebox{\mytempbox}
 \newcommand{\xarrowtikz}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
   \mathrel{\smash{\tikz[baseline=-0.5ex]{\draw[#2] (0,0) -- node[midway,#1]{\(\scriptstyle\mathsf{#3}\)} (\wd\mytempbox,0);}}}}
+\newcommand{\xarrowtikzlong}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
+  \mathrel{\smash{\tikz[baseline=-0.5ex]{\draw[#2] (0,0) -- node[midway,#1]{\(\scriptstyle\mathsf{#3}\)} (\wd\mytempbox*1.5,0);}}}}
 \newcommand{\xarrowtikzrev}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
   \mathrel{\smash{\tikz[baseline=-0.5ex]{\draw[#2] (\wd\mytempbox,0) -- node[pos=0.4,#1]{\(\scriptstyle\mathsf{#3}\)} (0,0);}}}}
 \newcommand{\xarrowtikzboth}[3][above=-0.45ex]{\sbox{\mytempbox}{\hbox{\( \scriptstyle\mathsf{#3}\mkern17mu \)}}%
