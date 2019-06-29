@@ -36,13 +36,6 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-DRF: we use weaker def of hb than normal and so have more races.
-(in particular, Rel(x)1 ; Wx2 || Acq(x)2 is a race in our system)
-(also we ignore fences for the purposes of defining a race)
-
-OPT:  optimization requires that perform operation that removes
-unsatisfiable preconditions.
-
 \begin{definition}
   \label{def:3valued}
   A \emph{3-valued pomset} with alphabet $\Alphabet$ is tuple $(\Event,

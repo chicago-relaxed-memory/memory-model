@@ -345,10 +345,12 @@
 
 \tikzstyle{po} = [->]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
+\newcommand{\xpo}{\xarrowtikz{po}{}}%
 \tikzstyle{lift} = [->,double]
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
 \tikzstyle{wk} = [->,dashed]
 \newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
+\newcommand{\xwk}{\xarrowtikz{wk}{}}%
 
 \tikzstyle{rmw} = [->,thick]
 \NewDocumentCommand \rmw {O{} m O{} m} {\draw[rmw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rmw}$}  (#4);}

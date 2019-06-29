@@ -59,9 +59,13 @@ writes $\aLoc$, $\bEv$ reads $\aLoc$, and for any $\cEv$ that writes $\aLoc$
 either $\cEv\gtN\aEv$ or $\bEv\gtN\cEv$.  Let $\IDAcq$ be the identity
 relation on acquire events, and likewise $\IDRel$ on release events.  Now
 define $\rsw$ and $\rhb$\footnote{For simplicity, the definition of $\rsw$
-  does not include release sequences or fences.  If we include these, then
-  $\rhb$ relates more events and thus there are fewer races. Our results hold
-  under either definition.}.
+  does not include release sequences or fences.  For example, we consider
+  \begin{math}
+    (\DWRel{x}{1})\prefix(\DW{x}{2}) \parallel (\DRAcq{x}{2})
+  \end{math}
+  to be racy, whereas this pomset is race-free using release sequences.  If
+  we include release sequences and fences, then $\rhb$ relates more events
+  and thus there are fewer races. Our results hold under either definition.}.
 \begin{align*}
   {\rsw} &= \IDRel; ({\rrfx}\setminus{\rpox}); \IDAcq
   \\
