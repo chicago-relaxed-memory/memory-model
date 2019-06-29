@@ -339,7 +339,7 @@ Differences with \cite{2019-sp}:
 \item We only consider pomsets where $\lt$-greater elements have stronger
   preconditions (Definition~\ref{def:3pre}).
 \item We only consider pomsets that are coherent (Definition~\ref{def:3pre}).
-\item Prefixing only introduces required order from read to write in item~\ref{pre-implies} (Definition~\ref{def:prefix}).
+\item Prefixing only introduces required order from read to write in item~\ref{pre-read}b (Definition~\ref{def:prefix}).
 \item We provide semantics for computed addresses of memory locations.
 \item The semantics of relaxed read internal actions.
 \item restriction introduces internal actions.
@@ -897,7 +897,7 @@ then $(\DR{x}{1})\prefix\aPSS$ contains:
   \wk{a2}{b2}
 \end{tikzcenter}
 \end{displaymathsmall}
-In order to weaken the predicate on $(\DW{z}{1})$, item~\ref{pre-implies}
+In order to weaken the predicate on $(\DW{z}{1})$, item~\ref{pre-read}b
 requires that we include the order from $(\DR{x}{1})$ to $(\DW{z}{1})$.
 If the precondition on $(\DW{z}{1})$ in $\aPSS$ was $x<0$, then, by
 item~\ref{pre-read}, all preconditions for $(\DW{z}{1})$ in

@@ -662,7 +662,7 @@ includes
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{wy1}{r<2\mid\DW{y}{1}}{}
 % \end{tikzdisplay}
-Thus, by Figure~\ref{fig:programs}, 
+Thus, by the definition of prefixing read,
 \begin{math}
   \sem{r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI}
 \end{math}
@@ -815,13 +815,13 @@ satisfy thread inlining either.
 
 The lack of thread inlining is related to the different dependency
 relations introduced by sequential and concurrent access.
-Recall from \S\ref{sec:sequential-memory} that the program
+The program
 \verb`(x := 0; y := x+1;)` has execution:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy1}{\DW{y}{1}}{right=of wx0}
 \end{tikzdisplay}
-but that \verb`(x := 1; || y := x+1;)` has:
+but \verb`(x := 1; || y := x+1;)` has:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
   \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}

@@ -6,9 +6,9 @@
 
 There are two dimensions to ``implementation flexibility'':
 \begin{itemize}
-\item The  model should facilitate compiler transformations.    Ideally, the model should support the known transformations used to optimize  synchronization free single threaded code.  A canonical example is the  commuting of independent statements.
-
 \item The model should be realizable on modern hardware with minimal synchronization.  A canonical example is that the relaxed atomics of C11 (or the plain variables of Java) should not require any extra synchronization.
+
+\item The  model should facilitate compiler transformations.    Ideally, the model should support the known transformations used to optimize  synchronization free single threaded code.  A canonical example is the  commuting of independent statements.
 \end{itemize}
 
 There are also two dimensions to ``ease-of-use'':
@@ -29,6 +29,7 @@ where $\afo$ is a temporal safety property on read and write actions, and $\afo,
 We illustrate the last criterion with two examples.   
 First, consider the well-known ``Out Of Thin Air'' (\oota) litmus test, with all variables initialized to $0$:
 \begin{align*}
+  \tag{*}\label{oota1}
   %x\GETS0\SEMI y\GETS0\SEMI
   (y\GETS x \PAR x \GETS y)
 \end{align*}
@@ -67,12 +68,12 @@ As the quote reveals, the JMM\citet{Manson:2005:JMM:1047659.1040336} was motivat
 \begin{itemize}
 \item The model satisfies the ``DRF criterion''  (\textsection\ref{sec:sc}).
 
+\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables  (\textsection\ref{sec:arm}).
+However, a semantic version of \mca\ in our model means that a compilation to \armseven\ or \ppc\ requires extra synchronization.  
+
 \item The model validates a variety of single threaded transformations including reordering of independent statements and roach motel laws for synchronization  (\textsection\ref{sec:opt}).
 %
 We provide two forms of abstract evidence that our model supports as many sequential transformations as can be expected.  First, we show a precise relationship with standard Hoare-triples for sequential code provides abstract evidence for the support afforded for compiler  transformations of traditional sequential code.  Second, we prove a ``full abstraction'' style completeness  theorem: any two synchronization free threads that are distinguished by our model can be done so with a parallel thread that is also synchronization free. 
-
-\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables  (\textsection\ref{sec:arm}).
-However, a semantic version of \mca\ in our model means that a compilation to \armseven\ or \ppc\ requires extra synchronization.  
 
 \item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  Thus, it supports the infrastructure required to prove a realistic type safety theorem that includes racy programs without requiring that that the type information is included in the address itself.
 \end{itemize}
@@ -83,8 +84,8 @@ In addition, the presentation of our model provides a simple way to adapt it to 
 
 We give an informal introduction to the model in \textsection\ref{sec:model:intro} before presenting the precise formalities in \textsection\ref{sec:model}.
 % \textsection\ref{sec:sc} proves the DRF theorem, whereas \textsection\ref{sec:arm} provides a compilation into \armeight\ and \tso.  Single threaded optimizations, and the associated completeness theorems are addressed in \textsection\ref{sec:opt}.  \textsection\ref{sec:logic} describes a temporal logic, and a compositional proof principle for proving safety properties.
-We present additional examples in \textsection\ref{sec:examples}.  We end
-with a discussion of related work (\textsection\ref{sec:ldrf}).
+We present additional examples in \textsection\ref{sec:examples} and end with
+a discussion of related work in \textsection\ref{sec:ldrf}.
 % An appendix
 % contains details of proofs and further examples.
 
