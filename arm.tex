@@ -16,11 +16,16 @@ form
 where $\aCmd^1$, \ldots, $\aCmd^n$ do not include composition, restriction or
 fence operations.
 
-Our language can be translated to ARM using \textsf{ldr} for relaxed read,
-\textsf{ldar} for acquiring read, \textsf{str} for relaxed write, and
-\textsf{stlr} for releasing write.  Relative to the ARM specification, we
+Our language can be translated to ARM using \texttt{ldr} for relaxed read,
+\texttt{ldar} for acquiring read, \texttt{str} for relaxed write, and
+\texttt{stlr} for releasing write.  Relative to the ARM specification, we
 have removed loops and read-modify-write (RMW) operations, in addition to
-fences.
+fences\footnote{We leave out fences for simplicity.  Following
+  \citet{DBLP:journals/pacmpl/PodkopaevLV19}, our $\FENCE$ instruction can be
+  translated to \texttt{dmb.sy}, since it has release-acquire semantics.
+  Acquire fences map to \texttt{dmb.ld}, and release fences to
+  \texttt{dmb.sy} --- \texttt{dmb.st} does not provide order to prior
+  reads.}.
 
 We show that any ARM-consistent execution graph for this sublanguage can be
 considered an execution of our semantics.  
