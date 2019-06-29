@@ -29,19 +29,19 @@ fences\footnote{We leave out fences for simplicity.  Following
 
 We show that any ARM-consistent execution graph for this sublanguage can be
 considered an execution of our semantics.  
-
+%
 % Syntactically, we drop the superscript \textsf{rlx} on relaxed reads and
 % writes; in addition, we use structured conditionals rather than the more
 % general \textsf{goto}.  We refer to this sublanguage as $\muIMM$.
 % (Because the source language lacks RMW operations, the ``is
 % exclusive'' flag on every read will be \textsf{not-ex} and the RMW mode on
 % every write will be \textsf{normal}.)
-
+%
 Due to space limitations, we do not include a full description ARM
-consistency.  Interested readers should see \textsection\ref{sec:arm:proof}
-for further details.  
-
-Here we provide a birds eye view of the details, drawing on the intuitions gleaned from~\citet{DBLP:journals/pacmpl/PulteFDFSS18}.  
+consistency.  
+Here we provide a birds eye view of the details, drawing on the intuitions gleaned from~\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  
+Interested readers should see \textsection\ref{sec:arm:proof}
+for further details.
 
 An ARM execution graph $G$ defines many relations, including program order
 ($\rpox$), reads-from ($\rrfx$), coherence ($\rco$) and several dependency
@@ -77,11 +77,25 @@ Formally, from $G$ we construct a candidate pomset $\aPS$ as follows:
   If $G$ is ARM consistent, the constructed candidate satisfying the
   requirements for a top-level memory model pomset.
 \end{theorem}
-It is straightforward to observe that any $\lt$ ordering imposed in our model is enforced by \armeight, since our notion of semantic dependency is more permissive than the syntactic dependency used in \armeight.   So, the acylicity of $\lt$ is clear.  By the definition of $\gtN$, it is also clear that $\lt \subseteq \gtN$.  
+It is straightforward to observe that any $\lt$ ordering imposed in our model
+is enforced by \armeight, since our notion of semantic dependency is more
+permissive than the syntactic dependency used in \armeight.  So, the
+acylicity of $\lt$ is clear.  By the definition of $\gtN$, it is also clear
+that ${\lt} \subseteq {\gtN}$.
 
-The heart of the proof is thus establishing the other two properties relating $\lt,\gtN$ and $\reco$, namely  (Consistency) of definition~\ref{def:3valued} and the constraints on top-level pomsets arising from definition~\ref{def:x-closed}.  Both of these constraints are coherence conditions relating $\lt$ and $\reco$, and are satisfied by ensuring that  $\lt \cup \reco$ is acyclic.  
+The heart of the proof is thus establishing the other two properties relating
+$\lt$, $\gtN$ and $\reco$, namely (Consistency) of
+definition~\ref{def:3valued} and the constraints on top-level pomsets arising
+from definition~\ref{def:x-closed}.  Both of these constraints are coherence
+conditions relating $\lt$ and $\reco$, and are satisfied by ensuring that
+$\lt \cup \reco$ is acyclic.
 
-The key to this portion of the proof are the following facts about ARM-consistent execution graphs, which we establish in \textsection\ref{sec:arm:proof}.  The subtle cases for the following where the $\reco$ relationships are intra-thread; in these cases, each of the following is immediately reflects ways in which the external order $\rob$ composes with intra thread $\reco$.  
+The key to this portion of the proof are the following facts about
+ARM-consistent execution graphs, which we establish in
+\textsection\ref{sec:arm:proof}.  The subtle cases for the following where
+the $\reco$ relationships are intra-thread; in these cases, each of the
+following is immediately reflects ways in which the external order $\rob$
+composes with intra thread $\reco$.
 
 Suppose $\aEv$, $\bEv$ and $\aEv$ are distinct events.
 \begin{itemize}
@@ -91,6 +105,9 @@ Suppose $\aEv$, $\bEv$ and $\aEv$ are distinct events.
 \end{itemize}
 
 \begin{remark}[Proof for TSO]
-The proof for compilation into \tso\ is very similar.  Replace $\rob$ by the (transitive closure of the) propagation relation for $\tso$~\citet{alglave}.  The above three key facts hold for \tso\ with this substitution for $\rob$.
+  The proof for compilation into \tso\ is very similar.  In particular the
+  three key facts listed above hold for \tso, where $\rob$ is replaced by (the
+  transitive closure of) the propagation relation defined for \tso\ 
+  \citep{alglave}.
 \end{remark}
 
