@@ -34,7 +34,9 @@ considered an execution of our semantics.
 
 Due to space limitations, we do not include a full description ARM
 consistency.  Interested readers should see \textsection\ref{sec:arm:proof}
-for further details.  Here we mention only a few details.
+for further details.  
+
+Here we provide a birds eye view of the details, drawing on the intuitions gleaned from~\citet{DBLP:journals/pacmpl/PulteFDFSS18}.  
 
 An ARM execution graph $G$ defines many relations, including program order
 ($\rpox$), reads-from ($\rrfx$), coherence ($\rco$) and several dependency
@@ -45,12 +47,16 @@ orders.  From these are derived:
 \item ${\rob}$, which is required to be acyclic (\ref{external}), and
 \item $\reco$, with the requirement that ${\rpoloc}\cup{\reco}$ be acyclic (\ref{sc-per-loc}).
 \end{itemize}
-% Let $G$ be an execution graph satisfying the ARM consistency requirements.
+% Let $G$ be an execution graph satisfying the ARM consistency 
+%requirements.
+Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if $\aEv\in\fcodom({\rpox}\cap {\rrfx})$.
 
-Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
-$\aEv\in\fcodom({\rpox}\cap {\rrfx})$.
+The ${\rob}$ order is an acyclic global order on events, agreed upon by all threads, reflecting the progress of time in an \armeight\ execution.  The cross thread component of the ordering is induced by the ordering on conflicting actions on the same location from different threads.    The intra thread component of the ordering is induced by barrier ordering and data ordering.  Notably, these dependencies  are determined syntactically.  In particular, $\rob$
+may not necessarily include the intra thread component of $\rpoloc$ ordering.  
 
-From $G$ we construct a candidate pomset $\aPS$ as follows:
+This motivates the translation of an \armeight\ execution into our setting.  In our setting, the progress of time is given by $\lt$, and we accommodate intra-thread reordering by internal read and write actions, thus excusing us from the obligation of placing them on the global timeline associated with $\lt$.  
+
+Formally, from $G$ we construct a candidate pomset $\aPS$ as follows:
 \begin{itemize}
 \item $\Event= \textsf{E}$,
 \item $\labelingAct(\aEv)=\tau \mathsf{lab}(e)$, if $\aEv$ is a relaxed
@@ -66,287 +72,20 @@ From $G$ we construct a candidate pomset $\aPS$ as follows:
   If $G$ is ARM consistent, the constructed candidate satisfying the
   requirements for a top-level memory model pomset.
 \end{theorem}
+It is straightforward to observe that any $\lt$ ordering imposed in our model is enforced by \armeight, since our notion of semantic dependency is more permissive than the syntactic dependency used in \armeight.   So, the acylicity of $\lt$ is clear.  By the definition of $\gtN$, it is also clear that $\lt \subseteq \gtN$.  
 
-The proof uses the following facts about ARM-consistent execution graphs, 
-which we establish in \textsection\ref{sec:arm:proof}.  Suppose $\aEv$,
-$\bEv$ and $\aEv$ are distinct events.
+The heart of the proof is thus establishing the other two properties relating $\lt,\gtN$ and $\reco$, namely  (Consistency) of definition~\ref{def:3valued} and the constraints on top-level pomsets arising from definition~\ref{def:x-closed}.  Both of these constraints are coherence conditions relating $\lt$ and $\reco$, and are satisfied by ensuring that  $\lt \cup \reco$ is acyclic.  
+
+The key to this portion of the proof are the following facts about ARM-consistent execution graphs, which we establish in \textsection\ref{sec:arm:proof}.  The subtle cases for the following where the $\reco$ relationships are intra-thread; in these cases, each of the following is immediately reflects ways in which the external order $\rob$ composes with intra thread $\reco$.  
+
+Suppose $\aEv$, $\bEv$ and $\aEv$ are distinct events.
 \begin{itemize}
 \item If $\cEv\xob\bEv\xeco\aEv$ then $\cEv\xob\aEv$.
 \item If $\cEv\xeco\bEv\xob\aEv$ then $\cEv\xob\aEv$.
 \item If $\cEv\xob\bEv$ then $\lnot(\bEv\xeco\cEv)$.
 \end{itemize}
 
-\subsection{Proof for ARMv8}
-\label{sec:arm:proof}
+\begin{remark}[Proof for TSO]
+The proof for compilation into \tso\ is very similar.  Replace $\rob$ by the (transitive closure of the) propagation relation for $\tso$~\citet{alglave}.  The above three key facts hold for \tso\ with this substitution for $\rob$.
+\end{remark}
 
-Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
-transitive closure and $R^*$ denotes reflexive and transitive closure.  Given
-relations $R$ and $S$, $R;S$ denotes composition.
-
-
-The ARMv8 model is described using the following relations.
-\begin{itemize}
-\item $\IDR$, $\IDW$, $\IDAcq$, $\IDRel$: identity on reads, writes, acquires
-  and releases.
-% \item $\IDR$ identity on reads
-% \item $\IDW$: identity on writes
-% \item $\IDAcq$: identity on acquires
-% \item $\IDRel$: identity on releases
-\item $\IDLoc$: relates any two events that touch the same location.
-\item $\rpox$: program order.
-\item $\rdata$, $\rctrl$, $\raddr$: data, control and address dependencies.
-\item $\rrfx$: reads-from. $\rrfx^{-1}$ relates each read to a matching write
-  on the same location.
-\item $\rco$: coherence, which is a total order on the writes to a single
-  location.
-\item ${\rfr}\eqdef{\rco};\rrfx^{-1}$: from-read, which relates reads to
-  subsequent writes.
-\end{itemize}
-For any relation, the cross-thread subrelation is denoted by appending $e$;
-the intra-thread subrelation is denoted by appending $i$.  For example,
-${\rrfe}\eqdef{\rrfx}\setminus{\rpox}$ and ${\rrfi}\eqdef{\rrfx}\cap{\rpox}$.
-The subrelation restriction attention to actions on the same location is
-given by appending $\mathsf{loc}$.  For example, ${\rpoloc}\eqdef{\rpox}\cap{\IDLoc}$.
-
-The ARMv8 model defines the following relations.
-In our presentation, we have elided rules concerning fences and RMW operations.
-\begin{align*}
-  \tag{Extended coherence}
-  {\reco} &\eqdef {\rrf} \cup {\rfr} \cup {\rco}
-  \\
-  \tag{Observed externally}
-  {\robs} &\eqdef \smash{
-    {\rrfe} \cup {\rfre} \cup {\rcoe}
-  }
-  \\
-  \tag{Dependency order}
-  {\rdob} &\eqdef\smash{
-    ({\raddr}\cup{\rdata}); {\rrfi}^?
-    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-    \cup {\raddr}; {\rpox}; {\IDW}
-  }
-  \\
-  \tag{Barrier order}
-  {\rbob} &\eqdef\smash{
-    {\IDAcq}; {\rpox}
-    \cup {\rpox};{\IDRel}; {\rcoi}^?
-  }
-  \\
-  \tag{Acyclic order}
-  {\rob} &\eqdef\smash{
-    ({\robs} \cup {\rdob} \cup {\rbob})^+
-  }
-\end{align*}
-\begin{definition}
-  An RMW-free and fence-free execution is \emph{ARM-consistent} if
-  \begin{align*}&
-    \tag{\textsc{$\rrfx$-completeness}}\label{rf-comp}
-    \fcodom(\rrfx)=\fdom(\rreads)
-    \\[-1ex]&
-    \tag{\textsc{$\rco$-totality}}\label{co-tot}
-    \text{For every location $\aLoc$, $\rco$ totally orders the writes of $\aLoc$}  
-    \\[-1ex]&
-    \tag{\textsc{sc-per-loc}}\label{sc-per-loc}
-    {\rpoloc} \cup {\rrfx} \cup {\rfr} \cup {\rco}\;\text{is acyclic}
-    \\[-1ex]&
-    \tag{\textsc{external}}\label{external}
-    {\rob}\;\text{is acyclic}
-  \end{align*}
-\end{definition}
-Use these to refer to the rules in text:
-\ref{rf-comp} 
-\ref{co-tot}
-\ref{sc-per-loc}
-\ref{external}
-
-
-Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
-$\aEv\in\fcodom(\mathsf{po}\cap \mathsf{rf})$.
-
-From $G$ we construct a candidate pomset $\aPS$ as follows:
-\begin{itemize}
-\item $\Event= \textsf{E}$,
-\item $\labelingAct(\aEv)=\tau \mathsf{lab}(e)$, if $\aEv$ is a relaxed
-  internal read, 
-\item $\labelingAct(\aEv)=\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
-  internal read,
-\item $\labelingForm(\aEv)=\TRUE$,
-\item ${\le} = {\rob}$, and
-\item ${\gtN} = ({\rob} \cup {\reco})^*$
-\end{itemize}
-
-We show that $\aPS$ is a top-level pomset, reasoning as follows.
-
- First, we establish the criteria for a 3-valued pomset (Definition~\ref{def:3valued}).
-\begin{itemize}
-\item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is acyclic.
-\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
-\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  ????
-\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
-  $\cEv \gtN \aEv$. By construction.
-\end{itemize}
-
-Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
-\begin{itemize}
-\item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-  $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
-\item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
-  read or write $\aLoc$, $\gtN$ forms a partial order.
-\end{itemize}
-
-Finally, we establish the criteria for a top-level pomset
-(Definition~\ref{def:x-closed}).
-\begin{itemize}
-\item $\aEv$ is location independent. Trivial, since every formula is $\TRUE$.
-\item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
-  \begin{itemize}
-  \item $\bEv \lt \aEv$,  
-  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
-  \item if $\cEv$ writes to $\aLoc$
-    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}    
-\end{itemize}
-
-
-
-\begin{comment}
-Operation        Implementation
-Relaxed read     ldr                     
-Relaxed write    str             
-Acquiring read   ldar            
-Releasing write  stlr
-Fence            dmb.sy
-\end{comment}
-
-\begin{comment}
-ob does not contradict eco
-
-ob does not contradict (co cap po):
-
-Suppose that wx1 po wx2 then it cannot be that wx2 ob wx1.
-We know that wx1 co wx2 by SC-PER-LOC
-
-% Case 1. w1 is read externally, then we have
-%   wx1 rfe r
-% and
-%   r fre w2
-% so
-%   wx1 obs+ wx2
-% which contradicts EXTERNAL
-
-% Case 2. wx1 is not read externally.
-We show this by contradiction
-Assume
-  wx1 co wx2
-and
-  wx2 ob wx1
-
-Note that
-  po supseteq dob cup aob cup bob
-So in order to get order into wx1, we must have
-  wx2 (ob?; obs; ob?; obs; ob?) wx1
-
-Note that we cannot have dob or bob into wx1 after obs, since then we would
-also have it into wx2, creating a cycle in EXTERNAL.  This holds because both
-dob and bob are closed on the right w.r.t. coi
-
-So it must be that 
-  wx2 (ob?; obs; ob?; wx0; coe) wx1, 
-in which case we also have wx0 coe wx2, contradicting EXTERNAL
-or 
-  wx2 (ob?; obs; ob?; rx0; fre) wx1
-in which case we also have rx0 fre wx2, contradicting EXTERNAL
-
-
-
-
-Internal reads do not need to respect ob:
-Arm allows the following:
-
-  Ra1 -ctrl-> Wx1 -rfi-> Rx1 ---> Wb1    if(a){x=1}; b=x
-   |                               |
-  Wa1 <-------------------------- Rb1    a=b
-
-
-Suppose that wx1 po rx2 and rx2 is read externally.
-Then it cannot be that rx2 ob wx1.
-
-Case 1: if wx1 co wx2, then we have wx1 coe wx2 rfe rx2, contradicting EXTERNAL
-Case 2: if wx2 co wx1, then we have rx2 fr wx1, contradicting SC-PER-LOC
-
-
-
-Suppose that rx1 po wx2 and rx1 is read externally.
-Then it cannot be that wx2 ob rx1.
-
-Case 1: if wx2 co wx1, then wx2 co wx1 rf rx1 po wx2, contradicting SC-PER-LOC 
-Case 2: if wx1 co wx2, for a contradiction, suppose wx2 ob rx1.
-then we need another thread involved to get order from wx2 to rx1.
-To get order into the read, there are several options:
-- use cross thread read, then dob; but dob does not include reads in it's domain.
-  An attempt to do this is something like:
-
-              Wx1                 x=1
-               |
-  Ra2 -ctrl-> Rx1 - - -> Wx2      if(a){r=x}; x=2
-   |                      |
-  Wa2 <----------------- Rx2      a=x
-
-  But the ctrl dependency is not included in ob between reads.
-- use cross thread read then barrier, but then you contradict EXTERNAL
-- create and ob edge from Rx2 to Wx1.
-  An attempt to do this is, 
-
-  Wx1 <-------------- Ra1       
-   |                   |        But cannot get Wx2 --> Wa1 without a barrier
-  Rx1 - - -> Wx2 ---> Wa1       
-
-  Wx1 <----- Rx2                         
-   |          |                 contradicts SC-PER-LOC 
-  Rx1 - - -> Wx2                         
-
-
-Other examples to type in:
-Allowed:
-Rx1 -> Wy0  Wy1
-Ry1 -> Wz0  Wz1
-Rz1 -> Wx0  Wx1
-
-Forbidden:
-Rx1 -> Wy0 Wy1
-Ry1 -> Wx0 Wx1
-
-\end{comment}
-
-
-
-\begin{comment}
-\citet{DBLP:journals/pacmpl/PodkopaevLV19} define the \emph{Intermediate
-  Memory Model (IMM)} and provide efficient implementations of the IMM into
-several processor architectures, including TSO, ARMv8 and Power.
-
-In this section, we show that any execution allowed by a sublanguage of the
-IMM is also allowed by our semantics.  The sublanguage we consider bans
-loops, read-modify-write (RMW) operations, and fences.  In addition, we take
-the set of memory locations, $\Loc$, to be finite.  Syntactically, we drop
-the superscript \textsf{rlx} on relaxed reads and writes; in addition, we use
-structured conditionals rather than the more general \textsf{goto}.  We refer
-to this sublanguage as $\muIMM$.
-
-$\muIMM$ programs sit in the restriction-free fragment of our language, where
-all memory locations are initialized to $0$ and parallel-composition occurs
-only at top level.  In other words, $\muIMM$ programs have the form
-\begin{displaymath}
-  {\aLoc_1}\GETS{0}\SEMI
-  \cdots\SEMI
-  {\aLoc_m}\GETS{0}\SEMI
-  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
-\end{displaymath}
-where $\aCmd^1$, \ldots, $\aCmd^n$ do not include either composition or
-restriction.
-
-Due to space limitations, we do not include a full description of the IMM.
-The broad strokes of the argument given here should be clear, but interested
-readers will need to refer to \citep{DBLP:journals/pacmpl/PodkopaevLV19} for
-details.
-\end{comment}
