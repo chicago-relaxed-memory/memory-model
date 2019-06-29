@@ -1,7 +1,12 @@
-\section{Modeling the invalidation of load buffering}
-\label{sec:ldrf}
-In this section, we argue that our paper is relevant even to the reader who desires a semantics that invalidates load buffering.  
+\section{Comparison to related work}\label{sec:ldrf}
+A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
 
+~\citet{Batty17} motivates compositional methods in the context of relaxed memory.  This paper follows a line of work on relaxed memory models in the framework of true concurrency~\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.  
+
+We discuss in more detail the relationship with the most closely related work.  
+\subsection{Modeling the invalidation of load buffering}
+
+In this subsection, we argue that our paper is relevant even to the reader who desires a semantics that invalidates load buffering.  
 
 There are two related lines of research that suggest to prohibit the reordering of loads with following stores.  
 \begin{itemize}
@@ -39,3 +44,23 @@ While~\citet{Dolan:2018:BDR:3192366.3192421} already describes DRF and  the comp
 $x \GETS 1 \SEMI \IF{\aExp}\THEN\  \aCmd \ELSE  \bCmd\FI$.
 
 \end{itemize}
+
+\subsection{Revisiting \oota}
+~\citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air executions.~\citet{BoehmOOTA} revisits community discussions on ``\oota'' like examples.  We classify the models on the basis of their behavior on three examples, namely examples~\ref{oota1}, \ref{alan} and \ref{rfub}.  
+\begin{itemize}
+\item RC11\cite{DBLP:conf/pldi/LahavVKHD17}, JMM~\cite{Manson:2005:JMM:1047659.1040336} and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} forbid only example~\ref{oota1}.
+\item The model of this paper forbids ~\ref{oota1} and \ref{alan}.
+\item Forbidding load buffering as per ~\citet{Dolan:2018:BDR:3192366.3192421} and ~\citet{BoehmOOTA} forbids all three examples.  RC11\cite{DBLP:conf/pldi/LahavVKHD17} also forbids all three examples. 
+\end{itemize}
+
+One of our novel contributions to this line of research is the desideratum of compositional reasoning of safety properties. The The presence of such compositional reasoning suffices to remove the undesirable effects of \oota, eg. type safety.  And while \oota\ in a model is an elusive creature, and hence hard to prove or disprove,  the support of a model for a compositional proof principle is provable or falsifiable.  
+
+\subsection{Relationship to models of speculation}
+The closest formal cousin to our model is that of~\citet{2019-sp}.   In the spectrum from micro architectures to architectures to software,whereas~\citet{2019-sp} lies between the micro and architectural levels, we aim to be as abstract as possible to bridge the gap to programming languages.  This is reflected in the several differences in the formal model.  
+
+We do not track false branches of conditionals, as seen in our monotonicity axiom, whereby any event with a precondition $\FALSE$ can only have $\FALSE$ successors in $\lt$, whereas in that paper, specualtion on false branches can lead to observable effects.   We are also less accurate  about tracking reads, as reflected in the removal of program order between reads and reads.   
+
+~\citet{2019-sp} does not study the properties as a memory model.  While we conjecture that our proofs of DRF and compositional reasoning can be carried over to that setting, we support more compiler optimizations of single threaded code than~\citet{2019-sp}. 
+
+
+

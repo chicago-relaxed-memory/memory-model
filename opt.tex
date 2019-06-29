@@ -193,7 +193,7 @@ The proof uses the implicit actions in the semantics of write and read prefixing
 
 Let $\aPS$ be a generator of $\TRUE\guard \sem{\aCmd}$.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
 
-\begin{definition}[Tester program]
+\begin{definition}[Tester program]\label{testAPS}
 For each $\aEv_i$, we define a command with a hole, called $\test{\aEv_i}$ as follows:
 \[
 \test{\aEv_i} = \left\{ 
