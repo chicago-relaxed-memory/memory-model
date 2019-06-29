@@ -1,11 +1,10 @@
-\section{Soundness of Single Threaded Optimizations}
+\section{Single Threaded Optimizations}
 \label{sec:opt}
 
-As we have seen already, our model {\em invalidates} thread inlining.  We
-argue that our model is fully flexible with respect to single threaded
-optimizations in two ways; firstly, by considering concrete examples of
-single threaded optimizations, and secondly, by proving a full abstraction
-theorem for single threads without synchronization.  
+As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded
+optimizations; concretely by validating several 
+single threaded optimizations including reordering of independent statements; and abstractly, by proving a full abstraction
+theorem for single threads without synchronization and connecting to traditional Hoare logic for sequential programs. 
 
 %In this section, we only consider commands $\aCmd$ that do not have any occurrence of $\PAR$. 
 
@@ -29,7 +28,7 @@ $\fsat\sem{\aCmd} \supseteq \fsat\sem{\bCmd}$.
 
 
 
-
+\subsection{Validating single threaded optimizations}
 We follow the terminology and presentation of section~7.1 of
 \citet{Dolan:2018:BDR:3192366.3192421}, to maintain a clear comparison with
 models that enforce extra ordering.
@@ -103,11 +102,36 @@ are also permissible.
     \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &=
     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI \aCmd}
   \end{align*}
-
 \begin{proof}
-  The result follows immediately from the semantics of prefixing where the
-  only enforced $\lt$ and $\gtN$ relationships come from conflict on $\aLoc$ or
-  release actions in $\aCmd$.
+The proof of both of the above lemmas follows from the semantics of prefixing where the only enforced $\lt$ and $\gtN$ relationships come from conflict on $\aLoc$ or release actions in $\aCmd$.
+\end{proof}
+\end{lemma}
+
+Roach-motel reorderings that increase the scope of synchronization are valid.
+\begin{lemma}%[Reorderings]
+  Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
+  \begin{align*}
+    \tag{Read-Acq}
+    \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
+    \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+&&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+    \\
+    \tag{Write-Acq} 
+    \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
+    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
+    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+    \\
+\tag{Rel-Read} 
+\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
+    \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
+   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+    \\
+    \tag{Rel-Write}
+    \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
+    \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
+  \end{align*}
+\begin{proof}
+The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
 \end{proof}
 \end{lemma}
 
@@ -129,70 +153,38 @@ followed by the valid elimination of redundant load:
 \[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
 
 \subsection{Full abstraction for synchronization free threads}
+Our semantics is complete for reasoning about full-thread optimizations of synchronization free programs.
 
-Let $\aCmd$ be a command without either synchronization or parallelism.
-Suppose $\sem{\aCmd}$ contains an execution that includes
-\begin{tikzdisplay}[node distance=1em]
-  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-  \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
-  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-  \wk{w1}{w2}
-  \po{r}{w2}
-\end{tikzdisplay}
-where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
-$\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-Then the following Hoare triple is valid:
-\begin{displaymath}
-  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-\end{displaymath}
+In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are synchronization free (ie. no acquire, release, fence) and single threaded (ie. no parallel composition). 
 
-
-
-We provide some evidence that our semantics incorporates a complete suite of optimizations for single threaded and synchronization free programs.
-
-\paragraph*{Generators}
-We first examine the structure of the generators of single threaded and synchronization free code.  
-
-$\TRUE\guard \sem{\aCmd}$ captures the behavior of $\aCmd$ as a top-level thread; since, it is not part of a bigger sequential composition, we can eliminate the events that are not guarded by tautologies.
-\begin{lemma}
-Let $\aCmd$ be $\PAR$-free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\aCmd}$ satisfy:
+In order to develop the proof, we describe a normal form for pomsets that arise in single threaded and synchronization free code.  
+\begin{definition}
+$\aPS$ is in normal form if:
 \begin{itemize}
-\item If $\aEv$ is a write or a release, and $\aEv \lt\ \bEv$, then $\bEv$ is a release.
-\item If $\bEv$ is a read or an acquire, and $\aEv \lt \bEv$, then $\aEv$ is an acquire.
-\item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star}  \  \bEv$.
-\end{itemize}
-\end{lemma}
-The proof proceeds considering the minimal requirements on the order relations imposed by the semantics.  The key case is prefixing.  The only required $\lt$-edges out of writes are into release actions, and the only required $\lt$-edges into reads arise from read actions.  The only required $\gtN$-edges arise from conflicts on a location.
-
-In the case where $\aCmd$ has no synchronization constructs, the structure of the generators simplifies further.
-\begin{corollary}
-Let $\aCmd$ be $\PAR$-free and synchronization free.  Then, all generators $\aPS$ of $\TRUE\guard \sem{\aCmd}$ satisfy:
-\begin{itemize}
+\item All preconditions on events are tautologies.
 \item Writes are maximal and Reads are minimal in $\lt$.
 \item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
-\end{itemize}
-\end{corollary}
-
-We define $\aPS \unrhd \bPS$ if $\bPS$ can be derived from $\aPS$ by removing writes and ``adjacent'' duplicate reads.
-\begin{definition}
-$\aPS \unrhd \bPS$ if 
-\begin{itemize}
-\item $\Event_{\bPS} \subseteq \Event_{\aPS}$ and $ \bPS$ is the restriction of $\aPS$ to $\Event_{\bPS}$.
-\item if $\aEv \in \aPS \setminus \bPS$, then $\aEv$ is a write or there exists $\bEv$ in $\bPS$ with the same read label that agrees with $\aEv$ on all orders. ie.  forall $\cEv$ in $\aEv$:
-$\cEv \lt \bEv \Leftrightarrow \cEv \lt \aEv,\bEv \lt \cEv \Leftrightarrow \aEv \lt \cEv, \cEv \xeco \bEv \Leftrightarrow \cEv \xeco \aEv, \bEv \xeco \cEv \Leftrightarrow \aEv \xeco \cEv$
+\item If $\aEv, \aEv'$ have the same read action label, then $\aEv = \aEv'$
+\item  If $\aEv, \aEv'$ have the same write action label, then there exists a write $\bEv$ on the same location as $\aEv$ such that $\aEv \gtN \bEv \gtN \aEv'$.
 \end{itemize}
 \end{definition}
-The generators of $\TRUE\guard \sem{\aCmd}$ are closed under $\unrhd$.  
+It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. $\TRUE\guard \sem{\aCmd}$ is used to captures the behavior of $\aCmd$ as a top-level thread by restricting only to events whose preconditions are tautologies.
 \begin{lemma}\label{unrhd}
-Let $\aCmd$ be $\PAR$-free and synchronization free.  Let $\aPS$ be a generator of $\sem{\aCmd}$.  Then, $\bPS$ is also a generator of $\sem{\aCmd}$, where $\aPS \unrhd \bPS$.
+Let $\aCmd,\bCmd$ be 
+$\TRUE\guard \sem{\aCmd} \subseteq \TRUE\guard \sem{\bCmd} $  iff for all $\aPS$ in normal form, $\aPS in \TRUE\guard \sem{\aCmd} \Leftrightarrow\ \aPS in \TRUE\guard \sem{\bCmd}$
+\begin{proof}
+The normal forms determine the full semantics by the closure properties of the semantics.     The proof proceeds by induction on structure.  The key case is prefixing. 
+
+Prefixing does not require $\lt$-edges out of writes  and into read actions.  Read prefixing permits the reuse of events to ensure that distinct read events have distinct read labels.  Similarly, write prefixing can be used to ensure that  writes that are adjacent in $\gtN$ order have distinct labels.
+\end{proof}
 \end{lemma}
-The proof uses the implicit actions in the semantics of write and read prefixing to remove the missing read and write actions.  
-
-\paragraph{Testers for generators}
 
 
-Let $\aPS$ be a generator of $\TRUE\guard \sem{\aCmd}$.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
 
+Let $\aPS$ be a normal form of $\TRUE\guard \sem{\aCmd}$.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
+
+
+We define a tester program to use as a parallel context to detect $\aPS$. 
 \begin{definition}[Tester program]\label{testAPS}
 For each $\aEv_i$, we define a command with a hole, called $\test{\aEv_i}$ as follows:
 \[
@@ -216,21 +208,41 @@ The tester program for $\aPS$, $\testP{\aPS}{}$ is
 \end{definition}
  $\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The matching read for a write in $\aPS$ on $\aLoc$ has an extra write of a fresh value in order to flush prior potential writes of the same value.    
 
-The tester program works as expected to detect $\aPS$ as a parallel context.  
-The write of $1$ to the testing variable $b_{\aPS}$ is possible only by the paral
-\begin{lemma}\label{testcorrect}
-$\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
-    \vec{\aLoc}\GETS\vec{0}\SEMI
-    \vec{b}\GETS\vec{0} \SEMI b_{\aPS}\GETS 0 [\sem{\testP{\aPS}{\aLoc}} \parallel \bPS]$
-includes a pomset with an event writting 1 to $b_{\aPS}$ to 1 iff $\bPS$ augments a $\bPS'$ such that $\aPS \unrhd \bPS'$
-\end{lemma}
-As a corollary, using lemma~\ref{unrhd}, we deduce that parallel contexts suffice to distinguish  $\PAR$-free and synchronization free code.
+ 
+
 \begin{theorem}
-Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then $\TRUE\guard \sem{\aCmd_1}  \supseteq \TRUE\guard \sem{\aCmd_2}$ iff for all $\bCmd$,  $\sem{\aCmd_1\PAR \bCmd}  \supseteq \sem{\aCmd_2 \PAR \bCmd}$.
-\end{theorem}
+Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then $\TRUE\guard \sem{\aCmd_1}  \supseteq \TRUE\guard \sem{\aCmd_2}$ iff for all $\bCmd$,  $\sem{\TRUE\guard(\aCmd_1\PAR \bCmd)}  \supseteq \sem{\TRUE \guard (\aCmd_2 \PAR \bCmd)}$.
+
 \begin{proof}
-The forward implication follows from the compositionality of the semantics. For the converse, pick $\aPS \in \TRUE\guard \sem{\aCmd_1} \setminus \TRUE\guard \sem{\aCmd_2} $.  Definition~\ref{testAPS} defines a tester that works as required via lemma~\ref{testcorrect}.
+The forward implication follows from the compositionality of the semantics. For the converse, pick $\aPS \in \TRUE\guard \sem{\aCmd_1} \setminus \TRUE\guard \sem{\aCmd_2} $. 
+
+Consider the (semantic) context induced by tester program $\testP{\aPS}{}$:
+\[ \sem{\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\vec{b}}\GETS\vec{0} 
+    \SEMI b_{\aPS}\GETS 0 \SEMI  [\sem{\testP{\aPS}{} \parallel [\TRUE \guard [\cdot]]}]}
+\]
+There is a pomset that writes one to the  testing variable $b_{\aPS}$ if and only if the context hole is filled with a set that contains $\aPS$.  
 \end{proof}
+\end{theorem}
+
+\subsection{Relationship to Hoare logic}
+
+Let $\aCmd$ be a command without either synchronization or parallelism.
+Suppose $\sem{\aCmd}$ contains an execution that includes
+\begin{tikzdisplay}[node distance=1em]
+  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+  \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+  \wk{w1}{w2}
+  \po{r}{w2}
+\end{tikzdisplay}
+where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
+$\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+Then the following Hoare triple is valid:
+\begin{displaymath}
+  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+\end{displaymath}
 
 \endinput 
 
