@@ -1,8 +1,7 @@
 \section{Single Threaded Optimizations}
 \label{sec:opt}
 
-As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded
-optimizations; concretely by validating several 
+As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations; concretely by validating several 
 single threaded optimizations including reordering of independent statements; and abstractly, by proving a full abstraction
 theorem for single threads without synchronization and connecting to traditional Hoare logic for sequential programs. 
 
@@ -226,10 +225,20 @@ There is a pomset that writes one to the  testing variable $b_{\aPS}$ if and onl
 \end{proof}
 \end{theorem}
 
-\subsection{Relationship to Hoare logic}
+The full abstraction theorem applies only to full threads; in particular.  The reason for this limited statement of full abstraction is that our language is impoverished, in that parallel composition cannot be used freely as the continuation in a sequential composition.  A full abstraction theorem that applies also to commands requires these richer distinguishing contexts.  
 
+
+\subsection{Relationship to Hoare logic}
+In order to provide useful information about sequential commands in sequential contexts, we establish a relationship with Hoare triples for a sequential language.  
+
+\begin{theorem}
 Let $\aCmd$ be a command without either synchronization or parallelism.
-Suppose $\sem{\aCmd}$ contains an execution that includes
+
+The following Hoare triple is valid:
+\begin{displaymath}
+  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+\end{displaymath}
+if and only if $\sem{\aCmd}$ contains an execution that includes
 \begin{tikzdisplay}[node distance=1em]
   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
@@ -239,10 +248,71 @@ Suppose $\sem{\aCmd}$ contains an execution that includes
 \end{tikzdisplay}
 where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
 $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-Then the following Hoare triple is valid:
-\begin{displaymath}
-  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-\end{displaymath}
+\begin{proof}
+The proof proceeds by structural induction on the command.  Indeed, this invariant underlies the definitions in the semantics.
+\end{proof}
+\end{theorem}
+
+This theorem captures the independence between reads and writes in a sequential program fragment.  We illustrate with a couple of examples.
+
+\begin{example}
+Consider:
+\begin{align*}
+\aCmd:   x\GETS 1 \SEMI x \GETS 2
+\end{align*}
+Then: $\hoare{\TRUE}{\aCmd}{2=1} $.  In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{w1}{\DW{x}{1}}{}
+ \event{w2}{\DW{x}{2}}{right=of w1}
+\wk{w1}{w2}
+\end{tikzdisplay}
+\end{example}
+
+\begin{example}
+Consider:
+\begin{align*}
+\aCmd:   r \GETS x \SEMI \IF r==1 \THEN y \GETS 1 \ELSE y \GETS 1 \SEMI
+\end{align*}
+Then: $\hoare{\TRUE}{\aCmd}{y=1} $.  In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{w}{\DW{y}{1}}{}
+ \event{r}{\DR{x}{v}}{right=of w}
+\end{tikzdisplay}
+In particular, this Hoare triple is not captured by a semantics that forbids load buffering, where the best that one can prove is
+$\hoare{x=v} {\aCmd}{y= 1} $.
+\end{example}
+
+\begin{example}
+Consider:
+\begin{align*}
+\aCmd:   r \GETS x \SEMI \IF r==1 \THEN y \GETS 1 \FI \SEMI r \GETS u \SEMI \IF s==1 \THEN v \GETS 1 \FI \SEMI
+\end{align*}
+Then: $\hoare{x=1}{\aCmd}{y=1} $ and $\hoare{u=1}{\aCmd}{v=1} $.  In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{rx}{\DR{x}{1}}{}
+ \event{ru}{\DR{u}{1}}{right=of rx}
+ \event{wy}{\DW{y}{1}}{below=of rx}
+\event{wv}{\DW{u}{1}}{below=of ru}
+ \rf{rx}{wy}
+ \rf{ru}{wv}
+\end{tikzdisplay}
+\end{example}
+
+\begin{example}
+Consider a fragment from example~\ref{rsub}.
+\begin{align*}
+\aCmd: r \GETS y \SEMI \IF (r !=42) \THEN a42 \GETS \TRUE \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+\end{align*}
+Then, $\hoare{\TRUE}{\aCmd}{x=42} $ and $\hoare{y !=42}{\aCmd}{a42= \TRUE} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$.  
+In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{ry}{\DR{y}{42}}{}
+ \event{wx}{\DW{x}{42}}{right=of ry}
+ \event{wa}{\DW{a42}{\TRUE}}{below=of rx}
+ \rf{ry}{wa}
+\end{tikzdisplay}
+\end{example}
+
 
 \endinput 
 
