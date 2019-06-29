@@ -82,7 +82,7 @@ subject to substitution.
   \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
     \begin{itemize}
     \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$, \hfill (Inclusion)
-    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$,  \hfill (Consistency)
+    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$, and  \hfill (Consistency)
     \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.  \hfill (Semi-transitivity)
     \end{itemize}
 \end{itemize}
@@ -92,13 +92,15 @@ subject to substitution.
   \label{def:3pre}
   A \emph{(memory model) pomset} is a 3-valued pomset with preconditions, such that
   \begin{itemize}
-  \item $\gtN$ is acyclic, and
-  \item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-    $\bEv\le\aEv$.
+  \item $\gtN$ is acyclic, and \hfill (Weak-acyclicity)
+  \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
+    $\labelingForm(\bEv)$. \hfill (Causal-strengthening)
   \end{itemize}
 \end{definition}
-In the remainder of the paper, we refer to memory model pomsets simply as
-\emph{pomsets}.
+The axioms for $\gtN$ are from~\citet{DBLP:journals/dc/Lamport86}.
+The last two requirements are new.
+
+We refer to ``memory model pomsets'' as ``{pomsets}''.
 %Note that $\gtN$ is reflexive.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
 $\aForm$ when it is a tautology.  We write $\bEv\lt\aEv$ when $\bEv\le\aEv$
@@ -205,49 +207,15 @@ definition of fulfillment in terms of $\le$ does not enjoy this property.)
 
 Within a single thread, $\geN$ orders \emph{conflicting} events.  Two actions
 \emph{conflict} if one action writes a location and the other either reads or
-writes the same location.
+writes the same location.  In \eqref{m1}, for example, the weak edge
+$(\DW{x}{0})\xwk(\DW{x}{1})$ is required since $x\GETS 0$ precedes $x\GETS 1$ in
+thread order.  This notion of conflict is stable under substitution (since
+actions are not subject to substitution).
 
-
-
-Because we are modeling architecture rather than microarchitecture, result,
-our use of pomsets is more abstract than that of \citeauthor{2019-sp}.  For
-example, at top-level, we ignore events whose preconditions are not
-tautologies; \citeauthor{2019-sp} use such events to model the influence of
-``unexecuted'' conditional code on executed code, as found in Spectre.
-
-Need to forbid cycles in $\gtN$ per location:
-\[
-  \IF{x\EQ1}\THEN r\GETS x \FI
-  \PAR
-  x\GETS 1
-  \PAR
-  x\GETS2
-  \PAR
-  \IF{x\EQ2}\THEN s\GETS x \FI
-\]
-which includes the execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{x}{1}}{}
-  \event{wx2}{\DW{x}{2}}{below=of wx1}
-  \event{rx1a}{\DR{x}{1}}{left=of wx1}
-  \event{rx2a}{\DR{x}{2}}{left=of wx2}
-  \event{rx1b}{\DR{x}{1}}{right=of wx1}
-  \event{rx2b}{\DR{x}{2}}{right=of wx2}
-  \po{rx1a}{rx2a}
-  \po{rx2b}{rx1b}
-  \rf{wx1}{rx1a}
-  \rf{wx1}{rx1b}
-  \rf{wx2}{rx2a}
-  \rf{wx2}{rx2b}
-  \wk{rx1a}{wx2}
-  \wk{rx2a}{wx1}
-  \wk{rx1b}{wx2}
-  \wk{rx2b}{wx1}
-\end{tikzdisplay}
-This satisfies the requirements for $x$-closure, but is not coherent.
-
-With the restrictions in $x$-closure, forbidding cycles forces an order
-between any writes that are read from:
+Between threads, $\geN$ defines a partial order on conflicting actions.
+Because of the requirements of fulfillment, any writes to $\aLoc$ that are
+read must be totally ordered.  As an example consider the following program
+and execution:
 \[
   x\GETS 3
   \PAR
@@ -271,6 +239,46 @@ between any writes that are read from:
   \wk{rx1a}{wx3}
   \wk{rx2a}{wx3}
 \end{tikzdisplay}
+Thus, $\geN$ can always be extended to an
+\emph{extended coherence order}, which totally orders all conflicting
+operations in a pomset.  This is not true if $\gtN$ allows cycles on
+conflicting events.  For example, consider:
+% Because we are modeling architecture rather than microarchitecture, result,
+% our use of pomsets is more abstract than that of \citeauthor{2019-sp}.  For
+% example, at top-level, we ignore events whose preconditions are not
+% tautologies; \citeauthor{2019-sp} use such events to model the influence of
+% ``unexecuted'' conditional code on executed code, as found in Spectre.
+\[
+  \IF{x\EQ1}\THEN r\GETS x \FI
+  \PAR
+  x\GETS 1
+  \PAR
+  x\GETS2
+  \PAR
+  \IF{x\EQ2}\THEN s\GETS x \FI
+\]
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{wx2}{\DW{x}{2}}{below=of wx1}
+  \event{rx1a}{\DR{x}{1}}{left=of wx1}
+  \event{rx2a}{\DR{x}{2}}{left=of wx2}
+  \event{rx1b}{\DR{x}{1}}{right=of wx1}
+  \event{rx2b}{\DR{x}{2}}{right=of wx2}
+  \po{rx1a}{rx2a}
+  \po{rx2b}{rx1b}
+  \rf{wx1}{rx1a}
+  \rf{wx1}{rx1b}
+  \rf{wx2}{rx2a}
+  \rf{wx2}{rx2b}
+  \wk{rx1a}{wx2}
+  \wk{rx2a}{wx1}
+  \wk{rx1b}{wx2}
+  \wk{rx2b}{wx1}
+\end{tikzdisplay}
+This satisfies the requirements for fulfillment, but is not coherent.
+
+
+\textcolor{red}{STOPPING HERE}
 
 
 Across variables, however, cycles in $\gtN$ arise naturally in non-multicopy
@@ -285,7 +293,6 @@ atomic examples, such as IRIW.
   \PAR
   \IF{y}\THEN s\GETS x \FI
 \end{array}\]
-which includes the execution:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
@@ -400,15 +407,15 @@ Differences with \cite{2019-sp}:
 \end{itemize}
 
 
-\subsection{Background: 3-valued pomsets}
-\label{sec:pomsets}
+% \subsection{Background: 3-valued pomsets}
+% \label{sec:pomsets}
 
-Structures similar to 3-valued pomsets have come up in many guises, for example
-rough sets~\cite{Pawlak1982} or ultrametrics over
-$\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
-\emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
-They are the notion of pomset given by interpreting
-$\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
+% Structures similar to 3-valued pomsets have come up in many guises, for example
+% rough sets~\cite{Pawlak1982} or ultrametrics over
+% $\{0,{}^1\!/_2,1\}$. They correspond to axioms A1--A3 of Lamport's
+% \emph{system executions}~\cite{DBLP:journals/dc/Lamport86}.
+% They are the notion of pomset given by interpreting
+% $\bEv\le\aEv$ in a 3-valued logic~\cite{Urquhart1986}. 
 
 
 
