@@ -42,8 +42,8 @@ orders.  From these are derived:
 \begin{itemize}
 \item ${\rpoloc}$, which is the subrelation of $\rpox$ that only relates
   actions on the same location,
-\item ${\rob}$, which is required to be acyclic, and
-\item $\reco$, with the requirement that ${\rpoloc}\cup{\reco}$ be acyclic.
+\item ${\rob}$, which is required to be acyclic (\ref{external}), and
+\item $\reco$, with the requirement that ${\rpoloc}\cup{\reco}$ be acyclic (\ref{sc-per-loc}).
 \end{itemize}
 % Let $G$ be an execution graph satisfying the ARM consistency requirements.
 
@@ -58,8 +58,8 @@ From $G$ we construct a candidate pomset $\aPS$ as follows:
 \item $\labelingAct(\aEv)=\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
   internal read,
 \item $\labelingForm(\aEv)=\TRUE$,
-\item ${\le} = {\rob}$, and
-\item ${\gtN} = ({\rob} \cup {\reco})^*$
+\item ${\le} = {\rob}^?$, where $?$ denotes reflexive closure, and
+\item ${\gtN} = ({\rob} \cup {\reco})^*$, where $*$ denotes reflexive and transitive closure.
 \end{itemize}
 
 \begin{theorem}
@@ -119,14 +119,14 @@ In our presentation, we have elided rules concerning fences and RMW operations.
     {\rrfe} \cup {\rfre} \cup {\rcoe}
   }
   \\
-  \tag{Dependency ordered}
+  \tag{Dependency order}
   {\rdob} &\eqdef\smash{
     ({\raddr}\cup{\rdata}); {\rrfi}^?
     \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
     \cup {\raddr}; {\rpox}; {\IDW}
   }
   \\
-  \tag{Barrier ordered}
+  \tag{Barrier order}
   {\rbob} &\eqdef\smash{
     {\IDAcq}; {\rpox}
     \cup {\rpox};{\IDRel}; {\rcoi}^?
@@ -134,7 +134,7 @@ In our presentation, we have elided rules concerning fences and RMW operations.
   \\
   \tag{Acyclic order}
   {\rob} &\eqdef\smash{
-    ({\robs} \cup {\rdob} \cup {\rbob})^*
+    ({\robs} \cup {\rdob} \cup {\rbob})^+
   }
 \end{align*}
 \begin{definition}
