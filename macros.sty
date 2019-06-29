@@ -9,7 +9,8 @@
 \newcommand{\IDW}{\ID{\mathsf{W}}}
 
 
-\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
+%\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
+\newcommand{\eqdef}{=}
 \newcommand{\rel}{{\tt rel}}
 
 
@@ -173,15 +174,15 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
-\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}}
-\newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}}
-\newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
-\newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DF}[1]{\mathsf{F}_{#1}}
-\newcommand{\iDRAcq}[2]{\mathsf{\tau R^{acq}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
-\newcommand{\iDWRel}[2]{\mathsf{\tau W^{rel}}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
-\newcommand{\iDR}[2]{\mathsf{\tau R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\iDW}[2]{\mathsf{\tau W}\ifnotempty{#1}{\,#1\,\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDRAcq}[2]{\mathsf{\tau ^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDWRel}[2]{\mathsf{\tau ^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDR}[2]{\mathsf{\tau }\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\iDW}[2]{\mathsf{\tau }\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 %\newcommand{\iDF}[1]{\mathsf{\tau F}_{#1}}
 
 \newcommand{\DSB}{\mathsf{SB}}
@@ -226,8 +227,9 @@
 %\newcommand{\bPS}{Q}
 \newcommand{\bPSS}{\mathcal{Q}}
 
+\newcommand{\SC}{\mathsf{SC}}
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
-\newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\textit{SC}}}
+\newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\SC}}
 %\newcommand{\semsc}[1]{\textit{SC}\llbracket#1\rrbracket}
 \newcommand{\REL}{^{\mathsf{rel}}}
 \newcommand{\ACQ}{^{\mathsf{acq}}}
