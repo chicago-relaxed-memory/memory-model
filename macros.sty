@@ -50,6 +50,7 @@
 \newcommand{\armeight}{{\sc armv8}}
 \newcommand{\ppc}{{\sc power}}
 \newcommand{\mca}{{\sc mca}}
+\newcommand{\iriw}{{\sc iriw}}
 
 
 
@@ -352,6 +353,9 @@
 \newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=orange!90!black]
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
+
+\tikzstyle{graypo} = [->,color=gray,]
+\newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
 
 \tikzstyle{po} = [->,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}

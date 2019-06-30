@@ -99,7 +99,8 @@ We give the semantics of a program as a set of pomsets, where each pomset
 corresponds to a single execution.  We visualize a pomset as a graph where
 the nodes are drawn from $\Event$, each node $\aEv$ is labeled with
 $\labeling(\aEv)$, and the orders are drawn with
-\citeauthor{DBLP:journals/dc/Lamport86}'s notation.
+\citeauthor{DBLP:journals/dc/Lamport86}'s notation.  We elide events with
+unsatisfiable preconditions.
 % For example:
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{rx1}{a}{}
@@ -275,7 +276,9 @@ property, we have that executions are \emph{coherent}.
 \end{definition}
 To see that this definition captures the idea of coherence, consider that (as
 long as weak order includes strong order) incoherent executions always result
-in cycles in weak order.
+in cycles in weak order.  (In the following example, we include fences to
+ensure order between the reads; we elide the fences in the drawing, since
+they are not essential to the point being made.)
 % Because we are modeling architecture rather than microarchitecture, result,
 % our use of pomsets is more abstract than that of \citeauthor{2019-sp}.  For
 % example, at top-level, we ignore events whose preconditions are not
@@ -310,69 +313,102 @@ in cycles in weak order.
 \end{tikzdisplay}
 This satisfies the requirements for fulfillment, but is not coherent.
 
-
-
-\textcolor{red}{STOPPING HERE}
-
-Refactor: single thread, then multi-thread.
-
-control dependencies coalescing states
-
-multi-thread
-
-TODO
-\begin{itemize}  
-\item lamport a4:
-  if $\bEv\lt\bEv'\geN\aEv'\lt\aEv$ then $\bEv\lt\aEv$.
-  \begin{displaymath}
-    y\GETS 1
-    \PAR
-    x\GETS 1\SEMI
-    x\GETS 2\SEMI
-    \FENCE\SEMI
-    \aReg\GETS y
-    \PAR
-    y\GETS 2\SEMI
-    \FENCE\SEMI
-    \bReg\GETS x
-  \end{displaymath}
+\paragraph{Synchronization}
+The model ensures that events are ordered before a release and after an
+acquire.  As an example, consider the program:
+\begin{displaymath}
+  x\GETS0\SEMI z\GETS0\SEMI x\GETS 1\SEMI z \REL\GETS1 \PAR r\GETS z\ACQ; s\GETS x
+\end{displaymath}
+This has a top-level execution:
 \begin{tikzdisplay}[node distance=1em]
-  \event{a1}{\DW{x}{1}}{}
-  \event{a2}{\DW{x}{2}}{right=of a1}
-  \po{a1}{a2}
-  %\event{a3}{\DF{}}{right=of a2}
-  %\po{a2}{a3}
-  \event{a4}{\DR{y}{1}}{right=of a2}
-  \po{a2}{a4}
-  %
-  \event{b1}{\DW{y}{2}}{below=of a4}
-  %\event{b2}{\DF{}}{left=of b1}
-  %\po{b1}{b2}
-  \event{b3}{\DR{x}{1}}{left=of b1}
-  \po{b1}{b3}
-  \wk{a4}{b1}
-  %
-  \event{c1}{\DW{y}{1}}{above=of a4}
-  \po{c1}{a4}
-  \rf{a1}{b3}
-  \wk{b3}{a2}
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wz0}{\DW{z}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wz1}{\DWRel{z}{1}}{right=of wz0}
+  \event{rz1}{\DRAcq{z}{1}}{right=2.5em of wz1}
+  \event{rx1}{\DR{x}{1}}{above=of rz1}
+  \po{wx0}{wz1}
+  \po{wz0}{wz1}
+  \po{wx1}{wz1}
+  \po{rz1}{rx1}
+  \rf{wz1}{rz1}
+  \rf{wx1}{rx1}
+  \wk{wx0}{wx1}
 \end{tikzdisplay}
-Ie, it does publication by antidependency...
+but \emph{not}:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wz0}{\DW{z}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wz1}{\DWRel{z}{1}}{right=of wz0}
+  \event{rz1}{\DRAcq{z}{1}}{right=2.5em of wz1}
+  \event{rx0}{\DR{x}{0}}{above=of rz1}
+  \po{wx0}{wz1}
+  \po{wz0}{wz1}
+  \po{wx1}{wz1}
+  \po{rz1}{rx1}
+  \rf{wz1}{rz1}
+  \rf[bend left]{wx0}{rx0}
+  \wk{wx0}{wx1}
+\end{tikzdisplay}
+since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, so this pomset does not satisfy the
+requirements to fulfill the read.
+If we replace the release
+with a plain write, then the outcome $(\DRAcq z1)$ and $(\DR x0)$ is possible:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wz0}{\DW{z}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wz1}{\DW{z}{1}}{right=of wz0}
+  \event{rz1}{\DRAcq{z}{1}}{right=2.5em of wz1}
+  \event{rx0}{\DR{x}{0}}{above=of rz1}
+  \wk{wz0}{wz1}
+  \po{rz1}{rx0}
+  \rf{wz1}{rz1}
+  \rf[bend left]{wx0}{rx0}
+  \wk{wx0}{wx1}
+  \wk{rx0}{wx1}
+\end{tikzdisplay}
+since no order is required between $(\DW x1)$ and $(\DW z1)$.  
+Symmetrically, if we replace the acquire of the original program
+with a plain read, then the outcome $(\DR z1)$ and $(\DR x0)$ is possible.
 
-\item IRIW variants
-\item TAR1 variants 1 and 2
-\item memory calculations example from alan
-\item release/acquire
-\end{itemize}
+\paragraph{Internal reads}
+As in \citep{2019-sp}, the semantics of relaxed read includes a special case
+when the value is read from a write of the same thread: in this case, no read
+action need be recorded.  To facilitate the definitions required in the proof
+of \drfsc\ (\textsection\ref{sec:sc}), we include an \emph{internal action},
+which we visualize in grey.  Internal actions do not read or write any
+location.  To see the need for internal reads, consider the example 3.6 from
+\cite{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{displaymath}
+  \aReg\GETS x\SEMI
+  y\REL\GETS 1\SEMI
+  z\GETS y
+  \PAR
+  x\GETS z
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{a1}{\DR{x}{1}}{}
+  \event{a2}{\DWRel{y}{1}}{right=of a1}
+  \po{a1}{a2}
+  \internal{a3}{\DR{y}{1}}{right=of a2}
+  \event{a4}{\DW{z}{1}}{right=of a3}
+  \graypo{a2}{a3}
+  \graypo{a3}{a4}
+  \event{b1}{\DR{z}{1}}{below=of a3}
+  \event{b2}{\DW{x}{1}}{left=of b1}
+  \po{b1}{b2}
+  \rf{a4}{b1}
+  \rf{b2}{a1}
+\end{tikzdisplay}
+Were the internal action made explicit, then this behavior would be
+disallowed due to the evident cycle in strong order.  This behavior is
+allowed by \armeight.
 
-In examples section:
-\begin{itemize}
-\item alan's three thread/two thread example.
-\end{itemize}
-
-
-Across variables, however, cycles in $\gtN$ arise naturally in non-multicopy
-atomic examples, such as IRIW.
+\paragraph{Multi-copy atomicity.}  The standard litmus tests for \mca\ are
+all variants of \iriw\ (Independent Reads of Independent Writes), such as \iriw\
+with control dependencies between the reads:
 \begin{displaymatharray}{rl}
   &x\GETS0\SEMI x\GETS 1
   \PAR
@@ -403,81 +439,171 @@ atomic examples, such as IRIW.
   %\po{rx1}{ry0}
   %\po{ry1}{rx0}
 \end{tikzdisplay}
-Note that if you enforce the dependency between the reads, then the execution
-is disallowed, because the is a cycle on weak edges restricted to $x$:
+Our semantics does not enforce control dependencies between reads, and thus
+this execution is allowed.  If there is a fence between the reads, however,
+this execution is disallowed do to the evident cycle in weak order.
+
+% Note that if you enforce the dependency between the reads, then the execution
+% is disallowed, because the is a cycle on weak edges restricted to $x$:
+% \begin{math}
+%   (\DW{x}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
+% \end{math}
+% therefore
+% \begin{math}
+%   (\DW{x}{1}) \gtN  (\DW{y}{1});
+% \end{math}
+% then
+% \begin{math}
+%   (\DW{y}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
+% \end{math}
+% therefore
+% \begin{math}
+%   (\DW{x}{1}) \gtN  (\DW{y}{1});
+% \end{math}
+
+\paragraph{Load buffering and thin air.}
+The program
 \begin{math}
-  (\DW{x}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
+  %x\GETS0\SEMI y\GETS0\SEMI
+  (y\GETS x \PAR \bReg\GETS y\SEMI x\GETS1)
 \end{math}
-therefore
-\begin{math}
-  (\DW{x}{1}) \gtN  (\DW{y}{1});
-\end{math}
-then
-\begin{math}
-  (\DW{y}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
-\end{math}
-therefore
-\begin{math}
-  (\DW{x}{1}) \gtN  (\DW{y}{1});
-\end{math}
-The model ensures that events are ordered before a release and
-after an acquire.
-As an example, consider the program:
-\begin{displaymath}
-  x\GETS0\SEMI f\GETS0\SEMI x\GETS 1\SEMI f \REL\GETS1 \PAR r\GETS f\ACQ; s\GETS x
-\end{displaymath}
-This has a top-level execution:
+has top level executions that result in the final state $x = y = 1$, such as:
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wf0}{\DW{f}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wf1}{\DWRel{f}{1}}{right=of wf0}
-  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
-  \event{rx1}{\DR{x}{1}}{above=of rf1}
-  \po{wx0}{wf1}
-  \po{wf0}{wf1}
-  \po{wx1}{wf1}
-  \po{rf1}{rx1}
-  \rf{wf1}{rf1}
-  \rf{wx1}{rx1}
-  \wk{wx0}{wx1}
+  % \event{wx0}{\DW{x}{0}}{}
+  % \event{wy0}{\DW{y}{0}}{below=wx0}
+  \event{rx}{\DR{x}{1}}{}
+  \event{wy}{\DW{y}{1}}{below=of rx}
+  \po{rx}{wy}
+  \event{ry}{\DR{y}{1}}{right=of rx}
+  \event{wx}{\DW{x}{1}}{below=of ry}
+  \rf{wy}{ry}
+  \rf{wx}{rx}
+  %\po{rx}{wy}
 \end{tikzdisplay}
-but \emph{not}:
+However, the execution becomes impossible if there is strong order from read
+to write in both threads, as in
+\begin{math}
+  (y\GETS x \PAR x\GETS y).
+\end{math}
+In \textsection\ref{sec:logic} we provide machinery to prove this.
+
+A more interesting example is the following variant of \eqref{types}:
+\begin{equation}
+  \label{alan}
+  % x\GETS0\SEMI
+  %y\GETS0\SEMI   
+  (
+    y\GETS x
+  \PAR
+    \IF{z}\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+  \PAR
+    z\GETS0\SEMI z\GETS1
+  )
+\end{equation}
+This program is allowed to write $1$ to $a$ under many speculative
+memory models
+\cite{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17},
+even though the read of $1$ from $y$ in the else branch of the second
+thread arises out of thin air.   In our model, the attempted execution is:
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wf0}{\DW{f}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wf1}{\DWRel{f}{1}}{right=of wf0}
-  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
-  \event{rx0}{\DR{x}{0}}{above=of rf1}
-  \po{wx0}{wf1}
-  \po{wf0}{wf1}
-  \po{wx1}{wf1}
-  \po{rf1}{rx1}
-  \rf{wf1}{rf1}
-  \rf[bend left]{wx0}{rx0}
-  \wk{wx0}{wx1}
+  \event{rx}{\DR{x}{1}}{}
+  \event{wy}{\DW{y}{1}}{below=of rx}
+  \po{rx}{wy}
+  \event{ry}{\DR{y}{1}}{right=of rx}
+  \event{wx}{\DW{x}{1}}{below=of ry}
+  \po{ry}{wx}
+  \rf{wy}{ry}
+  \rf{wx}{rx}
+  \event{rz}{\DR{z}{0}}{right=of ry}
+  \event{wz0}{\DW{z}{0}}{right=of rz}
+  \rf{wz0}{rz}
+  \event{wz1}{\DW{z}{1}}{right=of wz0}
+  \wk{wz0}{wz1}
+  \event{ry1}{\DR{y}{1}}{left=of wy}
+  \rf{wy}{ry1}
+  \event{wa}{\DR{a}{1}}{left=of ry1}
+  \po{ry1}{wa}
 \end{tikzdisplay}
-since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, so this pomset does not satisfy the
-requirements to be $x$-closed.
-If we replace the release
-with a plain write, then the outcome $(\DRAcq f1)$ and $(\DR x0)$ is possible:
+This is forbidden by the evident cycle in strong order.
+
+\paragraph{Pointers.}
+Our language allow address calculations.  To model this, we allow locations
+to have the form $\REF{n}$, where $n$ is a natural number.  Because we do not
+enforce order between reads, there is some danger that address calculations
+could allow thin air behavior.   To see how our model addresses this, assume
+that we have the following locations and initial values:
+\begin{align*}
+  \REF{0}&=0  &
+  \REF{1}&=2  &
+  \REF{2}&=1  &
+  x &=0 &
+  y &=0 
+\end{align*}
+Consider the program
+\begin{math}
+  (x\GETS\REF{y} \PAR y\GETS\REF{x})
+\end{math}
+with attempted execution:
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wf0}{\DW{f}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wf1}{\DW{f}{1}}{right=of wf0}
-  \event{rf1}{\DRAcq{f}{1}}{right=2.5em of wf1}
-  \event{rx0}{\DR{x}{0}}{above=of rf1}
-  \wk{wf0}{wf1}
-  \po{rf1}{rx0}
-  \rf{wf1}{rf1}
-  \rf[bend left]{wx0}{rx0}
-  \wk{wx0}{wx1}
+  \event{a1}{\DR{y}{2}}{}
+  \event{a2}{\DR{\REF{2}}{1}}{below=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DW{x}{1}}{below=of a2}
+  \po[out=210,in=150]{a1}{a3}
+  \event{b1}{\DR{x}{1}}{right=3em of a1}
+  \event{b2}{\DR{\REF{1}}{2}}{below=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{y}{2}}{below=of b2}
+  \po[out=-30,in=30]{b1}{b3}
+  \rf{b3}{a1}
+  \rf{a3}{b1}
 \end{tikzdisplay}
-since no order is required between $(\DW x1)$ and $(\DW f1)$.  
-Symmetrically, if we replace the acquire of the original program
-with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
+Although there is no order enforced between the reads, the read-to-write
+order induced by the semantics is sufficient to prohibit this thin-air
+behavior.
+% if $\bEv\lt\bEv'\geN\aEv'\lt\aEv$ then $\bEv\lt\aEv$.
+%   \begin{displaymath}
+%     y\GETS 1
+%     \PAR
+%     x\GETS 1\SEMI
+%     x\GETS 2\SEMI
+%     \FENCE\SEMI
+%     \aReg\GETS y
+%     \PAR
+%     y\GETS 2\SEMI
+%     \FENCE\SEMI
+%     \bReg\GETS x
+%   \end{displaymath}
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{a2}{\DW{x}{2}}{right=of a1}
+%   \po{a1}{a2}
+%   %\event{a3}{\DF{}}{right=of a2}
+%   %\po{a2}{a3}
+%   \event{a4}{\DR{y}{1}}{right=of a2}
+%   \po{a2}{a4}
+%   %
+%   \event{b1}{\DW{y}{2}}{below=of a4}
+%   %\event{b2}{\DF{}}{left=of b1}
+%   %\po{b1}{b2}
+%   \event{b3}{\DR{x}{1}}{left=of b1}
+%   \po{b1}{b3}
+%   \wk{a4}{b1}
+%   %
+%   \event{c1}{\DW{y}{1}}{above=of a4}
+%   \po{c1}{a4}
+%   \rf{a1}{b3}
+%   \wk{b3}{a2}
+% \end{tikzdisplay}
+% Ie, it does publication by antidependency...
+
+\begin{scope}
+  \color{red}
+  TODO In examples section:
+  \begin{itemize}
+  \item alan's three thread/two thread example.
+  \end{itemize}
+\end{scope}
 
 \section{The Semantics of a Simple Concurrent Language}
 \label{sec:model}

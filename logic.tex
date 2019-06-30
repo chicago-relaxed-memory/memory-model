@@ -183,7 +183,8 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
 \end{proof}
 
 \begin{example}
-We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
+We now turn the conditional TAR-pit program, given in \eqref{alan}:
+% which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
 \begin{equation}
   \label{alan}
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
@@ -195,11 +196,7 @@ We now turn the conditional TAR-pit program, which is a variant of \cite[Figure 
     z\GETS1
   )
 \end{equation}
-This program is allowed to write $1$ to $a$ under many speculative
-memory models
-\cite{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17},
-even though the read of $1$ from $y$ in the else branch of the second
-thread arises out of thin air.   In contrast, we prove the formula
+We prove the formula
 \begin{math}
   \lnot\once(\DW{a}{1})
 \end{math}
