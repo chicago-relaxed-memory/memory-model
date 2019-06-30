@@ -1,9 +1,21 @@
 \section{Comparison to related work}\label{sec:ldrf}
-A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
+A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  \citet{AlglaveThesis} provides a historical and conceptual perspective on hardware memory models.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
 
 ~\citet{Batty17} motivates compositional methods in the context of relaxed memory.  This paper follows a line of work on relaxed memory models in the framework of true concurrency~\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.  
 
 We discuss in more detail the relationship with the most closely related work.  
+
+\subsection{3-Valued pomsets and Lamports axioms}
+~\citet{DBLP:journals/dc/Lamport86} considers a transitive, acyclic relation $\lt$, and a relation $\gtN$ with the following axioms to connect $\lt,\gtN$, namely:
+\begin{align*}
+\aEv \gtN \bEv & \Rightarrow & \aEv \lt \bEv
+\aEv \gtN \bEv &\Leftarrow& (\aEv \gtN \cEv \wedge\ \cEv \lt \bEv) \vee\ (\aEv \lt \cEv \wedge\ \cEv \gtN \bEv) \\
+\aEv \lt \bEv &\Leftarrow& \aEv \lt \bEv_1 \gtN \bEv_2 \lt \bEv 
+\end{align*}
+In our setting, the basic ingredient of $\gtN$ is $\reco$, from which we can define the full $\gtN$ by closing by the above axioms. The $\gtN$ so defined is transitive.   Furthermore, if $\lt$ is acyclic and follows the idioms arising from programs, then the induced $\gtN$ is also acyclic.   This leads us to the three-valued  memory pomsets that we have considered in this paper. 
+
+In a concurrency context, three valued transition relations are studied in modal transition systems~\citep{DBLP:conf/lics/LarsenT88, DBLP:conf/avmfss/Larsen89,DBLP:conf/avmfss/Larsen89} and the semantics of  three-valued temporal logics for such transition systems is studied in~\citep{DBLP:conf/concur/BrunsG00,DBLP:conf/esop/HuthJS01}. 
+
 \subsection{Modeling the invalidation of load buffering}
 
 In this subsection, we argue that our paper is relevant even to the reader who desires a semantics that invalidates load buffering.  
