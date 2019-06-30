@@ -363,6 +363,32 @@ Suppose $\aEv$, $\bEv$ and $\aEv$ are distinct events.
 \end{itemize}
 \begin{proof}
 If the $\reco$ relation in the above is contained in $\robs$, the result is immediate.  So, it suffices to consider the case when they are contained in $\rpox$.  
+
+
+
+We next prove  that if $\cEv\xeco\bEv (\xob\cap \xpox) \aEv$ then $\cEv\xob\aEv$.  Proof proceeds by cases on the witness for $\bEv (\xob\cap \xpox) \aEv$.  
+
+\begin{itemize}
+\item  If $\bEv \xbob  \aEv$, then: 
+\[ \bEv\ (\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
+  }
+\aEv
+\]
+So, $\bEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv$, yielding the result since $\cEv \xpox\ \bEv$.
+
+
+\item If $\bEv \xdob  \aEv$, then:
+\[ \bEv \ (\smash{
+    ({\raddr}\cup{\rdata}); {\rrfi}^?
+    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW} ) \ 
+  }
+\aEv
+\]
+So, $\bEv$ is a read.  Thus, $\cEv$ is a write such that there exists $\cEv'$ such $\cEv \rcoe \cEv' \rrfe \bEv$.  Thus, $\cEv \xob \bEv \xob \aEv$, yielding required result.
+\end{itemize}
 \end{proof}
 \end{lemma}
 
@@ -403,8 +429,31 @@ In either case, there is a contradiction $\aEv \xeco \bEv \xeco \aEv$.
 $({\rob} \cup {\reco})^*$ is irrreflexive.
 \end{lemma}
 \begin{proof}
+The simple case that $\rob; \reco$ is irreflexive is proved above.  The full proof by contradiction.  
 
+Let $n \geq 1$ be the minimum such that:
+\begin{align*} 
+&\aEv^0_0 \xob \aEv^0_1 \xeco \bEv^0_0 \xob \bEv^0_1  \\
+(\xeco \cap \xob) &  \   \aEv^1_0 \xob \aEv^1_1 \xeco \bEv^1_0 \xob \bEv^1_1 \\
+(\xeco \cap \xob) & \ \ldots \\
+& \ldots \bEv^n_1 \\
+ (\xeco \cap \xob) & \  \aEv^0_0
+\end{align*}
+where  for all $i$, we have:
+\[ \aEv^i_0 \xpox \aEv^i_1 (\xeco \cap \xpox) \bEv^i_0 \xpox \bEv^i_1\] and 
+\[ \neg (\bEv^i_1 \xpox (\aEv^{(i+1) \mod n}_0 \]
 
+For any $i$, if $\aEv^i_0 \not= \aEv^i_1$ or $\bEv^i_0 \xpox \bEv^i_1$, via lemma~\ref{extendob}, we deduce that $\aEv^i_0  \xob \bEv^i_1$, contradicting minimality of $n$.  
+
+So, we can assume that $n \geq 1$ is such that:
+\begin{align*} 
+&\ \aEv^0 \xeco  \bEv^0 \\
+(\xeco \cap \xob) &  \   \aEv^1  \xeco \bEv^1 \\
+(\xeco \cap \xob) & \ \ldots \\
+& \ldots \bEv^n \\
+ (\xeco \cap \xob) & \ \aEv^0
+\end{align*}
+which is a contradiction since it is a cycle in $\xeco$.
 \end{proof}
 
 \endinput 
