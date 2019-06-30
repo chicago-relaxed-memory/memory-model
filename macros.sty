@@ -58,6 +58,12 @@
 \newcommand{\rar}{\mathrel{\mathsf{ar}}}
 \newcommand{\muIMM}{\ensuremath{\mu\text{IMM}}}
 \newcommand{\free}{\mathsf{fn}}
+\newenvironment{displaymatharray}[1]{\begin{displaymath}\begin{array}{#1}\ignorespaces}{\end{array}\end{displaymath}\ignorespacesafterend}
+\newenvironment{displaymatharrayl}{\begin{displaymatharray}{l}\ignorespaces}{\end{displaymatharray}\ignorespacesafterend}
+\newenvironment{displaymatharrayrl}{\begin{displaymatharray}{r>{\ }l}\ignorespaces}{\end{displaymatharray}\ignorespacesafterend}
+\newenvironment{sdisplaymatharray}[1]{\small\begin{displaymatharray}{#1}\ignorespaces}{\end{displaymatharray}\ignorespacesafterend}
+\newenvironment{sdisplaymatharrayl}{\small\begin{displaymatharrayl}\ignorespaces}{\end{displaymatharrayl}\ignorespacesafterend}
+\newenvironment{sdisplaymatharrayrl}{\small\begin{displaymatharrayrl}\ignorespaces}{\end{displaymatharrayrl}\ignorespacesafterend}
 \newenvironment{displaymathsmall}{\bgroup\small\begin{displaymath}\ignorespaces}{\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{equationsmall}{\bgroup\small\begin{equation}\ignorespaces}{\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{scope}{\bgroup\ignorespaces}{\egroup\ignorespacesafterend}

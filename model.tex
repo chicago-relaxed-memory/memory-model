@@ -58,6 +58,9 @@ are \emph{synchronizations}\footnote{Fences have a limited role in our
   discussion.  We inappropriately refer to them as synchronizations for
   simplicity.}.
 
+Two actions \emph{conflict} if one writes a location and the other
+either reads or writes the same location.
+
 Let $\Formulae$ be a set of logical formula, such as $(\aLoc=1)$ or
 $(\aReg=\bReg+1)$, where $\aReg$ and $\bReg$ are register names.
 
@@ -68,13 +71,13 @@ register and $\bExp$ is an memory-location-free expression.  Actions are not
 subject to substitution.
 
 \begin{definition}
-  \label{def:3valued}
+  \label{def:mmpomset}
   A \emph{(memory model) pomset} is a tuple
   $(\Event, {\le}, {\gtN}, \labeling)$, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-  \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order
+  \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
   \item ${\le} \subseteq {\gtN}$ is a partial order, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
     $\labelingForm(\bEv)$.
@@ -85,7 +88,7 @@ for $\gtN$.  \citet{DBLP:conf/esop/HuthJS01} call $\lt$ a ``must transition''
 and $\geN$ a ``may transition''; we generally prefer the terms ``strong
 order'' and ``weak order''.  In pictures, we adopt
 \citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\lt$ as a solid
-arrow, $\xpo$, and $\geN$ dashed, $\xwk$.
+arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.
 
 We refer to ``memory model pomsets'' as ``{pomsets}''.
 %Note that $\gtN$ is reflexive.
@@ -117,45 +120,64 @@ $\labeling(\aEv)$, and the orders are drawn with
 %     {\gtN} = {\le}\cup\{(2,3)\}
 % \end{array}\]
 % for example:
-For example, the semantics of
-\begin{math}
-  x\GETS 0\SEMI
-  x\GETS 1
-  \PAR
-  \aReg\GETS x\SEMI
-  y\GETS \aReg
-\end{math}
-includes the pomset:
-\begin{tikzdisplaylabel}[node distance=1em]{m1}
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \rf{wx1}{rx1}
-  \wk{wx0}{wx1}
-  \po{rx1}{wy1}
-\end{tikzdisplaylabel}
-We often highlight the strong
-edge from a write to the read actions it fulfills, as above.
 
+\paragraph{Within threads.}
 Within a single thread, $\lt$ captures the notion of \emph{dependency}:
 indicating that the related events cannot appear in the opposite order.  In
 the absence of synchronization, this relation always goes \emph{from reads to
   writes within a thread}.  The formula decorating the event is used to
 calculate these single-threaded dependencies, using semantic entailment.  For
-example, the subprogram $y\GETS \aReg$ of \eqref{m1} has an event
-with label $(\aReg=1\mid\DW{y}{1})$, indicating that the subprogram can write
-$1$ to $y$ whenever $\aReg$ is $1$.  The full thread
+example, semantics of $y\GETS \aReg$ has an event with label
+$(\aReg=1\mid\DW{y}{1})$, indicating that the subprogram can write $1$ to $y$
+whenever $\aReg$ is $1$.  Prefixing an assignment to $\aReg$, the semantics
+of
 \begin{math}
   \aReg\GETS x\SEMI
   y\GETS \aReg
 \end{math}
-has the semantics shown.  The assignment to $\aReg$ causes a substitution in
-the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  By introducing
-strong order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition can be
-weakened by further substitution to $1=1$, which is a tautology and therefore
-elided.
+includes the pomset
+\begin{tikzdisplaylabel}[node distance=1em]{m1}
+  \event{rx1}{\DR{x}{1}}{}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \po{rx1}{wy1}
+\end{tikzdisplaylabel}
+The assignment to $\aReg$ causes a substitution in the precondition, changing
+the label to $(x=1\mid \DW{y}{1})$.  By introducing strong order
+$(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition can be weakened by
+further substitution of $1$ for $x$, resulting in $1=1$, which is a tautology
+and therefore elided.
 
+As in \citep{2019-sp}, weakening of preconditions can also happen by merging
+actions.  For example, the semantics of
+$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ includes a pomset with the single
+action $(\DW{y}{1})$.  In computing the dependencies for the conditional
+statement, we first compute the then-part to contain
+$(\aReg\neq0\mid\DW{y}{1})$ and the else-part to contain
+$(\aReg=0\mid\DW{y}{1})$.  Since the actions are the same in these events,
+they can be merged into a single event whose precondition is the disjunction
+of the preconditions of the individual events.  Thus, the semantics of
+$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ includes
+$(\aReg\neq0\lor \aReg=0\mid\DW{y}{1})$.  Since the precondition is a
+tautology, we may elide it.
+
+Within a single thread, $\geN$ orders \emph{conflicting} events.  For
+example, the semantics of
+\begin{math}
+  x\GETS 0\SEMI
+  x\GETS 1
+\end{math}
+includes the pomset:
+\begin{tikzdisplaylabel}[node distance=1em]{m2}
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \wk{wx0}{wx1}
+\end{tikzdisplaylabel}
+The weak edge $(\DW{x}{0})\xwk(\DW{x}{1})$ is required since $x\GETS 0$
+precedes $x\GETS 1$ in thread order.  This notion of conflict is stable under
+substitution (since actions are not subject to substitution).
+
+
+\paragraph{Between threads.}
 Between threads, $\lt$ indicates that one thread has \emph{read-from}
 another.  This relation always goes \emph{from writes to reads across
   threads}.  Since new threads may introduce order from write to read, we
@@ -184,24 +206,43 @@ definition of fulfillment in terms of $\le$ does not enjoy this property.)
   \item $\bEv \lt \aEv$, and
   \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
-  We say that an event \emph{is fulfilled} if it is fulfilled on $\aLoc$ for
-  every $\aLoc$ it reads.
-  % $\aLoc$ from $\bEv$,
-  % for some $\bEv$, whenever $\aEv$ reads $\aLoc$.
+
+  An event \emph{is fulfilled} if it is fulfilled on $\aLoc$ for every
+  $\aLoc$ it reads.
+
+  A pomset is \emph{top-level} if
+  \begin{itemize}
+  \item every event is fulfilled, and
+  \item every precondition is either a tautology or is unsatisfiable.
+  \end{itemize}
 \end{definition}
 
-Within a single thread, $\geN$ orders \emph{conflicting} events.  Two actions
-\emph{conflict} if one action writes a location and the other either reads or
-writes the same location.  In \eqref{m1}, for example, the weak edge
-$(\DW{x}{0})\xwk(\DW{x}{1})$ is required since $x\GETS 0$ precedes $x\GETS 1$ in
-thread order.  This notion of conflict is stable under substitution (since
-actions are not subject to substitution).
+For example, combining \eqref{m1} and \eqref{m2}, the semantics of
+\begin{math}
+  x\GETS 0\SEMI
+  x\GETS 1
+  \PAR
+  \aReg\GETS x\SEMI
+  y\GETS \aReg
+\end{math}
+includes:
+\begin{tikzdisplaylabel}[node distance=1em]{m3}
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \wk{wx0}{wx1}
+  \po{rx1}{wy1}
+\end{tikzdisplaylabel}
+We often highlight the required strong edge from a write to a read action that it
+fulfills, as above.
 
 Between threads, $\geN$ defines a partial order on conflicting actions.
 Because of the requirements of fulfillment, any writes to $\aLoc$ that are
 read must be totally ordered.  As an example consider the following program
 and execution:
-\[
+\begin{displaymath}
   x\GETS 3
   \PAR
   \IF{x\EQ1}\THEN r\GETS x \FI
@@ -209,7 +250,7 @@ and execution:
   x\GETS 1
   \PAR
   x\GETS2
-\]
+\end{displaymath}
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
   \event{wx2}{\DW{x}{2}}{below=of wx1}
@@ -224,16 +265,23 @@ and execution:
   \wk{rx1a}{wx3}
   \wk{rx2a}{wx3}
 \end{tikzdisplay}
-Thus, $\geN$ can always be extended to an
-\emph{extended coherence order}, which totally orders all conflicting
-operations in a pomset.  This is not true if $\gtN$ allows cycles on
-conflicting events.  For example, consider:
+Thus, $\geN$ can always be extended to an \emph{extended coherence order},
+which totally orders all conflicting operations in a pomset.  As a derived
+property, we have that executions are \emph{coherent}.
+
+\begin{definition}
+  A pomset \emph{coherent} if, when restricted to events that read or write
+  any single location, $\gtN$ forms a partial order.
+\end{definition}
+To see that this definition captures the idea of coherence, consider that (as
+long as weak order includes strong order) incoherent executions always result
+in cycles in weak order.
 % Because we are modeling architecture rather than microarchitecture, result,
 % our use of pomsets is more abstract than that of \citeauthor{2019-sp}.  For
 % example, at top-level, we ignore events whose preconditions are not
 % tautologies; \citeauthor{2019-sp} use such events to model the influence of
 % ``unexecuted'' conditional code on executed code, as found in Spectre.
-\[
+\begin{displaymath}
   r\GETS x \SEMI\FENCE\SEMI s\GETS x
   \PAR
   x\GETS 1
@@ -241,7 +289,7 @@ conflicting events.  For example, consider:
   x\GETS2
   \PAR
   r\GETS x \SEMI\FENCE\SEMI s\GETS x
-\]
+\end{displaymath}
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
   \event{wx2}{\DW{x}{2}}{below=of wx1}
@@ -325,7 +373,7 @@ In examples section:
 
 Across variables, however, cycles in $\gtN$ arise naturally in non-multicopy
 atomic examples, such as IRIW.
-\[\begin{array}{rl}
+\begin{displaymatharray}{rl}
   &x\GETS0\SEMI x\GETS 1
   \PAR
   \IF{x}\THEN r\GETS y \FI
@@ -334,7 +382,7 @@ atomic examples, such as IRIW.
   y\GETS0\SEMI y\GETS 1
   \PAR
   \IF{y}\THEN s\GETS x \FI
-\end{array}\]
+\end{displaymatharray}
 \begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
@@ -375,9 +423,9 @@ therefore
 The model ensures that events are ordered before a release and
 after an acquire.
 As an example, consider the program:
-\[
+\begin{displaymath}
   x\GETS0\SEMI f\GETS0\SEMI x\GETS 1\SEMI f \REL\GETS1 \PAR r\GETS f\ACQ; s\GETS x
-\]
+\end{displaymath}
 This has a top-level execution:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
@@ -462,8 +510,8 @@ Differences with \cite{2019-sp}:
 
 
 
-\subsection{Data models}
-\label{sec:preliminaries}
+% \subsection{Data models}
+% \label{sec:preliminaries}
 
 A \emph{data model} consists of:
 \begin{itemize}
@@ -564,9 +612,10 @@ rather than using $\tau$.  For example, the ``read'' action is internal in:
 %   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
 % \end{displaymath}
 
-\subsection{3-valued pomsets with preconditions}
+% \subsection{3-valued pomsets with preconditions}
 
-Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
+% Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
+
 Define %$\labelingForm$ and $\labelingAct$ so that
 $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
 $\labelingForm(\aEv)=(\aForm\mid\aAct)$.
@@ -577,10 +626,10 @@ and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
 
 
 
-In this paper, we are not investigating microarchitecture.  So we make the
-global assumption formulae can only get stronger in dependent actions:
+% In this paper, we are not investigating microarchitecture.  So we make the
+% global assumption formulae can only get stronger in dependent actions:
 
-At top-level, we expect the use of each variable to be \emph{closed}.
+At the point a variable is declared, it must be \emph{closed}.
 \begin{definition}
 \label{def:x-closed}
   A pomset is \emph{$\aLoc$-closed} if, for every $\aEv\in\Event$:
@@ -589,11 +638,11 @@ At top-level, we expect the use of each variable to be \emph{closed}.
   \item if $\aEv$ reads from $\aLoc$, then there is some $\bEv$ such that
     $\aEv$ reads $\aLoc$ from $\bEv$.
   \end{itemize}
-  A pomset is \emph{top-level} if
-  \begin{itemize}
-  \item it is $\aLoc$-closed for every $\aLoc$, and
-  \item every precondition is either a tautology or is unsatisfiable.
-  \end{itemize}
+  % A pomset is \emph{top-level} if
+  % \begin{itemize}
+  % \item it is $\aLoc$-closed for every $\aLoc$, and
+  % \item every precondition is either a tautology or is unsatisfiable.
+  % \end{itemize}
 \end{definition}
 
 We give the semantics of programs as sets of pomsets.  Each pomset
