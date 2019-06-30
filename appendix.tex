@@ -174,7 +174,7 @@ We prove:
 \end{description}
 
 \paragraph*{Proof of DRF1}
-We first show that if $\aPS$ is not \Seq, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \lt \cup \xeco$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
+We first show that if $\aPS \in \sem{\aCmd} \setminus \semsc{\aCmd}$, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \lt \cup \xeco$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
 If for all $i$, $\aEv'_i  \xhb \aEv'_{i+1}$, then the above is a cycle in $\rhb$, which is a contradiction.
 So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There are two cases to consider.
 \begin{itemize}
@@ -185,11 +185,11 @@ So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There 
 
 \paragraph*{Proof of DRF2}
 
-We define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is an $\aPS \in \sem{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
+We define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is an $\aPS \in \semsc{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
 
 We prove by induction on $\size(\aCmd) - \size(\bPS)$ that given $(\aPS, \bPS)$ such that:
 \begin{itemize}
-\item $\bPS$ is \Seq\ 
+\item $\bPS$ is a prefix of some $\aPS' \in \semsc{\aCmd}$
 \item $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$ 
 \item $\aPS$ has a race
 \end{itemize}
@@ -199,7 +199,7 @@ The required theorem follows by setting $\bPS$ to be the empty pomset.
 
 For the base case, $\bPS = |\aPS|$.  In this case, $\aPS$ is the required witness.
 
-Otherwise, consider a maximal \Seq\ prefix, extending $\bPS$, wrt to all of  $\rpox,\reco,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
+Otherwise, consider a maximal sequential prefix, extending $\bPS$, wrt to all of  $\rpox,\reco,\lt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
 
 If not, $\bPS$ is already maximal.  Consider the set of all events in $\aPS \setminus \bPS$ that are minimal wrt $\rhb$.  In particular, these events will also be minimal wrt $\rpox$.  
 
@@ -221,9 +221,12 @@ We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and rea
 \section{Proof for ARMv8}
 \label{sec:arm:proof}
 
+In this section, we develop the proof of correctness of compilation to \armeight.  In order to ease readability, we reproduce the definitions from the main text. 
+
+
+
 Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
-transitive closure and $R^*$ denotes reflexive and transitive closure.  Given
-relations $R$ and $S$, $R;S$ denotes composition.
+transitive closure and $R^*$ denotes reflexive and transitive closure.  Given relations $R$ and $S$, $R;S$ denotes composition.
 
 
 The ARMv8 model is described using the following relations.
@@ -295,11 +298,12 @@ In our presentation, we have elided rules concerning fences and RMW operations.
     {\rob}\;\text{is acyclic}
   \end{align*}
 \end{definition}
-Use these to refer to the rules in text:
-\ref{rf-comp} 
-\ref{co-tot}
-\ref{sc-per-loc}
-\ref{external}
+
+% Use these to refer to the rules in text:
+%\ref{rf-comp} 
+%\ref{co-tot}
+%\ref{sc-per-loc}
+%\ref{external}
 
 
 Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
@@ -323,7 +327,7 @@ We show that $\aPS$ is a top-level pomset, reasoning as follows.
 \begin{itemize}
 \item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is acyclic.
 \item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
-\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  ????
+\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  Proved below.
 \item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
   $\cEv \gtN \aEv$. By construction.
 \end{itemize}
@@ -348,6 +352,67 @@ Finally, we establish the criteria for a top-level pomset
     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}    
 \end{itemize}
+
+\subsection{Proof that  $({\rob} \cup {\reco})^*$ is irreflexive. }
+We develop a key tool about the composition of $\rob,\reco$.
+\begin{lemma}\label{extendob}
+Suppose $\aEv$, $\bEv$ and $\aEv$ are distinct events.
+\begin{itemize}
+\item If $\cEv\xob\bEv\xeco\aEv$ then $\cEv\xob\aEv$.
+\item If $\cEv\xeco\bEv\xob\aEv$ then $\cEv\xob\aEv$.
+\end{itemize}
+\begin{proof}
+If the $\reco$ relation in the above is contained in $\robs$, the result is immediate.  So, it suffices to consider the case when they are contained in $\rpox$.  
+\end{proof}
+\end{lemma}
+
+\begin{lemma}\label{obeco1}
+If $\bEv\xob\aEv$ then $\lnot(\aEv\xeco\bEv)$.
+
+\begin{proof}
+Proof by contradiction.  Let 
+\[ \aEv \xob \aEv' \xeco \bEv' \xob \bEv \xob \cEv \xob \cEv' \xob \aEv \]
+where $\aEv' \xpox \bEv'$.
+
+By lemma~\ref{extendob}, if $\aEv \not=\aEv'$, we deduce $\aEv \xob \bEv'$, and thus $\aEv \xob \bEv$.  If $\bEv \not=\bEv'$, we deduce $\aEv' \xob \bEv$ and thus $\aEv \xob \bEv$.
+
+Thus, if $\aEv \not=\aEv'$ or $\bEv \not=\bEv'$, then there is a cycle $\aEv \xob \bEv \xob \cEv \xob \cEv' \xob \aEv$.  
+
+So we can assume that  $\aEv' = \aEv$, $\bEv' = \bEv$ and 
+\[ \aEv  \xeco \bEv \xob \cEv \xob \cEv' \xeco \aEv \]
+where all of $\aEv, \bEv, \cEv, \cEv'$ access the same location and at least one of $\aEv,\bEv$ is a write, at least one of $\aEv,\cEv'$ is a write, and at least one of $\bEv,\cEv$ is a write.
+
+We reason by cases.
+\begin{itemize}
+\item If $\cEv'$ is a write or both $(\aEv, \bEv)$ are writes.
+
+We deduce that $\bEv \xeco \cEv' \xeco \aEv$ and thus $\bEv \xeco \aEv$.
+
+\item $\cEv'$ is a read.  $\aEv$ is a write.  $\bEv$ is a read.
+
+In this case $\cEv$ is a write.  From $\cEv \xob \aEv$, we deduce $\cEv \xeco \aEv$. Combining with $\bEv \xeco \cEv$, we deduce that $\bEv \xeco \aEv$.  
+
+
+\end{itemize}
+In either case, there is a contradiction $\aEv \xeco \bEv \xeco \aEv$.
+\end{proof}
+\end{lemma}
+
+
+\begin{lemma}\label{obeco2}
+$({\rob} \cup {\reco})^*$ is irrreflexive.
+\end{lemma}
+\begin{proof}
+
+
+\end{proof}
+
+\endinput 
+
+
+
+
+
 
 
 
