@@ -36,12 +36,12 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-\citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
-security flaws that arise from speculative evaluation in computer
-microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
-We build on their work to define a model of relaxed memory
-\emph{architecture}.  Interestingly, the model naturally captures multi-copy
-atomicity (\mca).
+% \citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
+% security flaws that arise from speculative evaluation in computer
+% microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
+% We build on their work to define a model of relaxed memory
+% \emph{architecture}.  Interestingly, the model naturally captures multi-copy
+% atomicity (\mca).
 
 In this section, we define the model, provide some intuitions about the
 semantics, and work through a series of illustrative examples.  We present
@@ -69,45 +69,23 @@ subject to substitution.
 
 \begin{definition}
   \label{def:3valued}
-  A \emph{3-valued pomset with preconditions} %over $(\Formulae\times\Act)$
-  is tuple $(\Event, {\le}, {\gtN}, \labeling)$, such that
+  A \emph{(memory model) pomset} is a tuple
+  $(\Event, {\le}, {\gtN}, \labeling)$, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
-  %\item $\ESub\subseteq\Event$ is a set of \emph{accepting states}, 
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
-    % \begin{enumerate}
-    % \item $\aEv \le \aEv$,
-    % \item if $\bEv \le \aEv$ and $\aEv \le \bEv$ then $\bEv = \aEv$,
-    %   \\(this follows from 5a and 5b)
-    % \item if $\cEv \le \bEv \le \aEv$ then $\cEv \le \aEv$, and
-    % \end{enumerate}
-  \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
-    \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$, \hfill (Inclusion)
-    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$, and  \hfill (Consistency)
-    \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then $\cEv \gtN \aEv$.  \hfill (Semi-transitivity)
-    \end{itemize}
-\end{itemize}
-% \end{definition}
-% \begin{definition}
-
-  \label{def:3pre}
-  A \emph{(memory model) pomset} is a 3-valued pomset with preconditions, such that
-  \begin{itemize}
-  \item $\gtN$ is acyclic, and \hfill (Weak-acyclicity)
+  \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order
+  \item ${\le} \subseteq {\gtN}$ is a partial order, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$. \hfill (Causal-strengthening)
+    $\labelingForm(\bEv)$.
   \end{itemize}
 \end{definition}
-The axioms for $\gtN$ are adapted
-from~\citet[A1--A3]{DBLP:journals/dc/Lamport86}.  The last two requirements
-are new.  We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$, and
-similarly for $\gtN$.  \citeauthor {DBLP:journals/dc/Lamport86} writes $\lt$
-as $\xpo$ and pronounces it as ``precedes''; we also refer to $\lt$ as
-``strong order''.  \citeauthor {DBLP:journals/dc/Lamport86} writes $\geN$ as
-$\xwk$ and pronounces it as ``can affect''; given our additional acyclicity
-requirement, we also refer to $\geN$ as ``weak order''.
+We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$, and similarly
+for $\gtN$.  \citet{DBLP:conf/esop/HuthJS01} call $\lt$ a ``must transition''
+and $\geN$ a ``may transition''; we generally prefer the terms ``strong
+order'' and ``weak order''.  In pictures, we adopt
+\citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\lt$ as a solid
+arrow, $\xpo$, and $\geN$ dashed, $\xwk$.
 
 We refer to ``memory model pomsets'' as ``{pomsets}''.
 %Note that $\gtN$ is reflexive.
@@ -117,8 +95,8 @@ $\aForm$ when it is a tautology.
 We give the semantics of a program as a set of pomsets, where each pomset
 corresponds to a single execution.  We visualize a pomset as a graph where
 the nodes are drawn from $\Event$, each node $\aEv$ is labeled with
-$\labeling(\aEv)$, and the orders are drawn with \citeauthor
-{DBLP:journals/dc/Lamport86}'s notation.
+$\labeling(\aEv)$, and the orders are drawn with
+\citeauthor{DBLP:journals/dc/Lamport86}'s notation.
 % For example:
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{rx1}{a}{}
@@ -256,13 +234,13 @@ conflicting events.  For example, consider:
 % tautologies; \citeauthor{2019-sp} use such events to model the influence of
 % ``unexecuted'' conditional code on executed code, as found in Spectre.
 \[
-  \IF{x\EQ1}\THEN r\GETS x \FI
+  r\GETS x \SEMI\FENCE\SEMI s\GETS x
   \PAR
   x\GETS 1
   \PAR
   x\GETS2
   \PAR
-  \IF{x\EQ2}\THEN s\GETS x \FI
+  r\GETS x \SEMI\FENCE\SEMI s\GETS x
 \]
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
