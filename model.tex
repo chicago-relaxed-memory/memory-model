@@ -48,12 +48,15 @@ semantics, and work through a series of illustrative examples.  We present
 precise details of the semantics in \textsection\ref{sec:model}.
 
 Let $\Act$ be a set of \emph{actions}, that includes actions of the form
-$(\DR{\aLoc}{\aVal})$, which reads value $\aVal$ from location $\aLoc$,
-$(\DRAcq{\aLoc}{\aVal})$, which is an acquire that reads $\aVal$ from
-$\aLoc$, $(\DW{\aLoc}{\aVal})$, which writes $\aVal$ to $\aLoc$, and
-$(\DWRel{\aLoc}{\aVal})$, which is a release that writes $\aVal$ to $\aLoc$.
-Actions that acquire or release are \emph{synchronizations}, other actions
-are \emph{relaxed}.
+$(\DR{\aLoc}{\aVal})$, which \emph{reads} value $\aVal$ from location
+$\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an \emph{acquire} that reads
+$\aVal$ from $\aLoc$, $(\DW{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
+$\aLoc$, $(\DWRel{\aLoc}{\aVal})$, which is a \emph{release} that writes
+$\aVal$ to $\aLoc$, and $(\DF{})$, which is a acquire-release \emph{fence}.
+Actions that neither acquire nor release are \emph{relaxed}; other actions
+are \emph{synchronizations}\footnote{Fences have a limited role in our
+  discussion.  We inappropriately refer to them as synchronizations for
+  simplicity.}.
 
 Let $\Formulae$ be a set of logical formula, such as $(\aLoc=1)$ or
 $(\aReg=\bReg+1)$, where $\aReg$ and $\bReg$ are register names.
@@ -97,21 +100,25 @@ subject to substitution.
     $\labelingForm(\bEv)$. \hfill (Causal-strengthening)
   \end{itemize}
 \end{definition}
-The axioms for $\gtN$ are from~\citet{DBLP:journals/dc/Lamport86}.
-The last two requirements are new.
+The axioms for $\gtN$ are adapted
+from~\citet[A1--A3]{DBLP:journals/dc/Lamport86}.  The last two requirements
+are new.  We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$, and
+similarly for $\gtN$.  \citeauthor {DBLP:journals/dc/Lamport86} writes $\lt$
+as $\xpo$ and pronounces it as ``precedes''; we also refer to $\lt$ as
+``strong order''.  \citeauthor {DBLP:journals/dc/Lamport86} writes $\geN$ as
+$\xwk$ and pronounces it as ``can affect''; given our additional acyclicity
+requirement, we also refer to $\geN$ as ``weak order''.
 
 We refer to ``memory model pomsets'' as ``{pomsets}''.
 %Note that $\gtN$ is reflexive.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
-$\aForm$ when it is a tautology.  We write $\bEv\lt\aEv$ when $\bEv\le\aEv$
-and $\bEv\neq\aEv$, and similarly for $\gtN$.
+$\aForm$ when it is a tautology.  
 
 We give the semantics of a program as a set of pomsets, where each pomset
-corresponds to a single execution.
-We visualize a pomset as a graph where the nodes are drawn from $\Event$,
-each node $\aEv$ is labeled with $\labeling(\aEv)$.
-We visualize $(\bEv \lt \aEv)$ as a \emph{strong edge},  $\bEv \xpo \aEv$.
-We visualize$(\bEv \geN \aEv)$ as a \emph{weak edge},  $\bEv \xwk \aEv$.
+corresponds to a single execution.  We visualize a pomset as a graph where
+the nodes are drawn from $\Event$, each node $\aEv$ is labeled with
+$\labeling(\aEv)$, and the orders are drawn with \citeauthor
+{DBLP:journals/dc/Lamport86}'s notation.
 % For example:
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{rx1}{a}{}
@@ -289,6 +296,41 @@ multi-thread
 
 TODO
 \begin{itemize}
+\item lamport a4:
+  if $\bEv\lt\bEv'\geN\aEv'\lt\aEv$ then $\bEv\lt\aEv$.
+  \begin{displaymath}
+    y\GETS 1
+    \PAR
+    x\GETS 1\SEMI
+    x\GETS 2\SEMI
+    \FENCE\SEMI
+    \aReg\GETS y
+    \PAR
+    y\GETS 2\SEMI
+    \FENCE\SEMI
+    \bReg\GETS x
+  \end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{a2}{\DW{x}{2}}{right=of a1}
+  \po{a1}{a2}
+  %\event{a3}{\DF{}}{right=of a2}
+  %\po{a2}{a3}
+  \event{a4}{\DR{y}{1}}{right=of a2}
+  \po{a2}{a4}
+  %
+  \event{b1}{\DW{y}{2}}{below=of a4}
+  %\event{b2}{\DF{}}{left=of b1}
+  %\po{b1}{b2}
+  \event{b3}{\DR{x}{1}}{left=of b1}
+  \po{b1}{b3}
+  \wk{a4}{b1}
+  %
+  \event{c1}{\DW{y}{1}}{above=of a4}
+  \po{c1}{a4}
+  \rf{a1}{b3}
+  \wk{b3}{a2}
+\end{tikzdisplay}
 \item IRIW variants
 \item TAR1 variants 1 and 2
 \item memory calculations example from alan
@@ -1032,8 +1074,6 @@ We end this section with the following lemma, which is immediate from the defini
 \subsection{Semantics of programs}
 \label{sec:semantics}
 
-We consider a simple shared-memory concurrent language, with statements
-defined as follows.
 
 \begin{comment}
 \footnote{We only consider executions where register state is empty in
@@ -1051,7 +1091,6 @@ defined as follows.
   where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
   in drawings, we often drop the explicit fence.}.
 \end{comment}
-
 % \begin{align*}
 % \aCmd,\,\bCmd
 % \BNFDEF& \SKIP \tag{No Operation}
@@ -1064,6 +1103,10 @@ defined as follows.
 % \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
 % \end{align*}
+
+
+We consider a simple shared-memory concurrent language, with statements
+defined as follows.
 \begin{align*}
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
@@ -1093,14 +1136,17 @@ $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 
 % In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
 % \begin{figure*}
-The semantics of programs is as follows:
+The semantics of programs is as follows\footnote{Fork parallelism is easily expressible in this
+  framework:
+  $\sem{\aCmd \LPAR \bCmd} = \sem{\aCmd} \parallel \Loc \guard
+  \sem{\bCmd}$.}:
 \allowdisplaybreaks
 \begin{align*}
   \sem{\SKIP} & =
   \{ \emptyset \}
   \\
   \sem{\aCmd \PAR \bCmd} & =
-  \sem{\aCmd} \parallel \Loc \guard \sem{\bCmd} 
+  \Loc \guard \sem{\aCmd} \parallel \Loc \guard \sem{\bCmd} 
   \\
   \sem{\VAR\aLoc\SEMI \aCmd} & =
   \nu \aLoc \st \sem{\aCmd}

@@ -181,7 +181,7 @@
 \newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
 \newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DF}[1]{\mathsf{F}_{#1}}
+\newcommand{\DF}[1][\mathsf{acqrel}]{\mathsf{F}^{#1}}
 \newcommand{\iDRAcq}[2]{\mathsf{\tau ^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\iDWRel}[2]{\mathsf{\tau ^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\iDR}[2]{\mathsf{\tau }\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
@@ -262,8 +262,8 @@
 \newcommand{\brELSE}{\texttt{\}}\\\texttt{else}\,\texttt{\{}}
 \newcommand{\brELIF}[1]{\texttt{\}}\\\texttt{else}\,\IF{#1}}
 \newcommand{\FI}{\texttt{\}}}
-%\newcommand{\PAR}{\,\mathbin{\|}\,}
-\newcommand{\PAR}{\,\mathbin{\rrceil}\,}
+\newcommand{\PAR}{\,\mathbin{\|}\,}
+\newcommand{\LPAR}{\,\mathbin{\rrceil}\,}
 \newcommand{\VAR}{\texttt{var}\,}
 \newcommand{\TOUCHED}{\texttt{touched}\,}
 \newcommand{\REF}[1]{\texttt{[}#1\texttt{]}}
