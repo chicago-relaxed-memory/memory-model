@@ -201,7 +201,7 @@ definition of fulfillment in terms of $\le$ does not enjoy this property.)
 
 \begin{definition}
   \label{def:rf}
-  We say that $\bEv$ \emph{fulfills $\aLoc$ on} $\aEv$ if $\bEv$ writes
+  We say that $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ writes
   $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
   \begin{itemize}
   \item $\bEv \lt \aEv$, and
@@ -767,11 +767,18 @@ behavior.
 
 The dependency calculation in this example is interesting.  Desugaring, the
 first thread is $\aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$.
-In isolation, the write action is $(\bReg=1\mid\DW{x}{1})$.  As in the
-discussion of execution \eqref{m1}, the strong order from $(\DWRel{y}{1})$
-allows the precondition to be weakened to $1=1$, which is a tautology.
+In isolation, the write action is $(\bReg=1\mid\DW{x}{1})$.  Following the
+discussion of execution \eqref{m1}, $\bReg\GETS \REF{\aReg}$ causes the
+precondition to become $\REF{\aReg}=1$; subsequently prefixing with
+$(\aReg=2\mid\DR{\REF{2}}{1})$, this can be weakened to $1=1$ by the
+substitution of $1$ for $\REF{2}$.  But the precondition is also constrained
+by the last clause of the Definition~\ref{def:mmpomset}:
+ if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$.
+%
+Thus the we arrive at the label $(\aReg=2\mid\DW{x}{1})$.  Subsequently,
+$\aReg\GETS y$ transforms the precondition to $y=2$ and prefixing $\DR{y}{2}$
+allows this to be weakened to $2=2$.
 
-\textcolor{red}{TODO: show how dependency calculated}
 % if $\bEv\lt\bEv'\geN\aEv'\lt\aEv$ then $\bEv\lt\aEv$.
 %   \begin{displaymath}
 %     y\GETS 1
@@ -809,167 +816,123 @@ allows the precondition to be weakened to $1=1$, which is a tautology.
 % Ie, it does publication by antidependency...
 
 \paragraph{Blockers.}
-\textcolor{red}{TODO: simplify}
+It is tempting simplify the model to use only strong order.  This creates a
+difficulty in defining fulfillment (Definition~\ref{def:rf}).  It is clearly
+too strong to simply replace weak order with strong order in the definition.
+As a consequence of the fact that $\bEv$ fulfills $\aEv$ on $\aLoc$, we would
+have any that $\cEv$ writes $\aLoc$ must be strongly before $\bEv$ or
+strongly after $\aEv$.  This would require the introduction of strong order
+between events with no causal relationship.
 
-Unfortunately by itself, this is not enough. The problem is the final
-clause saying that there does not exist an $\aLoc$-\emph{blocking}
-event $\cEv$ between $\bEv$ and $\aEv$. Unfortunately, concurrency can
-turn events that were not $\aLoc$-blockers into an $\aLoc$-blocker,
-\emph{even if the new thread does not mention $\aLoc$.}
-We give an example to show this in \refapp{blockers}.
-This is a problem in that it means the preliminary model violates
-\emph{scope extrusion}~\cite{Milner:1999:CMS:329902},
-in that we can find programs $\aCmd$ and $\bCmd$ such that
-$\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is not the same as
-$\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
+A more sensible candidate says that in order for $\bEv$ to fulfill $\aEv$ on
+$\aLoc$ there must be no \emph{blocker} $\bEv \lt \cEv \lt \aEv$ that writes
+to $\aLoc$.  However, this definition is not preserved by parallel
+composition.
 
-Recall the preliminary definition of reads-from in \S\ref{sec:pomsets}, which
-defined an $\aLoc$-blocker to be and event $\cEv$ that writes to $\aLoc$ such that
-$\bEv \lt \cEv \lt \aEv$.  Were we to adopt this definition, then concurrent
-threads could turn events that were not $\aLoc$-blockers into an
-$\aLoc$-blocker, even if the new thread does not mention $\aLoc$.
-
-To see this, consider the program
-\begin{math}
-  (
-  \aLoc\GETS1\SEMI
-  \bLoc\GETS\aLoc
+To make the consequences clear, we include location declarations in our
+language, written $\VAR\aLoc\SEMI \aCmd$.  Fulfillment with blockers violates
+\emph{scope extrusion}~\cite{Milner:1999:CMS:329902}, in that we can find
+programs $\aCmd$ and $\bCmd$ such that the semantics
+${\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is different from the semantics of
+${(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
+To see this, consider the program:
+\begin{gather*}
+  \aReg\GETS a\ACQ\SEMI
+  x\GETS1 \SEMI
+  b\GETS\REL 1
   \PAR
-  \aLoc\GETS\cLoc+1\SEMI
-  \bLoc\GETS\aLoc
+  \aReg\GETS c\ACQ\SEMI
+  x\GETS2 \SEMI
+  d\GETS\REL 1
   \PAR
-  \IF{z=2}\THEN\aReg\GETS\aLoc\FI
-  )
-\end{math}
-with execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \rf[out=20,in=160]{wx1}{rx1}
-\end{tikzdisplay}
-and the program
+  \aReg\GETS e\ACQ\SEMI
+  \bReg\GETS x \SEMI
+  f\GETS\REL 1
+  \\[-2ex]
+  \begin{minipage}{1.0\linewidth}
+    \begin{tikzdisplay}[node distance=1em]
+      \event{a1}{\DRAcq{a}{1}}{}
+      \event{a2}{\DW{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DWRel{b}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DRAcq{c}{1}}{right=3em of a3}
+      \event{b2}{\DW{x}{2}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DWRel{d}{1}}{right=of b2}
+      \po{b2}{b3}
+      \event{c1}{\DRAcq{e}{1}}{right=3em of b3}
+      \event{c2}{\DR{x}{1}}{right=of c1}
+      \po{c1}{c2}
+      \event{c3}{\DWRel{f}{1}}{right=of c2}
+      \po{c2}{c3}
+      \rf[out=10,in=170]{a2}{c2}
+    \end{tikzdisplay}
+  \end{minipage}
+\end{gather*}
+In this execution, the read is fulfilled by the first thread; the second
+thread is not blocking.  However, when placed in parallel with
 \begin{math}
-  (
-  \cLoc\GETS\bLoc\SEMI
-  \cLoc\GETS\bLoc
-  )
+  (c\GETS b\SEMI d\GETS e),
 \end{math}
-with execution:
+the second thread may become a blocker:
 \begin{tikzdisplay}[node distance=1em]
-  \event{ry1}{\DR{\bLoc}{1}}{}
-  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
-  \event{ry2}{\DR{\bLoc}{2}}{right=of wz1}
-  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
-  \po{ry1}{wz1}
-  \po{ry2}{wz2}
+  \event{a1}{\DRAcq{a}{1}}{}
+  \event{a2}{\DW{x}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DWRel{b}{1}}{right=of a2}
+  \po{a2}{a3}
+  \event{b1}{\DRAcq{c}{1}}{right=3em of a3}
+  \event{b2}{\DW{x}{2}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DWRel{d}{1}}{right=of b2}
+  \po{b2}{b3}
+  \event{c1}{\DRAcq{e}{1}}{right=3em of b3}
+  \event{c2}{\DR{x}{1}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DWRel{f}{1}}{right=of c2}
+  \po{c2}{c3}
+  \rf[out=10,in=170]{a2}{c2}
+  \event{d1}{\DR{b}{1}}{below=of a3}
+  \rf{a3}{d1}
+  \event{d2}{\DW{c}{1}}{below=of b1}
+  \po{d1}{d2}
+  \rf{d2}{b1}
+  \event{e1}{\DR{d}{1}}{below=of b3}
+  \rf{b3}{e1}
+  \event{e2}{\DW{e}{1}}{below=of c1}
+  \po{e1}{e2}
+  \rf{e2}{c1}
 \end{tikzdisplay}
-If these are placed in parallel, then a possible execution is:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
-  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
-  \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
-  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
-  \po{ry1}{wz1}
-  \po{ry2}{wz2}
-  \rf{wy1}{ry1}
-  \rf{wz1}{rz1}
-  \rf{wy2}{ry2}
-  \rf{wz2}{rz2}
-\end{tikzdisplay}
-and now the $(\DW{\aLoc}{2})$ event is an $\aLoc$-blocker,
-so $(\DR{\aLoc}{1})$ cannot
-read from $(\DW{\aLoc}{1})$.
 
-In the final definition of reads-from in \S\ref{sec:pomsets} we
-ruled out $\aLoc$-blockers by requiring that any
-event $\cEv$ that writes to $\aLoc$ has
-either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-With this definition, in order for $(\DR{\aLoc}{1})$ to read from
-$(\DW{\aLoc}{1})$, we either need $(\DW{\aLoc}{2}) \gtN (\DW{\aLoc}{1})$
-or $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$, for example:
+The use of weak order in the definition of fulfillment splits the difference
+between these extremes.
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \rf[out=20,in=160]{wx1}{rx1}
-  \wk[out=-150,in=-30]{rx1}{wx2}
-  \wk{wy1}{wy2}
+  \event{a1}{\DRAcq{a}{1}}{}
+  \event{a2}{\DW{x}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DWRel{b}{1}}{right=of a2}
+  \po{a2}{a3}
+  \event{b1}{\DRAcq{c}{1}}{right=3em of a3}
+  \event{b2}{\DW{x}{2}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DWRel{d}{1}}{right=of b2}
+  \po{b2}{b3}
+  \event{c1}{\DRAcq{e}{1}}{right=3em of b3}
+  \event{c2}{\DR{x}{1}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DWRel{f}{1}}{right=of c2}
+  \po{c2}{c3}
+  \rf[out=10,in=170]{a2}{c2}
+  \wk[out=200,in=-20]{c2}{b2}
 \end{tikzdisplay}
-then putting this in parallel as before results in:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \rf[out=20,in=160]{wx1}{rx1}
-  \wk[out=-150,in=-30]{rx1}{wx2}
-  \wk{wy1}{wy2}
-  \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
-  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
-  \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
-  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
-  \po{ry1}{wz1}
-  \po{ry2}{wz2}
-  \rf{wy1}{ry1}
-  \rf{wz1}{rz1}
-  \rf{wy2}{ry2}
-  \rf{wz2}{rz2}
-  \wk[out=30,in=150]{wz1}{wz2}
-\end{tikzdisplay}
-but this is \emph{not} a valid 3-valued pomset,
-since $(\DW{\aLoc}{2}) \lt (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
-which is a contradiction.
+The weak order required between the second and third threads stops any
+parallel component from blocking the read.  Yet, this creates no causal
+relation between the threads.
+
+\textcolor{red}{TODO: Is there any example that makes use of this lack of
+  causality?  Or should we just get rid of weak order????}
+
 
 \paragraph{Read from unexecuted branch (\rfub).}
 \begin{comment}
@@ -1074,15 +1037,17 @@ case, the predicate becomes $1\NOTEQ 1$.
 Differences with \cite{2019-sp}:
 \begin{itemize}
 \item We only consider pomsets where $\lt$-greater elements have stronger
-  preconditions (Definition~\ref{def:3pre}).
-\item We only consider pomsets that are coherent (Definition~\ref{def:3pre}).
+  preconditions (Definition~\ref{def:mmpomset}).
+\item We only consider pomsets that are coherent (Definition~\ref{def:mmpomset}).
 \item Prefixing only introduces required order from read to write in item~\ref{pre-read}b (Definition~\ref{def:prefix}).
+\item Prefixing allows writes to weaken preconditions in item~\ref{pre-write} (Definition~\ref{def:prefix}).
 \item We provide semantics for computed addresses of memory locations.
-\item The semantics of relaxed read internal actions.
-\item restriction introduces internal actions.
-\item The semantics of parallel composition is asymmetric.  This ensures that
-  in $\aCmd;(\bCmd_1\PAR\bCmd_2)$, $\bCmd_1$ may read internally from $\aCmd$,
-  but all reads in $\bCmd_2$ must be explicit.
+\item The semantics of relaxed read introduces internal actions.
+\item Restriction introduces internal actions.
+\item The semantics of parallel composition requires that the constituent
+  pomsets be location independent.  This ensures that in
+  $\aCmd;(\bCmd_1\PAR\bCmd_2)$, that there are no internal reads from any
+  write in $\aCmd$ to any read in any $\bCmd_i$.
 \end{itemize}
 
 
