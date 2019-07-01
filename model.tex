@@ -1522,11 +1522,13 @@ there is $\aPS\in\aPSS$ such that:
 %    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
 \item\label{pre-nowrite} if $\aAct$ is neither reads nor writes, then $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$,
-\item\label{pre-write} if $\aAct$ writes $\aVal$ from $\aLoc$ then either
-  \begin{enumerate}
-  \item[(\ref{pre-write}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, or
-  \item[(\ref{pre-write}b)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-  \end{enumerate}
+\item\label{pre-write} if $\aAct$ writes $\aVal$ from $\aLoc$ then
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+  % either
+  % \begin{enumerate}
+  % \item[(\ref{pre-write}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, or
+  % \item[(\ref{pre-write}b)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+  % \end{enumerate}
 \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then both
   \begin{enumerate}
   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
