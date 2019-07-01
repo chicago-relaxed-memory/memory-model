@@ -409,7 +409,7 @@ location.
   \graypo{a3}{a4}
   \event{b1}{\DR{z}{1}}{below=of a3}
   \event{b2}{\DW{x}{1}}{left=of b1}
-  \po[out=10,in=170]{a2}{a4}
+  %\po[out=10,in=170]{a2}{a4}
   \po{b1}{b2}
   \rf{a4}{b1}
   \rf{b2}{a1}
@@ -443,7 +443,8 @@ Prefixing $\bReg\GETS y$ transforms the precondition to $y=1$.  As in the
 discussion of execution \eqref{m1}, the strong order from $(\DWRel{y}{1})$
 allows the precondition $y=1$ to be weakened to $1=1$, which is a tautology.
 Note that both write prefixing and read prefixing enable precondition
-weakening.
+weakening.  Only read prefixing imposes strong order; there is no order a
+the prefixed write to any subsequent action.
 
 Here is an example which uses a cycle in weak order rather than strong order.
 %We also use a fence (not drawn) rather than an acquire or release:
