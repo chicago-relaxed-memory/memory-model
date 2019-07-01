@@ -441,8 +441,9 @@ $(\bReg=1\mid \DW{z}{1})$. The precondition is discharged internally by the
 write of $y=1$ without an externally visible dependency to an explicit read:
 Prefixing $\bReg\GETS y$ transforms the precondition to $y=1$.  As in the
 discussion of execution \eqref{m1}, the strong order from $(\DWRel{y}{1})$
-allows the precondition to be weakened to $1=1$, which is a tautology.
-
+allows the precondition $y=1$ to be weakened to $1=1$, which is a tautology.
+Note that both write prefixing and read prefixing enable precondition
+weakening.
 
 Here is an example which uses a cycle in weak order rather than strong order.
 %We also use a fence (not drawn) rather than an acquire or release:
@@ -761,6 +762,12 @@ with attempted execution:
 Although there is no order enforced between the reads, the read-to-write
 order induced by the semantics is sufficient to prohibit this thin-air
 behavior.
+
+The dependency calculation in this example is interesting.  Desugaring, the
+first thread is $\aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$.
+In isolation, the write action is $(\bReg=1\mid\DW{x}{1})$.  As in the
+discussion of execution \eqref{m1}, the strong order from $(\DWRel{y}{1})$
+allows the precondition to be weakened to $1=1$, which is a tautology.
 
 \textcolor{red}{TODO: show how dependency calculated}
 % if $\bEv\lt\bEv'\geN\aEv'\lt\aEv$ then $\bEv\lt\aEv$.
@@ -1513,9 +1520,9 @@ there is $\aPS\in\aPSS$ such that:
 %   $\aAct$ is a read and if $\aEv$ is a write then $\cEv\lt'\aEv$,
 % \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
 %    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
-\item\label{pre-write} if $\aAct$ is not a read, then $\labelingForm'(\aEv)$
+\item\label{pre-write} if $\aAct$ is neither reads nor writes, then $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$,
-\item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
+\item\label{pre-read} if $\aAct$ reads or writes $\aVal$ from $\aLoc$ then
   \begin{enumerate}
   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
   \item[(\ref{pre-read}b)] if $\aEv$ is a write then either $\cEv\lt'\aEv$
