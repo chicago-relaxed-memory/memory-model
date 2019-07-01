@@ -1,248 +1,682 @@
-\section{Examples}
+\section{Causality test cases}
 \label{sec:examples}
 
-\subsection{RFUB}
-\url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1217r0.html}
+
+\citet{PughWebsite} developed a set of twenty {causality test cases} in the
+process of revising the Java Memory Model (JMM)
+\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
+confirmed that our model gives the desired result for all twenty cases,
+unrolling loops as necessary.  Our model also gives the desired results for
+all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
+all but one in \citet[\textsection 5.3]{SevcikThesis}:
+redundant-write-after-read-elimination fails for any
+sensible non-coherent semantics.  Our model agrees with the JMM on the
+``surprising and controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
+inlining.
+
+In this section, we discuss three of the causality test cases and the thread
+inlining from \cite{Manson:2005:JMM:1047659.1040336}.  In presenting the
+examples, we unroll loops, correct typos and simplify the code.  
+
+\subsection{Causality test case 8}
+
+Test case 8 asks whether:
+\begin{displaymath}
+  \VAR x\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI
+  (\IF{x<2}\THEN y\GETS 1\FI 
+  \PAR
+  x\GETS y)
+\end{displaymath}
+may read $1$ for both $x$ and $y$.  This behavior is allowed, since
+``interthread analysis could determine that $x$ and $y$ are always either $0$
+or $1$.''  This breaks the dependency between the read of $x$ and the write
+to $y$ in the first thread, allowing the write to be moved earlier.
+
+The semantics of TC8 includes
+\begin{tikzdisplay}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx1}{\DR{x}{1}}{right=2.1em of iy}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=2.1em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \po{ry1}{wx1}
+  %\po[out=30,in=150]{ix}{rx1}
+  \rf[in=-25,out=-160]{wx1}{rx1}
+  \rf[out=20,in=160]{wy1}{ry1}
+  \wk[out=-25,in=-150]{ix}{wx1}
+  \wk[out=25,in=155]{iy}{wy1}
+\end{tikzdisplay}
+Where we require $(\DW{x}{0})\lt(\DR{x}{1})$ but not $(\DR{x}{1})\lt(\DW{y}{1})$.
+To see why this execution exists, consider the left thread with syntax sugar
+removed:
+\begin{displaymath}
+  r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI
+\end{displaymath}
+\begin{math}
+  \sem{\IF{r<2}\THEN y\GETS 1\FI}
+\end{math}
+includes
+\begin{math}
+  (r<2\mid\DW{y}{1}).
+\end{math}
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wy1}{r<2\mid\DW{y}{1}}{}
+% \end{tikzdisplay}
+Thus, by the definition of prefixing read,
+\begin{math}
+  \sem{r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI}
+\end{math}
+includes
+\begin{math}
+  (\DR{x}{1}) \prefix (r<2\mid\DW{y}{1})[x/r]
+\end{math}
+which simplifies to
+\begin{math}
+  (\DR{x}{1}) \prefix (x<2\mid\DW{y}{1}),
+\end{math}
+which, by Definition~\ref{def:prefix}, includes:
+\begin{tikzdisplay}[node distance=1em,baselinecenter]
+    \event{rx1}{\DR{x}{1}}{}
+    \event{wy1}{x<2\mid\DW{y}{1}}{right=of rx1}
+  \end{tikzdisplay}
+% Here we have used the \textsc{[non-ordering read]} clause of Definition~\ref{def:prefix}:
+% ``$\bForm'$ implies $\bForm[\aVal/\aLoc] \land \bForm$, if $\aAct$ reads $\aVal$ from $\aLoc$,''
+% where $a=(\DR{x}{1})$,  $\bForm=\bForm'=(x<2)$.  We can use this case since
+% $x<2$ implies $1<2\land x<2$.
+
+Prefixing with $(\DW{x}{0})$ allows us to discharge the assumption $x<2$,
+arriving at:
+\begin{tikzdisplay}[node distance=1em,baselinecenter]
+    \event{ix}{\DW{x}{0}}{}
+    \event{rx1}{\DR{x}{1}}{right=of ix}
+    \event{wy1}{\DW{y}{1}}{right=of rx1}
+    %\po{ix}{rx1}
+  \end{tikzdisplay}
+% Here we have used the \textsc{[ordering read]}
+% clause of \ref{def:prefix}:
+% ``$\bForm'$ implies $\bForm[\aVal/\aLoc]$, if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$,''
+% where $a=(\DW{x}{0})$,  $\bForm=(x<2)$ and $\bForm'=\TRUE$.  As long as
+% require
+% \begin{math}
+%   (\DW{x}{0})\lt
+%   (\DR{x}{1}),
+% \end{math}
+% we can use this case since $\TRUE$ implies $0<2$.
+
+\subsection{Causality test case 9}
+
+Test case 9 asks whether:
+\begin{displaymath}
+  \VAR x\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI
+  (\IF{x<2}\THEN y\GETS 1\FI 
+  \PAR
+  x\GETS y
+  \PAR
+  y\GETS 2\SEMI)
+\end{displaymath}
+may read $1$ for both $x$ and $y$.  This behavior is also allowed.  This is
+``similar to test case $8$, except that $x$ is not always $0$ or
+$1$. However, a compiler might determine that the read of $x$ by thread $1$
+will never see the write by thread $3$ (perhaps because thread $3$ will be
+scheduled after thread $1$)''
+
+Reasoning as for test case 8, the semantics of test case 9 includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{ix}{\DW{x}{0}}{}
+  \event{iy}{\DW{y}{0}}{right=of ix}
+  \event{rx1}{\DR{x}{1}}{right=2.2 em of iy}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=2.2em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wx2}{\DW{x}{2}}{below=3ex of $(ix)!0.5!(iy)$}%{right=2.5em of wx1}
+  \po{ry1}{wx1}
+  \po[out=30,in=150]{ix}{rx1}
+  \rf[in=-25,out=-160]{wx1}{rx1}
+  \rf[out=20,in=160]{wy1}{ry1}
+  \wk[out=-25,in=-150]{ix}{wx1}
+  \wk[out=25,in=155]{iy}{wy1}
+  \wk{ix}{wx2}
+  % \wk[out=-25,in=-150]{ix}{wx2}
+\end{tikzdisplay}
+
+Thus, with respect to the introduction of new threads, our model appears to
+be more robust than the event structures semantics of
+\cite{DBLP:conf/lics/JeffreyR16}, which fails on this test case.
+
+\subsection{Causality test case 14}
+
+Test case 14 asks whether:
+\begin{displaymath}
+  \VAR a\GETS 0\SEMI
+  \VAR b\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI
+  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  \PAR
+  \WHILE(y+b==0) \THEN\SKIP\FI\; a\GETS1)
+\end{displaymath}
+may read $1$ for $a$ and $b$, yet $0$ for $y$.  Here $a$ and $b$ are regular
+variables and $y$ is volatile, which is equivalent to release/acquire in this
+example.  This behavior is also disallowed, since ``in all sequentially
+consistent executions, [the read of $a$ gets $0$] and the program is
+correctly synchronized. Since the program is correctly synchronized in all SC
+executions, no non-SC behaviors are allowed.''
+
+Unrolling the loop once, we have:
+\begin{displaymath}
+  \VAR a\GETS 0\SEMI
+  \VAR b\GETS 0\SEMI
+  \VAR y\GETS 0\SEMI
+  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
+  \PAR
+  \IF{y\lor b}\THEN a\GETS 1\FI)
+\end{displaymath}
+We argue that any execution with $(\DR{a}{1})$, $(\DR{b}{1})$, and
+$(\DR{y}{0})$ must be cyclic.  The closure requirements require that
+\begin{math}
+  (\DW{a}{1})\lt(\DR{a}{1})
+  \;\text{and}\;
+  (\DR{b}{1})\lt(\DR{b}{1}).
+\end{math}
+Ignoring initialization, least ordered execution that includes all of these
+actions is:
+\begin{tikzdisplay}[node distance=1em]
+  \event{ra1}{\DR{a}{1}}{}
+  \event{wb1}{\DW{b}{1}}{below=of ra1}
+  \nonevent{wy1}{\DW{y}{1}}{left=of wb1}
+  \event{rb1}{\DR{b}{1}}{right=4.5em of ra1}
+  \event{ry0}{\DR{y}{0}}{right=of rb1}
+  \event{wa1}{\DW{a}{1}}{below=of rb1}
+  \po{ra1}{wb1}
+  \po{rb1}{wa1}
+  \rf{wa1}{ra1}
+  \rf{wb1}{rb1}
+\end{tikzdisplay}
+where the read of $a$ is ordering for $(\DW{b}{1})$ but
+not $(\DW{y}{1})$, and the read of $b$ is ordering for $(\DW{a}{1})$ but the
+read of $y$ is not.  $(\DW{y}{1})$ is crossed out, since its
+precondition must imply $(\lnot a)[1/a]$, which is equivalent to $\FALSE$.
+To avoid order from $(\DR{y}{0})$ to $(\DW{a}{1})$, we
+have strengthened the predicate on $(\DW{a}{1})$ from $(y\lor b)$ to
+$(y=0\land b=1)$.  Note that we cannot use this trick symmetrically to remove
+the order from $(\DR{b}{1})$ to $(\DW{a}{1})$, since $b=1$ does not follow
+from the initialization of $b$.
+
+
+\subsection{Thread inlining}
+
+One property one could ask of a model of shared memory is thread
+inlining: any execution of $\sem{P\SEMI Q}$ is an execution of $\sem{P
+  \PAR Q}$. This is \emph{not} a goal of our model, and indeed is not
+satisfied, due to the different semantics of concurrent and sequential
+memory accesses. We demonstrate this by considering an example from
+the Java Memory Model~\cite{Manson:2005:JMM:1047659.1040336}, which shows that Java does not
+satisfy thread inlining either.
+
+The lack of thread inlining is related to the different dependency
+relations introduced by sequential and concurrent access.
+The program
+\verb`(x := 0; y := x+1;)` has execution:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy1}{\DW{y}{1}}{right=of wx0}
+\end{tikzdisplay}
+but \verb`(x := 1; || y := x+1;)` has:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+  \event{wy2}{\DW{y}{2}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \po{rx1}{wy2}
+\end{tikzdisplay}
+That is, in the sequential case there is no dependency from the
+write of $x$ to the write of $y$, but in the concurrent case there
+is such a dependency.
+
+This can be used to construct a counter-example to thread inlining, based on~\cite[Ex~11]{Manson:2005:JMM:1047659.1040336}:
 \begin{verbatim}
-RFUB Example 1
-Thread 1:	                        
-r1 = x.load(memory_order_relaxed);
-y.store(r1, memory_order_relaxed);	
-
-Thread 2:
-bool assigned_42(false);
-r1 = y.load(memory_order_relaxed);
-if (r1 != 42) {
-    assigned_42 = true;
-    r1 = 42;
-}
-x.store(r1, memory_order_relaxed);
-assert_not(assigned_42);
+  x := 0; if (x == 1) { z := 1; } else { x := 1; } || y := x; || x := y;
 \end{verbatim}
-
-Then
-\begin{math}
-  y\GETS x
-  \PAR
-  r\GETS y\SEMI
-  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\SEMI x\GETS r \ELSE x\GETS r \FI
-\end{math}
-has execution
-\begin{equationsmall}
-  \label{rfub}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{below=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Biggm\|
-  \DR{y}{1}
-  \prefix
-  \left(
-    \begin{tikzcenter}[node distance=1em]
-      \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{below=of b1}
-    \end{tikzcenter}
-    \biggm\|
-    \begin{tikzcenter}[node distance=1em]
-      \event{c1}{r\EQ1\mid\DW{x}{1}}{}
-    \end{tikzcenter}
-  \right)
-\end{equationsmall}
-With an internal read of $y$, we have
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{below=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Biggm\|
-    \begin{tikzcenter}[node distance=1em]
-      \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{below=of b1}
-    \end{tikzcenter}
-\end{displaymathsmall}
-but the precondition $y\NOTEQ1$ cannot be satisfied locally.
-With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
-case, the predicate becomes $1\NOTEQ 1$. 
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{below=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Bigm\|  
-    \begin{tikzcenter}[node distance=1em]
-      \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{below=of b1}
-      \event{b0}{\DR{y}{1}}{left=of b1}
-      \po{b0}{b1}
-    \end{tikzcenter}
-\end{displaymathsmall}
-
-
-\subsection{Blockers}
-\label{app:blockers}
-
-Unfortunately by itself, this is not enough. The problem is the final
-clause saying that there does not exist an $\aLoc$-\emph{blocking}
-event $\cEv$ between $\bEv$ and $\aEv$. Unfortunately, concurrency can
-turn events that were not $\aLoc$-blockers into an $\aLoc$-blocker,
-\emph{even if the new thread does not mention $\aLoc$.}
-We give an example to show this in \refapp{blockers}.
-This is a problem in that it means the preliminary model violates
-\emph{scope extrusion}~\cite{Milner:1999:CMS:329902},
-in that we can find programs $\aCmd$ and $\bCmd$ such that
-$\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is not the same as
-$\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
-
-Recall the preliminary definition of reads-from in \S\ref{sec:pomsets}, which
-defined an $\aLoc$-blocker to be and event $\cEv$ that writes to $\aLoc$ such that
-$\bEv \lt \cEv \lt \aEv$.  Were we to adopt this definition, then concurrent
-threads could turn events that were not $\aLoc$-blockers into an
-$\aLoc$-blocker, even if the new thread does not mention $\aLoc$.
-
-To see this, consider the program
-\begin{math}
-  (
-  \aLoc\GETS1\SEMI
-  \bLoc\GETS\aLoc
-  \PAR
-  \aLoc\GETS\cLoc+1\SEMI
-  \bLoc\GETS\aLoc
-  \PAR
-  \IF{z=2}\THEN\aReg\GETS\aLoc\FI
-  )
-\end{math}
+This has no execution containing $(\DW z1)$. Any attempt to build such an execution
+results in a cycle:
+\begin{tikzdisplay}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{\DW{z}{1}}{right=of rx1a}
+  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+  \event{rx1b}{\DR{x}{1}}{below=of wx1a}%{right=2.5em of wx1a}
+  \event{wy1}{\DW{y}{1}}{right=of rx1b}
+  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+  \event{wx1b}{\DW{x}{1}}{right=of ry1}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+  \po{rx1b}{wy1}
+  \po{ry1}{wx1b}
+  \rf{wy1}{ry1}
+  \rf[out=160, in=30]{wx1b}{rx1a}
+  \rf[out=160, in=30]{wx1b}{rx1b}
+\end{tikzdisplay}
+Inlining the thread \verb|(y := x)| gives~\cite[Ex~12]{Manson:2005:JMM:1047659.1040336}:
+\begin{verbatim}
+  x := 0; if (x == 1) { z := 1; } else { x := 1; } y := x; || x := y;
+\end{verbatim}
 with execution:
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \rf[out=20,in=160]{wx1}{rx1}
-\end{tikzdisplay}
-and the program
-\begin{math}
-  (
-  \cLoc\GETS\bLoc\SEMI
-  \cLoc\GETS\bLoc
-  )
-\end{math}
-with execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{ry1}{\DR{\bLoc}{1}}{}
-  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
-  \event{ry2}{\DR{\bLoc}{2}}{right=of wz1}
-  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
-  \po{ry1}{wz1}
-  \po{ry2}{wz2}
-\end{tikzdisplay}
-If these are placed in parallel, then a possible execution is:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
-  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
-  \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
-  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
-  \po{ry1}{wz1}
-  \po{ry2}{wz2}
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{\DW{z}{1}}{right=of rx1a}
+  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+  \event{wx1b}{\DW{x}{1}}{right=of ry1}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+  \po{ry1}{wx1b}
   \rf{wy1}{ry1}
-  \rf{wz1}{rz1}
-  \rf{wy2}{ry2}
-  \rf{wz2}{rz2}
+  \rf[out=160, in=30]{wx1b}{rx1a}
 \end{tikzdisplay}
-and now the $(\DW{\aLoc}{2})$ event is an $\aLoc$-blocker,
-so $(\DR{\aLoc}{1})$ cannot
-read from $(\DW{\aLoc}{1})$.
+To see why this execution exists, consider the program fragment:
+\begin{verbatim}
+  if (x == 1) { z := 1; } else { x := 1; } y := x;
+\end{verbatim}
+Removing the syntax sugar, this is:
+\begin{verbatim}
+  r1 := x; if (r1 == 1) {
+    z := 1; r2 := x; y := r2; skip
+  } else {
+    x := 1; r3 := x; y := r3; skip
+  }
+\end{verbatim}
+Now, $\sem{z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP}$
+includes pomset:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
+  \event{wy1}{r_1=x=1 \mid \DW{y}{1}}{right=of wz1}
+\end{tikzdisplay}
+and $\sem{x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP}$
+includes pomset:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
+  \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
+\end{tikzdisplay}
+so  $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
+  \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
+\end{tikzdisplay}
+which means $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wz1}{x=1 \mid \DW{z}{1}}{}
+  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{(x=x=1) \lor (x\neq1)) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}%{right=of wx1a}
+\end{tikzdisplay}
+Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wz1}{x=1 \mid \DW{z}{1}}{}
+  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+\end{tikzdisplay}
+and so $\sem{r_1 \GETS x\SEMI \IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
+  \event{wx1a}{1\neq1 \mid \DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+\end{tikzdisplay}
+which simplifies to:
+\begin{tikzdisplay}[node distance=1em]
+  \event{rx1a}{\DR{x}{1}}{}
+  \event{wz1}{\DW{z}{1}}{right=of rx1a}
+  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+  \event{wy1}{\DW{y}{1}}{right=of wx1a}
+  \po{rx1a}{wz1}
+  \po[out=25, in=150]{rx1a}{wx1a}
+\end{tikzdisplay}
+as required. The rest of the example is straightforward, and shows that our semantics
+agrees with the JMM in not supporting thread inlining.
 
-In the final definition of reads-from in \S\ref{sec:pomsets} we
-ruled out $\aLoc$-blockers by requiring that any
-event $\cEv$ that writes to $\aLoc$ has
-either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-With this definition, in order for $(\DR{\aLoc}{1})$ to read from
-$(\DW{\aLoc}{1})$, we either need $(\DW{\aLoc}{2}) \gtN (\DW{\aLoc}{1})$
-or $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$, for example:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \rf[out=20,in=160]{wx1}{rx1}
-  \wk[out=-150,in=-30]{rx1}{wx2}
-  \wk{wy1}{wy2}
-\end{tikzdisplay}
-then putting this in parallel as before results in:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{\aLoc}{1}}{}
-  \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
-  \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
-  \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
-  \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
-  \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
-  \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
-  \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
-  \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
-  \rf{wx1}{rx1a}
-  \po{rx1a}{wy1}
-  \rf{wx2}{rx2a}
-  \po{rx2a}{wy2}
-  \po{rz1}{wx2}
-  \po{rz2}{rx1}
-  \rf[out=20,in=160]{wx1}{rx1}
-  \wk[out=-150,in=-30]{rx1}{wx2}
-  \wk{wy1}{wy2}
-  \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
-  \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
-  \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
-  \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
-  \po{ry1}{wz1}
-  \po{ry2}{wz2}
-  \rf{wy1}{ry1}
-  \rf{wz1}{rz1}
-  \rf{wy2}{ry2}
-  \rf{wz2}{rz2}
-  \wk[out=30,in=150]{wz1}{wz2}
-\end{tikzdisplay}
-but this is \emph{not} a valid 3-valued pomset,
-since $(\DW{\aLoc}{2}) \lt (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
-which is a contradiction.
+% \subsection{RFUB}
+% \url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1217r0.html}
+% \begin{verbatim}
+% RFUB Example 1
+% Thread 1:	                        
+% r1 = x.load(memory_order_relaxed);
+% y.store(r1, memory_order_relaxed);	
+
+% Thread 2:
+% bool assigned_42(false);
+% r1 = y.load(memory_order_relaxed);
+% if (r1 != 42) {
+%     assigned_42 = true;
+%     r1 = 42;
+% }
+% x.store(r1, memory_order_relaxed);
+% assert_not(assigned_42);
+% \end{verbatim}
+
+% Then
+% \begin{math}
+%   y\GETS x
+%   \PAR
+%   r\GETS y\SEMI
+%   \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\SEMI x\GETS r \ELSE x\GETS r \FI
+% \end{math}
+% has execution
+% \begin{equationsmall}
+%   \label{rfub}
+%   \begin{tikzcenter}[node distance=1em]
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DW{y}{1}}{below=of a1}
+%     \po{a1}{a2}
+%   \end{tikzcenter}
+%   \Biggm\|
+%   \DR{y}{1}
+%   \prefix
+%   \left(
+%     \begin{tikzcenter}[node distance=1em]
+%       \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
+%       \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{below=of b1}
+%     \end{tikzcenter}
+%     \biggm\|
+%     \begin{tikzcenter}[node distance=1em]
+%       \event{c1}{r\EQ1\mid\DW{x}{1}}{}
+%     \end{tikzcenter}
+%   \right)
+% \end{equationsmall}
+% With an internal read of $y$, we have
+% \begin{displaymathsmall}
+%   \begin{tikzcenter}[node distance=1em]
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DW{y}{1}}{below=of a1}
+%     \po{a1}{a2}
+%   \end{tikzcenter}
+%   \Biggm\|
+%     \begin{tikzcenter}[node distance=1em]
+%       \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
+%       \event{b2}{\DW{x}{1}}{below=of b1}
+%     \end{tikzcenter}
+% \end{displaymathsmall}
+% but the precondition $y\NOTEQ1$ cannot be satisfied locally.
+% With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
+% case, the predicate becomes $1\NOTEQ 1$. 
+% \begin{displaymathsmall}
+%   \begin{tikzcenter}[node distance=1em]
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DW{y}{1}}{below=of a1}
+%     \po{a1}{a2}
+%   \end{tikzcenter}
+%   \Bigm\|  
+%     \begin{tikzcenter}[node distance=1em]
+%       \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
+%       \event{b2}{\DW{x}{1}}{below=of b1}
+%       \event{b0}{\DR{y}{1}}{left=of b1}
+%       \po{b0}{b1}
+%     \end{tikzcenter}
+% \end{displaymathsmall}
+
+
+% \subsection{Blockers}
+% \label{app:blockers}
+
+% Unfortunately by itself, this is not enough. The problem is the final
+% clause saying that there does not exist an $\aLoc$-\emph{blocking}
+% event $\cEv$ between $\bEv$ and $\aEv$. Unfortunately, concurrency can
+% turn events that were not $\aLoc$-blockers into an $\aLoc$-blocker,
+% \emph{even if the new thread does not mention $\aLoc$.}
+% We give an example to show this in \refapp{blockers}.
+% This is a problem in that it means the preliminary model violates
+% \emph{scope extrusion}~\cite{Milner:1999:CMS:329902},
+% in that we can find programs $\aCmd$ and $\bCmd$ such that
+% $\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is not the same as
+% $\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
+
+% Recall the preliminary definition of reads-from in \S\ref{sec:pomsets}, which
+% defined an $\aLoc$-blocker to be and event $\cEv$ that writes to $\aLoc$ such that
+% $\bEv \lt \cEv \lt \aEv$.  Were we to adopt this definition, then concurrent
+% threads could turn events that were not $\aLoc$-blockers into an
+% $\aLoc$-blocker, even if the new thread does not mention $\aLoc$.
+
+% To see this, consider the program
+% \begin{math}
+%   (
+%   \aLoc\GETS1\SEMI
+%   \bLoc\GETS\aLoc
+%   \PAR
+%   \aLoc\GETS\cLoc+1\SEMI
+%   \bLoc\GETS\aLoc
+%   \PAR
+%   \IF{z=2}\THEN\aReg\GETS\aLoc\FI
+%   )
+% \end{math}
+% with execution:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{\DW{\aLoc}{1}}{}
+%   \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+%   \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+%   \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+%   \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+%   \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+%   \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+%   \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+%   \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+%   \rf{wx1}{rx1a}
+%   \po{rx1a}{wy1}
+%   \rf{wx2}{rx2a}
+%   \po{rx2a}{wy2}
+%   \po{rz1}{wx2}
+%   \po{rz2}{rx1}
+%   \rf[out=20,in=160]{wx1}{rx1}
+% \end{tikzdisplay}
+% and the program
+% \begin{math}
+%   (
+%   \cLoc\GETS\bLoc\SEMI
+%   \cLoc\GETS\bLoc
+%   )
+% \end{math}
+% with execution:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{ry1}{\DR{\bLoc}{1}}{}
+%   \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
+%   \event{ry2}{\DR{\bLoc}{2}}{right=of wz1}
+%   \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
+%   \po{ry1}{wz1}
+%   \po{ry2}{wz2}
+% \end{tikzdisplay}
+% If these are placed in parallel, then a possible execution is:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{\DW{\aLoc}{1}}{}
+%   \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+%   \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+%   \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+%   \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+%   \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+%   \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+%   \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+%   \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+%   \rf{wx1}{rx1a}
+%   \po{rx1a}{wy1}
+%   \rf{wx2}{rx2a}
+%   \po{rx2a}{wy2}
+%   \po{rz1}{wx2}
+%   \po{rz2}{rx1}
+%   \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
+%   \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
+%   \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
+%   \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
+%   \po{ry1}{wz1}
+%   \po{ry2}{wz2}
+%   \rf{wy1}{ry1}
+%   \rf{wz1}{rz1}
+%   \rf{wy2}{ry2}
+%   \rf{wz2}{rz2}
+% \end{tikzdisplay}
+% and now the $(\DW{\aLoc}{2})$ event is an $\aLoc$-blocker,
+% so $(\DR{\aLoc}{1})$ cannot
+% read from $(\DW{\aLoc}{1})$.
+
+% In the final definition of reads-from in \S\ref{sec:pomsets} we
+% ruled out $\aLoc$-blockers by requiring that any
+% event $\cEv$ that writes to $\aLoc$ has
+% either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+% With this definition, in order for $(\DR{\aLoc}{1})$ to read from
+% $(\DW{\aLoc}{1})$, we either need $(\DW{\aLoc}{2}) \gtN (\DW{\aLoc}{1})$
+% or $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$, for example:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{\DW{\aLoc}{1}}{}
+%   \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+%   \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+%   \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+%   \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+%   \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+%   \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+%   \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+%   \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+%   \rf{wx1}{rx1a}
+%   \po{rx1a}{wy1}
+%   \rf{wx2}{rx2a}
+%   \po{rx2a}{wy2}
+%   \po{rz1}{wx2}
+%   \po{rz2}{rx1}
+%   \rf[out=20,in=160]{wx1}{rx1}
+%   \wk[out=-150,in=-30]{rx1}{wx2}
+%   \wk{wy1}{wy2}
+% \end{tikzdisplay}
+% then putting this in parallel as before results in:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{\DW{\aLoc}{1}}{}
+%   \event{rz1}{\DR{\cLoc}{1}}{right=of wx1}
+%   \event{wx2}{\DW{\aLoc}{2}}{right=of rz1}
+%   \event{rz2}{\DR{\cLoc}{2}}{right=of wx2}
+%   \event{rx1}{\DR{\aLoc}{1}}{right=of rz2}
+%   \event{rx1a}{\DR{\aLoc}{1}}{below=of wx1}
+%   \event{wy1}{\DW{\bLoc}{1}}{below=of rx1a}
+%   \event{rx2a}{\DR{\aLoc}{2}}{below=of wx2}
+%   \event{wy2}{\DW{\bLoc}{2}}{below=of rx2a}
+%   \rf{wx1}{rx1a}
+%   \po{rx1a}{wy1}
+%   \rf{wx2}{rx2a}
+%   \po{rx2a}{wy2}
+%   \po{rz1}{wx2}
+%   \po{rz2}{rx1}
+%   \rf[out=20,in=160]{wx1}{rx1}
+%   \wk[out=-150,in=-30]{rx1}{wx2}
+%   \wk{wy1}{wy2}
+%   \event{ry1}{\DR{\bLoc}{1}}{below=of wy1}
+%   \event{wz1}{\DW{\cLoc}{1}}{right=of ry1}
+%   \event{ry2}{\DR{\bLoc}{2}}{below=of wy2}
+%   \event{wz2}{\DW{\cLoc}{2}}{right=of ry2}
+%   \po{ry1}{wz1}
+%   \po{ry2}{wz2}
+%   \rf{wy1}{ry1}
+%   \rf{wz1}{rz1}
+%   \rf{wy2}{ry2}
+%   \rf{wz2}{rz2}
+%   \wk[out=30,in=150]{wz1}{wz2}
+% \end{tikzdisplay}
+% but this is \emph{not} a valid 3-valued pomset,
+% since $(\DW{\aLoc}{2}) \lt (\DR{\aLoc}{1})$ but also $(\DR{\aLoc}{1}) \gtN (\DW{\aLoc}{2})$,
+% which is a contradiction.
+
+
+% \subsection{Word tearing}
+
+% \todo{Remove this section, since it's not needed for transactions?}
+
+% In \S\ref{sec:transactions}, we shall be considering transactional memory,
+% and in \S\ref{sec:transactions} show that we can model a simplified version
+% of an information flow attack on transactions. In order to model transactions,
+% we need to consider actions that can write many memory locations at once,
+% since this is part of the semantics of commitment. To lead up to this, we first
+% consider a simpler scenario of many-location writes and reads, which is word
+% tearing.
+
+% In word tearing, a program contains a write instruction with data larger
+% than the hardware word size, for example copying a byte array, or assigning
+% a 64-bit float on a 32-bit architecture. For example, consider the program:
+% \begin{verbatim}
+%   (x := [0, 0];) || (x := [1, 1];) || (r := x;)
+% \end{verbatim}
+% This has executions in which the read of $x$ only reads from one of the writes,
+% for example:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx00}{\DW{x}{[0,0]}}{}
+%   \event{wx11}{\DW{x}{[1,1]}}{right=2.5em of wx00}
+%   \event{rx00}{\DR{x}{[0,0]}}{right=2.5em of wx11}
+%   \rf[out=20, in=160]{wx00}{rx00}
+% \end{tikzdisplay}
+% but also has executions in which the read of $x$ reads from both writes,
+% for example:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx00}{\DW{x}{[0,0]}}{}
+%   \event{wx11}{\DW{x}{[1,1]}}{right=2.5em of wx00}
+%   \event{rx01}{\DR{x}{[0,1]}}{right=2.5em of wx11}
+%   \rfx[out=20, in=160]{wx00}{x[0]}{rx01}
+%   \rfx[out=-20, in=-160]{wx11}{x[1]}{rx01}
+% \end{tikzdisplay}
+% Word tearing can occur, for example, in Java extended floating point~\cite{jmm},
+% LLVM 64-bit instructions on 32-bit hardware~\cite{llvm}, or in
+% JavaScript SharedArrayBuffers~\cite{js-sab}.
+
+% \newcommand{\rfControl}[4][]{\draw[rf,#1](#2) .. controls (#3) .. (#4);}
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wx1}{\DW{x}{1}}{right=of wx0}
+%   \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
+%   \event{wy1}{\DW{y}{1}}{right=of wy0}
+%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wy1}
+%   \event{ry0}{\DR{y}{0}}{right=of rx1}
+%   \event{ry1}{\DR{y}{1}}{right=2.5 em of ry0}
+%   \event{rx0}{\DR{x}{0}}{right=of ry1}
+%   \rf[out=20,in=160]{wx1}{rx1}
+%   \rf[out=20,in=160]{wy0}{ry0}
+%   \rf[out=340,in=200]{wy1}{ry1}
+%   \coordinate (a) [below=of wy1];
+%   \rfControl[out=340,in=200]{wx0}{a}{rx0}
+%   \wk{wx0}{wx1}
+%   \wk{wy0}{wy1}
+%   \po{rx1}{ry0}
+%   \po{ry1}{rx0}
+% \end{tikzdisplay}
+
+
+% Batty section 4:
+% \cite[\S4]{DBLP:conf/esop/BattyMNPS15},
+% Example LB+ctrldata+ctrl-double (language must allow)
+% r1=loadrlx(x) //reads 42
+% if (r1 == 42)
+%   storerlx(y,r1)
+
+% r2=loadrlx(y) //reads 42
+% if (r2 == 42)
+%   storerlx (x,42)
+% else
+% storerlx (x,42)
+
+% a:RRLX x=42 sb,dd,cd
+% c:RRLX y=42 sb,cd
+%   This is forbidden on hardware if compiled naively, as the architectures respect read-to-write control dependencies, but in practice compilers will collapse con- ditionals like that of the second thread, removing the control dependencies from the read of y to the writes of x and making the code identical to the previous example. As that example is allowed and observable on hardware (and we pre- sume that it would be impractical to outlaw such optimisation for C or C++), the language must also allow this execution. But this execution has a cycle in the union of reads-from and dependency, so we cannot simply exclude all those.
+% Then one might hope for some other adaptation of the C/C++11 model, but the following example shows at least that there is no per-candidate-execution solution.
+% Example LB+ctrldata+ctrl-single (language can and should forbid)
+% r1=loadrlx(x) //reads 42 if (r1 == 42)
+% storerlx (y,r1) r2=loadrlx (y) //reads 42 if (r2 == 42)
+% a:RRLX x=42 sb,dd,cd
+% rf
+% b:WRLX y=42
+% c:RRLX y=42 sb,cd
+% rf
+% d:WRLX x=42
+% rf rf
+% b:WRLX y=42 d:WRLX x=42
+%   storerlx (x,42)
+
+% \section{Examples}
+% \label{sec:examples}
+
 
 
 %\input{logic}
@@ -470,56 +904,41 @@ which is a contradiction.
 % % $\aLoc$ that is not preceded by a release.
 
 
-\subsection{Relaxed memory}
-\label{sec:relaxed-memory}
+% \subsection{Relaxed memory}
+% \label{sec:relaxed-memory}
 
-% In \S\ref{sec:info-flow-attack} we presented an information flow attack
-% on relaxed memory, similar to Spectre in that it relies on speculative
-% evaluation. Unlike Spectre it does not depend on timing attacks,
-% but instead is based on the sensitivity of relaxed memory to data
-% dependencies. % For this reason, we present a simple model of relaxed
-% % memory, which is strong enough to capture this attack.
+% % In \S\ref{sec:info-flow-attack} we presented an information flow attack
+% % on relaxed memory, similar to Spectre in that it relies on speculative
+% % evaluation. Unlike Spectre it does not depend on timing attacks,
+% % but instead is based on the sensitivity of relaxed memory to data
+% % dependencies. % For this reason, we present a simple model of relaxed
+% % % memory, which is strong enough to capture this attack.
 
-Our model includes concurrent memory accesses, which can introduce concurrent
-reads-from. 
-Since we are allowing events to be partially ordered, this gives a simple
-model of relaxed memory.
+% Our model includes concurrent memory accesses, which can introduce concurrent
+% reads-from. 
+% Since we are allowing events to be partially ordered, this gives a simple
+% model of relaxed memory.
 
-This model does not introduce thin-air reads (TAR).
-For example the TAR pit
-\((
-  x\GETS y \PAR y \GETS x
-)\)
-fails to produce a value for $x$ from thin air
-since this produces a cycle in $\le$, as shown on the left below:
-\begin{align*}
-\begin{tikzpicture}[node distance=1em]
-  \event{ry42}{\DR{y}{42}}{}
-  \event{wx42}{\DW{x}{42}}{below=of ry42}
-  \event{rx42}{\DR{x}{42}}{right=2.5em of ry42}
-  \event{wy42}{\DW{y}{42}}{below=of rx42}
-  \po{ry42}{wx42}
-  \po{rx42}{wy42}
-  \rf{wx42}{rx42}
-  \rf{wy42}{ry42}
-\end{tikzpicture}
-&&
-\begin{tikzpicture}[node distance=1em]
-  \event{ry1}{\DR{y}{1}}{}
-  \event{wx1}{\DW{x}{1}}{below=of ry1}
-  \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
-  \event{wy1}{\DW{y}{1}}{below=of rx1}
-  \po{ry1}{wx1}
-  \rf{wx1}{rx1}
-  \rf{wy1}{ry1}
-\end{tikzpicture}
-\end{align*}
-This cycle can be broken by removing a dependency. For example
-\((
-  x\GETS y \PAR r\GETS x\SEMI y \GETS r+1-r
-)\)
-has the execution on the right above.
-% \begin{tikzdisplay}[node distance=1em]
+% This model does not introduce thin-air reads (TAR).
+% For example the TAR pit
+% \((
+%   x\GETS y \PAR y \GETS x
+% )\)
+% fails to produce a value for $x$ from thin air
+% since this produces a cycle in $\le$, as shown on the left below:
+% \begin{align*}
+% \begin{tikzpicture}[node distance=1em]
+%   \event{ry42}{\DR{y}{42}}{}
+%   \event{wx42}{\DW{x}{42}}{below=of ry42}
+%   \event{rx42}{\DR{x}{42}}{right=2.5em of ry42}
+%   \event{wy42}{\DW{y}{42}}{below=of rx42}
+%   \po{ry42}{wx42}
+%   \po{rx42}{wy42}
+%   \rf{wx42}{rx42}
+%   \rf{wy42}{ry42}
+% \end{tikzpicture}
+% &&
+% \begin{tikzpicture}[node distance=1em]
 %   \event{ry1}{\DR{y}{1}}{}
 %   \event{wx1}{\DW{x}{1}}{below=of ry1}
 %   \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
@@ -527,51 +946,66 @@ has the execution on the right above.
 %   \po{ry1}{wx1}
 %   \rf{wx1}{rx1}
 %   \rf{wy1}{ry1}
-% \end{tikzdisplay}
-Note that $(\DR x1) \not\le (\DW y1)$, so this does not introduce a cycle.
+% \end{tikzpicture}
+% \end{align*}
+% This cycle can be broken by removing a dependency. For example
+% \((
+%   x\GETS y \PAR r\GETS x\SEMI y \GETS r+1-r
+% )\)
+% has the execution on the right above.
+% % \begin{tikzdisplay}[node distance=1em]
+% %   \event{ry1}{\DR{y}{1}}{}
+% %   \event{wx1}{\DW{x}{1}}{below=of ry1}
+% %   \event{rx1}{\DR{x}{1}}{right=2.5em of ry1}
+% %   \event{wy1}{\DW{y}{1}}{below=of rx1}
+% %   \po{ry1}{wx1}
+% %   \rf{wx1}{rx1}
+% %   \rf{wy1}{ry1}
+% % \end{tikzdisplay}
+% Note that $(\DR x1) \not\le (\DW y1)$, so this does not introduce a cycle.
 
-Although it is not the primary focus of this paper, our model may be an
-attractive model of relaxed memory.  Many prior models either permit
-thin-air executions that our model forbids or forbid desirable executions
-that our model permits.
-%% In \S\ref{sec:logic}, we develop a logic which allows us to prove that our
-%% semantics forbids thin air examples that are permitted by prior speculative
-%% models
-%% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
-% Our model passes all of the causality test cases
-% \cite{PughWebsite}.
-%% Significantly, this
-%% includes test case 9, which is forbidden by \cite{DBLP:conf/lics/JeffreyR16},
-%% one of the few models that disallows the thin air example from
-%% \S\ref{sec:logic}.  We present this test case in the appendix, where we also
-%% discuss the thread inlining examples from
-%% \cite{Manson:2005:JMM:1047659.1040336}.
+% Although it is not the primary focus of this paper, our model may be an
+% attractive model of relaxed memory.  Many prior models either permit
+% thin-air executions that our model forbids or forbid desirable executions
+% that our model permits.
+% %% In \S\ref{sec:logic}, we develop a logic which allows us to prove that our
+% %% semantics forbids thin air examples that are permitted by prior speculative
+% %% models
+% %% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
+% % Our model passes all of the causality test cases
+% % \cite{PughWebsite}.
+% %% Significantly, this
+% %% includes test case 9, which is forbidden by \cite{DBLP:conf/lics/JeffreyR16},
+% %% one of the few models that disallows the thin air example from
+% %% \S\ref{sec:logic}.  We present this test case in the appendix, where we also
+% %% discuss the thread inlining examples from
+% %% \cite{Manson:2005:JMM:1047659.1040336}.
 
-% In \refapp{logic}, we present a variant of the TAR-pit
-% example %from \S\ref{sec:relaxed-memory}
-% that is allowed under prior speculative semantics
-% \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
-% We develop a logic that allows us to prove that the problematic execution is
-% forbidden in our model.  \citet{DBLP:conf/esop/BattyMNPS15} showed that the
-% thin-air problem has no per-candidate-execution solution for C++.  This
-% result does not apply to our model, which has a different notion of
-% dependency.
+% % In \refapp{logic}, we present a variant of the TAR-pit
+% % example %from \S\ref{sec:relaxed-memory}
+% % that is allowed under prior speculative semantics
+% % \cite{Manson:2005:JMM:1047659.1040336,Jagadeesan:2010:GOS:2175486.2175503,DBLP:conf/popl/KangHLVD17}.
+% % We develop a logic that allows us to prove that the problematic execution is
+% % forbidden in our model.  \citet{DBLP:conf/esop/BattyMNPS15} showed that the
+% % thin-air problem has no per-candidate-execution solution for C++.  This
+% % result does not apply to our model, which has a different notion of
+% % dependency.
 
-% as the semantics of a conditional can depend on the semantics
-% of both branches.
+% % as the semantics of a conditional can depend on the semantics
+% % of both branches.
 
-\citet{PughWebsite} developed a set of twenty {causality test cases} in the
-process of revising the Java Memory Model (JMM)
-\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
-confirmed that our model gives the desired result for all twenty cases,
-unrolling loops as necessary.  Our model also gives the desired results for
-all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
-all but one in \citet[\textsection 5.3]{SevcikThesis}:
-redundant-write-after-read-elimination fails for any
-sensible non-coherent semantics.  Our model agrees with the JMM on the
-``surprising and controversial behaviors'' of \citet[\textsection
-8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
-inlining.
+% \citet{PughWebsite} developed a set of twenty {causality test cases} in the
+% process of revising the Java Memory Model (JMM)
+% \cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
+% confirmed that our model gives the desired result for all twenty cases,
+% unrolling loops as necessary.  Our model also gives the desired results for
+% all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
+% all but one in \citet[\textsection 5.3]{SevcikThesis}:
+% redundant-write-after-read-elimination fails for any
+% sensible non-coherent semantics.  Our model agrees with the JMM on the
+% ``surprising and controversial behaviors'' of \citet[\textsection
+% 8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
+% inlining.
 % In \refapp{tc}, we discuss three of the causality test cases and the thread
 % inlining example from \cite{Manson:2005:JMM:1047659.1040336}.%  In presenting the
 % examples, we unroll loops, correct typos and simplify the code.  
@@ -592,438 +1026,7 @@ inlining.
 % 8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
 % inlining.
 
-\subsection{Causality test cases}
-\label{app:tc}
 
-\citet{PughWebsite} developed a set of twenty {causality test cases} in the
-process of revising the Java Memory Model (JMM)
-\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
-confirmed that our model gives the desired result for all twenty cases,
-unrolling loops as necessary.  Our model also gives the desired results for
-all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
-all but one in \citet[\textsection 5.3]{SevcikThesis}:
-redundant-write-after-read-elimination fails for any
-sensible non-coherent semantics.  Our model agrees with the JMM on the
-``surprising and controversial behaviors'' of \citet[\textsection
-8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
-inlining.
-
-In this section, we discuss three of the causality test cases and the thread
-inlining from \cite{Manson:2005:JMM:1047659.1040336}.  In presenting the
-examples, we unroll loops, correct typos and simplify the code.  
-
-\subsubsection{Causality test case 8}
-
-Test case 8 asks whether:
-\begin{displaymath}
-  \VAR x\GETS 0\SEMI
-  \VAR y\GETS 0\SEMI
-  (\IF{x<2}\THEN y\GETS 1\FI 
-  \PAR
-  x\GETS y)
-\end{displaymath}
-may read $1$ for both $x$ and $y$.  This behavior is allowed, since
-``interthread analysis could determine that $x$ and $y$ are always either $0$
-or $1$.''  This breaks the dependency between the read of $x$ and the write
-to $y$ in the first thread, allowing the write to be moved earlier.
-
-The semantics of TC8 includes
-\begin{tikzdisplay}[node distance=1em]
-  \event{ix}{\DW{x}{0}}{}
-  \event{iy}{\DW{y}{0}}{right=of ix}
-  \event{rx1}{\DR{x}{1}}{right=2.1em of iy}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=2.1em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \po{ry1}{wx1}
-  \po[out=30,in=150]{ix}{rx1}
-  \rf[in=-25,out=-160]{wx1}{rx1}
-  \rf[out=20,in=160]{wy1}{ry1}
-  \wk[out=-25,in=-150]{ix}{wx1}
-  \wk[out=25,in=155]{iy}{wy1}
-\end{tikzdisplay}
-Where we require $(\DW{x}{0})\lt(\DR{x}{1})$ but not $(\DR{x}{1})\lt(\DW{y}{1})$.
-To see why this execution exists, consider the left thread with syntax sugar
-removed:
-\begin{displaymath}
-  r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI
-\end{displaymath}
-\begin{math}
-  \sem{\IF{r<2}\THEN y\GETS 1\FI}
-\end{math}
-includes
-\begin{math}
-  (r<2\mid\DW{y}{1}).
-\end{math}
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{wy1}{r<2\mid\DW{y}{1}}{}
-% \end{tikzdisplay}
-Thus, by the definition of prefixing read,
-\begin{math}
-  \sem{r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI}
-\end{math}
-includes
-\begin{math}
-  (\DR{x}{1}) \prefix (r<2\mid\DW{y}{1})[x/r]
-\end{math}
-which simplifies to
-\begin{math}
-  (\DR{x}{1}) \prefix (x<2\mid\DW{y}{1}),
-\end{math}
-which, by Definition~\ref{def:prefix}, includes:
-\begin{tikzdisplay}[node distance=1em,baselinecenter]
-    \event{rx1}{\DR{x}{1}}{}
-    \event{wy1}{x<2\mid\DW{y}{1}}{right=of rx1}
-  \end{tikzdisplay}
-Here we have used the \textsc{[non-ordering read]} clause of Definition~\ref{def:prefix}:
-``$\bForm'$ implies $\bForm[\aVal/\aLoc] \land \bForm$, if $\aAct$ reads $\aVal$ from $\aLoc$,''
-where $a=(\DR{x}{1})$,  $\bForm=\bForm'=(x<2)$.  We can use this case since
-$x<2$ implies $1<2\land x<2$.
-
-Prefixing with $(\DW{x}{0})$ allows us to discharge the assumption $x<2$,
-arriving at:
-\begin{tikzdisplay}[node distance=1em,baselinecenter]
-    \event{ix}{\DW{x}{0}}{}
-    \event{rx1}{\DR{x}{1}}{right=2.5 em of ix}
-    \event{wy1}{\DW{y}{1}}{right=of rx1}
-    \po{ix}{rx1}
-  \end{tikzdisplay}
-Here we have used the \textsc{[ordering read]}
-clause of \ref{def:prefix}:
-``$\bForm'$ implies $\bForm[\aVal/\aLoc]$, if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$,''
-where $a=(\DW{x}{0})$,  $\bForm=(x<2)$ and $\bForm'=\TRUE$.  As long as
-require
-\begin{math}
-  (\DW{x}{0})\lt
-  (\DR{x}{1}),
-\end{math}
-we can use this case since $\TRUE$ implies $0<2$.
-
-\subsubsection{Causality test case 9}
-
-Test case 9 asks whether:
-\begin{displaymath}
-  \VAR x\GETS 0\SEMI
-  \VAR y\GETS 0\SEMI
-  (\IF{x<2}\THEN y\GETS 1\FI 
-  \PAR
-  x\GETS y
-  \PAR
-  y\GETS 2\SEMI)
-\end{displaymath}
-may read $1$ for both $x$ and $y$.  This behavior is also allowed.  This is
-``similar to test case $8$, except that $x$ is not always $0$ or
-$1$. However, a compiler might determine that the read of $x$ by thread $1$
-will never see the write by thread $3$ (perhaps because thread $3$ will be
-scheduled after thread $1$)''
-
-Reasoning as for test case 8, the semantics of test case 9 includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{ix}{\DW{x}{0}}{}
-  \event{iy}{\DW{y}{0}}{right=of ix}
-  \event{rx1}{\DR{x}{1}}{right=2.2 em of iy}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=2.2em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wx2}{\DW{x}{2}}{below=3ex of $(ix)!0.5!(iy)$}%{right=2.5em of wx1}
-  \po{ry1}{wx1}
-  \po[out=30,in=150]{ix}{rx1}
-  \rf[in=-25,out=-160]{wx1}{rx1}
-  \rf[out=20,in=160]{wy1}{ry1}
-  \wk[out=-25,in=-150]{ix}{wx1}
-  \wk[out=25,in=155]{iy}{wy1}
-  \wk{ix}{wx2}
-  % \wk[out=-25,in=-150]{ix}{wx2}
-\end{tikzdisplay}
-
-Thus, with respect to the introduction of new threads, our model appears to
-be more robust than the event structures semantics of
-\cite{DBLP:conf/lics/JeffreyR16}, which fails on this test case.
-
-\subsubsection{Causality test case 14}
-
-Test case 14 asks whether:
-\begin{multline*}
-  \VAR a\GETS 0\SEMI
-  \VAR b\GETS 0\SEMI
-  \VAR y\GETS 0\SEMI\\[-.5ex]
-  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
-  \PAR\\[-.5ex]
-  \WHILE(y+b==0) \THEN\SKIP\FI\; a\GETS1)
-\end{multline*}
-may read $1$ for $a$ and $b$, yet $0$ for $y$.  Here $a$ and $b$ are regular
-variables and $y$ is volatile, which is equivalent to release/acquire in this
-example.  This behavior is also disallowed, since ``in all sequentially
-consistent executions, [the read of $a$ gets $0$] and the program is
-correctly synchronized. Since the program is correctly synchronized in all SC
-executions, no non-SC behaviors are allowed.''
-
-Unrolling the loop once, we have:
-\begin{multline*}
-  \VAR a\GETS 0\SEMI
-  \VAR b\GETS 0\SEMI
-  \VAR y\GETS 0\SEMI\\[-.5ex]
-  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
-  \PAR\\[-.5ex]
-  \IF{y\lor b}\THEN a\GETS 1\FI)
-\end{multline*}
-We argue that any execution with $(\DR{a}{1})$, $(\DR{b}{1})$, and
-$(\DR{y}{0})$ must be cyclic.  The closure requirements require that
-\begin{math}
-  (\DW{a}{1})\lt(\DR{a}{1})
-  \;\text{and}\;
-  (\DR{b}{1})\lt(\DR{b}{1}).
-\end{math}
-Ignoring initialization, least ordered execution that includes all of these
-actions is:
-\begin{tikzdisplay}[node distance=1em]
-  \event{ra1}{\DR{a}{1}}{}
-  \event{wb1}{\DW{b}{1}}{below=of ra1}
-  \nonevent{wy1}{\DW{y}{1}}{left=of wb1}
-  \event{rb1}{\DR{b}{1}}{right=4.5em of ra1}
-  \event{ry0}{\DR{y}{0}}{right=of rb1}
-  \event{wa1}{\DW{a}{1}}{below=of rb1}
-  \po{ra1}{wb1}
-  \po{rb1}{wa1}
-  \rf{wa1}{ra1}
-  \rf{wb1}{rb1}
-\end{tikzdisplay}
-where the read of $a$ is ordering for $(\DW{b}{1})$ but
-not $(\DW{y}{1})$, and the read of $b$ is ordering for $(\DW{a}{1})$ but the
-read of $y$ is not.  $(\DW{y}{1})$ is crossed out, since its
-precondition must imply $(\lnot a)[1/a]$, which is equivalent to $\FALSE$.
-To avoid order from $(\DR{y}{0})$ to $(\DW{a}{1})$, we
-have strengthened the predicate on $(\DW{a}{1})$ from $(y\lor b)$ to
-$(y=0\land b=1)$.  Note that we cannot use this trick symmetrically to remove
-the order from $(\DR{b}{1})$ to $(\DW{a}{1})$, since $b=1$ does not follow
-from the initialization of $b$.
-
-
-\subsubsection{Thread inlining}
-
-One property one could ask of a model of shared memory is thread
-inlining: any execution of $\sem{P\SEMI Q}$ is an execution of $\sem{P
-  \PAR Q}$. This is \emph{not} a goal of our model, and indeed is not
-satisfied, due to the different semantics of concurrent and sequential
-memory accesses. We demonstrate this by considering an example from
-the Java Memory Model~\cite{Manson:2005:JMM:1047659.1040336}, which shows that Java does not
-satisfy thread inlining either.
-
-The lack of thread inlining is related to the different dependency
-relations introduced by sequential and concurrent access.
-The program
-\verb`(x := 0; y := x+1;)` has execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy1}{\DW{y}{1}}{right=of wx0}
-\end{tikzdisplay}
-but \verb`(x := 1; || y := x+1;)` has:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{x}{1}}{}
-  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
-  \event{wy2}{\DW{y}{2}}{right=of rx1}
-  \rf{wx1}{rx1}
-  \po{rx1}{wy2}
-\end{tikzdisplay}
-That is, in the sequential case there is no dependency from the
-write of $x$ to the write of $y$, but in the concurrent case there
-is such a dependency.
-
-This can be used to construct a counter-example to thread inlining, based on~\cite[Ex~11]{Manson:2005:JMM:1047659.1040336}:
-\begin{verbatim}
-  x := 0; if (x == 1) { z := 1; } else { x := 1; } || y := x; || x := y;
-\end{verbatim}
-This has no execution containing $(\DW z1)$. Any attempt to build such an execution
-results in a cycle:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{right=of rx1a}
-  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
-  \event{rx1b}{\DR{x}{1}}{below=of wx1a}%{right=2.5em of wx1a}
-  \event{wy1}{\DW{y}{1}}{right=of rx1b}
-  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-  \event{wx1b}{\DW{x}{1}}{right=of ry1}
-  \po{rx1a}{wz1}
-  \po[out=25, in=150]{rx1a}{wx1a}
-  \po{rx1b}{wy1}
-  \po{ry1}{wx1b}
-  \rf{wy1}{ry1}
-  \rf[out=160, in=30]{wx1b}{rx1a}
-  \rf[out=160, in=30]{wx1b}{rx1b}
-\end{tikzdisplay}
-Inlining the thread \verb|(y := x)| gives~\cite[Ex~12]{Manson:2005:JMM:1047659.1040336}:
-\begin{verbatim}
-  x := 0; if (x == 1) { z := 1; } else { x := 1; } y := x; || x := y;
-\end{verbatim}
-with execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{right=of rx1a}
-  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wx1a}
-  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-  \event{wx1b}{\DW{x}{1}}{right=of ry1}
-  \po{rx1a}{wz1}
-  \po[out=25, in=150]{rx1a}{wx1a}
-  \po{ry1}{wx1b}
-  \rf{wy1}{ry1}
-  \rf[out=160, in=30]{wx1b}{rx1a}
-\end{tikzdisplay}
-To see why this execution exists, consider the program fragment:
-\begin{verbatim}
-  if (x == 1) { z := 1; } else { x := 1; } y := x;
-\end{verbatim}
-Removing the syntax sugar, this is:
-\begin{verbatim}
-  r1 := x; if (r1 == 1) {
-    z := 1; r2 := x; y := r2; skip
-  } else {
-    x := 1; r3 := x; y := r3; skip
-  }
-\end{verbatim}
-Now, $\sem{z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP}$
-includes pomset:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
-  \event{wy1}{r_1=x=1 \mid \DW{y}{1}}{right=of wz1}
-\end{tikzdisplay}
-and $\sem{x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP}$
-includes pomset:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
-  \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
-\end{tikzdisplay}
-so  $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
-  \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
-\end{tikzdisplay}
-which means $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}[x/r_1]$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{x=1 \mid \DW{z}{1}}{}
-  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{(x=x=1) \lor (x\neq1)) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}%{right=of wx1a}
-\end{tikzdisplay}
-Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{x=1 \mid \DW{z}{1}}{}
-  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wx1a}
-\end{tikzdisplay}
-and so $\sem{r_1 \GETS x\SEMI \IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2\SEMI \SKIP \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3\SEMI \SKIP \FI}$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
-  \event{wx1a}{1\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wx1a}
-  \po{rx1a}{wz1}
-  \po[out=25, in=150]{rx1a}{wx1a}
-\end{tikzdisplay}
-which simplifies to:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{right=of rx1a}
-  \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wx1a}
-  \po{rx1a}{wz1}
-  \po[out=25, in=150]{rx1a}{wx1a}
-\end{tikzdisplay}
-as required. The rest of the example is straightforward, and shows that our semantics
-agrees with the JMM in not supporting thread inlining.
-
-
-
-% \subsection{Word tearing}
-
-% \todo{Remove this section, since it's not needed for transactions?}
-
-% In \S\ref{sec:transactions}, we shall be considering transactional memory,
-% and in \S\ref{sec:transactions} show that we can model a simplified version
-% of an information flow attack on transactions. In order to model transactions,
-% we need to consider actions that can write many memory locations at once,
-% since this is part of the semantics of commitment. To lead up to this, we first
-% consider a simpler scenario of many-location writes and reads, which is word
-% tearing.
-
-% In word tearing, a program contains a write instruction with data larger
-% than the hardware word size, for example copying a byte array, or assigning
-% a 64-bit float on a 32-bit architecture. For example, consider the program:
-% \begin{verbatim}
-%   (x := [0, 0];) || (x := [1, 1];) || (r := x;)
-% \end{verbatim}
-% This has executions in which the read of $x$ only reads from one of the writes,
-% for example:
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{wx00}{\DW{x}{[0,0]}}{}
-%   \event{wx11}{\DW{x}{[1,1]}}{right=2.5em of wx00}
-%   \event{rx00}{\DR{x}{[0,0]}}{right=2.5em of wx11}
-%   \rf[out=20, in=160]{wx00}{rx00}
-% \end{tikzdisplay}
-% but also has executions in which the read of $x$ reads from both writes,
-% for example:
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{wx00}{\DW{x}{[0,0]}}{}
-%   \event{wx11}{\DW{x}{[1,1]}}{right=2.5em of wx00}
-%   \event{rx01}{\DR{x}{[0,1]}}{right=2.5em of wx11}
-%   \rfx[out=20, in=160]{wx00}{x[0]}{rx01}
-%   \rfx[out=-20, in=-160]{wx11}{x[1]}{rx01}
-% \end{tikzdisplay}
-% Word tearing can occur, for example, in Java extended floating point~\cite{jmm},
-% LLVM 64-bit instructions on 32-bit hardware~\cite{llvm}, or in
-% JavaScript SharedArrayBuffers~\cite{js-sab}.
-
-% \newcommand{\rfControl}[4][]{\draw[rf,#1](#2) .. controls (#3) .. (#4);}
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{wx0}{\DW{x}{0}}{}
-%   \event{wx1}{\DW{x}{1}}{right=of wx0}
-%   \event{wy0}{\DW{y}{0}}{right=2.5em of wx1}
-%   \event{wy1}{\DW{y}{1}}{right=of wy0}
-%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wy1}
-%   \event{ry0}{\DR{y}{0}}{right=of rx1}
-%   \event{ry1}{\DR{y}{1}}{right=2.5 em of ry0}
-%   \event{rx0}{\DR{x}{0}}{right=of ry1}
-%   \rf[out=20,in=160]{wx1}{rx1}
-%   \rf[out=20,in=160]{wy0}{ry0}
-%   \rf[out=340,in=200]{wy1}{ry1}
-%   \coordinate (a) [below=of wy1];
-%   \rfControl[out=340,in=200]{wx0}{a}{rx0}
-%   \wk{wx0}{wx1}
-%   \wk{wy0}{wy1}
-%   \po{rx1}{ry0}
-%   \po{ry1}{rx0}
-% \end{tikzdisplay}
-
-
-% Batty section 4:
-% \cite[\S4]{DBLP:conf/esop/BattyMNPS15},
-% Example LB+ctrldata+ctrl-double (language must allow)
-% r1=loadrlx(x) //reads 42
-% if (r1 == 42)
-%   storerlx(y,r1)
-
-% r2=loadrlx(y) //reads 42
-% if (r2 == 42)
-%   storerlx (x,42)
-% else
-% storerlx (x,42)
-
-% a:RRLX x=42 sb,dd,cd
-% c:RRLX y=42 sb,cd
-%   This is forbidden on hardware if compiled naively, as the architectures respect read-to-write control dependencies, but in practice compilers will collapse con- ditionals like that of the second thread, removing the control dependencies from the read of y to the writes of x and making the code identical to the previous example. As that example is allowed and observable on hardware (and we pre- sume that it would be impractical to outlaw such optimisation for C or C++), the language must also allow this execution. But this execution has a cycle in the union of reads-from and dependency, so we cannot simply exclude all those.
-% Then one might hope for some other adaptation of the C/C++11 model, but the following example shows at least that there is no per-candidate-execution solution.
-% Example LB+ctrldata+ctrl-single (language can and should forbid)
-% r1=loadrlx(x) //reads 42 if (r1 == 42)
-% storerlx (y,r1) r2=loadrlx (y) //reads 42 if (r2 == 42)
-% a:RRLX x=42 sb,dd,cd
-% rf
-% b:WRLX y=42
-% c:RRLX y=42 sb,cd
-% rf
-% d:WRLX x=42
-% rf rf
-% b:WRLX y=42 d:WRLX x=42
-%   storerlx (x,42)
 
 % Local Variables:
 % mode: latex

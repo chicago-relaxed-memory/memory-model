@@ -2,9 +2,9 @@
 \label{sec:logic}
 
 In this section, we develop sufficient logical infrastructure to prove that
-our semantics disallows thin air executions.  We present a variant of the
-TAR-pit example from \S\ref{sec:relaxed-memory} which poses difficulties
-under many speculative semantics.
+our semantics disallows thin air executions.  In particular, we provide a
+proof that thin air execution \eqref{alan} from
+\textsection\ref{sec:model:intro} is impossible.
 
 We adapt past linear temporal logic (\pLTL)
 \cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
@@ -186,7 +186,6 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
 We now turn the conditional TAR-pit program, given in \eqref{alan}:
 % which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
 \begin{equation}
-  \label{alan}
   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
   (
     y\GETS x

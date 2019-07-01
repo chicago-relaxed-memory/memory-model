@@ -211,13 +211,13 @@
 \newcommand{\cEvs}{C}
 \newcommand{\begEv}{b}
 \newcommand{\comEv}{c}
-%\newcommand{\ltN}{\mathrel{{\color{blue}\,\mid\!\!\!<}}}
 \newcommand{\lessdoteq}{\mathrel{\raisebox{-.7ex}{$\mkern1mu\mathord{\relbar}$}\mkern-13mu\mathord{\lessdot}}}
-\newcommand{\gtN}{\mathrel{{\color{orange!90!black}\lessdoteq}}}
-\newcommand{\geN}{\mathrel{{\color{orange!90!black}\lessdot}}}
-%\newcommand{\gtN}{\mathrel{{\color{blue}\mkern4mu\mid\!\!\!>}}}
 \renewcommand{\le}{\mathrel{{\color{blue}\leq}}}
 \newcommand{\lt}{\mathrel{{\color{blue}<}}}
+\newcommand{\gtN}{\mathrel{{\color{orange!90!black}\leq}}}
+\newcommand{\geN}{\mathrel{{\color{orange!90!black}<}}}
+% \newcommand{\gtN}{\mathrel{{\color{orange!90!black}\lessdoteq}}}
+% \newcommand{\geN}{\mathrel{{\color{orange!90!black}\lessdot}}}
 
 \newcommand{\Alphabet}{\Sigma}
 \newcommand{\labeling}{\lambda}
@@ -413,7 +413,7 @@
 \tikzstyle{rf} = [->,thick,color=green!50!black,]
 \newcommand{\rf}[3][]{\draw[rf,#1](#2)to(#3);}
 \newcommand{\rrf}{\ensuremath{\mathrel{\color{green!50!black}\mathsf{rf}}}}%
-\newcommand{\xrf}{\xarrowtikz{rf}{rf}}%
+\newcommand{\xrf}{\xarrowtikz{rf}{}}%
 \tikzstyle{rfx} = [->,thick,color=green!50!black,]
 \NewDocumentCommand \rfx {O{} m O{} m} {\draw[rf,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rf}$}  (#4);}
 \newcommand{\rrfx}{\ensuremath{\mathrel{\color{green!50!black}\mathsf{rf}}}}%

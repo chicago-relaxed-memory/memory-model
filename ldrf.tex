@@ -6,15 +6,15 @@ A memory consistency model for a shared-memory multiprocessor defines the a read
 We discuss in more detail the relationship with the most closely related work.  
 
 \subsection{3-Valued pomsets and Lamports axioms}
-~\citet{DBLP:journals/dc/Lamport86} considers a transitive, acyclic relation $\lt$, and a relation $\gtN$ with the following axioms to connect $\lt,\gtN$, namely:
+\citet{DBLP:journals/dc/Lamport86} considers a transitive, acyclic relation $\xpo$, and a relation $\xwk$ with the following axioms to connect $\xpo,\xwk$, namely:
 \begin{align*}
-\aEv \gtN \bEv & \Rightarrow & \aEv \lt \bEv
-\aEv \gtN \bEv &\Leftarrow& (\aEv \gtN \cEv \wedge\ \cEv \lt \bEv) \vee\ (\aEv \lt \cEv \wedge\ \cEv \gtN \bEv) \\
-\aEv \lt \bEv &\Leftarrow& \aEv \lt \bEv_1 \gtN \bEv_2 \lt \bEv 
+\aEv \xpo \bEv \Leftarrow\;& \aEv \xwk \bEv\\
+\aEv \xwk \bEv \Leftarrow\;& (\aEv \xwk \cEv \wedge\ \cEv \xpo \bEv) \vee\ (\aEv \xpo \cEv \wedge\ \cEv \xwk \bEv) \\
+\aEv \xpo \bEv \Leftarrow\;& \aEv \xpo \bEv_1 \xwk \bEv_2 \xpo \bEv 
 \end{align*}
-In our setting, the basic ingredient of $\gtN$ is $\reco$, from which we can define the full $\gtN$ by closing by the above axioms. The $\gtN$ so defined is transitive.   Furthermore, if $\lt$ is acyclic and follows the idioms arising from programs, then the induced $\gtN$ is also acyclic.   This leads us to the three-valued  memory pomsets that we have considered in this paper. 
+In our setting, the basic ingredient of $\xwk$ is $\reco$, from which we can define the full $\xwk$ by closing by the above axioms. The $\xwk$ so defined is transitive.   Furthermore, if $\xpo$ is acyclic and follows the idioms arising from programs, then the induced $\xwk$ is also acyclic.   This leads us to the three-valued  memory pomsets that we have considered in this paper. 
 
-In a concurrency context, three valued transition relations are studied in modal transition systems~\citep{DBLP:conf/lics/LarsenT88, DBLP:conf/avmfss/Larsen89,DBLP:conf/avmfss/Larsen89} and the semantics of  three-valued temporal logics for such transition systems is studied in~\citep{DBLP:conf/concur/BrunsG00,DBLP:conf/esop/HuthJS01}. 
+In a concurrency context, three valued transition relations are studied in modal transition systems~\citep{DBLP:conf/lics/LarsenT88,DBLP:conf/avmfss/Larsen89} and the semantics of  three-valued temporal logics for such transition systems is studied in~\citep{DBLP:conf/concur/BrunsG00,DBLP:conf/esop/HuthJS01}. 
 
 \subsection{Modeling the invalidation of load buffering}
 
