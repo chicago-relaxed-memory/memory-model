@@ -163,7 +163,7 @@ Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can bui
 \end{proof}
 
 
-\subsection{DRF Proof}
+\subsection{Main Proof}
 In the rest of this section, we assume that $\aPS$ is a generator for
 $\aCmd$, as defined in \textsection\ref{sec:sc}.
 
@@ -218,7 +218,7 @@ Let $\bEv$ be the matching write for $\aEv_{(i+1)\mod n}$. If $\bEv_i \in \bPS$b
 
 We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and read $\aEv_{(i+1)\mod n}$ and write $\aEv'_i$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to a value from $\bPS$.  $\dPS$  is derived adding the modified read yielded by lemma~\ref{inputen} to $\bPS$.  Result follows by induction hypothesis since $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\lt, \reco$,  $\cPS$ has a race, and $\size(\dPS) = \size(\bPS) + 1$. 
 
-\section{Proof for ARMv8}
+\section{Proof of compilation for ARMv8}
 \label{sec:arm:proof}
 
 In this section, we develop the proof of correctness of compilation to \armeight.  In order to ease readability, we reproduce the definitions from the main text. 
@@ -307,7 +307,7 @@ In our presentation, we have elided rules concerning fences and RMW operations.
 
 
 Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
-$\aEv\in\fcodom(\mathsf{po}\cap \mathsf{rf})$.
+$\aEv\in\fcodom(\mathsf{po}\cap \mathsf{rf})$.    We are going to translate internal reads of execution graphs into internal reads of the semantics.  
 
 From $G$ we construct a candidate pomset $\aPS$ as follows:
 \begin{itemize}
@@ -320,6 +320,27 @@ From $G$ we construct a candidate pomset $\aPS$ as follows:
 \item ${\le} = {\rob}$, and
 \item ${\gtN} = ({\rob} \cup {\reco})^*$
 \end{itemize}
+To reempphasize, in this candidate pomset, $\rob$ is calculated by considering the definition of $\rob$ without $\rrfi$, ie.:
+\begin{align*}
+  \tag{Dependency order}
+  {\rdob} &\eqdef\smash{
+    ({\raddr}\cup{\rdata});
+    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW}
+  }
+  \\
+  \tag{Barrier order}
+  {\rbob} &\eqdef\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?
+  }
+  \\
+  \tag{Acyclic order}
+  {\rob} &\eqdef\smash{
+    ({\robs} \cup {\rdob} \cup {\rbob})^+
+  }
+\end{align*}
+
 
 We show that $\aPS$ is a top-level pomset, reasoning as follows.
 
@@ -354,40 +375,74 @@ Finally, we establish the criteria for a top-level pomset
 \end{itemize}
 
 \subsection{Proof that  $({\rob} \cup {\reco})^*$ is irreflexive. }
-We develop a key tool about the composition of $\rob,\reco$.
+
+
+For this variant of $\rob$, which corresponds to the 
+
 \begin{lemma}\label{extendob}
-Suppose $\aEv$, $\bEv$ and $\aEv$ are distinct events.
-\begin{itemize}
-\item If $\cEv\xob\bEv\xeco\aEv$ then $\cEv\xob\aEv$.
-\item If $\cEv\xeco\bEv\xob\aEv$ then $\cEv\xob\aEv$.
-\end{itemize}
+Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
+
 \begin{proof}
-If the $\reco$ relation in the above is contained in $\robs$, the result is immediate.  So, it suffices to consider the case when they are contained in $\rpox$.  
+If $\bEv'$ is an acquire,  or $\aEv$ is an release, or $\aEv'$ is a release, result is immediate.
+
+We next consider the case where $\aEv$ is a read.  In this case,  $\bEv$ is a write.  Since $\bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv$, there is a write $\bEv_1$ such that $ \bEv \xcoe\ \bEv_1 \ \xrfe\ \aEv' $.  So, $\bEv \xob \aEv$ and result follows in this case. 
 
 
-
-We next prove  that if $\cEv\xeco\bEv (\xob\cap \xpox) \aEv$ then $\cEv\xob\aEv$.  Proof proceeds by cases on the witness for $\bEv (\xob\cap \xpox) \aEv$.  
-
+So, it suffices to prove the following assuming that $\bEv'$ is not an acquire and $\aEv'$ is not a release and $\aEv$ is not a release or a read and $\aEv, \bEv$ are distinct.
 \begin{itemize}
-\item  If $\bEv \xbob  \aEv$, then: 
-\[ \bEv\ (\smash{
+\item If $\bEv'\ (\xob\cap \xpox)  \ \bEv(\xeco\cap\xpox)\aEv$ then $\bEv'\xob\aEv$.
+\item If $\bEv\ (\xeco\cap\xpox) \ \aEv(\xob\cap\xpox)\aEv'$ then $\bEv\xob\aEv'$.
+\end{itemize}
+
+
+We first prove that if $\bEv'\ (\xob \cap \xpox) \ \bEv\ (\xeco \cap \xpox) \ \aEv$ then $\bEv'\xob\aEv$.   Proof proceeds by cases on the witness for $\bEv'\ (\xob\cap \xpox) \ \bEv$. 
+\begin{itemize}
+\item  If $\bEv' \xbob  \bEv$, then: 
+\[ \bEv'\ (\smash{
     {\IDAcq}; {\rpox}
     \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
   }
+\bEv
+\]
+Since $\bEv'$ is not an acquire, $\bEv' ({\rpox};{\IDRel}; {\rcoi}^?) \bEv$, so $\bEv$ is a write.  Since $\aEv$ is not a read,  $\bEv \xcoi\ \aEv$. Thus, result follows.
+
+\item If $\bEv' \xdob  \bEv$, then: 
+\[ \bEv'\ 
+\smash{
+    ( ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW}
+  } \
+\bEv
+\]
+So, $\bEv$ is a write.  Since $\aEv$ is also a write, we deduce that 
+\[ \bEv'\ 
+\smash{
+    ( ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW}
+  } \
 \aEv
 \]
-So, $\bEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv$, yielding the result since $\cEv \xpox\ \bEv$.
+\end{itemize}
 
 
-\item If $\bEv \xdob  \aEv$, then:
-\[ \bEv \ (\smash{
-    ({\raddr}\cup{\rdata}); {\rrfi}^?
-    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-    \cup {\raddr}; {\rpox}; {\IDW} ) \ 
+We next prove  that if $\bEv\ (\xeco \cap \xpox) \ \aEv\ (\xob\cap \xpox) \ \aEv'$ then $\bEv\xob\aEv'$, under the assumptions that  $\aEv'$ is not a release and $\aEv$ is not a release or a read and $\aEv, \bEv$ are distinct.
+
+
+ Proof proceeds by cases on the witness for $\aEv (\xob\cap \xpox) \aEv'$.  
+
+\begin{itemize}
+\item  If $\aEv \xbob  \aEv'$, then: 
+\[ \aEv\ (\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
   }
-\aEv
+\aEv'
 \]
-So, $\bEv$ is a read.  Thus, $\cEv$ is a write such that there exists $\cEv'$ such $\cEv \rcoe \cEv' \rrfe \bEv$.  Thus, $\cEv \xob \bEv \xob \aEv$, yielding required result.
+Since $\aEv$ is not a read, $\aEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv'$.  Result follows since  $\bEv \xpox\ \aEv$.
+
+
+\item If $\aEv \xdob  \aEv'$, then $\aEv$ is a read.  
+
 \end{itemize}
 \end{proof}
 \end{lemma}
