@@ -87,8 +87,7 @@ We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$, and similarly
 for $\gtN$.  \citet{DBLP:conf/esop/HuthJS01} call $\lt$ a ``must transition''
 and $\geN$ a ``may transition''; we generally prefer the terms ``strong
 order'' and ``weak order''.  In pictures, we adopt
-\citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\lt$ as a solid
-arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.
+\citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\lt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ must strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  In this reading, the property that $\gtN$ is a partial order provides the guarantee that the events can be laid out without overlap in a linear temporal order, thus implying \mca. 
 
 We refer to ``memory model pomsets'' as ``{pomsets}''.
 %Note that $\gtN$ is reflexive.
@@ -126,7 +125,7 @@ unsatisfiable preconditions.
 Within a single thread, $\lt$ captures the notion of \emph{dependency}:
 indicating that the related events cannot appear in the opposite order.  In
 the absence of synchronization, this relation always goes \emph{from reads to
-  writes within a thread}.  The formula decorating the event is used to
+  writes within a thread}.  The formula decorating the event is to viewed as the precondition necessary for the event to fire.  It is used to
 calculate these single-threaded dependencies, using semantic entailment.  For
 example, semantics of $y\GETS \aReg$ has an event with label
 $(\aReg=1\mid\DW{y}{1})$, indicating that the subprogram can write $1$ to $y$
@@ -142,24 +141,25 @@ includes the pomset
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \po{rx1}{wy1}
 \end{tikzdisplaylabel}
-The assignment to $\aReg$ causes a substitution in the precondition, changing
-the label to $(x=1\mid \DW{y}{1})$.  By introducing strong order
-$(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition can be weakened by
-further substitution of $1$ for $x$, resulting in $1=1$, which is a tautology
+Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing
+the label to $(x=1\mid \DW{y}{1})$.  Intuitively, the read of $x$ discharges the precondition to this event.  Formally, by introducing strong order
+$(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology
 and therefore elided.
 
 As in \citep{2019-sp}, weakening of preconditions can also happen by merging
-actions.  For example, the semantics of
-$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ includes a pomset with the single
-action $(\DW{y}{1})$.  In computing the dependencies for the conditional
+actions.  For example, mirroring the fact that the weakest precondition of $y=1$ is true for the program
+$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$, its semantics includes a pomset with the single
+action $(\DW{y}{1})$, with precondition $\TRUE$.
+
+In computing the dependencies for the conditional
 statement, we first compute the then-part to contain
 $(\aReg\neq0\mid\DW{y}{1})$ and the else-part to contain
-$(\aReg=0\mid\DW{y}{1})$.  Since the actions are the same in these events,
+$(\aReg=0\mid\DW{y}{1})$.  Mirroring the proof rule for conditionals in Hoare logic,  since the actions are the same in these events,
 they can be merged into a single event whose precondition is the disjunction
 of the preconditions of the individual events.  Thus, the semantics of
 $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ includes
 $(\aReg\neq0\lor \aReg=0\mid\DW{y}{1})$.  Since the precondition is a
-tautology, we may elide it.
+tautology, we may elide it.  
 
 Within a single thread, $\geN$ orders \emph{conflicting} events.  For
 example, the semantics of
@@ -376,10 +376,9 @@ with a plain read, then the outcome $(\DR z1)$ and $(\DR x0)$ is possible.
 \paragraph{Internal reads}
 As in \citep{2019-sp}, the semantics of relaxed read includes a special case
 when the value is read from a write of the same thread: in this case, no read
-action need be recorded.  To facilitate the definitions required in the proof
-of \drfsc\ (\textsection\ref{sec:sc}), we include an \emph{internal action},
-which we visualize in grey.  Internal actions do not read or write any
-location.  To see the need for internal reads, consider the example 3.6 from
+action need be recorded.  This is reminiscent of the eponymous ${\rrfi}$ in hardware memory models and the store forwarding optimization in compilers.  In all these cases, writes from a thread are forwarded to a read in the same thread without global publication.  
+
+To see the need for internal reads, consider the example 3.6 from
 \cite{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{displaymath}
   \aReg\GETS x\SEMI
@@ -388,6 +387,7 @@ location.  To see the need for internal reads, consider the example 3.6 from
   \PAR
   x\GETS z
 \end{displaymath}
+The precondition for the write $\DW{z}{1}$ is $y=1$.  This precondition is discharged internally by the write of $y=1$ without an externally visible dependency to an explicit read. 
 \begin{tikzdisplay}[node distance=1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
@@ -402,6 +402,10 @@ location.  To see the need for internal reads, consider the example 3.6 from
   \rf{a4}{b1}
   \rf{b2}{a1}
 \end{tikzdisplay}
+To facilitate the definitions required in the proof
+of \drfsc\ (\textsection\ref{sec:sc}), we include an \emph{internal action},
+which we visualize in grey.  Internal actions do not read or write any
+location.  
 Were the internal action made explicit, then this behavior would be
 disallowed due to the evident cycle in strong order.  This behavior is
 allowed by \armeight.
