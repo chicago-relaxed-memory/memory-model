@@ -1,20 +1,19 @@
 \section{Comparison to related work}\label{sec:ldrf}
 A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  \citet{AlglaveThesis} provides a historical and conceptual perspective on hardware memory models.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
 
-~\citet{Batty17} motivates compositional methods in the context of relaxed memory.  This paper follows a line of work on relaxed memory models in the framework of true concurrency~\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.  
+This paper follows a line of work on relaxed memory models in the framework of true concurrency~\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.  
 
 We discuss in more detail the relationship with the most closely related work.  
 
-\subsection{3-Valued pomsets and Lamports axioms}
-\citet{DBLP:journals/dc/Lamport86} considers a transitive, acyclic relation $\xpo$, and a relation $\xwk$ with the following axioms to connect $\xpo,\xwk$, namely:
-\begin{align*}
-\aEv \xpo \bEv \Leftarrow\;& \aEv \xwk \bEv\\
-\aEv \xwk \bEv \Leftarrow\;& (\aEv \xwk \cEv \wedge\ \cEv \xpo \bEv) \vee\ (\aEv \xpo \cEv \wedge\ \cEv \xwk \bEv) \\
-\aEv \xpo \bEv \Leftarrow\;& \aEv \xpo \bEv_1 \xwk \bEv_2 \xpo \bEv 
-\end{align*}
-In our setting, the basic ingredient of $\xwk$ is $\reco$, from which we can define the full $\xwk$ by closing by the above axioms. The $\xwk$ so defined is transitive.   Furthermore, if $\xpo$ is acyclic and follows the idioms arising from programs, then the induced $\xwk$ is also acyclic.   This leads us to the three-valued  memory pomsets that we have considered in this paper. 
+\subsection{Memory models via program transformations}
+We discuss prior approaches to definining memory models using program transformations in chronological order.  The general flavor in these approaches is to consider SC executions, albeit with the threads subject to sequential program transformation  \citet{Saraswat:2007:TMM:1229428.1229469} aims to describe a JMM model this way.  DRF holds, but it was later discoeverd that there is \oota\ behavior.
 
-In a concurrency context, three valued transition relations are studied in modal transition systems~\citep{DBLP:conf/lics/LarsenT88,DBLP:conf/avmfss/Larsen89} and the semantics of  three-valued temporal logics for such transition systems is studied in~\citep{DBLP:conf/concur/BrunsG00,DBLP:conf/esop/HuthJS01}. 
+~\cite{DBLP:conf/esop/FerreiraFS10} describes a relaxed memory model as being parametrised by available program transformations.  They show DRF, but do not study \oota, relate to concrete models, or demonstrate compilation results.
+
+~\citet{DBLP:conf/popl/DemangeLZJPV13} studies BMM, a model whose only permitted reordering is of a relaxed write with a following relaxed read.  The paper develops an axiomatic and studies effects on compilation.  By design, it is designed as a restriction of the JMM that eschews several compiler optimizations. 
+
+~\citet{DBLP:conf/fm/LahavV16} characterizes \tso\ as being derived by considering Write-Read (WR) reordering and Read-After-Write (RaW) elimination.  They also show that the release acquires of C11 are less expressive than considering WR, RaW and thread-inlining.  Our paper is inspired by their implicit challenge, ``Some memory models can be defined via transformations.
+ But there is more to weak memory than transformations''.  
 
 \subsection{Modeling the invalidation of load buffering}
 
@@ -68,11 +67,11 @@ $x \GETS 1 \SEMI \IF{\aExp}\THEN\  \aCmd \ELSE  \bCmd\FI$.
 One of our novel contributions to this line of research is the desideratum of compositional reasoning of safety properties. The The presence of such compositional reasoning suffices to remove the undesirable effects of \oota, eg. type safety.  And while \oota\ in a model is an elusive creature, and hence hard to prove or disprove,  the support of a model for a compositional proof principle is provable or falsifiable.  
 
 \subsection{Relationship to models of speculation}
-The closest formal cousin to our model is that of~\citet{2019-sp}.   In the spectrum from micro architectures to architectures to software,whereas~\citet{2019-sp} lies between the micro and architectural levels, we aim to be as abstract as possible to bridge the gap to programming languages.  This is reflected in the several differences in the formal model.  
+ ~\citet{2019-sp} is a close formal cousin to our approach.   In the spectrum from micro architectures to architectures to software,whereas~\citet{2019-sp} lies between the micro and architectural levels, we aim to be as abstract as possible to bridge the gap to programming languages.  This is reflected in the several differences in the formal model.  
 
-We do not track false branches of conditionals, as seen in our monotonicity axiom, whereby any event with a precondition $\FALSE$ can only have $\FALSE$ successors in $\lt$, whereas in that paper, specualtion on false branches can lead to observable effects.   We are also less accurate  about tracking reads, as reflected in the removal of program order between reads and reads.   
+We consider a single global acyclic order in contrast to the two studied in~\citet{2019-sp}.  We do not track false branches of conditionals, as seen in our monotonicity axiom, whereby any event with a precondition $\FALSE$ can only have $\FALSE$ successors in $\lt$, whereas in that paper, specualtion on false branches can lead to observable effects.   We are also less accurate  about tracking reads, as reflected in the removal of program order between reads and reads.   
 
-~\citet{2019-sp} does not study the properties as a memory model.  While we conjecture that our proofs of DRF and compositional reasoning can be carried over to that setting, we support more compiler optimizations of single threaded code than~\citet{2019-sp}. 
+~\citet{2019-sp} does not study the properties as a memory model.  We conjecture that our proofs of DRF and compositional reasoning can be carried over to that setting.~\citet{2019-sp} also preserves some $\rpox$ between reads, whereas we do not; so, we certainly support more compiler optimizations of single threaded code. 
 
 
 
