@@ -88,6 +88,7 @@ subject to substitution.
     $\labelingForm(\bEv)$.
   \end{itemize}
 \end{definition}
+In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global happens-before'' relation.  
 %We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.
 % \citet{DBLP:conf/esop/HuthJS01} call $\lt$ a ``must transition''
 % and $\geN$ a ``may transition''; we generally prefer the terms ``strong
@@ -156,7 +157,7 @@ the label to $(x=1\mid \DW{y}{1})$.  Intuitively, the read of $x$ discharges the
 $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology
 and therefore elided.
 
-As in \citep{2019-sp}, weakening of preconditions can also happen by merging
+As in \citep{2019-sp}, weakening of preconditions\footnote{We say a formula $\psi$ is weaker than a formula $\phi$ if $\phi \Rightarrow \psi$.}can also happen by merging
 actions.  For example, mirroring the fact that the weakest precondition of $y=1$ is true for the program
 $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$, its semantics includes a pomset with the single
 action $(\DW{y}{1})$, with precondition $\TRUE$.
@@ -460,7 +461,7 @@ Prefixing $\bReg\GETS y$ transforms the precondition to $y=1$.  As in the
 discussion of execution \eqref{m1}, the strong order from $(\DWRel{y}{1})$
 allows the precondition $y=1$ to be weakened to $1=1$, which is a tautology.
 Note that both write prefixing and read prefixing enable precondition
-weakening.  Only read prefixing imposes strong order; there is no order a
+weakening.  Only read prefixing imposes strong order; there is no order from
 the prefixed write to any subsequent action.
 
 Here is an example which uses a cycle in weak order rather than strong order.
@@ -651,19 +652,14 @@ Another class of non-\mca\ behavior is characterized by the following litmus tes
   \rf{b3}{c1}
   \rf[out=170,in=10]{c3}{a1}  
 \end{tikzdisplay}
-This execution is disallowed due to the evident cycle in weak order.  This
-execution is allowed by 3-valued pomsets with coherence \citep{2019-sp}.
-Interestingly, the two thread/two variable variant of this example is
-disallowed by 3-valued pomsets, due to the requirements of
-\citeauthor{DBLP:journals/dc/Lamport86}'s axiom A3, which requires that
-$\cEv \gtN \aEv$ if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$.
-If one were to shift from 3-valued logic to an interval logic, then it would
-make sense to include \citeauthor{DBLP:journals/dc/Lamport86}'s axiom A4,
-which requires that $\bEv \lt \aEv$ if $\bEv \lt \bEv' \geN \aEv' \lt \aEv$.
-In the semantics of programs, requiring A4 for 3-valued pomsets with
-coherence is equivalent to the assumption that $\gtN$ is a partial order, as
-in the memory model pomsets used here.  Thus, the two thread/two variable
-variant is also disallowed.
+This execution is disallowed due to the evident cycle.
+%in weak order. 
+
+% This execution is allowed by 3-valued pomsets with coherence 
+%\citep{2019-sp}. Interestingly, the two thread/two variable variant of this 
+%example is disallowed by 3-valued pomsets, due to the requirements of
+%\citeauthor{DBLP:journals/dc/Lamport86}'s axiom A3, which requires that
+%$\cEv \gtN \aEv$ if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv%$. If one were to shift from 3-valued logic to an interval logic, then it %would make sense to include \citeauthor{DBLP:journals/dc/Lamport86}'s %axiom A4,which requires that $\bEv \lt \aEv$ if $\bEv \lt \bEv' \geN \aEv' %\lt \aEv$.In the semantics of programs, requiring A4 for 3-valued pomsets %withcoherence is equivalent to the assumption that $\gtN$ is a partial %order, as in the memory model pomsets used here.  Thus, the two %thread/two variable variant is also disallowed.
 
 \paragraph{Load buffering and thin air.}
 The program
@@ -1236,7 +1232,7 @@ closure in a memory-model pomset does give something similar: any event
 $\aEv$ can be given an unsatisfiable precondition, which means that every
 event ordered after $\aEv$ must also be unsatisfiable, as per
 Definition~\ref{def:mmpomset}.  Since unsatisfiable events are ignored by our
-``architectural'' model (as opposed to a ``microarchitectural'' model), this
+``architectural'' model (as opposed to a ``microarchitectural'' model that also models speculations that are rolled back), this
 provides a kind of prefix closure.
 % \begin{definition}
 %   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,

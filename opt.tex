@@ -157,25 +157,29 @@ Our semantics is complete for reasoning about full-thread optimizations of synch
 
 In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are synchronization free (ie. no acquire, release, fence) and single threaded (ie. no parallel composition). 
 
-In order to develop the proof, we describe a normal form for pomsets that arise in single threaded and synchronization free code.  
+In order to develop the proof, we describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
+We say $\aEv$ immediately $\lt$-precedes (resp. $\lt$-succeeds) $\bEv$, if forall $\cEv \lt \bEv$, it is the case that $\cEv \lt \aEv \lt \bEv$ (resp. $\bEv \lt \aEv \lt \cEv$)
 \begin{definition}
 $\aPS$ is in normal form if:
 \begin{itemize}
-\item All preconditions on events are tautologies.
-\item Writes are maximal and Reads are minimal in $\lt$.
-\item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
+% \item All preconditions on events are tautologies.
+\item If a write $\aEv$ is not $\lt$-maximal, it has an immediate $\lt$successor $\bEv$ such that $\aEv \xeco \bEv$.
+   If a read is not $\lt$-minimal, it has an immediate $\lt$-predecessor $\bEv$ such that $\bEv \xeco \aEv$. 
+% \item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
 \item If $\aEv, \aEv'$ have the same read action label, then $\aEv = \aEv'$
 \item  If $\aEv, \aEv'$ have the same write action label, then there exists a write $\bEv$ on the same location as $\aEv$ such that $\aEv \gtN \bEv \gtN \aEv'$.
 \end{itemize}
 \end{definition}
-It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. $\TRUE\guard \sem{\aCmd}$ is used to captures the behavior of $\aCmd$ as a top-level thread by restricting only to events whose preconditions are tautologies.
+It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. 
+
+$\TRUE\guard \sem{\aCmd}$ is used to captures the behavior of $\aCmd$ as a top-level thread by restricting only to events whose 
+preconditions are tautologies.
 \begin{lemma}\label{unrhd}
-Let $\aCmd,\bCmd$ be 
-$\TRUE\guard \sem{\aCmd} \subseteq \TRUE\guard \sem{\bCmd} $  iff for all $\aPS$ in normal form, $\aPS in \TRUE\guard \sem{\aCmd} \Leftrightarrow\ \aPS in \TRUE\guard \sem{\bCmd}$
+$\TRUE\guard \sem{\aCmd} \subseteq \TRUE\guard \sem{\bCmd} $  iff for all $\aPS$ in normal form, $\aPS \in \TRUE\guard \sem{\aCmd} \Rightarrow\ \aPS \in \TRUE\guard \sem{\bCmd}$
 \begin{proof}
 The normal forms determine the full semantics by the closure properties of the semantics.     The proof proceeds by induction on structure.  The key case is prefixing. 
 
-Prefixing does not require $\lt$-edges out of writes  and into read actions.  Read prefixing permits the reuse of events to ensure that distinct read events have distinct read labels.  Similarly, write prefixing can be used to ensure that  writes that are adjacent in $\gtN$ order have distinct labels.
+The only edges $\lt$-edges out of writes  and into read actions enforced by prefixing are $\reco$ edges.  Read prefixing permits the reuse of events to ensure that distinct read events have distinct read labels.  Similarly, write prefixing can be used to ensure that  writes that are adjacent in $\gtN$ order have distinct labels.
 \end{proof}
 \end{lemma}
 

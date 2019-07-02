@@ -15,12 +15,12 @@
 % \end{definition}
 % Then $\fclosed(\aPSS)$ 
 
+
+
 In this section, we prove the SC-DRF theorem, which states that any program
 that lacks data races under the SC semantics must only have executions that
 are compatible with SC executions.  We present the result for programs of the
-form $\vec{\aLoc}\GETS\vec{0}\SEMI\aCmd$, where $\aCmd$ is restriction-free
-and all memory locations accessed. Thus internal actions only arise from
-(intra-thread) implicit reads.
+form $\vec{\aLoc}\GETS\vec{0}\SEMI\aCmd$, where $\aCmd$ is restriction-free.  Thus, all memory locations are initialized to $0$, and internal actions only arise from (intra-thread) implicit reads.
 
 We say that two actions have a \emph{data-race conflict} if at least one
 action is a write and the other is a write, read, or internal read to the
@@ -84,8 +84,8 @@ that
 %The semantics of programs includes SC executions.
 \begin{definition}
   Let $\semsc{\aCmd}$ be the subset of $\sem{\aCmd}$ such that
-  $\aPS\in\semsc{\aCmd}$ whenever $\aPS$ is a top-level pomset and
-  ${\lt}\cup{\rpox} \cup {\reco}$ is acyclic.
+  $\aPS\in\semsc{\aCmd}$ whenever $\aPS$ is a top-level pomset and ${\lt}\cup{\rpox}$ is acyclic.
+% ${\lt}\cup{\rpox} \cup {\reco}$ is acyclic.
 \end{definition}
 %\begin{itemize}
 %\item ${\le}\cup{\rpox} \cup {\reco}$ is acyclic ,
@@ -94,8 +94,7 @@ that
 %\end{itemize}
 We argue that this definition is sufficient to capture sequential
 consistency: Any total order that linearizes the acyclic relation is
-consistent with strong order ($\lt$) and the program order ($\rpox$).
-Consistency with $\reco$ ensures that only the last write to a location is
+consistent with strong order ($\lt$) and the program order ($\rpox$).  Since $\le$ contains $\reco$, the consistency with $\reco$ ensures that only the last write to a location is
 read in such a total order.
 
 %\begin{remark}\label{generator}
@@ -113,13 +112,7 @@ considering finite programs without loops, the pomsets in the semantics of
 threads are finite.  Thus, there are no infinite descending chains of
 augmentations.
 
-In generators, $\gtN$ is the transitive closure of $(\le \cup
-\reco)$. Furthermore, any strong order that is outside of program order must
-be induced by a reads-from.  In the two-thread case, we can state the latter
-property as follows: suppose $\aEv$ and $\bEv$ are not related by program
-order and $\aEv\lt\bEv$; then there exist $\bEv'$ that reads-from $\aEv'$
-such that $\aEv\xpox\aEv'$, $\bEv'\xpox\bEv$ and
-$\aEv \lt \aEv' \lt \bEv' \lt \bEv$.
+
 %\end{remark}
 
 We prove the following theorem in Appendix~\ref{drfproof}.
@@ -131,6 +124,119 @@ We prove the following theorem in Appendix~\ref{drfproof}.
     $\aPS'\in \semsc{\aCmd}$ that has a data race.
   \end{itemize}
 \end{theorem}
+A key step of this proof is an analysis of the closure properties of the semantics.  In order to perform this fine grained analysis of dependency, we describe a variant of the semantics using three valued pomsets defined below.  
+\begin{definition}
+  \label{def:tvalpom}
+  A \emph{\tvalpom} is a tuple
+  $(\Event, {\sle}, {\gtN},
+  \labeling)$, such that
+  \begin{itemize}
+  \item $\Event$ is a set of \emph{states},
+  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
+    from which we derive $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
+    % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
+    % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
+   \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
+   \item ${\sle} \subseteq {\gtN}$ is a partial order, and
+  \item if $\bEv\sle\aEv$ then $\labelingForm(\aEv)$ implies
+    $\labelingForm(\bEv)$.
+  \end{itemize}
+\end{definition}
+\citet{DBLP:conf/esop/HuthJS01} call $\slt$ a ``must transition''
+and $\geN$ a ``may transition''--- we have used  the terms ``strong order'' and ``weak order'' respectively.  In the pictures so far, we have anticipated this development and adopted
+\citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  
+ 
+The semantics of programs in the three-valued model proceed mutatis mutandis, with details described in the appendix.  This finer analysis of necessary and possible dependency allows us to establish the existence of pomsets in the semantics as we search for sequential witnesses to data races.    We provide some illustrative examples below.
+
+\noindent
+For the program:
+\begin{align*}
+\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1  \SEMI \\[-.5ex]
+\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1  \SEMI 
+\end{align*}
+\begin{displaymathsmall}
+\mbox{From    }
+\begin{tikzcenter}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{ry1}{\DR{y}{1}}{right=of wy0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{rx1}{\DR{x}{1}}{right=of wx0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx1}{rx1}
+\rf{wy1}{ry1}
+\wk{wx0}{rx1}
+\wk{wy0}{ry1}
+\end{tikzcenter}
+\mbox{  infer  }
+\begin{tikzcenter}node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{ry1}{\DR{y}{0}}{right=of wy0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{rx1}{\DR{x}{0}}{right=of wx0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx0}{rx1}
+\rf{wy0}{ry1}
+\wk{rx1}{wx1}
+\wk{ry1}{wy1}
+\end{tikzcenter}
+\end{displaymathsmall}
+For the program:
+\begin{align*}
+\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y  \SEMI \\[-.5ex]
+\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x \SEMI
+\end{align*}
+\begin{displaymathsmall}
+\mbox{From  }
+\begin{tikzcenter}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=of wy0}
+\event{ry0}{\DR{y}{0}}{right=of wx1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{wy1}{\DW{y}{1}}{right=of wx0}
+\event{rx0}{\DR{x}{0}}{right=of wy1}
+\rf[bend right]{wx0}{rx0}
+\rf[bend left]{wy0}{ry0}
+\wk{rx0}{wx1}
+\wk{ry0}{wy1}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\end{tikzcenter}
+\ \mbox{ infer }
+\begin{tikzcenter}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=of wy0}
+\event{ry0}{\DR{y}{1}}{right=of wx1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{wy1}{\DW{y}{1}}{right=of wx0}
+\event{rx0}{\DR{x}{1}}{right=of wy1}
+\rf{wx1}{rx0}
+\rf{wy1}{ry0}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\end{tikzcenter}
+\end{displaymathsmall}
+For the program:
+\begin{align*}
+\mbox{Thread 1: } &\VAR x\GETS 1 \\[-.5ex]
+\mbox{Thread 2: } &\VAR x\GETS 0 
+\end{align*}
+\begin{displaymathsmall}
+\mbox{From  }
+\begin{tikzcenter}[node distance=1em]
+\event{wy0}{\DW{x}{1}}{}
+\event{wx0}{\DW{x}{0}}{right=of wx0}
+\wk{wy0}{wx0}
+\end{tikzcenter}
+\mbox{ infer   }
+\begin{tikzcenter}[node distance=1em]
+\event{wy0}{\DW{x}{1}}{}
+\event{wx0}{\DW{x}{0}}{right=of wx0}
+\wk{wx0}{wy0}
+\end{tikzcenter}
+\end{displaymathsmall}
+
 
 \endinput
 
