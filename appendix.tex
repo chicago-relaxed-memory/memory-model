@@ -2,20 +2,13 @@
 \section{Three valued pomsets}
 In order to perform a sharper analysis of dependency, we present an alternate semantics using three valued pomsets defined below.
 \begin{definition}
-  % \label{def:tvalpom}
   A \emph{\tvalpom} is a tuple
   $(\Event, {\sle}, {\gtN},
   \labeling)$, such that
   \begin{itemize}
-  \item $\Event$ is a set of \emph{states},
-  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-    from which we derive $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
-    % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
-    % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
-   \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
-   \item ${\sle} \subseteq {\gtN}$ is a partial order, and
-  \item if $\bEv\sle\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$.
+   \item $(\Event, {\gtN},
+  \labeling)$ is a pomset, and 
+\item ${\sle} \subseteq {\gtN}$ is a partial order. 
   \end{itemize}
 \end{definition}
 We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{\star} \subseteq \geN$.  
@@ -25,17 +18,14 @@ and $\geN$ a ``may transition''--- we have used  the terms ``strong order'' and 
 \citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  
 
 These intuitions motivate the definition of reads-from in this refined context.
-\begin{definition}\label{def:rf}
-In a \tvalpom,  $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
-\begin{itemize}
-   \item $\bEv \slt \aEv$,  
-   \item $\aEv$ implies $\bEv$,
-   \item $\bEv$ writes $\aVal$ to $\aLoc$,
-     and $\aEv$ reads $\aVal$ from $\aLoc$, and
-   \item if $\cEv$ writes to $\aLoc$
-     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-   \end{itemize}
- \end{definition}
+\begin{definition}
+  We say that $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ writes
+  $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
+  \begin{itemize}
+  \item $\bEv \slt \aEv$, and
+  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}
+\end{definition}
 
 We list out a few observations to illustrate the relationship between \tvalpom s and memory pomsets.  We are given a  \tvalpom, 
   $(\Event, {\sle}, {\gtN}, \labeling)$.  Then:

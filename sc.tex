@@ -115,7 +115,7 @@ augmentations.
 
 %\end{remark}
 
-We prove the following theorem in Appendix~\ref{drfproof}.
+We prove the following theorem in \textsection\ref{drfproof}.
 \begin{theorem}
   Let $\aPS$ be a generator for $\aCmd$.
   \begin{itemize}
@@ -131,15 +131,9 @@ A key step of this proof is an analysis of the closure properties of the semanti
   $(\Event, {\sle}, {\gtN},
   \labeling)$, such that
   \begin{itemize}
-  \item $\Event$ is a set of \emph{states},
-  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-    from which we derive $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
-    % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
-    % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
-   \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
-   \item ${\sle} \subseteq {\gtN}$ is a partial order, and
-  \item if $\bEv\sle\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$.
+   \item $(\Event, {\gtN},
+  \labeling)$ is a pomset, and 
+\item ${\sle} \subseteq {\gtN}$ is a partial order. 
   \end{itemize}
 \end{definition}
 \citet{DBLP:conf/esop/HuthJS01} call $\slt$ a ``must transition''

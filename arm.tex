@@ -79,7 +79,7 @@ Formally, from $G$ we construct a candidate pomset $\aPS$ as follows:
 \end{theorem}
 It is straightforward to observe that any $\lt$ ordering imposed in our model
 is enforced by \armeight, since our notion of semantic dependency is more
-permissive than the syntactic dependency used in \armeight.  So, the heart of the proof is showing the acyclicity of $({\rob} \cup {\reco})^*$ for the events under consideration.  The key feature facilitating this is our translation of internal reads.  Thus, in the proof of acyclicity in \textsection\ref{sec:arm:proof}, we only have to consider ${\rob}$ that was derived without ever using  $\rrfi$; in this \emph{constrained} fragment of \armeight, we show the following key fact.
+permissive than the syntactic dependency used in \armeight.  So, the heart of the proof is showing the acyclicity of $({\rob} \cup {\reco})^*$ for the events under consideration.  Recall that the cross thread portion of $\reco$ ($\rcoe,\rfre,\rrfe$) is included in $\rob$.  So, the acyclicity result is really a statement about the intra-thread portion of $\reco$.  The key feature facilitating this is our translation of internal reads, which renders them internal, thus removing them from consideration.    Thus, in the proof of acyclicity in \textsection\ref{sec:arm:proof}, we only have to consider ${\rob}$ that was derived without ever using  $\rrfi$; in this \emph{constrained} fragment of \armeight, we show the following key fact.
 
 \begin{lemma}\label{extendob}
 Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
