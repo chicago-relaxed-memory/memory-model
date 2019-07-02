@@ -28,7 +28,7 @@ These intuitions motivate the definition of reads-from in this refined context.
 \begin{definition}\label{def:rf}
 In a \tvalpom,  $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
 \begin{itemize}
-   \item $\bEv \lt \aEv$,  
+   \item $\bEv \slt \aEv$,  
    \item $\aEv$ implies $\bEv$,
    \item $\bEv$ writes $\aVal$ to $\aLoc$,
      and $\aEv$ reads $\aVal$ from $\aLoc$, and
