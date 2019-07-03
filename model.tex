@@ -88,15 +88,9 @@ subject to substitution.
     $\labelingForm(\bEv)$.
   \end{itemize}
 \end{definition}
-In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global happens-before'' relation.  
-%We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.
-% \citet{DBLP:conf/esop/HuthJS01} call $\lt$ a ``must transition''
-% and $\geN$ a ``may transition''; we generally prefer the terms ``strong
-% order'' and ``weak order''.  In pictures, we adopt
-% \citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\lt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ must strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  In this reading, the property that $\gtN$ is a partial order provides the guarantee that the events can be laid out without overlap in a linear temporal order, thus implying \mca. 
+In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global happens-before'' relation.  The restriction of $\lt$ to conflicting writes is called $\rco$, the coherence order.  
 
 We refer to ``memory model pomsets'' as ``{pomsets}''.
-%Note that $\gtN$ is reflexive.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
 $\aForm$ when it is a tautology.
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
@@ -134,43 +128,86 @@ multiple arrow, we emphasize that they are all part of the same $\le$ relation.
 
 \paragraph{Within threads.}
 Within a single thread, $\lt$ captures the notion of \emph{dependency}:
-indicating that the related events cannot appear in the opposite order.  In
-the absence of synchronization, this relation always goes \emph{from reads to
-  writes within a thread}.  The formula decorating the event is to viewed as the precondition necessary for the event to fire.  It is used to
-calculate these single-threaded dependencies, using semantic entailment.  For
-example, semantics of $y\GETS \aReg$ has an event with label
-$(\aReg=1\mid\DW{y}{1})$, indicating that the subprogram can write $1$ to $y$
-whenever $\aReg$ is $1$.  Prefixing an assignment to $\aReg$, the semantics
-of
+indicating that the related events cannot appear in the opposite order. 
+ 
+A write event $\aEv$ has two kinds of dependencies.  First, the external dependency on reads $\bEv$ that is reflected as $\bEv  \lt \aEv$.  Second, it has internal dependencies reflected in the formula decorating $\aEv$.  In order for the write event to fire, both these dependencies need to be satisfied.  The external dependency on a read is satisfied by globally visible writes.   The internal dependency can only be fulfilled by a preceding  write in the same thread.  
+
+%It includes the dependency of writes on reads.
+%the absence of synchronization, this relation always goes \emph{from 
+%reads to writes within a thread}.  
+%The formula decorating a write event is another kind of dependency: it is 
+%to be viewed as a precondition necessary for the event to fire.  Thus, for 
+%a write to fire
+% It is used to calculate these single-threaded dependencies, using 
+%semantic entailment. 
+
+For example, semantics of $y\GETS \aReg$ contains the following pomset.  
+\begin{tikzdisplaylabel}[node distance=1em]{m1}
+  \event{wy1}{\aReg=1 \mid \DW{y}{1}}{}
+\end{tikzdisplaylabel}
+that can be viewed as expressing the Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$. 
+
+The Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y =1}$ expresses the effect of prefixing an assignment to $\aReg$:
 \begin{math}
   \aReg\GETS x\SEMI
   y\GETS \aReg
 \end{math}
-includes the pomset
+This effect is realized in the semantics in different ways in the following two pomsets included in the semantics.  
+\begin{tikzdisplay}[node distance=1em]
+  \event{wy1}{x=1 \mid \DW{y}{1}}{}
+\end{tikzdisplay} 
+and:
 \begin{tikzdisplaylabel}[node distance=1em]{m1}
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \po{rx1}{wy1}
 \end{tikzdisplaylabel}
-Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing
-the label to $(x=1\mid \DW{y}{1})$.  Intuitively, the read of $x$ discharges the precondition to this event.  Formally, by introducing strong order
-$(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology
-and therefore elided.
+Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  This is the pomset on the left.  In the pomset on the right, the external read of $x$ discharges the precondition to this event.  Formally, by introducing strong order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology and therefore elided.
+
+Consider prefixing a write to the above program:
+\begin{math}
+  x \GETS 1 \SEMI
+  \aReg\GETS x\SEMI
+  y\GETS \aReg
+\end{math}.
+In this special case when the value is read from a write of the same thread, as in the above example, as in \citep{2019-sp}, the semantics includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+\end{tikzdisplay}
+This pomset is derived discharging the internal dependency $x=1$ from the left pomset above  in the semantics of $\aReg\GETS x\SEMI
+  y\GETS \aReg$.  This feature is reminiscent of the eponymous ${\rrfi}$ in hardware memory models where writes from a thread are forwarded to a read in the same thread without global publication and no read action is recorded.    The Hoare triple corresponding to the above pomset is $\hoare{\TRUE}{x \GETS 1\SEMI \aReg \GETS x \SEMI y\GETS \aReg}{y =1, x=1}$.  This triple reflects the store forwarding optimization in compilers.
 
 As in \citep{2019-sp}, weakening of preconditions\footnote{We say a formula $\psi$ is weaker than a formula $\phi$ if $\phi \Rightarrow \psi$.}can also happen by merging
-actions.  For example, mirroring the fact that the weakest precondition of $y=1$ is true for the program
-$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$, its semantics includes a pomset with the single
-action $(\DW{y}{1})$, with precondition $\TRUE$.
+actions.  Consider the program $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.  We derive:
+\[
+\frac{\hoare{\aReg=0}{y\GETS1}{y=1}, \ \ \  \hoare{\aReg\neq0}{y\GETS1}{y=1}}
+{\hoare{\TRUE}{\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI}{y=1}}
+\]
+This is reflected in our semantics by a pomset with a single action whose precondition is $\TRUE$
+\begin{tikzdisplay}[node distance=1em]{}
+  \event{wy1}{\DW{y}{1}}{}
+\end{tikzdisplay}
+% For example, mirroring the fact that the weakest precondition of $y=1$ 
+%is true for the program
+%$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$, its semantics includes a 
+%pomset with the single
+%action $(\DW{y}{1})$, with precondition $\TRUE$.
+that is derived as follows.  The two branches of the conditional contain pomsets as follows:
+\begin{displaymathsmall}
+\mbox{THEN: }
+\begin{tikzcenter}[node distance=1em]
+  \event{wy1}{\aReg=0\mid {y}{1}}{}
+\end{tikzcenter}
+\ \ \ \ \ \ \ \ \ \ \ 
+\mbox{ELSE: }
+\begin{tikzcenter}[node distance=1em]
+  \event{wy1}{\aReg\neq0\mid {y}{1}}{}
+\end{tikzcenter}
+\end{displaymathsmall}
+In the semantics of the conditional, we take the (not necessarily disjoint) union of the events, that permits events with the same actions to be identified by combining their  preconditions with a disjunction.  In this case, this yields the event $(\aReg\neq0\lor \aReg=0\mid\DW{y}{1})$, permitting us to derive the desired pomset in the semantics of
+$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.
 
-In computing the dependencies for the conditional
-statement, we first compute the then-part to contain
-$(\aReg\neq0\mid\DW{y}{1})$ and the else-part to contain
-$(\aReg=0\mid\DW{y}{1})$.  Mirroring the proof rule for conditionals in Hoare logic,  since the actions are the same in these events,
-they can be merged into a single event whose precondition is the disjunction
-of the preconditions of the individual events.  Thus, the semantics of
-$\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ includes
-$(\aReg\neq0\lor \aReg=0\mid\DW{y}{1})$.  Since the precondition is a
-tautology, we may elide it.  
 
 Within a single thread, $\geN$ also orders \emph{conflicting} events.  We
 refer order arising from conflict as ``weak'' and visualize it using a dashed
@@ -192,10 +229,9 @@ substitution (since actions are not subject to substitution).
 
 
 \paragraph{Between threads.}
-Between threads, $\lt$ indicates that one thread has \emph{read-from}
-another.  This relation always goes \emph{from writes to reads across
-  threads}.  We consider reads-from to be a strong order, which we visualize
-with a thick arrow ``$\xrf$''.  Since new threads may introduce order from
+Between threads, $\lt$ includes reads-from, which always goes from writes to reads across threads.   We consider reads-from to be a strong order, which we visualize
+with a thick arrow ``$\xrf$''.  indicates that one thread has \emph{read-from}
+another.  Since new threads may introduce order from
 write to read, we define our semantics to be closed with respect to
 augmentation of $\le$.
 
@@ -282,18 +318,20 @@ and execution:
   \wk{rx1a}{wx3}
   \wk{rx2a}{wx3}
 \end{tikzdisplay}
-Thus, $\geN$ can always be extended to an \emph{extended coherence order},
-which totally orders all conflicting operations in a pomset.  As a derived
-property, we have that executions are \emph{coherent}.
+The restriction of $\geN$ to events that read or write any single location is called the \emph{extended coherence order}, $\reco$.  Since $\geN$ is a partial order, so is $\reco$.  
 
-\begin{definition}
-  A pomset \emph{coherent} if, when restricted to events that read or write
-  any single location, $\gtN$ forms a partial order.
-\end{definition}
-To see that this definition captures the idea of coherence, consider that (as
-long as weak order includes strong order) incoherent executions always result
-in cycles in weak order.  (We include acquiring reads in order to enforce
-read-to-read order, as discussed below.)  % (In the following example, we include fences to
+% Thus, $\geN$ can always be extended to a total orderwhich orders any 
+% two conflicting operations in a pomset.  includes an ,   As a derived
+% property, we have that executions are \emph{coherent}.
+%
+%\begin{definition}
+ % A pomset \emph{coherent} if, when restricted to  $\gtN$ forms a partial 
+%order.
+%\end{definition}
+%To see that this definition captures the idea of coherence, consider that 
+%incoherent executions always result
+%in cycles in weak order.  (We include acquiring reads in order to enforce
+%read-to-read order, as discussed below.)  % (In the following example, we include fences to
 % ensure order between the reads; we elide the fences in the drawing, since
 % they are not essential to the point being made.)
 % Because we are modeling architecture rather than microarchitecture, result,
@@ -301,36 +339,37 @@ read-to-read order, as discussed below.)  % (In the following example, we includ
 % example, at top-level, we ignore events whose preconditions are not
 % tautologies; \citeauthor{2019-sp} use such events to model the influence of
 % ``unexecuted'' conditional code on executed code, as found in Spectre.
-\begin{displaymath}
-  r\GETS x\ACQ \SEMI %\FENCE\SEMI
-  s\GETS x
-  \PAR
-  x\GETS 1
-  \PAR
-  x\GETS2
-  \PAR
-  r\GETS x\ACQ \SEMI %\FENCE\SEMI
-  s\GETS x
-\end{displaymath}
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{x}{1}}{}
-  \event{wx2}{\DW{x}{2}}{below=of wx1}
-  \event{rx1a}{\DRAcq{x}{1}}{left=of wx1}
-  \event{rx2a}{\DR{x}{2}}{left=of wx2}
-  \event{rx1b}{\DR{x}{1}}{right=of wx1}
-  \event{rx2b}{\DRAcq{x}{2}}{right=of wx2}
-  \po{rx1a}{rx2a}
-  \po{rx2b}{rx1b}
-  \rf{wx1}{rx1a}
-  \rf{wx1}{rx1b}
-  \rf{wx2}{rx2a}
-  \rf{wx2}{rx2b}
-  \wk{rx1a}{wx2}
-  \wk{rx2a}{wx1}
-  \wk{rx1b}{wx2}
-  \wk{rx2b}{wx1}
-\end{tikzdisplay}
-This satisfies the requirements for fulfillment, but is not coherent.
+
+%\begin{displaymath}
+ % r\GETS x\ACQ \SEMI %\FENCE\SEMI
+ % s\GETS x
+%  \PAR
+%  x\GETS 1
+ % \PAR
+ % x\GETS2
+ % \PAR
+ % r\GETS x\ACQ \SEMI %\FENCE\SEMI
+ % s\GETS x
+%\end{displaymath}
+%\begin{tikzdisplay}[node distance=1em]
+%  \event{wx1}{\DW{x}{1}}{}
+%  \event{wx2}{\DW{x}{2}}{below=of wx1}
+%  \event{rx1a}{\DRAcq{x}{1}}{left=of wx1}
+%  \event{rx2a}{\DR{x}{2}}{left=of wx2}
+%  \event{rx1b}{\DR{x}{1}}{right=of wx1}
+ % \event{rx2b}{\DRAcq{x}{2}}{right=of wx2}
+%  \po{rx1a}{rx2a}
+%  \po{rx2b}{rx1b}
+ % \rf{wx1}{rx1a}
+ % \rf{wx1}{rx1b}
+ % \rf{wx2}{rx2a}
+%  \rf{wx2}{rx2b}
+%%  \wk{rx1a}{wx2}
+%%  \wk{rx2a}{wx1}
+%  \wk{rx1b}{wx2}
+%  \wk{rx2b}{wx1}
+%\end{tikzdisplay}
+%This satisfies the requirements for fulfillment, but is not coherent.
 
 \paragraph{Synchronization}
 The model ensures that events are ordered before a release and after an
@@ -398,12 +437,8 @@ since no order is required between $(\DW x1)$ and $(\DW y1)$.
 Symmetrically, if we replace the acquire of the original program
 with a plain read, then the outcome $(\DR y1)$ and $(\DR x0)$ is possible.
 
-\paragraph{Internal reads}
-As in \citep{2019-sp}, the semantics of relaxed read includes a special case
-when the value is read from a write of the same thread: in this case, no read
-action need be recorded.  This is reminiscent of the eponymous ${\rrfi}$ in hardware memory models and the store forwarding optimization in compilers.  In all these cases, writes from a thread are forwarded to a read in the same thread without global publication.  
-
-To see the need for internal reads, consider the example 3.6 from
+\paragraph{Impact of Internal reads}
+The ability to remove of the program order from a write to a read of the same thread as discussed earlier causes great expressivity in terms of permitted executions.  To see this, consider the example 3.6 from
 \cite{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{displaymath}
   \aReg\GETS x\SEMI
@@ -416,7 +451,7 @@ To facilitate the definitions required in the proof
 of \drfsc\ (\textsection\ref{sec:sc}), we include an \emph{internal action},
 which we visualize in grey.  Internal actions do not read or write any
 location.  
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzdisplaylabel}[node distance=1em]{thread}
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
   \po{a1}{a2}
@@ -430,21 +465,12 @@ location.
   \po{b1}{b2}
   \rf{a4}{b1}
   \rf{b2}{a1}
-\end{tikzdisplay}
+\end{tikzdisplaylabel}
 There is no order from $(\DWRel{y}{1})$ to $(\DW{z}{1})$.  This behavior is
 allowed by \armeight.  Were the internal action made explicit, then the order
 shown in gray would be imposed; this behavior would be disallowed due to the
 evident cycle in strong order.
 
-It is worth noting that the behavior is not possible if we split the first
-thread in two:
-\begin{math}
-  \aReg\GETS x\SEMI
-  y\REL\GETS 1\PAR
-  z\GETS y.
-\end{math}
-This shows that, like most relaxed models, our model invalidates thread
-inlining.
 
 The dependency calculation for $(\DW{z}{1})$ in this execution proceeds as
 follows.  Desugaring, the thread is
@@ -464,33 +490,46 @@ Note that both write prefixing and read prefixing enable precondition
 weakening.  Only read prefixing imposes strong order; there is no order from
 the prefixed write to any subsequent action.
 
-Here is an example which uses a cycle in weak order rather than strong order.
+\paragraph*{Invalidation of thread inlining. }
+The behavior in~\ref{thread} is not possible if we split the first
+thread in two:
+\begin{math}
+  \aReg\GETS x\SEMI
+  y\REL\GETS 1\PAR
+  z\GETS y.
+\end{math}
+since that would make the read explicit, thus imposing the order
+shown in gray.   This shows that, like the JMM, our model invalidates thread
+inlining.
+
+%Here is an example which uses a cycle in weak order rather than strong 
+%order.
 %We also use a fence (not drawn) rather than an acquire or release:
-\begin{displaymath}
-  y \GETS0 \SEMI %\FENCE\SEMI
-  x\REL\GETS1\SEMI a\GETS y
-  \PAR
-  x \GETS0 \SEMI %\FENCE\SEMI
-  y\REL\GETS1\SEMI b\GETS x
-\end{displaymath}
-\begin{tikzdisplay}[node distance=1em]
-  \event{a1}{\DW{y}{0}}{}
-  \event{a2}{\DWRel{x}{1}}{right=of a1}
-  \po{a1}{a2}
-  \internal{a3}{\DR{y}{0}}{right=of a2}
-  \graypo{a2}{a3}
-  \event{a4}{\DW{a}{0}}{right=of a3}
-  \graypo{a3}{a4}
-  \event{b1}{\DW{x}{0}}{below=of a1}
-  \event{b2}{\DWRel{y}{1}}{right=of b1}
-  \po{b1}{b2}
-  \internal{b3}{\DR{x}{0}}{right=of b2}
-  \graypo{b2}{b3}
-  \event{b4}{\DW{b}{0}}{right=of b3}
-  \graypo{b3}{b4}
-  \graywk{b3}{a2}
-  \graywk{a3}{b2}
-\end{tikzdisplay}
+%\begin{displaymath}
+ % y \GETS0 \SEMI %\FENCE\SEMI
+ % x\REL\GETS1\SEMI a\GETS y
+ % \PAR
+ %% x \GETS0 \SEMI %\FENCE\SEMI
+ % y\REL\GETS1\SEMI b\GETS x
+%\end{displaymath}
+%\begin{tikzdisplay}[node distance=1em]
+ % \event{a1}{\DW{y}{0}}{}
+ % \event{a2}{\DWRel{x}{1}}{right=of a1}
+ % \po{a1}{a2}
+ % \internal{a3}{\DR{y}{0}}{right=of a2}
+ %% \graypo{a2}{a3}
+%  \event{a4}{\DW{a}{0}}{right=of a3}
+ % \graypo{a3}{a4}
+ % \event{b1}{\DW{x}{0}}{below=of a1}
+ % \event{b2}{\DWRel{y}{1}}{right=of b1}
+ % \po{b1}{b2}
+ % \internal{b3}{\DR{x}{0}}{right=of b2}
+ % \graypo{b2}{b3}
+ % \event{b4}{\DW{b}{0}}{right=of b3}
+ % \graypo{b3}{b4}
+ % \graywk{b3}{a2}
+ % \graywk{a3}{b2}
+%\end{tikzdisplay}
 % \begin{displaymath}
 %   x \GETS1 \SEMI \IF{y}\THEN \FENCE \SEMI z\GETS x\FI
 %   \PAR
