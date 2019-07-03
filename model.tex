@@ -318,7 +318,7 @@ and execution:
   \wk{rx1a}{wx3}
   \wk{rx2a}{wx3}
 \end{tikzdisplay}
-The restriction of $\geN$ to events that read or write any single location is called the \emph{extended coherence order}, $\reco$.  Since $\geN$ is a partial order, so is $\reco$.  
+The restriction of $\geN$ to conflicting events on a single location is called the \emph{extended coherence order}, $\reco$.  Since $\geN$ is a partial order, so is $\reco$.  
 
 % Thus, $\geN$ can always be extended to a total orderwhich orders any 
 % two conflicting operations in a pomset.  includes an ,   As a derived
@@ -640,10 +640,42 @@ with control dependencies between the reads:
   %\po{rx1}{ry0}
   %\po{ry1}{rx0}
 \end{tikzdisplay}
-Our semantics does not enforce control dependencies between reads, and thus
-this execution is allowed.  If the first read in each thread is acquiring,
-however, then there is strong order between the reads; the resulting
-execution is disallowed due to the evident cycle in weak order.
+Since our semantics does not enforce control dependencies between reads, 
+this execution is acyclic and is allowed.  
+
+Consider the variant
+\begin{displaymatharray}{rl}
+  &x\GETS0\SEMI x\GETS 1
+  \PAR
+  \IF{x\ACQ}\THEN r\GETS y \FI
+ \\{}
+  \PAR&
+  y\GETS0\SEMI y\GETS 1
+  \PAR
+  \IF{y\ACQ}\THEN s\GETS x \FI
+\end{displaymatharray}
+where the first read in each thread is acquiring.  In this case, there is strong order between the reads; the resulting
+execution is shown below and disallowed due to the evident cycle.
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy0}{\DW{y}{0}}{below=4ex of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of wy0}
+  \event{ry1}{\DR{y\ACQ}{1}}{right=2.5em of wy1}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \event{rx1}{\DR{x\ACQ}{1}}{right=2.5 em of wx1}
+  \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \wk{wx0}{wx1}
+  \wk{wy0}{wy1}
+  \rf{wx1}{rx1}
+  \rf[bend left]{wy0}{ry0}
+  \rf{wy1}{ry1}
+  \rf[bend right]{wx0}{rx0}
+  \wk{rx0}{wx1}
+  \wk{ry0}{wy1}
+  \po{rx1}{ry0}
+  \po{ry1}{rx0}
+\end{tikzdisplay}
 
 % Note that if you enforce the dependency between the reads, then the execution
 % is disallowed, because the is a cycle on weak edges restricted to $x$:
