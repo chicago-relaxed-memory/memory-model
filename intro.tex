@@ -68,7 +68,7 @@ Our approach builds on are  traditional gadgets from concurrency theory, namely 
 
 \begin{itemize}
 \item The acylicity of the pomset provides an axiomatic basis for a global notion of time, as envisioned in chapter 3.3 of~\citet{AlglaveThesis}.  The  novelty in our framework is that sequential evolution  proceeds silently , without advancing global time.
-Thus, we  capture the essence of multi-copy atomicity (\mca) in a software memory model, whereas traditionally \mca\ is explored in hardware memory models (eg, see \citep{DBLP:journals/pacmpl/PulteFDFSS18}).   \tso\ and recent architectures, such as \armeight, are \mca, but not older architectures, such as \ppc\ or \armseven.
+Thus, we  capture the essence of multi-copy atomicity (\mca) in a software memory model, whereas traditionally \mca\ is explored in hardware memory models.   \tso\ (eg.see~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight (eg. see~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (eg. see~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven (eg. see~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).
 
 \item The idea of viewing a memory model in terms of (seqential) program transformations has been explored in the literature,eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
 DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}.  The novelty of our treatment is the implicit use of Hoare logic as the semantic basis to extract all available independence in sequential code, facilitating the dynamic discovery of permissible program transformations.   

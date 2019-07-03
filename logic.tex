@@ -116,8 +116,7 @@ following rule is sound:
   }
 \end{displaymath}
 
-The second rule describes composition, in the style of Abadi and
-Lamport~\cite{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
+The second rule describes composition, in the style of~\citet{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
 consider the special case with a single invariant.
 % We view the
 % composition result as capturing key aspects of no-ThinAirRead, as will become
@@ -181,6 +180,8 @@ closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
   Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
   deduce that $\aPS \models \afo$.
 \end{proof}
+
+A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 
 \begin{example}
 We now turn the conditional TAR-pit program, given in \eqref{alan}:

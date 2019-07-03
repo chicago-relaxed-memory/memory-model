@@ -1,12 +1,12 @@
 \section{Comparison to related work}\label{sec:ldrf}
-A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  \citet{AlglaveThesis} provides a historical and conceptual perspective on hardware memory models.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
+A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  \citet{AlglaveThesis} provides a historical and conceptual perspective on hardware memory models.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to~\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
 
 This paper follows a line of work on relaxed memory models in the framework of true concurrency~\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.  
 
-We discuss in more detail the relationship with the most closely related work.  
+We have already discussed related work in context earlier in the paper.  Here, we discuss in more detail the relationship with the most closely related work.  
 
 \subsection{Memory models via program transformations}
-We discuss prior approaches to definining memory models using program transformations in chronological order.  The general flavor in these approaches is to consider SC executions, albeit with the threads subject to sequential program transformation  \citet{Saraswat:2007:TMM:1229428.1229469} aims to describe a JMM model this way.  DRF holds, but it was later discoeverd that there is \oota\ behavior.
+We discuss prior approaches to definining memory models using program transformations in chronological order.  The general flavor in these approaches is to consider SC executions, albeit with the threads subject to sequential program transformation  \citet{Saraswat:2007:TMM:1229428.1229469} aims to describe a JMM model this way.  DRF holds, but it was later discovered to permit  \oota\ behavior~\cite{SP}.
 
 ~\cite{DBLP:conf/esop/FerreiraFS10} describes a relaxed memory model as being parametrised by available program transformations.  They show DRF, but do not study \oota, relate to concrete models, or demonstrate compilation results.
 
@@ -27,7 +27,8 @@ There are two related lines of research that suggest to prohibit the reordering 
 \mbox{Thread 1: } & u \GETS 0 \SEMI y \GETS 1 \SEMI v^{rel}  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3 \SEMI \\[-.5ex]
 \mbox{Thread 2: } & y \GETS 2 \SEMI  \IF{v^{acq}==1} \THEN\ w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2 \SEMI
 \end{align*}
-\item ~\citet{BoehmOOTA} describes a series of ``\oota'' like examples, and uses this restriction to rule out example~\ref{rfub}.  
+
+\item In the C11 family of models, eg. see~\citep{Boehm:2014:OGA:2618128.2618134,DBLP:conf/pldi/LahavVKHD17,DBLP:conf/oopsla/VafeiadisN13}, load buffering is forbidden to avoid \oota. The elegant discussion in~\citet{BoehmOOTA} elucidates the issues via a series of ``\oota'' like examples.  In particular, to rule out example~\ref{rfub}.  
 \end{itemize}
 
 This restriction can be captured naturally in our model.  We make two changes.

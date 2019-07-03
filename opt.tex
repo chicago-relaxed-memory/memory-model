@@ -103,7 +103,7 @@ are also permissible.
     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI \aCmd}
   \end{align*}
 \begin{proof}
-The proof of both of the above lemmas follows from the semantics of prefixing where the only enforced $\lt$ and $\gtN$ relationships come from conflict on $\aLoc$ or release actions in $\aCmd$.
+The proof of both of the above lemmas follows from the semantics of prefixing where the only enforced $\lt$ relationships come from conflict on $\aLoc$ or release actions in $\aCmd$.
 \end{proof}
 \end{lemma}
 
@@ -158,24 +158,28 @@ Our semantics is complete for reasoning about full-thread optimizations of synch
 In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are synchronization free (ie. no acquire, release, fence) and single threaded (ie. no parallel composition). 
 
 In order to develop the proof, we describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
-We say $\aEv$ immediately $\lt$-precedes (resp. $\lt$-succeeds) $\bEv$, if forall $\cEv \lt \bEv$, it is the case that $\cEv \lt \aEv \lt \bEv$ (resp. $\bEv \lt \aEv \lt \cEv$)
+
 \begin{definition}
 $\aPS$ is in normal form if:
 \begin{itemize}
 % \item All preconditions on events are tautologies.
-\item If a write $\aEv$ is not $\lt$-maximal, it has an immediate $\lt$successor $\bEv$ such that $\aEv \xeco \bEv$.
-   If a read is not $\lt$-minimal, it has an immediate $\lt$-predecessor $\bEv$ such that $\bEv \xeco \aEv$. 
+\item Forall writes $\aEv$, every $\bEv$ such that $\aEv \lt \bEv$ is a write or read on the same variable.
+        Forall reads  $\bEv$, every $\bEv$ such that $\aEv \lt \bEv$ is a write on the same variable. 
+    
 % \item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
 \item If $\aEv, \aEv'$ have the same read action label, then $\aEv = \aEv'$
 \item  If $\aEv, \aEv'$ have the same write action label, then there exists a write $\bEv$ on the same location as $\aEv$ such that $\aEv \gtN \bEv \gtN \aEv'$.
 \end{itemize}
 \end{definition}
+In a normal form pomset, the successors of a write event (resp. the predecessors of a read) are related in the coherence order to the event.  The labels of a read actions form a set, and the coherence order on a location does not have two events with the same label. 
+
 It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. 
 
 $\TRUE\guard \sem{\aCmd}$ is used to captures the behavior of $\aCmd$ as a top-level thread by restricting only to events whose 
 preconditions are tautologies.
 \begin{lemma}\label{unrhd}
-$\TRUE\guard \sem{\aCmd} \subseteq \TRUE\guard \sem{\bCmd} $  iff for all $\aPS$ in normal form, $\aPS \in \TRUE\guard \sem{\aCmd} \Rightarrow\ \aPS \in \TRUE\guard \sem{\bCmd}$
+Every top-level pomset of $\sem{\aCmd}$ is a top-level pomset of $\sem{\bCmd}$ if and only if 
+every top-level normal form pomset of $\sem{\aCmd}$ is a top-level normal form pomset of $\sem{\bCmd}$.
 \begin{proof}
 The normal forms determine the full semantics by the closure properties of the semantics.     The proof proceeds by induction on structure.  The key case is prefixing. 
 
@@ -185,7 +189,7 @@ The only edges $\lt$-edges out of writes  and into read actions enforced by pref
 
 
 
-Let $\aPS$ be a normal form of $\TRUE\guard \sem{\aCmd}$.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
+Let $\aPS$ be a top-level pomset in normal form.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
 
 
 We define a tester program to use as a parallel context to detect $\aPS$. 
@@ -215,10 +219,11 @@ The tester program for $\aPS$, $\testP{\aPS}{}$ is
  
 
 \begin{theorem}
-Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then $\TRUE\guard \sem{\aCmd_1}  \supseteq \TRUE\guard \sem{\aCmd_2}$ iff for all $\bCmd$,  $\sem{\TRUE\guard(\aCmd_1\PAR \bCmd)}  \supseteq \sem{\TRUE \guard (\aCmd_2 \PAR \bCmd)}$.
-
+Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\sem{\aCmd_1}$ are also pomsets of
+$\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets of $\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
+$\sem{\aCmd_2 \PAR \bCmd}$.
 \begin{proof}
-The forward implication follows from the compositionality of the semantics. For the converse, pick $\aPS \in \TRUE\guard \sem{\aCmd_1} \setminus \TRUE\guard \sem{\aCmd_2} $. 
+The forward implication follows from the compositionality of the semantics. For the converse, pick a top level pomset $\aPS \in \\sem{\aCmd_1} \setminus \sem{\aCmd_2} $. 
 
 Consider the (semantic) context induced by tester program $\testP{\aPS}{}$:
 \[ \sem{\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
@@ -230,7 +235,7 @@ There is a pomset that writes one to the  testing variable $b_{\aPS}$ if and onl
 \end{proof}
 \end{theorem}
 
-The full abstraction theorem applies only to full threads; in particular.  The reason for this limited statement of full abstraction is that our language is impoverished, in that parallel composition cannot be used freely as the continuation in a sequential composition.  A full abstraction theorem that applies also to commands requires these richer distinguishing contexts.  
+The full abstraction theorem applies only to full threads; in particular.  The reason for this limited statement of full abstraction is that our language is impoverished, in that parallel composition cannot be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands requires these richer distinguishing contexts.  
 
 
 \subsection{Relationship to Hoare logic}
@@ -258,7 +263,7 @@ The proof proceeds by structural induction on the command.  Indeed, this invaria
 \end{proof}
 \end{theorem}
 
-This theorem captures the independence between reads and writes in a sequential program fragment.  We illustrate with a couple of examples.
+We illustrate the theorem with a few examples.
 
 \begin{example}
 Consider:

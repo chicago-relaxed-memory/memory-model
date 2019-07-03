@@ -196,7 +196,7 @@ The lemma constructs the execution:
 \end{tikzdisplay}
 
 \begin{lemma}\label{removerw}
-Let $\aPS \in \tsem{\aCmd}$.   
+Let $\aPS \in \tsem{\aCmd}$ be a top-level pomset.   
 Let $\bEv \in \aPS$ be a write on $\aLoc$. 
 Let $\aEv \in \aPS$ read from $\aLoc$ such that $\aEv \xeco \bEv$ and $\neg(\aEv \slt \bEv)$.  Then, there exists $\bPS \in \tsem{\aCmd}$ such that:
 \begin{itemize}
@@ -229,7 +229,7 @@ The lemma constructs the execution:
 \wk{wx0}{wy0}
 \end{tikzdisplay}
 \begin{lemma}\label{cohww}
-Let $\aPS \in \tsem{\aCmd}$.  Let $\bEv, \aEv$ be a writes to $\aLoc$ such that:
+Let $\aPS \in \tsem{\aCmd}$ be a top level pomset.  Let $\bEv, \aEv$ be a writes to $\aLoc$ such that:
 \begin{itemize}
 \item $\bEv\gtN \aEv$  
 \item forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\cEv \slt \aEv)$ and $\neg(\cEv \xpox \aEv)$
