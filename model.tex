@@ -88,7 +88,9 @@ subject to substitution.
     $\labelingForm(\bEv)$.
   \end{itemize}
 \end{definition}
-In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global happens-before'' relation.  The restriction of $\lt$ to conflicting writes is called $\rco$, the coherence order.  
+In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global
+happens-before'' relation.  The restriction of $\lt$ to conflicting writes is
+called the coherence order, $\rco$.  
 
 We refer to ``memory model pomsets'' as ``{pomsets}''.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
@@ -130,7 +132,7 @@ multiple arrow, we emphasize that they are all part of the same $\le$ relation.
 Within a single thread, $\lt$ captures the notion of \emph{dependency}:
 indicating that the related events cannot appear in the opposite order. 
  
-A write event $\aEv$ has two kinds of dependencies.  First, the external dependency on reads $\bEv$ that is reflected as $\bEv  \lt \aEv$.  Second, it has internal dependencies reflected in the formula decorating $\aEv$.  In order for the write event to fire, both these dependencies need to be satisfied.  The external dependency on a read is satisfied by globally visible writes.   The internal dependency can only be fulfilled by a preceding  write in the same thread.  
+A write event $\aEv$ has two kinds of dependencies.  First, the external dependency on reads $\bEv$ that is reflected as $\bEv  \lt \aEv$.  Second, it has internal dependencies reflected in the formula decorating $\aEv$.  In order for the write event to fire, both these dependencies need to be satisfied.  The external dependency on a read is satisfied by globally visible writes.   The internal dependency can only be fulfilled by a preceding actions in the same thread.  
 
 %It includes the dependency of writes on reads.
 %the absence of synchronization, this relation always goes \emph{from 
@@ -152,16 +154,18 @@ The Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y =1}$ expresses the effect of 
   \aReg\GETS x\SEMI
   y\GETS \aReg
 \end{math}
-This effect is realized in the semantics in different ways in the following two pomsets included in the semantics.  
-\begin{tikzdisplay}[node distance=1em]
+This effect is realized in the semantics in different ways in the following two pomsets included in the semantics:
+\begin{displaymathsmall}
+\begin{tikzpicture}[baselinecenter,node distance=1em]
   \event{wy1}{x=1 \mid \DW{y}{1}}{}
-\end{tikzdisplay} 
-and:
-\begin{tikzdisplaylabel}[node distance=1em]{m1}
+\end{tikzpicture} 
+\qquad\qquad{\text{\normalsize and}}\qquad\qquad
+\begin{tikzpicture}[baselinecenter,node distance=1em]
   \event{rx1}{\DR{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \po{rx1}{wy1}
-\end{tikzdisplaylabel}
+\end{tikzpicture}
+\end{displaymathsmall}
 Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  This is the pomset on the left.  In the pomset on the right, the external read of $x$ discharges the precondition to this event.  Formally, by introducing strong order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology and therefore elided.
 
 Consider prefixing a write to the above program:
@@ -170,15 +174,16 @@ Consider prefixing a write to the above program:
   \aReg\GETS x\SEMI
   y\GETS \aReg
 \end{math}.
-In this special case when the value is read from a write of the same thread, as in the above example, as in \citep{2019-sp}, the semantics includes:
+In this special case when the value is read from a write of the same thread, the semantics includes:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
 \end{tikzdisplay}
+as in \citep{2019-sp}.
 This pomset is derived discharging the internal dependency $x=1$ from the left pomset above  in the semantics of $\aReg\GETS x\SEMI
   y\GETS \aReg$.  This feature is reminiscent of the eponymous ${\rrfi}$ in hardware memory models where writes from a thread are forwarded to a read in the same thread without global publication and no read action is recorded.    The Hoare triple corresponding to the above pomset is $\hoare{\TRUE}{x \GETS 1\SEMI \aReg \GETS x \SEMI y\GETS \aReg}{y =1, x=1}$.  This triple reflects the store forwarding optimization in compilers.
 
-As in \citep{2019-sp}, weakening of preconditions\footnote{We say a formula $\psi$ is weaker than a formula $\phi$ if $\phi \Rightarrow \psi$.}can also happen by merging
+As in \citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is \emph{weaker} than a formula $\phi$ if $\phi \Rightarrow \psi$.}can also happen by merging
 actions.  Consider the program $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.  We derive:
 \[
 \frac{\hoare{\aReg=0}{y\GETS1}{y=1}, \ \ \  \hoare{\aReg\neq0}{y\GETS1}{y=1}}
@@ -195,14 +200,14 @@ This is reflected in our semantics by a pomset with a single action whose precon
 %action $(\DW{y}{1})$, with precondition $\TRUE$.
 that is derived as follows.  The two branches of the conditional contain pomsets as follows:
 \begin{displaymathsmall}
-\mbox{THEN: }
+\mbox{THEN:}\;\;
 \begin{tikzcenter}[node distance=1em]
-  \event{wy1}{\aReg=0\mid {y}{1}}{}
+  \event{wy1}{\aReg=0\mid \DW{y}{1}}{}
 \end{tikzcenter}
-\ \ \ \ \ \ \ \ \ \ \ 
-\mbox{ELSE: }
+\qquad\qquad
+\mbox{ELSE: }\;\;
 \begin{tikzcenter}[node distance=1em]
-  \event{wy1}{\aReg\neq0\mid {y}{1}}{}
+  \event{wy1}{\aReg\neq0\mid \DW{y}{1}}{}
 \end{tikzcenter}
 \end{displaymathsmall}
 In the semantics of the conditional, we take the (not necessarily disjoint) union of the events, that permits events with the same actions to be identified by combining their  preconditions with a disjunction.  In this case, this yields the event $(\aReg\neq0\lor \aReg=0\mid\DW{y}{1})$, permitting us to derive the desired pomset in the semantics of
@@ -1447,8 +1452,7 @@ $\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every
 
 Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
 $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
-$\bEv\l
-e\aEv$, for every release $\aEv\in\Event$.
+$\bEv\le\aEv$, for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
