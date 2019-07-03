@@ -1258,8 +1258,8 @@ As noted in \textsection\ref{sec:model:intro}, our example language includes acq
 read $(\DRAcq{\aLoc}{\aVal})$, relaxed read $(\DR{\aLoc}{\aVal})$, releasing
 write $(\DWRel{\aLoc}{\aVal})$, and relaxed write $(\DW{\aLoc}{\aVal})$.
 For each external action, we also define a corresponding internal action
-which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
-%denoted by prefixing $\tau$.
+%which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
+denoted by prefixing $\tau$.
 For example, $(\iDRAcq{\aLoc}{\aVal})$ is an acquiring internal action, which
 neither reads nor writes. In pictures, we draw internal actions grayed out,
 rather than using $\tau$.  % For example, the ``read'' action is internal in:
@@ -1371,14 +1371,14 @@ These operations are similar to those from models of concurrency such
 as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
 speculative evaluation.
 
-We also define two filtering operations:
+We also define three filtering operations:
 \begin{itemize}
 \item \emph{guarding} $\aForm\guard\aPSS$, which
-  keeps pomsets where all preconditions imply $\aForm$, and
+  keeps pomsets where all preconditions imply $\aForm$, 
 \item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
-  where all preconditions are location independent.
-% \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
-%   that have an initial write to $\aLoc$,
+  where all preconditions are location independent, and
+\item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
+  that have an initial write to $\aLoc$.
 \end{itemize}
 
 %% A write generates a write event that may be visible
@@ -1444,9 +1444,11 @@ $\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labeli
 
 Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
 $\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
-% Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
-% $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
-% $\bEv\le\aEv$, for every release $\aEv\in\Event$.
+
+Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
+$\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
+$\bEv\l
+e\aEv$, for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
@@ -1856,13 +1858,14 @@ The semantics of programs is as follows\footnote{Fork parallelism is easily expr
   \\
   \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \mkern18mu\;\mkern10mu (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
   \\
   \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard (\iDW{\aLoc}{0}) \prefix \DW{\aLoc}{}\guard\sem{\aCmd}[\aExp/\aLoc]
   %\\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
   % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
@@ -1884,6 +1887,12 @@ only to define data races in \textsection\ref{sec:sc}.
 % \emph{implicit} writes.  The semantics of relaxed reads is similar.  We
 % collectively refer to these as explicit and implicit \emph{actions}.
 Acquiring reads are never internal.
+
+The rule for relaxed writes is similar. Internal write is only allowed if
+there is a subsequent write that masks the internal write.  For this reason
+the internal write can only be applied to pomsets that satisfy the filter
+$\DW{\aLoc}{}\guard\sem{\aCmd}[\aExp/\aLoc]$.  This filter requires that
+there is some write to $\aLoc$ that precedes every release.
 
 Note that the rule for write uses the substitution $[\aExp/\aLoc]$ with
 precondition $\aExp=\aVal$, rather than using $[\aVal/\aLoc]$ directly.
