@@ -1,3 +1,26 @@
+Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}\textand \labelingAct(\aEv)\;\text{is external}\}$,
+${\le'} = {\le}\restrict{\Event'}$,
+%${\gtN'} = {\gtN}\restrict{\Event'}$.
+and
+${\labeling'} = {\labeling}\restrict{\Event'}$.
+
+In order to prove optimizations that introduce redundant actions, we need to
+make appeal to program order, defined in \textsection\ref{sec:sc}.
+Two events are \emph{redundant} if 
+$\labelingAct(\bEv)=\labelingAct(\aEv)$ is relaxed,
+$\labelingForm(\bEv)\land\labelingForm(\aEv)$ is satisfiable,
+$\bEv\xpox\aEv$ and 
+$\lnot(\bEv\le\aEv)$.
+
+Let $\fsatrep(\aPSS)$ be the subset $\fsat(\aPSS)$ that contains no pomset
+with a redundant action.
+
+Need to show that whenever there is a pomset with a redundant action, there
+is one where that action was internalized.
+
+
 \section{Single Threaded Optimizations}
 \label{sec:opt}
 
