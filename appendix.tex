@@ -438,26 +438,26 @@ To reempphasize, in this candidate pomset, $\rob$ is calculated by considering t
 
 We show that $\aPS$ is a top-level pomset, reasoning as follows.
 
- First, we establish the criteria for a 3-valued pomset (Definition~\ref{def:3valued}).
+We establish the criteria for a top-level memory-model pomset:
 \begin{itemize}
 \item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is acyclic.
-\item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
-\item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  Proved below.
-\item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
-  $\cEv \gtN \aEv$. By construction.
-\end{itemize}
+% \item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
+% \item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  Proved below.
+% \item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
+%   $\cEv \gtN \aEv$. By construction.
+% \end{itemize}
 
-Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
-\begin{itemize}
+% Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
+% \begin{itemize}
 \item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
   $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
-\item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
-  read or write $\aLoc$, $\gtN$ forms a partial order.
-\end{itemize}
+% \item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
+%   read or write $\aLoc$, $\gtN$ forms a partial order.
+% \end{itemize}
 
-Finally, we establish the criteria for a top-level pomset
-(Definition~\ref{def:x-closed}).
-\begin{itemize}
+% Finally, we establish the criteria for a top-level pomset
+% (Definition~\ref{def:x-closed}).
+% \begin{itemize}
 \item $\aEv$ is location independent. Trivial, since every formula is $\TRUE$.
 \item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
   \begin{itemize}
