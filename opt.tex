@@ -209,61 +209,54 @@ The proof proceeds by induction on structure.  The key case is prefixing.  The o
 \end{proof}
 \end{lemma}
 
+We develop testers for top-level pomsets in normal form below, following~\citet{Plotkin:1997:TSP:266557.266600}, albeit in a concrete form appropriate to this setting.   
 
+Let $\aPS$ be a top-level pomset in normal form with events $\aEv_1, \ldots, \aEv_n$.  Forall $i$, we assume a new location $b_i$.    Let Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\vec{\bEv}$ beall  the predecessors of $\aEv_i$ in $\lt$. Let $\vec{c}$ be the corresponding sub vector of $b_i$'s. 
 
-Let $\aPS$ be a top-level pomset in normal form.  Let $\aEv_1, \ldots, \aEv_n$ be all the events in $\aPS$ that read or write $\aLoc$.  Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\aReg_1, \ldots \aReg_n$ be distinct registers,, and $b_{\aLoc}, b_{\aPS}$ be a  set of fresh locations, not occurring in $\aPS$, one for each $\aLoc$.
-
-
-We define a tester program to use as a parallel context to detect $\aPS$. 
-\begin{definition}[Tester program]\label{testAPS}
-For each $\aEv_i$, we define a command with a hole, called $\test{\aEv_i}$ as follows:
+If $\aEv_i$ has label $\DR{\aLoc}{\aVal}$, we define a program $\test{i}$ as follows:  
 \[
-\test{\aEv_i} = \left\{ 
-  \begin{array}{l}
-    \aLoc\GETS\aVal \SEMI \hole{}, \ \labeling(\aEv_i) = \DR{\aLoc}{\aVal} \\
-    \aLoc\GETS\freshaval\SEMI \aReg_i \GETS\aLoc \SEMI \IF{\aReg_i = \aVal} \THEN \hole{} \FI , \ \labeling(\aEv_i) = \DW{\aLoc}{\aVal} \\
-  \end{array}
-\right.
-\]    
-The tester program for $\aPS$ for $\aLoc$, $\testP{\aPS}{\aLoc}$ is
-\[
-  \test{\aEv_1}\hole{
-      \cdots
-      \hole{
-        \test{\aEv_n}\hole{
-          b_{\aLoc} = 1}}\cdots}
+\testP{\aPS}{i}: \vec{\aReg} \GETS \vec{c}  \SEMI  \IF{\vec{c}==\vec{1}} \THEN\ x \GETS \aVal \SEMI  \FENCE \SEMI b_i \GETS 1 \FI \SEMI
 \]
-The tester program for $\aPS$, $\testP{\aPS}{}$ is 
+
+If $\aEv_i$ has label $\DW{\aLoc}{\aVal}$, we define a program $\test{i}$ as follows:
 \[
-b_{\aPS}\GETS b_{\aLoc} \land  \cdots \land b_{\cLoc}
-\PAR  \testP{\aPS}{\aLoc} 
+\testP{\aPS}{i}: \vec{\aReg} \GETS \vec{c}  \SEMI  \IF{\vec{\aReg}==\vec{1}} \THEN\ \aReg = \aLoc \SEMI \IF{\aReg == \aVal} \THEN \aLoc = \freshaval \SEMI \FENCE \SEMI b_i \GETS 1  \FI \FI
+\]
+\begin{definition}[Tester for $\aPS$ ]\label{testAPS} 
+The tester context for $\aPS$, $\testP{\aPS}{}\hole{}$ is 
+\[
+b \GETS b_{1} \land  \cdots \land b_{n}
+\PAR  \testP{\aPS}{1} 
 \PAR   \cdots 
-\PAR  \testP{\aPS}{\cLoc} 
+\PAR  \testP{\aPS}{n} 
+\PAR \hole{}
 \]
 \end{definition}
- $\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The matching read for a write in $\aPS$ on $\aLoc$ has an extra write of a fresh value in order to flush prior potential writes of the same value.    
+$\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The fresh value is used to flush out prior writes and reset to see fresh writes.    The constraints of the normal form ensure that if the labels of any two events are the same, then one is a predecessor of the other. 
 
- 
+\begin{lemma}\label{tester}
+$\sem{\testP{\aPS}{}\hole{\aCmd}}$  has a pomset that sets $b$ to $1$ iff $\aPS \in \freadsat\sem{\aCmd}$.
+\begin{proof}
+It suffices to prove that there is a pomset that sets $b$ to $1$ in
+ $\freadsat\sem{b \GETS b_{1} \land  \cdots \land b_{n}
+\PAR  \testP{\aPS}{1} 
+\PAR   \cdots 
+\PAR  \testP{\aPS}{n}} \parallel \bPS$ iff $\aPS$ is an augmentation of $\bPS$. 
+
+We prove by induction on $\lt$ that $\testP{\aPS}{i}\hole{\aCmd}$  sets $b_i$ to $1$ iff the event $\aEv_i$ is enabled. Result follows.
+\end{proof}
+\end{lemma}
 
 \begin{theorem}
 Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\freadsat\sem{\aCmd_1}$ are also pomsets of
-$\freadsat\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets of $\freadsat\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
-$\freadsat\sem{\aCmd_2 \PAR \bCmd}$.
+$\freadsat\sem{\aCmd_2}$ if and only if for all parallel contexts $\bCmd$ all top-level pomsets of $\freadsat\sem{\aCmd_1 \PAR}$ are also pomsets of
+$\freadsat\sem{\aCmd_2 \PAR \bCmd}$
 \begin{proof}
-  The forward implication follows from the compositionality of the
-  semantics. For the converse, pick a top level pomset in normal form in $\aPS \in \freadsat\sem{\aCmd_1} \setminus \freadsat\sem{\aCmd_2} $.   Consider the (semantic) context induced by tester program $\testP{\aPS}{}$:
-\[
-  \DW{b_{\aPS}}{0} \prefix
-  \DW{\vec{b}}{\vec{0}} \prefix
-  \DW{\vec{\aLoc}}{\vec{0}} \prefix
-  \sem{\testP{\aPS}{}} \parallel  \hole{}
-\]
-% \[ \sem{\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
-%     \vec{\aLoc}\GETS\vec{0}\SEMI
-%     \vec{\vec{b}}\GETS\vec{0} 
-%     \SEMI b_{\aPS}\GETS 0 \SEMI  [\sem{\testP{\aPS}{} \parallel [\TRUE \guard [\cdot]]}]}
-% \]
-There is a pomset that writes one to the  testing variable $b_{\aPS}$ if and only if the context hole is filled with a set that contains $\aPS$.  
+ The forward implication follows from the compositionality of the
+  semantics. 
+
+For the converse, pick a top level pomset in normal form in $\aPS \in \freadsat\sem{\aCmd_1} \setminus \freadsat\sem{\aCmd_2} $.   The required context is given by the tester context $\testP{\aPS}{}\hole{}$.   
+ 
 \end{proof}
 \end{theorem}
 
