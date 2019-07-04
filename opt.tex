@@ -1,3 +1,6 @@
+\section{Single Threaded Optimizations}
+\label{sec:opt}
+
 Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}\textand \labelingAct(\aEv)\;\text{is external}\}$,
@@ -19,10 +22,6 @@ with a redundant action.
 
 Need to show that whenever there is a pomset with a redundant action, there
 is one where that action was internalized.
-
-
-\section{Single Threaded Optimizations}
-\label{sec:opt}
 
 As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations; concretely by validating several 
 single threaded optimizations including reordering of independent statements; and abstractly, by proving a full abstraction
