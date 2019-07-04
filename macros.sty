@@ -1,7 +1,8 @@
 %\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
 
+\newcommand{\hole}[1]{\ifnotemptyelse{#1}{[{#1}]}{[\textnormal{--}]}}
 \newcommand{\fsat}{\mathsf{sat}}
-\newcommand{\fsatrep}{\mathsf{satrep}}
+\newcommand{\freadsat}{\mathsf{readsat}}
 \newcommand{\ID}[1]{[#1]}
 \newcommand{\IDLoc}{[\Loc]}
 \newcommand{\IDAcq}{\ID{\Acq}}
@@ -41,7 +42,6 @@
 
 \newcommand{\test}[1]{\overline{#1}}
 \newcommand{\testP}[2]{{\tt test}^{#1}_{#2}}
-\newcommand{\hole}[1]{[#1]}
 \newcommand{\freshaval}{\aVal_{{\tt fr}}}
 
 \newcommand{\drfsc}{{\sc drf-sc}}

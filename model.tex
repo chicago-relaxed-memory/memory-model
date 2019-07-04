@@ -1269,6 +1269,7 @@ rather than using $\tau$.  % For example, the ``read'' action is internal in:
 %   \po{wx1}{wy1}
 % \end{tikzdisplay}
 
+We also include acquire-release fences of the form $(\DF)$.
 
 % In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
 % indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
@@ -1797,10 +1798,10 @@ defined as follows.
 \BNFDEF& \SKIP
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
+\BNFSEP \FENCE\SEMI \aCmd
 \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \\
 \BNFSEP& \aReg\GETS\aExp\SEMI \aCmd
-%\BNFSEP \FENCE\SEMI \aCmd
 \BNFSEP \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd 
 \BNFSEP \aReg\GETS\REF{\cExp}\SEMI \aCmd
 \BNFSEP \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
@@ -1836,15 +1837,15 @@ The semantics of programs is as follows\footnote{Fork parallelism is easily expr
   \sem{\VAR\aLoc\SEMI \aCmd} & =
   \nu \aLoc \st \sem{\aCmd}
   \\
+  \sem{\FENCE\SEMI \aCmd} & =
+  (\DF{}) \prefix \sem{\aCmd}
+  \\  
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
   \\
   \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
   \sem{\aCmd}[\aExp/\aReg] 
   \\
-  % \sem{\FENCE\SEMI \aCmd} & =
-  % (\DF{}) \prefix \sem{\aCmd}
-  % \\  
   \sem{\aReg\GETS\REFAcq{\cExp}\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \\

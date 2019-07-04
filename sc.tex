@@ -20,7 +20,9 @@
 In this section, we prove the SC-DRF theorem, which states that any program
 that lacks data races under the SC semantics must only have executions that
 are compatible with SC executions.  We present the result for programs of the
-form $\vec{\aLoc}\GETS\vec{0}\SEMI\aCmd$, where $\aCmd$ is restriction-free.  Thus, all memory locations are initialized to $0$, and internal actions only arise from (intra-thread) implicit reads.
+form $\vec{\aLoc}\GETS\vec{0}\SEMI\FENCE\SEMI\aCmd$, where $\aCmd$ is
+restriction-free.  Thus, all memory locations are initialized to $0$,
+initialization happens-before the execution of any command, and internal actions only arise from (intra-thread) implicit reads.
 
 We say that two actions have a \emph{data-race conflict} if at least one
 action is a write and the other is a write, read, or internal read to the

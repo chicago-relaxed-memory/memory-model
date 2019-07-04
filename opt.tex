@@ -1,27 +1,16 @@
 \section{Single Threaded Optimizations}
 \label{sec:opt}
 
-Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that:
-$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}\textand \labelingAct(\aEv)\;\text{is external}\}$,
-${\le'} = {\le}\restrict{\Event'}$,
-%${\gtN'} = {\gtN}\restrict{\Event'}$.
-and
-${\labeling'} = {\labeling}\restrict{\Event'}$.
+% In order to prove optimizations that introduce redundant actions, we need to
+% make appeal to program order, defined in \textsection\ref{sec:sc}.
+% Two events are \emph{redundant} if 
+% $\labelingAct(\bEv)=\labelingAct(\aEv)$ is relaxed,
+% $\labelingForm(\bEv)\land\labelingForm(\aEv)$ is satisfiable,
+% $\bEv\xpox\aEv$ and 
+% $\lnot(\bEv\le\aEv)$.
 
-In order to prove optimizations that introduce redundant actions, we need to
-make appeal to program order, defined in \textsection\ref{sec:sc}.
-Two events are \emph{redundant} if 
-$\labelingAct(\bEv)=\labelingAct(\aEv)$ is relaxed,
-$\labelingForm(\bEv)\land\labelingForm(\aEv)$ is satisfiable,
-$\bEv\xpox\aEv$ and 
-$\lnot(\bEv\le\aEv)$.
-
-Let $\fsatrep(\aPSS)$ be the subset $\fsat(\aPSS)$ that contains no pomset
-with a redundant action.
-
-Need to show that whenever there is a pomset with a redundant action, there
-is one where that action was internalized.
+% Let $\fsatrep(\aPSS)$ be the subset $\fsat(\aPSS)$ that contains no pomset
+% with a redundant action.
 
 As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations; concretely by validating several 
 single threaded optimizations including reordering of independent statements; and abstractly, by proving a full abstraction
@@ -36,7 +25,7 @@ theorem for single threads without synchronization and connecting to traditional
 
 Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
-$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}\}$,
+$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}\textand \labelingAct(\aEv)\;\text{is external}\}$,
 ${\le'} = {\le}\restrict{\Event'}$,
 %${\gtN'} = {\gtN}\restrict{\Event'}$.
 and
@@ -177,10 +166,20 @@ followed by the valid elimination of redundant load:
 \subsection{Full abstraction for synchronization free threads}
 Our semantics is complete for reasoning about full-thread optimizations of synchronization free programs.
 
-In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are synchronization free (ie. no acquire, release, fence) and single threaded (ie. no parallel composition). 
+In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are
+synchronization-free (ie. no acquire, release, fence),
+restriction-free, and composition-free (ie. single threaded).
 
-In order to develop the proof, we first make the semantics insensitive to reads that are never used.  Let $\readc\sem{C}$ be the smallest augumentation closed set containing $\sem{C}$ that also satisfies closure under the inclusion of useless reads.  ie. if :$(\Event, {\le}, 
-  \labeling) \in \readc\sem{C}$, then  $(\Event \cup \{\aEv\}, {\lt'},\labeling')  \in \readc\sem{C}$, where $\aEv \not \in \Event, \lt' =\lt, \labeling' \restrict \Event = \labeling, \labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for some $\aLoc,\aVal$. 
+In order to develop the proof, we first make the semantics insensitive to
+reads that are never used.  Let $\readc(\aPSS)$ be the smallest augmentation
+closed set containing $\aPSS$ that also satisfies closure under the inclusion
+of useless reads: if $\aPS \in \readc(\aPSS)$, then
+$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\cup\{\aEv\}$,
+$\aEv \not \in \Event$, ${\le'} ={\le}$,
+${\labeling'} \restrict \Event = {\labeling}$, and
+$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ ,$\aVal$.
+
+Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
 
 This closure permits us to  describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
 \begin{definition}
@@ -200,8 +199,8 @@ In a normal form pomset, the successors of a write event (resp. the predecessors
 It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. 
 
 \begin{lemma}\label{unrhd}
-Every top-level pomset of $\readc\sem{\aCmd}$ is a top-level pomset of $\readc\sem{\bCmd}$ if and only if 
-every top-level normal form pomset of $\readc\sem{\aCmd}$ is a top-level normal form pomset of $\readc\sem{\bCmd}$.
+Every top-level pomset of $\freadsat\sem{\aCmd}$ is a top-level pomset of $\freadsat\sem{\bCmd}$ if and only if 
+every top-level normal form pomset of $\freadsat\sem{\aCmd}$ is a top-level normal form pomset of $\freadsat\sem{\bCmd}$.
 \begin{proof}
 The normal forms determine the full semantics by the closure properties of the semantics.     The proof proceeds by induction on structure.  The key case is prefixing. 
 
@@ -219,21 +218,26 @@ We define a tester program to use as a parallel context to detect $\aPS$.
 For each $\aEv_i$, we define a command with a hole, called $\test{\aEv_i}$ as follows:
 \[
 \test{\aEv_i} = \left\{ 
-                             \begin{array}{l}
-                              \aLoc\GETS\aVal \SEMI \hole{\cdot}, \ \labeling(\aEv_i) = \DR{\aLoc}{\aVal} \\
-                              \aLoc\GETS\freshaval\SEMI \aReg_i \GETS\aLoc \SEMI \IF{\aReg_i = \aVal} \THEN \hole{\cdot} \FI , \ \labeling(\aEv_i) = \DW{\aLoc}{\aVal} \\
-                           \end{array}
-                       \right.
+  \begin{array}{l}
+    \aLoc\GETS\aVal \SEMI \hole{}, \ \labeling(\aEv_i) = \DR{\aLoc}{\aVal} \\
+    \aLoc\GETS\freshaval\SEMI \aReg_i \GETS\aLoc \SEMI \IF{\aReg_i = \aVal} \THEN \hole{} \FI , \ \labeling(\aEv_i) = \DW{\aLoc}{\aVal} \\
+  \end{array}
+\right.
 \]    
-The tester program for $\aPS$ for $\aLoc$, $\testP{\aPS}{\aLoc}$ is \[ \test{\aEv_1}[\test{\aEv_2}[\ldots [\test{\aEv_n}[b_{\aLoc} = \TRUE]]\ldots]] \]
+The tester program for $\aPS$ for $\aLoc$, $\testP{\aPS}{\aLoc}$ is
+\[
+  \test{\aEv_1}\hole{
+      \cdots
+      \hole{
+        \test{\aEv_n}\hole{
+          b_{\aLoc} = 1}}\cdots}
+\]
 The tester program for $\aPS$, $\testP{\aPS}{}$ is 
 \[
-\begin{array}{ll}
-& b_{\aPS}\GETS b_{\aLoc} \star b_{\bLoc} \star  \ldots   \\
-\PAR & \testP{\aPS}{\aLoc} \\
-\PAR & \testP{\aPS}{\bLoc} \\
- \PAR  & \ldots 
-\end{array}
+b_{\aPS}\GETS b_{\aLoc} \land  \cdots \land b_{\cLoc}
+\PAR  \testP{\aPS}{\aLoc} 
+\PAR   \cdots 
+\PAR  \testP{\aPS}{\cLoc} 
 \]
 \end{definition}
  $\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The matching read for a write in $\aPS$ on $\aLoc$ has an extra write of a fresh value in order to flush prior potential writes of the same value.    
@@ -241,18 +245,26 @@ The tester program for $\aPS$, $\testP{\aPS}{}$ is
  
 
 \begin{theorem}
-Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\readc\sem{\aCmd_1}$ are also pomsets of
-$\readc\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets of $\readc\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
-$\readc\sem{\aCmd_2 \PAR \bCmd}$.
+Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\freadsat\sem{\aCmd_1}$ are also pomsets of
+$\freadsat\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets of $\freadsat\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
+$\freadsat\sem{\aCmd_2 \PAR \bCmd}$.
 \begin{proof}
-The forward implication follows from the compositionality of the semantics. For the converse, pick a top level pomset $\aPS \in \\sem{\aCmd_1} \setminus \sem{\aCmd_2} $. 
+  The forward implication follows from the compositionality of the
+  semantics. For the converse, pick a top level pomset
+  $\aPS \in \sem{\aCmd_1} \setminus \sem{\aCmd_2} $.
 
 Consider the (semantic) context induced by tester program $\testP{\aPS}{}$:
-\[ \sem{\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
-    \vec{\aLoc}\GETS\vec{0}\SEMI
-    \vec{\vec{b}}\GETS\vec{0} 
-    \SEMI b_{\aPS}\GETS 0 \SEMI  [\sem{\testP{\aPS}{} \parallel [\TRUE \guard [\cdot]]}]}
+\[
+  \DW{b_{\aPS}}{0} \prefix
+  \DW{\vec{b}}{\vec{0}} \prefix
+  \DW{\vec{\aLoc}}{\vec{0}} \prefix
+  \sem{\testP{\aPS}{}} \parallel  \hole{}
 \]
+% \[ \sem{\VAR\vec{\aLoc}\SEMI \VAR\vec{b} \SEMI \VAR b_{\aPS} \SEMI
+%     \vec{\aLoc}\GETS\vec{0}\SEMI
+%     \vec{\vec{b}}\GETS\vec{0} 
+%     \SEMI b_{\aPS}\GETS 0 \SEMI  [\sem{\testP{\aPS}{} \parallel [\TRUE \guard [\cdot]]}]}
+% \]
 There is a pomset that writes one to the  testing variable $b_{\aPS}$ if and only if the context hole is filled with a set that contains $\aPS$.  
 \end{proof}
 \end{theorem}
