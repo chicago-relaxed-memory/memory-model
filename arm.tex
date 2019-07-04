@@ -59,7 +59,7 @@ Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if $
 The ${\rob}$ order is an acyclic global order on events, agreed upon by all threads, reflecting the progress of time in an \armeight\ execution.  The cross thread component of the ordering is induced by the ordering on conflicting actions on the same location from different threads.    The intra thread component of the ordering is induced by barrier ordering and data ordering.  Notably, these dependencies  are determined syntactically.  In particular, $\rob$
 may not necessarily include the intra thread component of $\rpoloc$ ordering.  
 
-This motivates the translation of an \armeight\ execution into our setting.  In our setting, the progress of time is given by $\lt$, and we accommodate intra-thread reordering by internal read actions, thus excusing us from the obligation of placing them on the global timeline associated with $\lt$.  
+This motivates the translation of an \armeight\ execution into our setting.  In our setting, the progress of time is given by $\lt$.   We accommodate intra-thread reordering by internal read actions, thus excusing us from the obligation of placing them on the global $\lt$-timeline.  
 
 Formally, from $G$ we construct a candidate pomset $\aPS$ as follows:
 \begin{itemize}
@@ -77,10 +77,9 @@ Formally, from $G$ we construct a candidate pomset $\aPS$ as follows:
   If $G$ is ARM consistent, the constructed candidate satisfies the
   requirements for a top-level memory model pomset.
 \end{theorem}
-It is straightforward to observe that any $\lt$ ordering imposed in our model
+Any $\lt$-ordering imposed in our model
 is enforced by \armeight, since our notion of semantic dependency is more
-permissive than the syntactic dependency used in \armeight.  So, the heart of the proof is showing the acyclicity of $({\rob} \cup {\reco})^*$ for the events under consideration.  Recall that the cross thread portion of $\reco$ ($\rcoe,\rfre,\rrfe$) is included in $\rob$.  So, the acyclicity result is really a statement about the intra-thread portion of $\reco$.  The key feature facilitating this is our translation of internal reads, which renders them internal, thus removing them from consideration.    Thus, in the proof of acyclicity in \textsection\ref{sec:arm:proof}, we only have to consider ${\rob}$ that was derived without ever using  $\rrfi$; in this \emph{constrained} fragment of \armeight, we show the following key fact.
-
+permissive than \armeight 's syntactic dependency.  So, the heart of the proof is showing the acyclicity of $({\rob} \cup {\reco})^*$ for the events under consideration.  Since the cross thread portion of $\reco$ ($\rcoe,\rfre,\rrfe$) is included in $\rob$, this result is really about the influence of $\reco \cap \rpox$.  Our translation of \armeight 's \rrfi\  as silent internal actions removes them from order considerations.   Consequently, we only have to consider the suborder of ${\rob}$ derived without ever using  $\rrfi$ for the following key property demonstrated in \textsection\ref{sec:arm:proof}.
 \begin{lemma}\label{extendob}
 Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
 \end{lemma}

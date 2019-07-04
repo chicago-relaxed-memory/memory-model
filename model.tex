@@ -646,9 +646,7 @@ with control dependencies between the reads:
   %\po{ry1}{rx0}
 \end{tikzdisplay}
 Since our semantics does not enforce control dependencies between reads, 
-this execution is acyclic and is allowed.  
-
-Consider the variant
+this execution is acyclic and is allowed.  If the first read in each thread is acquiring, there is strong order between the reads.
 \begin{displaymatharray}{rl}
   &x\GETS0\SEMI x\GETS 1
   \PAR
@@ -659,8 +657,7 @@ Consider the variant
   \PAR
   \IF{y\ACQ}\THEN s\GETS x \FI
 \end{displaymatharray}
-where the first read in each thread is acquiring.  In this case, there is strong order between the reads; the resulting
-execution is shown below and disallowed due to the evident cycle.
+The resulting execution is disallowed due to the  cycle.
 \begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
@@ -1132,8 +1129,7 @@ unrolling loops as necessary.  Our model also gives the desired results for
 all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
 \citet[\textsection 5.3]{SevcikThesis}.  Our model agrees with the JMM on the
 ``surprising and controversial behaviors'' of \citet[\textsection
-8]{Manson:2005:JMM:1047659.1040336}, and thus fails to validate thread
-inlining. \textsection\ref{sec:examples} develops some of these examples.
+8]{Manson:2005:JMM:1047659.1040336}. \textsection\ref{sec:examples} develops some of these examples.
 
 \section{The Semantics of a Simple Concurrent Language}
 \label{sec:model}
@@ -1314,13 +1310,12 @@ respect to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
   ${\gtN'}={\gtN}$, $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
 \end{definition}
-We do not expect $\sem{\aCmd}$ to be prefixed closed; thus, one may view each
-$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  However, implication
+Each
+$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  So, we do not expect $\sem{\aCmd}$ to be prefixed closed.  However, implication
 closure in a memory-model pomset does give something similar: any event
 $\aEv$ can be given an unsatisfiable precondition, which means that every
 event ordered after $\aEv$ must also be unsatisfiable, as per
-Definition~\ref{def:mmpomset}.  Since unsatisfiable events are ignored by our
-``architectural'' model (as opposed to a ``microarchitectural'' model that also models speculations that are rolled back), this
+Definition~\ref{def:mmpomset}.  Since unsatisfiable events are ignored by our model, this
 provides a kind of prefix closure.
 % \begin{definition}
 %   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
@@ -1329,9 +1324,6 @@ provides a kind of prefix closure.
 %   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
 %   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
 % \end{definition}
-
-The semantics is also closed with respect to various forms of ``input
-enabling,'' as described in \textsection\ref{drfproof}.
 
 % Restriction also filters a set of pomsets; we have
 % $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
@@ -1371,8 +1363,7 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   depends on the value read by $\aAct$.
 \end{itemize}
 These operations are similar to those from models of concurrency such
-as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
-speculative evaluation.
+as~\cite{Brookes:1984:TCS:828.833}.
 
 We also define three filtering operations:
 \begin{itemize}
@@ -1593,7 +1584,7 @@ there is $\aPS\in\aPSS$ such that:
 %    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
 \item\label{pre-nowrite} if $\aAct$ is neither reads nor writes, then $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$,
-\item\label{pre-write} if $\aAct$ writes $\aVal$ from $\aLoc$ then
+\item\label{pre-write} if $\aAct$ writes $\aVal$ to $\aLoc$ then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
   % either
   % \begin{enumerate}
@@ -1716,8 +1707,7 @@ Item~\ref{pre-sync} ensures that events are ordered before a release and
 after an acquire.
 
 Item~\ref{pre-acquire} filters the executions of $\aPSS$, ensuring that
-thread-local reads do not cross acquire actions.  This prevents bad executions
-like the following:
+thread-local reads do not cross acquire actions.  This prevents bad executions like the following, which violate \drfsc. 
 \begin{displaymath}
   x\GETS1 \SEMI
   a\REL\GETS1 \SEMI
@@ -1746,12 +1736,12 @@ like the following:
 In item~\ref{pre-acquire}, we do not require that $\bForm'$ is independent of
 every $\bLoc$; were we to require this, the definition would not be augment closed.
 
-We end this section with the following lemma, which is immediate from the definitions.
+The following lemma is immediate from the definitions.
 \begin{lemma}
   \label{lem:monotone}
-  All combinators are monotone with respect to subset order.  For example, 
-  $\aAct\prefix\aPSS \subseteq \aAct\prefix\aPSS'$ whenever
-  $\aPSS\subseteq\aPSS'$.
+  All combinators are monotone with respect to subset order.  
+% For example,  $\aAct\prefix\aPSS \subseteq \aAct\prefix\aPSS'$ 
+% whenever $\aPSS\subseteq\aPSS'$.
 %   Suppose
 %   $\aPSS'\supseteq\aPSS$, $\aPSS_1'\supseteq\aPSS_1$ and
 %   $\aPSS_2'\supseteq\aPSS_2$.  Then we have the following.
@@ -1882,21 +1872,15 @@ The semantics of programs is as follows\footnote{Fork parallelism is easily expr
 The semantics of relaxed reads is the union of two sets.  The first set adds
 a read action to each pomset in $\sem{\aCmd}$; the second adds an internal
 action.  Whereas read actions have values that are important in the
-semantics, the values of internal actions are ignored.  In fact, internal
-actions themselves are entirely ignored.  We include internal actions on read
-only to define data races in \textsection\ref{sec:sc}.
+semantics, the values of internal actions are ignored.  Internal reads are used in the definition of data races in \textsection\ref{sec:sc}.
 % discussion we refer to these respectively as \emph{explicit} and
 % \emph{implicit} writes.  The semantics of relaxed reads is similar.  We
 % collectively refer to these as explicit and implicit \emph{actions}.
 Acquiring reads are never internal.
 
-The rule for relaxed writes is similar. Internal write is only allowed if
-there is a subsequent write that masks the internal write.  For this reason
-the internal write can only be applied to pomsets that satisfy the filter
-$\DW{\aLoc}{}\guard\sem{\aCmd}[\aExp/\aLoc]$.  This filter requires that
-there is some write to $\aLoc$ that precedes every release.
+The rule for relaxed writes is similar. The internal write rule enables dead store elimination.  The internal write can only be applied to pomsets that satisfy the filter $\DW{\aLoc}{}\guard\sem{\aCmd}[\aExp/\aLoc]$ that  requires some write to $\aLoc$ that precedes every release.  Thus, internal write is only allowed if there is a subsequent write that masks the internal write. 
 
-Note that the rule for write uses the substitution $[\aExp/\aLoc]$ with
+The write rule uses the substitution $[\aExp/\aLoc]$ with
 precondition $\aExp=\aVal$, rather than using $[\aVal/\aLoc]$ directly.
 To see the need for this, consider
 $\sem{\IF{\bReg\EQ\aReg}\THEN \cLoc\GETS 1\FI}$,
@@ -1925,7 +1909,7 @@ up with pomsets of the form
 \end{math}
 which depend on $\aReg$.
 
-It is worth emphasizing that prefixing does not necessarily induce a
+Prefixing does not necessarily induce a
 dependency, even for read actions where the read is used.  To see that this
 is desirable, consider  the semantics of
 $\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI$.
@@ -1940,9 +1924,9 @@ Then $\sem{\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ includes
     \event{b}{\DR\bLoc1}{}
     \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of b}
 \end{tikzdisplay}
-which has no order between the read and write.
-By prefixing a write to $\bLoc$, $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS
-  2\FI}$ discharges the precondition of the write to $\aLoc$, giving
+with unordered read and write.
+Prefixing with a write to $\bLoc$, $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS
+  2\FI}$ discharges the precondition of the write to $\aLoc$, yielding
 \begin{tikzinline}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
     \event{b}{\DR\bLoc1}{right=of a}

@@ -35,7 +35,7 @@ $\sem{x\GETS1\SEMI a\GETS y}=\sem{a\GETS y\SEMI x\GETS1}$, yet these two must
 be distinguished in SC, as per the load-buffering and store-buffering litmus tests.
 
 In order to define SC executions and SC data races, it is necessary to
-augment our semantics to record program order and internal reads.  We extend the definitions in
+augment our semantics to record program order.  We extend the definitions in
 \textsection\ref{sec:semantics} with
 ${\rpox}\subseteq{\Event}\times{\Event}$, defined as follows:
 \begin{itemize}
@@ -94,7 +94,7 @@ that
 %\end{itemize}
 We argue that this definition is sufficient to capture sequential
 consistency: Any total order that linearizes the acyclic relation is
-consistent with strong order ($\lt$) and the program order ($\rpox$).  Since $\le$ contains $\reco$, the consistency with $\reco$ ensures that only the last write to a location is
+consistent with strong order ($\lt$) and the program order ($\rpox$).  Since $\le$ contains $\reco$, only the last write to a location is
 read in such a total order.
 
 %\begin{remark}\label{generator}
@@ -137,10 +137,9 @@ A key step of this proof is an analysis of the closure properties of the semanti
   \end{itemize}
 \end{definition}
 \citet{DBLP:conf/esop/HuthJS01} call $\slt$ a ``must transition''
-and $\geN$ a ``may transition''--- we have used  the terms ``strong order'' and ``weak order'' respectively.  In the pictures so far, we have anticipated this development and adopted
-\citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  
+and $\geN$ a ``may transition''.  In anticipation, we have used  the terms ``strong order'' and ``weak order'' respectively, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$' in the pictures following \citeauthor{DBLP:journals/dc/Lamport86}'s notation.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  
  
-The semantics of programs in the three-valued model proceed mutatis mutandis, with details described in the appendix.  This finer analysis of necessary and possible dependency allows us to establish the existence of pomsets in the semantics as we search for sequential witnesses to data races.    We provide some illustrative examples below.
+The semantics of programs in the three-valued model proceeds as before, mutatis mutandis, with details described in the appendix.  This finer analysis of necessary and possible dependency allows us to establish the existence of pomsets in the semantics as we search for sequential witnesses to data races.    We provide some illustrative examples below.
 
 \noindent
 For the program:
@@ -150,6 +149,7 @@ For the program:
 \end{align*}
 \begin{displaymathsmall}
 \mbox{From    }
+\qquad\qquad
 \begin{tikzcenter}[node distance=1em]
 \event{wy0}{\DW{y}{0}}{}
 \event{ry1}{\DR{y}{1}}{right=of wy0}
@@ -162,7 +162,9 @@ For the program:
 \wk{wx0}{rx1}
 \wk{wy0}{ry1}
 \end{tikzcenter}
+\qquad
 \mbox{  infer  }
+\qquad
 \begin{tikzcenter}node distance=1em]
 \event{wy0}{\DW{y}{0}}{}
 \event{ry1}{\DR{y}{0}}{right=of wy0}
@@ -183,6 +185,7 @@ For the program:
 \end{align*}
 \begin{displaymathsmall}
 \mbox{From  }
+\qquad \qquad
 \begin{tikzcenter}[node distance=1em]
 \event{wy0}{\DW{y}{0}}{}
 \event{wx1}{\DW{x}{1}}{right=of wy0}
@@ -197,7 +200,9 @@ For the program:
 \wk{wx0}{wx1}
 \wk{wy0}{wy1}
 \end{tikzcenter}
+\qquad
 \ \mbox{ infer }
+\qquad
 \begin{tikzcenter}[node distance=1em]
 \event{wy0}{\DW{y}{0}}{}
 \event{wx1}{\DW{x}{1}}{right=of wy0}
@@ -218,12 +223,16 @@ For the program:
 \end{align*}
 \begin{displaymathsmall}
 \mbox{From  }
+\qquad\qquad
 \begin{tikzcenter}[node distance=1em]
 \event{wy0}{\DW{x}{1}}{}
 \event{wx0}{\DW{x}{0}}{right=of wx0}
 \wk{wy0}{wx0}
 \end{tikzcenter}
+\qquad
+\qquad
 \mbox{ infer   }
+\qquad
 \begin{tikzcenter}[node distance=1em]
 \event{wy0}{\DW{x}{1}}{}
 \event{wx0}{\DW{x}{0}}{right=of wx0}
