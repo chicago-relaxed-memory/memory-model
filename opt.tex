@@ -157,8 +157,10 @@ Our semantics is complete for reasoning about full-thread optimizations of synch
 
 In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are synchronization free (ie. no acquire, release, fence) and single threaded (ie. no parallel composition). 
 
-In order to develop the proof, we describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
+In order to develop the proof, we first make the semantics insensitive to reads that are never used.  Let $\readc\sem{C}$ be the smallest augumentation closed set containing $\sem{C}$ that also satisfies closure under the inclusion of useless reads.  ie. if :$(\Event, {\le}, 
+  \labeling) \in \readc\sem{C}$, then  $(\Event \cup \{\aEv\}, {\lt'},\labeling')  \in \readc\sem{C}$, where $\aEv \not \in \Event, \lt' =\lt, \labeling' \restrict \Event = \labeling, \labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for some $\aLoc,\aVal$. 
 
+This closure permits us to  describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
 \begin{definition}
 $\aPS$ is in normal form if:
 \begin{itemize}
@@ -175,11 +177,9 @@ In a normal form pomset, the successors of a write event (resp. the predecessors
 
 It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. 
 
-$\TRUE\guard \sem{\aCmd}$ is used to captures the behavior of $\aCmd$ as a top-level thread by restricting only to events whose 
-preconditions are tautologies.
 \begin{lemma}\label{unrhd}
-Every top-level pomset of $\sem{\aCmd}$ is a top-level pomset of $\sem{\bCmd}$ if and only if 
-every top-level normal form pomset of $\sem{\aCmd}$ is a top-level normal form pomset of $\sem{\bCmd}$.
+Every top-level pomset of $\readc\sem{\aCmd}$ is a top-level pomset of $\readc\sem{\bCmd}$ if and only if 
+every top-level normal form pomset of $\readc\sem{\aCmd}$ is a top-level normal form pomset of $\readc\sem{\bCmd}$.
 \begin{proof}
 The normal forms determine the full semantics by the closure properties of the semantics.     The proof proceeds by induction on structure.  The key case is prefixing. 
 
@@ -219,9 +219,9 @@ The tester program for $\aPS$, $\testP{\aPS}{}$ is
  
 
 \begin{theorem}
-Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\sem{\aCmd_1}$ are also pomsets of
-$\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets of $\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
-$\sem{\aCmd_2 \PAR \bCmd}$.
+Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\readc\sem{\aCmd_1}$ are also pomsets of
+$\readc\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets of $\readc\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
+$\readc\sem{\aCmd_2 \PAR \bCmd}$.
 \begin{proof}
 The forward implication follows from the compositionality of the semantics. For the converse, pick a top level pomset $\aPS \in \\sem{\aCmd_1} \setminus \sem{\aCmd_2} $. 
 
@@ -239,8 +239,9 @@ The full abstraction theorem applies only to full threads; in particular.  The r
 
 
 \subsection{Relationship to Hoare logic}
-In order to provide useful information about sequential commands in sequential contexts, we establish a relationship with Hoare triples for a sequential language.  
+In order to provide useful information about sequential commands in sequential contexts, we establish a relationship with Hoare triples for a sequential language.    
 
+This invariant captured in the following theorem underlies the definitions in the semantics of sequential commands.
 \begin{theorem}
 Let $\aCmd$ be a command without either synchronization or parallelism.
 
@@ -259,45 +260,32 @@ if and only if $\sem{\aCmd}$ contains an execution that includes
 where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
 $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
 \begin{proof}
-The proof proceeds by structural induction on the command.  Indeed, this invariant underlies the definitions in the semantics.
+The proof proceeds by structural induction on the command. 
 \end{proof}
 \end{theorem}
 
-We illustrate the theorem with a few examples.
-
-\begin{example}
-Consider:
-\begin{align*}
-\aCmd:   x\GETS 1 \SEMI x \GETS 2
-\end{align*}
-Then: $\hoare{\TRUE}{\aCmd}{2=1} $.  In the semantics, this is mirrored by the execution:
+We illustrate with a few examples.
+$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{2=1} $ holds.   In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
  \event{w1}{\DW{x}{1}}{}
  \event{w2}{\DW{x}{2}}{right=of w1}
 \wk{w1}{w2}
 \end{tikzdisplay}
-\end{example}
 
-\begin{example}
-Consider:
-\begin{align*}
-\aCmd =  (r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI)
-\end{align*}
-Then: $\hoare{\TRUE}{\aCmd}{y=1} $.  In the semantics, this is mirrored by the execution:
+$\hoare{\TRUE}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} $ holds.  
+In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
  \event{w}{\DW{y}{1}}{}
  \event{r}{\DR{x}{v}}{right=of w}
 \end{tikzdisplay}
-In particular, this Hoare triple is not captured by a semantics that forbids load buffering, where the best that one can prove is
-$\hoare{x=v} {\aCmd}{y= 1} $.
-\end{example}
- 
-\begin{example}
-Consider:
-\begin{align*}
-\aCmd =   (r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI r \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI)
-\end{align*}
-Then: $\hoare{x=1}{\aCmd}{y=1} $ and $\hoare{u=1}{\aCmd}{v=1} $.  In the semantics, this is mirrored by the execution:
+In contrast, in a semantics that forbids load buffering, where the best that one can prove is
+$\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
+$.
+
+Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI r \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
+$ \hoare{x=1}{\aCmd}{y=1}$ and
+$ \hoare{u=1}{\aCmd}{v=1}$
+hold.  In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
  \event{rx}{\DR{x}{1}}{}
  \event{ru}{\DR{u}{1}}{right=of rx}
@@ -306,14 +294,13 @@ Then: $\hoare{x=1}{\aCmd}{y=1} $ and $\hoare{u=1}{\aCmd}{v=1} $.  In the semanti
  \rf{rx}{wy}
  \rf{ru}{wv}
 \end{tikzdisplay}
-\end{example}
 
-\begin{example}
+
 Consider a fragment from example~\eqref{rfub}.
 \begin{align*}
-\aCmd = (r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+\bCmd = (r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
 \end{align*}
-Then, $\hoare{\TRUE}{\aCmd}{x=42} $ and $\hoare{y \neq 42}{\aCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$.  
+Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$.  
 In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
  \event{ry}{\DR{y}{42}}{}
@@ -321,7 +308,6 @@ In the semantics, this is mirrored by the execution:
  \event{wa}{\DW{a}{1}}{below=of rx}
  \rf{ry}{wa}
 \end{tikzdisplay}
-\end{example}
 
 
 \endinput 
