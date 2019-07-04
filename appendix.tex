@@ -95,6 +95,11 @@ $\aEv \slt \aEv' \slt \bEv' \slt \bEv$.
 \subsection{Closure properties}
 The fine grain analysis of dependency in the three-valued semantics allows us to establish some closure properties of the semantics of programs.  
 
+We consider programs of the
+form $\vec{\aLoc}\GETS\vec{0}\SEMI\FENCE\SEMI\aCmd$, where $\aCmd$ is
+restriction-free.  Thus, all memory locations are initialized to $0$,
+initialization happens-before the execution of any command, 
+
 We say that $\aPS' = \aPS\restrict{\Event'}$ when 
  $\Event' \subseteq \Event$,
  ${\labeling'} = {\labeling}\restrict{\Event'}$,   and
@@ -141,9 +146,8 @@ The lemma constructs the execution:
 
 \begin{lemma}\label{inputen}
 %Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI \FENCE\SEMI (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
-Let $\aCmd$ be of form $\aLoc \GETS 0 \SEMI; \ldots$.
 Let $\aPS \in \tsem{\aCmd}$ be a top level pomset.  
-Let $\aEv \in \aPS$ read from write event $\bEv$  on $\aLoc$, where $\bEv$ is not the initializing write for $\aLoc$.  Let $\neg(\bEv \xhb \aEv)$.
+Let $\aEv \in \aPS$ read from write event $\bEv$  on $\aLoc$,  $\neg(\bEv \xhb \aEv)$.
 Then, there exists $\bPS \in \tsem{\aCmd}$ such that:
 \begin{itemize}
 %\item $(\exists \aEv' \in \Event_{\bPS})$ such that $

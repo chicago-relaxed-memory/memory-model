@@ -190,21 +190,22 @@ $\aPS$ is in normal form if:
         Forall reads  $\bEv$, every $\bEv$ such that $\aEv \lt \bEv$ is a write on the same variable. 
     
 % \item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
-\item If $\aEv, \aEv'$ have the same read action label, then $\aEv = \aEv'$
-\item  If $\aEv, \aEv'$ have the same write action label, then there exists a write $\bEv$ on the same location as $\aEv$ such that $\aEv \gtN \bEv \gtN \aEv'$.
+\item If $\aEv, \aEv'$ have the same read action label, then then there exists a write $\bEv$ on the same location such that $\aEv \gtN \bEv \gtN \aEv'$.
+%\item  If $\aEv, \aEv'$ have the same write action label, then 
+%there exists a event $\bEv$ on the same location as $\aEv$ such 
+%that  $\bEv$ has a different action label and $\aEv \gtN \bEv \gtN 
+%\aEv'$.
 \end{itemize}
 \end{definition}
-In a normal form pomset, the successors of a write event (resp. the predecessors of a read) are related in the coherence order to the event.  The labels of a read actions form a set, and the coherence order on a location does not have two events with the same label. 
+In a normal form pomset, the successors of a write event (resp. the predecessors of a read) are related in the coherence order to the event.  Any two events with the same read label are separated by a write in the $\reco$ order. 
 
-It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level. 
+It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level.  The normal forms determine the full semantics by the closure properties of the semantics.r
 
 \begin{lemma}\label{unrhd}
 Every top-level pomset of $\freadsat\sem{\aCmd}$ is a top-level pomset of $\freadsat\sem{\bCmd}$ if and only if 
 every top-level normal form pomset of $\freadsat\sem{\aCmd}$ is a top-level normal form pomset of $\freadsat\sem{\bCmd}$.
 \begin{proof}
-The normal forms determine the full semantics by the closure properties of the semantics.     The proof proceeds by induction on structure.  The key case is prefixing. 
-
-The only edges $\lt$-edges out of writes  and into read actions enforced by prefixing are $\reco$ edges.  Read prefixing permits the reuse of events to ensure that distinct read events have distinct read labels.  Similarly, write prefixing can be used to ensure that  writes that are adjacent in $\gtN$ order have distinct labels.
+The proof proceeds by induction on structure.  The key case is prefixing.  The only edges $\lt$-edges out of writes  and into read actions enforced by prefixing are $\reco$ edges.  Read prefixing permits the reuse of events to ensure that distinct read events not separated by $\reco$ have distinct read labels.  
 \end{proof}
 \end{lemma}
 
@@ -250,10 +251,7 @@ $\freadsat\sem{\aCmd_2}$ if and only if for all $\bCmd$, all top-level pomsets o
 $\freadsat\sem{\aCmd_2 \PAR \bCmd}$.
 \begin{proof}
   The forward implication follows from the compositionality of the
-  semantics. For the converse, pick a top level pomset
-  $\aPS \in \sem{\aCmd_1} \setminus \sem{\aCmd_2} $.
-
-Consider the (semantic) context induced by tester program $\testP{\aPS}{}$:
+  semantics. For the converse, pick a top level pomset in normal form in $\aPS \in \freadsat\sem{\aCmd_1} \setminus \freadsat\sem{\aCmd_2} $.   Consider the (semantic) context induced by tester program $\testP{\aPS}{}$:
 \[
   \DW{b_{\aPS}}{0} \prefix
   \DW{\vec{b}}{\vec{0}} \prefix
@@ -269,7 +267,7 @@ There is a pomset that writes one to the  testing variable $b_{\aPS}$ if and onl
 \end{proof}
 \end{theorem}
 
-The full abstraction theorem applies only to full threads; in particular.  The reason for this limited statement of full abstraction is that our language is impoverished, in that parallel composition cannot be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands requires these richer distinguishing contexts.  
+The full abstraction theorem applies only to full threads.  The reason for this limited statement is that our language is impoverished, in that parallel composition cannot be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands requires these richer distinguishing contexts.  
 
 
 \subsection{Relationship to Hoare logic}

@@ -75,4 +75,15 @@ We consider a single global acyclic order in contrast to the two studied in~\cit
 ~\citet{2019-sp} does not study the properties as a memory model.  We conjecture that our proofs of DRF and compositional reasoning can be carried over to that setting.~\citet{2019-sp} also preserves some $\rpox$ between reads, whereas we do not; so, we certainly support more compiler optimizations of single threaded code. 
 
 
+\section{Conclusions}
+We have defined a relaxed memory model, using standard tools from the semantics and demonstrated that it satisfies the fundamental criterion for software memory models, namely ``the memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''
+
+One key lesson we draw is that any software relaxed memory model should support the cyclical composition proof rule of~\citet{Abadi:1993:CS:151646.151649}  for temporal properties.   In our experience, the benefits of \oota, such as typing guarantees, can bederived from this principle.   in contrast to the much subtle delicacy of \oota,  it is objectively verifiable or falsifiable if a memory model supports this principle.  
+
+We conclude with a suggestion for the consideration of programming language designers.   The semantics of a programming language should support a clear and executable prescription of dependency in a program.  Such a specification provides a nice interface between the language user and the compiler writer, and  a clear bridge  between the compiler writer to architectures.   
+
+Our current paper is to be viewed as a step towards this goal.  We will explore developing an executable specification based on these ideas in future work.
+ 
+
+
 
