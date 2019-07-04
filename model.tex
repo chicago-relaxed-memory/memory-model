@@ -1299,16 +1299,15 @@ We expect the sets of pomsets given by the semantics to be closed with
 respect to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
 \begin{definition}
   $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$,
-  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$, and $\aEv\gtN\bEv$ iff
-  $f(\aEv)\gtN'f(\bEv)$.
+  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
+  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
 
   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
-  ${\labeling'}={\labeling}$, ${\le'}\supseteq{\le}$, and
-  ${\gtN'}\supseteq{\gtN}$.
+  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
 
   $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
-  ${\gtN'}={\gtN}$, $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
+  %${\gtN'}={\gtN}$,
+  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
 \end{definition}
 Each
