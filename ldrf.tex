@@ -1,88 +1,224 @@
 \section{Comparison to related work}\label{sec:ldrf}
-A memory consistency model for a shared-memory multiprocessor defines the a read may return.  There has been extensive research on hardware and software memory models.~\citet{DBLP:journals/pacmpl/PodkopaevLV19} is a recent attempt to provide formal foundations to bridge the gap between the two.  \citet{AlglaveThesis} provides a historical and conceptual perspective on hardware memory models.  This paper focusses on software memory models.   For a survey and history of the Java Memory Model, we refer the reader to~\citet{DBLP:journals/toplas/Lochbihler13}; for a survey and history of C11, we refer the reader to~\citet{DBLP:phd/ethos/Batty15}.  
+A memory consistency model for a shared-memory multiprocessor defines the
+values that a read may return.  There has been extensive research on hardware
+and software memory models. \citet{DBLP:journals/pacmpl/PodkopaevLV19}
+provided formal foundations to bridge the gap between the two.
+\citet{AlglaveThesis} provided a historical and conceptual perspective on
+hardware memory models.
 
-This paper follows a line of work on relaxed memory models in the framework of true concurrency~\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.  
+This paper focusses on software memory models.  For a survey and history of
+the Java Memory Model, see \citep{DBLP:journals/toplas/Lochbihler13}; for a
+survey and history of C11, see \citep{DBLP:phd/ethos/Batty15}.
 
-We have already discussed related work in context earlier in the paper.  Here, we discuss in more detail the relationship with the most closely related work.  
+This paper follows a line of work on relaxed memory models in the framework
+of true concurrency
+\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.
+
+We have already discussed related work in context earlier in the paper.
+Here, we discuss in more detail the relationship with the most closely
+related work.
 
 \subsection{Memory models via program transformations}
-We discuss prior approaches to definining memory models using program transformations in chronological order.  The general flavor in these approaches is to consider SC executions, albeit with the threads subject to sequential program transformation  \citet{Saraswat:2007:TMM:1229428.1229469} aims to describe a JMM model this way.  DRF holds, but it was later discovered to permit  \oota\ behavior~\cite{SP}.
+We discuss prior approaches to definining memory models using program
+transformations in chronological order.  The general flavor in these
+approaches is to consider SC executions, albeit with the threads subject to
+sequential program transformation.
 
-~\cite{DBLP:conf/esop/FerreiraFS10} describes a relaxed memory model as being parametrised by available program transformations.  They show DRF, but do not study \oota, relate to concrete models, or demonstrate compilation results.
+\citet{Saraswat:2007:TMM:1229428.1229469}
+aimed to describe a \jmm-like model this way.  \drfsc\ holds, but \citet{SP} 
+discovered that it permits \oota\ behavior.
 
-~\citet{DBLP:conf/popl/DemangeLZJPV13} studies BMM, a model whose only permitted reordering is of a relaxed write with a following relaxed read.  The paper develops an axiomatic and studies effects on compilation.  By design, it is designed as a restriction of the JMM that eschews several compiler optimizations. 
+\citet{DBLP:conf/esop/FerreiraFS10} described a relaxed memory model as being
+parametrized by available program transformations.  They showed \drfsc, but do not
+study \oota, relate to concrete models, or demonstrate compilation results.
 
-~\citet{DBLP:conf/fm/LahavV16} characterizes \tso\ as being derived by considering Write-Read (WR) reordering and Read-After-Write (RaW) elimination.  They also show that the release acquires of C11 are less expressive than considering WR, RaW and thread-inlining.  Our paper is inspired by their implicit challenge, ``Some memory models can be defined via transformations.
- But there is more to weak memory than transformations''.  
+\citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, a model whose only
+permitted reordering is of a relaxed write with a following relaxed read.
+The paper develops an axiomatic and studies effects on compilation.  By
+design, it is designed as a restriction of the \jmm\ that invalidates several
+compiler optimizations.
+
+\citet{DBLP:conf/fm/LahavV16} characterized \tso\ as being derived by
+considering Write-Read (\textsc{wr}) reordering and Read-After-Write (\textsc{raw})
+elimination.  They also showed that the release acquires of C11 are less
+expressive than considering \textsc{wr}, \textsc{raw} and thread-inlining.  Our paper is
+inspired by their implicit challenge: ``Some memory models can be defined via
+transformations.  But there is more to weak memory than transformations.''
 
 \subsection{Modeling the invalidation of load buffering} 
 
-In this subsection, we argue that our paper is relevant even to the reader who desires a semantics that invalidates load buffering.  
-
-There are two related lines of research that suggest to prohibit the reordering of loads with following stores.  
+In this subsection, we argue that our paper is relevant even to the reader
+who desires a semantics that invalidates ``load buffering,'' or ``reads from the future.''
+There are two related lines of research that suggest to prohibit the
+reordering of loads with following stores.
 \begin{itemize}
-\item 
-~\citet{Dolan:2018:BDR:3192366.3192421} imposes this restriction in order to ``bound data races in space and time''.  Thus, in their model, one can reason sequentially about the the assignment to $w$ and deduce that $x=1 \Rightarrow\ z= 1$ despite the concurrent races on $u$, and  the past and future races on $y$\footnote{Concurrent, past and future stated wrt assignment to $w$.}.   In this program $r,s$ are registers, and $x,y,z,u,v,w$ are shared variables.
-\begin{align*}
-\mbox{Thread 1: } & u \GETS 0 \SEMI y \GETS 1 \SEMI v^{rel}  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3 \SEMI \\[-.5ex]
-\mbox{Thread 2: } & y \GETS 2 \SEMI  \IF{v^{acq}==1} \THEN\ w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2 \SEMI
-\end{align*}
+\item \citet{Dolan:2018:BDR:3192366.3192421} imposed this restriction in
+  order to ``bound data races in space and time.''
+  Consider the following program:
+  % In the following program $r,s$ are registers, and $x,y,z,u,v,w$
+  % are shared variables.
+  % \begin{align*}
+  %   & (u \GETS 0 \SEMI y \GETS 1 \SEMI v\REL  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3) \\[-.5ex]
+  %   \PAR & (y \GETS 2 \SEMI  \IF{v\ACQ} \THEN w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2)
+  % \end{align*}
+\begin{displaymatharrayrl}
+  &x\GETS1\SEMI y\GETS1\SEMI v\REL\GETS1\SEMI z\GETS1\SEMI
+  \IF{w}\THEN x\GETS2\FI
+  \\\PAR
+  &y\GETS2\SEMI \aReg{}\GETS v\ACQ\SEMI z\GETS2\,\SEMI
+  \IF{\aReg{}}\THEN w\GETS{y-y+x}\FI
+\end{displaymatharrayrl}
+\begin{displaymath}
+    \begin{tikzpicture}[node distance=1.2em and .8em,baselinecenter]
+    \event{a1}{\DW{x}{1}}{}
+    \event{a2}{\DW{y}{1}}{right=of a1}
+    \event{a3}{\DWRel{v}{1}}{right=of a2}
+    \event{a4}{\DW{z}{1}}{right=of a3}
+    \po{a1}{a2}
+    \po{a2}{a3}
+    \po{a3}{a4}
+    \event{b1}{\DW{y}{2}}{below=of a2}
+    \event{b2}{\DRAcq{v}{1}}{below=of a3}
+    \event{b3}{\DW{z}{2}}{right=of b2}
+    %\co{b1}[right]{a2}
+    \event{b4}{\DR{y}{?}}{right=of b3}
+    \event{b5}{\DR{y}{?}}{right=of b4}
+    %\co{b3}[right]{a4}
+    \event{b6}{\DR{x}{1}}{right=of b5}
+    \po{b1}{b2}
+    \po{b2}{b3}
+    \po{b3}{b4}
+    \po{b4}{b5}
+    \po{b5}{b6}
+    \rf{a3}{b2}
+    \event{a5}{\DR{w}{1}}{right=of a4}
+    \event{a6}{\DW{x}{2}}{right=of a5}
+    \po{a4}{a5}
+    \po{a5}{a6}
+    \event{b7}{\DW{w}{1}}{right=of b6}
+    \po{b6}{b7}
+    \rf{b7}{a5}
+    %\race{b7}{a5}
+    %\race{a6}{b6}
+  \end{tikzpicture}
+\end{displaymath}
+In their model, one can deduce that $w$ must be assigned $1$, despite the
+past race on $y$, concurrent race on $z$ and future race on $x$.
+% In their model, one can reason sequentially about the the assignment to $w$
+% and deduce that $x=1$ implies $z= 1$ despite the concurrent races on $u$, and
+% the past and future races on $y$, where past and future are stated with
+% respect to the assignment to $w$.
 
-\item In the C11 family of models, eg. see~\citep{Boehm:2014:OGA:2618128.2618134,DBLP:conf/pldi/LahavVKHD17,DBLP:conf/oopsla/VafeiadisN13}, load buffering is forbidden to avoid \oota. The elegant discussion in~\citet{BoehmOOTA} elucidates the issues via a series of ``\oota'' like examples.  In particular, to rule out example~\ref{rfub}.  
+\item In the C11 family of models, eg. see
+  \citep{Boehm:2014:OGA:2618128.2618134,DBLP:conf/pldi/LahavVKHD17,DBLP:conf/oopsla/VafeiadisN13},
+  load buffering is forbidden to avoid \oota. The elegant discussion in
+  \citet{BoehmOOTA} elucidates the issues via a series of ``\oota'' like
+  examples.  In particular, to rule out example~\ref{rfub}.
 \end{itemize}
 
-This restriction can be captured naturally in our model.  We make two changes.
+Our model can easily capture models that forbid load buffering.  It
+necessitates two changes.
 \begin{itemize}
-\item Modify the semantic rule for read to remove the possibility of an internal read:
+\item Modify the semantic rule for read to remove the possibility of an
+  internal read:
   \begin{align*}
     \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
     \textstyle\bigcup_{\aLoc=\REF{\bVal}}\; ({\cExp}=\bVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   \end{align*}
 \item Modify item \ref{pre-read}b in the definition of prefixing to require
-  order from a read to subsequent write:
-  \begin{enumerate}
-  \item[(\ref{pre-read}b$'$)] if $\aEv$ is a write then  $\cEv\lt'\aEv$ 
-  \end{enumerate}
+  order from a read to subsequent write.  Item \ref{pre-read}b$'$ becomes: if
+  $\aEv$ is a write then $\cEv\lt'\aEv$.  In \ref{pre-read}b$'$ we removed
+  the ``or or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 \end{itemize}
-In \ref{pre-read}b$'$ we removed the ``or or $\labelingForm'(\aEv)$ implies
-$\labelingForm(\aEv)$.''
 
-While~\citet{Dolan:2018:BDR:3192366.3192421} already describes DRF and  the compilation to \armeight, our approach yields the following new insights.
+While \citet{Dolan:2018:BDR:3192366.3192421} already describes DRF and the
+compilation to \armeight, our approach yields the following new insights.
 \begin{itemize}
-\item Compositional treatment of temporal invariants from\textsection\ref{sec:logic} holds mutatis mutandis, since all executions of the restricted model are already accounted for in the general model.
+\item Compositional treatment of temporal invariants
+  from \textsection\ref{sec:logic} holds mutatis mutandis, since all
+  executions of the restricted model are already accounted for in the general
+  model.
 
-\item With regards to single-threaded optimizations in \textsection\ref{sec:opt}, our approach provides different methods to prove optimizations, that complement the extant methods of~\citet{Dolan:2018:BDR:3192366.3192421} with data sensitivity; for example, our methods provides a simple proof of  the transformation of $
-\IF{\aExp}\THEN\ x \GETS 1 \SEMI \aCmd \ELSE x\GETS 1 \SEMI \bCmd\FI$ to 
-$x \GETS 1 \SEMI \IF{\aExp}\THEN\  \aCmd \ELSE  \bCmd\FI$.
+\item With regards to single-threaded optimizations in
+  \textsection\ref{sec:opt}, our approach provides different methods to prove
+  optimizations, which complement the extant methods of
+  \citet{Dolan:2018:BDR:3192366.3192421} with data sensitivity; for example,
+  our methods provides a simple proof of the transformation of
+  $\IF{\aExp}\THEN x \GETS 1 \SEMI \aCmd \ELSE x\GETS 1 \SEMI \bCmd\FI$ to
+  $x \GETS 1 \SEMI \IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI$.
 
 \end{itemize}
 
 \subsection{Revisiting \oota}
-\citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air executions.~\citet{BoehmOOTA} revisits community discussions on ``\oota'' like examples.  We classify the models on the basis of their behavior on three examples, namely examples~\eqref{oota1}, \eqref{alan} and \eqref{rfub}.  
+\citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air
+executions. \citet{BoehmOOTA} revisits community discussions on ``\oota''
+like examples.  We classify the models on the basis of their behavior on
+three examples: \eqref{oota1}, \eqref{alan} and \eqref{rfub}.
 \begin{itemize}
-\item RC11\cite{DBLP:conf/pldi/LahavVKHD17}, JMM~\cite{Manson:2005:JMM:1047659.1040336} and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} forbid only \eqref{oota1}.
+\item RC11\cite{DBLP:conf/pldi/LahavVKHD17}, \jmm\ 
+  \cite{Manson:2005:JMM:1047659.1040336} and the related models of
+  \citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17}
+  forbid only \eqref{oota1}.
 \item The model of this paper forbids \eqref{oota1} and \eqref{alan}.
-\item Forbidding load buffering as per \citep{Dolan:2018:BDR:3192366.3192421,BoehmOOTA} forbids all three examples.  RC11\cite{DBLP:conf/pldi/LahavVKHD17} also forbids all three examples. 
+\item Forbidding load buffering as per
+  \citep{Dolan:2018:BDR:3192366.3192421,BoehmOOTA} forbids all three
+  examples.  RC11\cite{DBLP:conf/pldi/LahavVKHD17} also forbids all three
+  examples.
 \end{itemize}
 
-One of our novel contributions to this line of research is the desideratum of compositional reasoning of safety properties. The The presence of such compositional reasoning suffices to remove the undesirable effects of \oota, eg. type safety.  And while \oota\ in a model is an elusive creature, and hence hard to prove or disprove,  the support of a model for a compositional proof principle is provable or falsifiable.  
+One of our novel contributions to this line of research is the desideratum of
+compositional reasoning of safety properties. The The presence of such
+compositional reasoning suffices to remove the undesirable effects of \oota,
+eg. type safety.  And while \oota\ in a model is an elusive creature, and
+hence hard to prove or disprove, the support of a model for a compositional
+proof principle is provable or falsifiable.
 
 \subsection{Relationship to models of speculation}
- ~\citet{2019-sp} is a close formal cousin to our approach.   In the spectrum from micro architectures to architectures to software,whereas~\citet{2019-sp} lies between the micro and architectural levels, we aim to be as abstract as possible to bridge the gap to programming languages.  This is reflected in the several differences in the formal model.  
+\citet{2019-sp} is a close formal cousin to our approach.  In the spectrum
+from micro architectures to architectures to software,whereas \citet{2019-sp}
+lies between the micro and architectural levels, we aim to be as abstract as
+possible to bridge the gap to programming languages.  This is reflected in
+the several differences in the formal model.
 
-We consider a single global acyclic order in contrast to the two studied in~\citet{2019-sp}.  We do not track false branches of conditionals, as seen in our monotonicity axiom, whereby any event with a precondition $\FALSE$ can only have $\FALSE$ successors in $\lt$, whereas in that paper, specualtion on false branches can lead to observable effects.   We are also less accurate  about tracking reads, as reflected in the removal of program order between reads and reads.   
+We consider a single global acyclic order in contrast to the two studied in
+\citet{2019-sp}.  We do not track false branches of conditionals, as seen in
+our monotonicity axiom, whereby any event with a precondition $\FALSE$ can
+only have $\FALSE$ successors in $\lt$, whereas in that paper, specualtion on
+false branches can lead to observable effects.  We are also less accurate
+about tracking reads, as reflected in the removal of program order between
+reads and reads.
 
-~\citet{2019-sp} does not study the properties as a memory model.  We conjecture that our proofs of DRF and compositional reasoning can be carried over to that setting.~\citet{2019-sp} also preserves some $\rpox$ between reads, whereas we do not; so, we certainly support more compiler optimizations of single threaded code. 
+\citet{2019-sp} does not study the properties as a memory model.  We
+conjecture that our proofs of DRF and compositional reasoning can be carried
+over to that setting. \citet{2019-sp} also preserves some $\rpox$ between
+reads, whereas we do not; so, we certainly support more compiler
+optimizations of single threaded code.
 
 
 \section{Conclusions}
-We have defined a relaxed memory model, using standard tools from the semantics and demonstrated that it satisfies the fundamental criterion for software memory models, namely ``the memory model must strike a balance between ease-of-use for programmers and implementation flexibility for system designers.''
+We have defined a relaxed memory model, using standard tools from the
+semantics and demonstrated that it satisfies the fundamental criterion for
+software memory models, namely ``the memory model must strike a balance
+between ease-of-use for programmers and implementation flexibility for system
+designers.''
 
-One key lesson we draw is that any software relaxed memory model should support the cyclical composition proof rule of~\citet{Abadi:1993:CS:151646.151649}  for temporal properties.   We posit that the benefits of \oota, such as typing guarantees, can be derived from this principle.   In contrast to the much subtle delicacy of \oota,  it is objectively verifiable or falsifiable if a memory model supports this principle.  
+One key lesson we draw is that any software relaxed memory model should
+support the cyclical composition proof rule of
+\citet{Abadi:1993:CS:151646.151649} for temporal properties.  We posit that
+the benefits of \oota, such as typing guarantees, can be derived from this
+principle.  In contrast to the much subtle delicacy of \oota, it is
+objectively verifiable or falsifiable if a memory model supports this
+principle.
 
-We conclude with a suggestion for the consideration of programming language designers.   The semantics of a programming language should support a clear and executable prescription of dependency in a program.  Such a specification provides a nice interface between the language user and the compiler writer, and  a clear bridge  between the compiler writer to architectures.   
+We conclude with a suggestion for the consideration of programming language
+designers.  The semantics of a programming language should support a clear
+and executable prescription of dependency in a program.  Such a specification
+provides a nice interface between the language user and the compiler writer,
+and a clear bridge between the compiler writer to architectures.
 
-Our current paper is to be viewed as a step towards this goal.  We will explore developing an executable specification based on these ideas in future work.
+Our current paper is to be viewed as a step towards this goal.  We will
+explore developing an executable specification based on these ideas in future
+work.
  
 
 
