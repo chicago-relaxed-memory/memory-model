@@ -167,11 +167,11 @@ three examples: \eqref{oota1}, \eqref{alan} and \eqref{rfub}.
 \end{itemize}
 
 One of our novel contributions to this line of research is the desideratum of
-compositional reasoning of safety properties. The The presence of such
+compositional reasoning of safety properties. The presence of such
 compositional reasoning suffices to remove the undesirable effects of \oota,
 eg. type safety.  And while \oota\ in a model is an elusive creature, and
 hence hard to prove or disprove, the support of a model for a compositional
-proof principle is provable or falsifiable.
+proof principle is objectively provable or falsifiable.
 
 \subsection{Relationship to models of speculation}
 \citet{2019-sp} is a close formal cousin to our approach.  In the spectrum
@@ -183,7 +183,7 @@ the several differences in the formal model.
 We consider a single global acyclic order in contrast to the two studied in
 \citet{2019-sp}.  We do not track false branches of conditionals, as seen in
 our monotonicity axiom, whereby any event with a precondition $\FALSE$ can
-only have $\FALSE$ successors in $\lt$, whereas in that paper, specualtion on
+only have $\FALSE$ successors in $\lt$, whereas in that paper, speculation on
 false branches can lead to observable effects.  We are also less accurate
 about tracking reads, as reflected in the removal of program order between
 reads and reads.
@@ -204,17 +204,15 @@ designers.''
 
 One key lesson we draw is that any software relaxed memory model should
 support the cyclical composition proof rule of
-\citet{Abadi:1993:CS:151646.151649} for temporal properties.  We posit that
+\citet{Abadi:1993:CS:151646.151649} for temporal properties.  We posit that all
 the benefits of \oota, such as typing guarantees, can be derived from this
-principle.  In contrast to the much subtle delicacy of \oota, it is
-objectively verifiable or falsifiable if a memory model supports this
-principle.
+principle. 
 
 We conclude with a suggestion for the consideration of programming language
 designers.  The semantics of a programming language should support a clear
 and executable prescription of dependency in a program.  Such a specification
 provides a nice interface between the language user and the compiler writer,
-and a clear bridge between the compiler writer to architectures.
+and a clear bridge from the compiler writer to architectures.
 
 Our current paper is to be viewed as a step towards this goal.  We will
 explore developing an executable specification based on these ideas in future

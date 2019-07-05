@@ -199,7 +199,7 @@ $\aPS$ is in normal form if:
 \end{definition}
 In a normal form pomset, the successors of a write event (resp. the predecessors of a read) are related in the coherence order to the event.  Any two events with the same read label are separated by a write in the $\reco$ order. 
 
-It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level.  The normal forms determine the full semantics by the closure properties of the semantics.r
+It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level.  The normal forms determine the full semantics by the closure properties of the semantics.
 
 \begin{lemma}\label{unrhd}
 Every top-level pomset of $\freadsat\sem{\aCmd}$ is a top-level pomset of $\freadsat\sem{\bCmd}$ if and only if 
@@ -209,19 +209,25 @@ The proof proceeds by induction on structure.  The key case is prefixing.  The o
 \end{proof}
 \end{lemma}
 
-We develop testers for top-level pomsets in normal form below, following~\citet{Plotkin:1997:TSP:266557.266600}, albeit in a concrete form appropriate to this setting.   
+We develop testers for top-level pomsets in normal form.  We  follow~\citet{Plotkin:1997:TSP:266557.266600}, albeit in a concrete form appropriate to our setting.   
 
-Let $\aPS$ be a top-level pomset in normal form with events $\aEv_1, \ldots, \aEv_n$.  Forall $i$, we assume a new location $b_i$.    Let Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  Let $\vec{\bEv}$ beall  the predecessors of $\aEv_i$ in $\lt$. Let $\vec{c}$ be the corresponding sub vector of $b_i$'s. 
+Let $\aPS$ be a top-level pomset in normal form with events $\aEv_1, \ldots, \aEv_n$.  Forall $i$, we assume a new location $b_i$.    Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  
 
+Let $\vec{\bEv}$ be all  the predecessors of $\aEv_i$ in $\lt$. Let $\vec{c}$ be the corresponding sub vector of $b_i$'s. 
+\begin{itemize}
+\item 
 If $\aEv_i$ has label $\DR{\aLoc}{\aVal}$, we define a program $\test{i}$ as follows:  
 \[
 \testP{\aPS}{i}: \vec{\aReg} \GETS \vec{c}  \SEMI  \IF{\vec{c}==\vec{1}} \THEN\ x \GETS \aVal \SEMI  \FENCE \SEMI b_i \GETS 1 \FI \SEMI
 \]
-
+\item 
 If $\aEv_i$ has label $\DW{\aLoc}{\aVal}$, we define a program $\test{i}$ as follows:
 \[
 \testP{\aPS}{i}: \vec{\aReg} \GETS \vec{c}  \SEMI  \IF{\vec{\aReg}==\vec{1}} \THEN\ \aReg = \aLoc \SEMI \IF{\aReg == \aVal} \THEN \aLoc = \freshaval \SEMI \FENCE \SEMI b_i \GETS 1  \FI \FI
 \]
+\end{itemize}
+$\testP{\aPS}{i}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The fresh value is used to flush out prior writes and reset to see fresh writes.    
+
 \begin{definition}[Tester for $\aPS$ ]\label{testAPS} 
 The tester context for $\aPS$, $\testP{\aPS}{}\hole{}$ is 
 \[
@@ -232,7 +238,7 @@ b \GETS b_{1} \land  \cdots \land b_{n}
 \PAR \hole{}
 \]
 \end{definition}
-$\testP{\aPS}{\aLoc}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The fresh value is used to flush out prior writes and reset to see fresh writes.    The constraints of the normal form ensure that if the labels of any two events are the same, then one is a predecessor of the other. 
+The constraints of the normal form ensure that if the labels of any two events are the same, then one is a predecessor of the other. 
 
 \begin{lemma}\label{tester}
 $\sem{\testP{\aPS}{}\hole{\aCmd}}$  has a pomset that sets $b$ to $1$ iff $\aPS \in \freadsat\sem{\aCmd}$.
@@ -260,7 +266,7 @@ For the converse, pick a top level pomset in normal form in $\aPS \in \freadsat\
 \end{proof}
 \end{theorem}
 
-The full abstraction theorem applies only to full threads.  The reason for this limited statement is that our language is impoverished, in that parallel composition cannot be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands requires these richer distinguishing contexts.  
+The full abstraction theorem applies only to full threads.  The reason for this limited statement is that our impoverished language does not permit  parallel composition to be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands can be achieved with these richer distinguishing contexts.  
 
 
 \subsection{Relationship to Hoare logic}
@@ -268,7 +274,7 @@ In order to provide useful information about sequential commands in sequential c
 
 This invariant captured in the following theorem underlies the definitions in the semantics of sequential commands.
 \begin{theorem}
-Let $\aCmd$ be a command without either synchronization or parallelism.
+Let $\aCmd$ be a command without either synchronization or parallelism.  Then:
 
 The following Hoare triple is valid:
 \begin{displaymath}
@@ -290,7 +296,7 @@ The proof proceeds by structural induction on the command.
 \end{theorem}
 
 We illustrate with a few examples.
-$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{2=1} $ holds.   In the semantics, this is mirrored by the execution:
+$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds.   In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
  \event{w1}{\DW{x}{1}}{}
  \event{w2}{\DW{x}{2}}{right=of w1}
@@ -307,7 +313,7 @@ In contrast, in a semantics that forbids load buffering, where the best that one
 $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
 $.
 
-Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI r \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
+Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI s \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
 $ \hoare{x=1}{\aCmd}{y=1}$ and
 $ \hoare{u=1}{\aCmd}{v=1}$
 hold.  In the semantics, this is mirrored by the execution:
@@ -323,12 +329,12 @@ hold.  In the semantics, this is mirrored by the execution:
 
 Consider a fragment from example~\eqref{rfub}.
 \begin{align*}
-\bCmd = (r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+\bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
 \end{align*}
 Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$.  
 In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
- \event{ry}{\DR{y}{42}}{}
+ \event{ry}{\DR{y}{41}}{}
  \event{wx}{\DW{x}{42}}{right=of ry}
  \event{wa}{\DW{a}{1}}{below=of rx}
  \rf{ry}{wa}
