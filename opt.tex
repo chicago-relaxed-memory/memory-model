@@ -99,17 +99,17 @@ are also permissible.
 \begin{lemma}%[Reorderings]
   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
   \begin{align*}
-    \tag{Read-read}
+    \tag{R-R}
     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} \SEMI \aCmd} &=
     \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
     \\
-    \tag{Read-write}
+    \tag{R-W}
     \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &=
     \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
     \\
-    \tag{Write-write}
+    \tag{W-W}
     \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &=
     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI \aCmd}
   \end{align*}
@@ -122,22 +122,22 @@ Roach-motel reorderings that increase the scope of synchronization are valid.
 \begin{lemma}%[Reorderings]
   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
   \begin{align*}
-    \tag{Read-Acq}
+    \tag{R-Acq}
     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
     \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
 &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
     \\
-    \tag{Write-Acq} 
+    \tag{W-Acq} 
     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
     \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
     \\
-\tag{Rel-Read} 
+\tag{Rel-R} 
 \sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
     \\
-    \tag{Rel-Write}
+    \tag{Rel-W}
     \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
   \end{align*}
@@ -146,29 +146,48 @@ The proof follows from noticing that the pomsets in the semantics of the right h
 \end{proof}
 \end{lemma}
 
-\paragraph*{Compiler optimizations.} Reordering and peephole optimizations can be combined to describe common  compiler optimizations.  We illustrate following~\citet{Dolan:2018:BDR:3192366.3192421}.
+\paragraph*{Compiler optimizations.} Reordering and peephole optimizations
+can be combined to describe common compiler optimizations.  We illustrate
+using common subexpression elimination,
+following~\citet{Dolan:2018:BDR:3192366.3192421}:
+Consider the command 
+\begin{math}
+  (\aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2)
+\end{math}
+where $\aCmd$ is independent of $\aReg$.  Reordering yields
+\begin{math}
+  (\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2),
+\end{math}
+followed by redundant load to yield
+\begin{math}
+  (\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg).
+\end{math}
 
-Common subexpression elimination. Consider the command 
-\[ \aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2 \]
-where $\aCmd$ is independent of $\bReg$.  Then, reordering yields
-\[\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2 \]
-followed by redundant load to yield:
-\[\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg\]
+Similarly, the treatment of loop-invariant code motion, dead-store
+elimination and constant propagation
+from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
 
-Similarly, the treatment of loop-invariant code motion, dead-store elimination and constant propagation from~\citet{Dolan:2018:BDR:3192366.3192421} follows mutatis-mutandis, since our model is more generous about permitted reorderings.  Thus, we permit  redundant store elimination that they forbid.
-Consider:
-\[ \aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS \aReg \]
+Since
+our model is more generous about permitted reorderings, we permit
+optimizations that they forbid.  Consider:
+\begin{math}
+  (\aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS \aReg).
+\end{math}
 Reordering, permitted by us, but forbidden by them, yields
-\[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
-followed by the valid elimination of redundant load:
-\[ \aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc  \]
+\begin{math}
+  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc),
+\end{math}
+followed by the valid elimination of redundant load
+\begin{math}
+  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc).
+\end{math}
 
 \subsection{Full abstraction for synchronization free threads}
 Our semantics is complete for reasoning about full-thread optimizations of synchronization free programs.
 
 In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are
-synchronization-free (ie. no acquire, release, fence),
-restriction-free, and composition-free (ie. single threaded).
+restriction-free, composition-free (ie. single threaded), and
+synchronization-free (ie. no acquire, release, fence).
 
 In order to develop the proof, we first make the semantics insensitive to
 reads that are never used.  Let $\readc(\aPSS)$ be the smallest augmentation
@@ -177,7 +196,7 @@ of useless reads: if $\aPS \in \readc(\aPSS)$, then
 $\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\cup\{\aEv\}$,
 $\aEv \not \in \Event$, ${\le'} ={\le}$,
 ${\labeling'} \restrict \Event = {\labeling}$, and
-$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ ,$\aVal$.
+$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ and $\aVal$.
 
 Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
 
@@ -186,11 +205,11 @@ This closure permits us to  describe a normal form for the top-level pomsets tha
 $\aPS$ is in normal form if:
 \begin{itemize}
 % \item All preconditions on events are tautologies.
-\item Forall writes $\aEv$, every $\bEv$ such that $\aEv \lt \bEv$ is a write or read on the same variable.
-        Forall reads  $\bEv$, every $\bEv$ such that $\aEv \lt \bEv$ is a write on the same variable. 
+\item If $\bEv \lt \aEv$ and  $\bEv$ is a write, then $\aEv$ is a write or read on the same variable.
+\item If $\bEv \lt \aEv$ and  $\aEv$ is a read, then $\bEv$ is a write on the same variable. 
     
 % \item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
-\item If $\aEv, \aEv'$ have the same read action label, then then there exists a write $\bEv$ on the same location such that $\aEv \gtN \bEv \gtN \aEv'$.
+\item If $\aEv, \aEv'$ have the same read action label, then there exists a write $\bEv$ on the same location such that $\aEv \gtN \bEv \gtN \aEv'$.
 %\item  If $\aEv, \aEv'$ have the same write action label, then 
 %there exists a event $\bEv$ on the same location as $\aEv$ such 
 %that  $\bEv$ has a different action label and $\aEv \gtN \bEv \gtN 
@@ -211,19 +230,25 @@ The proof proceeds by induction on structure.  The key case is prefixing.  The o
 
 We develop testers for top-level pomsets in normal form.  We  follow~\citet{Plotkin:1997:TSP:266557.266600}, albeit in a concrete form appropriate to our setting.   
 
-Let $\aPS$ be a top-level pomset in normal form with events $\aEv_1, \ldots, \aEv_n$.  Forall $i$, we assume a new location $b_i$.    Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  
+Let $\aPS$ be a top-level pomset in normal form with events $\aEv_1, \ldots,
+\aEv_n$.  For all $i$, we assume a new location $b_i$.    Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  
 
 Let $\vec{\bEv}$ be all  the predecessors of $\aEv_i$ in $\lt$. Let $\vec{c}$ be the corresponding sub vector of $b_i$'s. 
 \begin{itemize}
 \item 
-If $\aEv_i$ has label $\DR{\aLoc}{\aVal}$, we define a program $\test{i}$ as follows:  
+If $\aEv_i$ has label $\DR{\aLoc}{\aVal}$, we define a program $\testP{\aPS}{i}$ as follows:  
 \[
-\testP{\aPS}{i}: \vec{\aReg} \GETS \vec{c}  \SEMI  \IF{\vec{c}==\vec{1}} \THEN\ x \GETS \aVal \SEMI  \FENCE \SEMI b_i \GETS 1 \FI \SEMI
+  \testP{\aPS}{i} = (
+  % \vec{\aReg} \GETS \vec{c}  \SEMI
+  \IF{\vec{c}=\vec{1}} \THEN x \GETS \aVal \SEMI  \FENCE \SEMI b_i \GETS 1 \FI)
 \]
 \item 
-If $\aEv_i$ has label $\DW{\aLoc}{\aVal}$, we define a program $\test{i}$ as follows:
+If $\aEv_i$ has label $\DW{\aLoc}{\aVal}$, we define a program $\testP{\aPS}{i}$ as follows:
 \[
-\testP{\aPS}{i}: \vec{\aReg} \GETS \vec{c}  \SEMI  \IF{\vec{\aReg}==\vec{1}} \THEN\ \aReg = \aLoc \SEMI \IF{\aReg == \aVal} \THEN \aLoc = \freshaval \SEMI \FENCE \SEMI b_i \GETS 1  \FI \FI
+  \testP{\aPS}{i} = (
+  % \vec{\aReg} \GETS \vec{c}  \SEMI
+  \IF{\vec{c}=\vec{1}} \THEN %\aReg = \aLoc \SEMI
+  \IF{\aLoc = \aVal} \THEN \aLoc = \freshaval \SEMI \FENCE \SEMI b_i \GETS 1  \FI \FI)
 \]
 \end{itemize}
 $\testP{\aPS}{i}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The fresh value is used to flush out prior writes and reset to see fresh writes.    
@@ -254,16 +279,19 @@ We prove by induction on $\lt$ that $\testP{\aPS}{i}\hole{\aCmd}$  sets $b_i$ to
 \end{lemma}
 
 \begin{theorem}
-Let $\aCmd_1, \bCmd_2$ be $\PAR$-free and synchronization free.  Then all top-level pomsets of $\freadsat\sem{\aCmd_1}$ are also pomsets of
-$\freadsat\sem{\aCmd_2}$ if and only if for all parallel contexts $\bCmd$ all top-level pomsets of $\freadsat\sem{\aCmd_1 \PAR}$ are also pomsets of
-$\freadsat\sem{\aCmd_2 \PAR \bCmd}$
+  Let $\aCmd_1$ and $\aCmd_2$ be restriction-free, composition-free and
+  synchronization free.  Then all top-level pomsets of
+  $\freadsat\sem{\aCmd_1}$ are also pomsets of $\freadsat\sem{\aCmd_2}$ if
+  and only if for all parallel contexts $\bCmd$, all top-level pomsets of
+  $\freadsat\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
+  $\freadsat\sem{\aCmd_2 \PAR \bCmd}$
 \begin{proof}
- The forward implication follows from the compositionality of the
-  semantics. 
+  The forward implication follows from the compositionality of the semantics.
 
-For the converse, pick a top level pomset in normal form in $\aPS \in \freadsat\sem{\aCmd_1} \setminus \freadsat\sem{\aCmd_2} $.   The required context is given by the tester context $\testP{\aPS}{}\hole{}$.   
- 
-\end{proof}
+  For the converse, pick a top level pomset in normal form in
+  $\aPS \in \freadsat\sem{\aCmd_1} \setminus \freadsat\sem{\aCmd_2} $.  The
+  required context is given by the tester context $\testP{\aPS}{}\hole{}$.
+ \end{proof}
 \end{theorem}
 
 The full abstraction theorem applies only to full threads.  The reason for this limited statement is that our impoverished language does not permit  parallel composition to be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands can be achieved with these richer distinguishing contexts.  
@@ -273,14 +301,30 @@ The full abstraction theorem applies only to full threads.  The reason for this 
 In order to provide useful information about sequential commands in sequential contexts, we establish a relationship with Hoare triples for a sequential language.    
 
 This invariant captured in the following theorem underlies the definitions in the semantics of sequential commands.
+% \begin{theorem}
+% Let $\aCmd$ be a command without either synchronization or parallelism.  Then:
+%
+% The following Hoare triple is valid:
+% \begin{displaymath}
+%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+% \end{displaymath}
+% if and only if $\sem{\aCmd}$ contains an execution that includes
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+%   \wk{w1}{w2}
+%   \po{r}{w2}
+% \end{tikzdisplay}
+% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
+% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+% \begin{proof}
+% The proof proceeds by structural induction on the command. 
+% \end{proof}
+% \end{theorem}
 \begin{theorem}
-Let $\aCmd$ be a command without either synchronization or parallelism.  Then:
-
-The following Hoare triple is valid:
-\begin{displaymath}
-  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-\end{displaymath}
-if and only if $\sem{\aCmd}$ contains an execution that includes
+Let $\aCmd$ be a command without either synchronization or parallelism, such that
+$\sem{\aCmd}$ contains an execution that includes
 \begin{tikzdisplay}[node distance=1em]
   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
@@ -290,10 +334,15 @@ if and only if $\sem{\aCmd}$ contains an execution that includes
 \end{tikzdisplay}
 where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
 $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+Then the following Hoare triple is valid:
+\begin{displaymath}
+  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+\end{displaymath}
 \begin{proof}
 The proof proceeds by structural induction on the command. 
 \end{proof}
 \end{theorem}
+
 
 We illustrate with a few examples.
 $\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds.   In the semantics, this is mirrored by the execution:
