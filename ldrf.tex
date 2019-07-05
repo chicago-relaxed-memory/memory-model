@@ -58,11 +58,11 @@ $x \GETS 1 \SEMI \IF{\aExp}\THEN\  \aCmd \ELSE  \bCmd\FI$.
 \end{itemize}
 
 \subsection{Revisiting \oota}
-~\citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air executions.~\citet{BoehmOOTA} revisits community discussions on ``\oota'' like examples.  We classify the models on the basis of their behavior on three examples, namely examples~\eqref{oota1}, \eqref{types}, \eqref{alan} and \eqref{rfub}.  
+\citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air executions.~\citet{BoehmOOTA} revisits community discussions on ``\oota'' like examples.  We classify the models on the basis of their behavior on three examples, namely examples~\eqref{oota1}, \eqref{alan} and \eqref{rfub}.  
 \begin{itemize}
 \item RC11\cite{DBLP:conf/pldi/LahavVKHD17}, JMM~\cite{Manson:2005:JMM:1047659.1040336} and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17} forbid only \eqref{oota1}.
-\item The model of this paper forbids \eqref{oota1}, \eqref{types} and \eqref{alan}.
-\item Forbidding load buffering as per \citep{Dolan:2018:BDR:3192366.3192421,BoehmOOTA} forbids all four examples.  RC11\cite{DBLP:conf/pldi/LahavVKHD17} also forbids all four examples. 
+\item The model of this paper forbids \eqref{oota1} and \eqref{alan}.
+\item Forbidding load buffering as per \citep{Dolan:2018:BDR:3192366.3192421,BoehmOOTA} forbids all three examples.  RC11\cite{DBLP:conf/pldi/LahavVKHD17} also forbids all three examples. 
 \end{itemize}
 
 One of our novel contributions to this line of research is the desideratum of compositional reasoning of safety properties. The The presence of such compositional reasoning suffices to remove the undesirable effects of \oota, eg. type safety.  And while \oota\ in a model is an elusive creature, and hence hard to prove or disprove,  the support of a model for a compositional proof principle is provable or falsifiable.  
