@@ -143,12 +143,12 @@ and $\geN$ a ``may transition''.  In anticipation, we have used  the terms ``str
  
 The semantics of programs in the three-valued model proceeds as before, mutatis mutandis, with details described in the appendix.  This finer analysis of necessary and possible dependency allows us to establish the existence of pomsets in the semantics as we search for sequential witnesses to data races.    We provide some illustrative examples below.
 
-\noindent
-For the program:
-\begin{align*}
-\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1  \SEMI \\[-.5ex]
-\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1  \SEMI 
-\end{align*}
+
+For the program
+\begin{math}
+(y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1) \PAR
+(x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1):
+\end{math}
 \begin{displaymathsmall}
 \mbox{From    }
 \qquad\qquad
@@ -167,7 +167,7 @@ For the program:
 \qquad
 \mbox{  infer  }
 \qquad
-\begin{tikzcenter}node distance=1em]
+\begin{tikzcenter}[node distance=1em]
 \event{wy0}{\DW{y}{0}}{}
 \event{ry1}{\DR{y}{0}}{right=of wy0}
 \event{wx1}{\DW{x}{1}}{right=of ry1}
@@ -180,11 +180,12 @@ For the program:
 \wk{ry1}{wy1}
 \end{tikzcenter}
 \end{displaymathsmall}
-For the program:
-\begin{align*}
-\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y  \SEMI \\[-.5ex]
-\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x \SEMI
-\end{align*}
+For the program
+\begin{math}
+  (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
+  \PAR
+  (x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x):
+\end{math}
 \begin{displaymathsmall}
 \mbox{From  }
 \qquad \qquad
@@ -218,11 +219,11 @@ For the program:
 \wk{wy0}{wy1}
 \end{tikzcenter}
 \end{displaymathsmall}
-For the program:
-\begin{align*}
-\mbox{Thread 1: } &\VAR x\GETS 1 \\[-.5ex]
-\mbox{Thread 2: } &\VAR x\GETS 0 
-\end{align*}
+For the program
+\begin{math}
+(x\GETS 1) \PAR
+(x\GETS 0):
+\end{math}
 \begin{displaymathsmall}
 \mbox{From  }
 \qquad\qquad
