@@ -355,6 +355,21 @@ $\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds.   In the semantics, this 
 \wk{w1}{w2}
 \end{tikzdisplay}
 
+The two pomsets corresponding to the triple $\hoare{x=1}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1\FI}{y=1}$ illustrate the two ways to satisfy preconditions in the above theorem.
+\begin{displaymathsmall}
+\mbox{Internal: }
+\begin{tikzcenter}
+\event{w}{x=1 \mid \DW{y}{1}}{}
+\end{tikzcenter}
+\qquad \qquad
+\mbox{External: }
+\begin{tikzcenter}
+\event{r}{\DR{x}{1}}{}
+\event{w}{\DW{y}{1}}{right=of r}
+\po{r}{w}
+\end{tikzcenter}
+\end{displaymathsmall}
+
 $\hoare{\TRUE}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} $ holds.  
 In the semantics, this is mirrored by the execution:
 \begin{tikzdisplay}[node distance=1em]
