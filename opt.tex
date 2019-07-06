@@ -253,7 +253,7 @@ If $\aEv_i$ has label $\DW{\aLoc}{\aVal}$, we define a program $\testP{\aPS}{i}$
 \end{itemize}
 $\testP{\aPS}{i}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The fresh value is used to flush out prior writes and reset to see fresh writes.    
 
-\begin{definition}[Tester for $\aPS$ ]\label{testAPS} 
+\begin{definition}[Tester for $\aPS$]\label{testAPS} 
 The tester context for $\aPS$, $\testP{\aPS}{}\hole{}$ is 
 \[
 b \GETS b_{1} \land  \cdots \land b_{n}
@@ -309,7 +309,7 @@ The following Hoare triple is valid,
 \begin{displaymath}
   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
 \end{displaymath}
-if and only if,
+if and only if
 $\freadsat\sem{\aCmd}$ contains an execution that includes
 \begin{tikzdisplay}[node distance=1em]
   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
@@ -324,6 +324,27 @@ $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
 The proof proceeds by structural induction on the command. 
 \end{proof}
 \end{theorem}
+
+% \begin{theorem}
+% Let $\aCmd$ be a command without either synchronization or parallelism, such that
+% $\sem{\aCmd}$ contains an execution that includes
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+%   \wk{w1}{w2}
+%   \po{r}{w2}
+% \end{tikzdisplay}
+% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
+% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+% Then the following Hoare triple is valid:
+% \begin{displaymath}
+%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+% \end{displaymath}
+% \begin{proof}
+% The proof proceeds by structural induction on the command. 
+% \end{proof}
+% \end{theorem}
 
 
 We illustrate with a few examples.
