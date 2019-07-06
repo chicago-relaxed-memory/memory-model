@@ -301,30 +301,16 @@ The full abstraction theorem applies only to full threads.  The reason for this 
 In order to provide useful information about sequential commands in sequential contexts, we establish a relationship with Hoare triples for a sequential language.    
 
 This invariant captured in the following theorem underlies the definitions in the semantics of sequential commands.
-% \begin{theorem}
-% Let $\aCmd$ be a command without either synchronization or parallelism.  Then:
-%
-% The following Hoare triple is valid:
-% \begin{displaymath}
-%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-% \end{displaymath}
-% if and only if $\sem{\aCmd}$ contains an execution that includes
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
-%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-%   \wk{w1}{w2}
-%   \po{r}{w2}
-% \end{tikzdisplay}
-% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
-% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-% \begin{proof}
-% The proof proceeds by structural induction on the command. 
-% \end{proof}
-% \end{theorem}
+In this theorem, we consider Hoare triples over formulas as per as per \textsection\ref{sec:data}.
 \begin{theorem}
-Let $\aCmd$ be a command without either synchronization or parallelism, such that
-$\sem{\aCmd}$ contains an execution that includes
+Let $\aCmd$ be a command without either synchronization or parallelism. 
+
+The following Hoare triple is valid,
+\begin{displaymath}
+  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+\end{displaymath}
+if and only if,
+$\freadsat\sem{\aCmd}$ contains an execution that includes
 \begin{tikzdisplay}[node distance=1em]
   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
@@ -334,10 +320,6 @@ $\sem{\aCmd}$ contains an execution that includes
 \end{tikzdisplay}
 where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
 $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-Then the following Hoare triple is valid:
-\begin{displaymath}
-  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-\end{displaymath}
 \begin{proof}
 The proof proceeds by structural induction on the command. 
 \end{proof}
