@@ -61,7 +61,7 @@ are \emph{synchronizations}. % \footnote{Fences have a limited role in our
 Two actions \emph{conflict} if one writes a location and the other
 either reads or writes the same location.
 
-Let $\Formulae$ be a set of logical formula, such as $(\aLoc=1)$ or
+Let $\Formulae$ be a set of logical formulae, such as $(\aLoc=1)$ or
 $(\aReg=\bReg+1)$, where $\aReg$ and $\bReg$ are register names.
 
 Formulae are \emph{open}, in that occurrences of register names and memory
@@ -70,6 +70,7 @@ $\aForm[\bExp/\aLoc]$, where $\aLoc$ is a memory location, $\aReg$ is a
 register and $\bExp$ is an memory-location-free expression.  Actions are not
 subject to substitution.
 
+Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{GISCHER1988199}.
 \begin{definition}
   \label{def:mmpomset}
   A \emph{(memory model) pomset} is a tuple
@@ -183,7 +184,7 @@ as in \citep{2019-sp}.
 This pomset is derived discharging the internal dependency $x=1$ from the left pomset above  in the semantics of $\aReg\GETS x\SEMI
   y\GETS \aReg$.  This feature is reminiscent of the eponymous ${\rrfi}$ in hardware memory models where writes from a thread are forwarded to a read in the same thread without global publication and no read action is recorded.    The Hoare triple corresponding to the above pomset is $\hoare{\TRUE}{x \GETS 1\SEMI \aReg \GETS x \SEMI y\GETS \aReg}{y =1, x=1}$.  This triple reflects the store forwarding optimization in compilers.
 
-As in \citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is \emph{weaker} than a formula $\phi$ if $\phi \Rightarrow \psi$.}can also happen by merging
+As in \citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is \emph{weaker} than a formula $\phi$ if $\phi$ implies $\psi$.}can also happen by merging
 actions.  Consider the program $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.  We derive:
 \[
 \frac{\hoare{\aReg=0}{y\GETS1}{y=1}, \ \ \  \hoare{\aReg\neq0}{y\GETS1}{y=1}}
@@ -807,12 +808,13 @@ In our model, the attempted execution is:
   \rf{wz0}{rz}
   \event{wz1}{\DW{z}{1}}{right=of wz0}
   \wk{wz0}{wz1}
-  \event{ry1}{\DR{y}{1}}{left=of wy}
-  \rf{wy}{ry1}
-  \event{wa}{\DR{a}{1}}{left=of ry1}
+  \event{ry1}{\DR{y}{1}}{below=of rz}
+  \rf[bend right]{wy}{ry1}
+  \event{wa}{\DW{a}{1}}{right=of ry1}
   \po{ry1}{wa}
+  \po{rz}{wa}
 \end{tikzdisplay}
-This is forbidden by the evident cycle in strong order.
+This is forbidden by the evident cycle.
 
 \paragraph{Pointers.}
 Our language allow address calculations.  To model this, we allow locations
