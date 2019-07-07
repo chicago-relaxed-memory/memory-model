@@ -65,29 +65,17 @@
 %% issue of PACMPL.
 \citestyle{acmauthoryear}   %% For author/year citations
 
-
+% AFAICT this is the only way to get the copyright notice to be CC-BY-4.0
+% which is the recommended license for POPL 2020.
+\setcopyright{rightsretained}
+\begin{makeatletter}
+  \gdef\@copyrightpermission{%
+    This paper is published under the Creative Commons Attribution~4.0
+    International (CC-BY~4.0) license.
+  }
+\end{makeatletter}
 
 \usepackage{macros}
-
-
-
-
-
-
-%%% The following is specific to POPL'18 and the paper
-%%% 'Transactions in Relaxed Memory Architectures'
-%%% by Brijesh Dongol, Radha Jagadeesan, and James Riely.
-%%%
-\setcopyright{acmcopyright}
-\acmPrice{}
-\acmDOI{10.1145/3158106}
-\acmYear{2018}
-\copyrightyear{2018}
-\acmJournal{PACMPL}
-\acmVolume{2}
-\acmNumber{POPL}
-\acmArticle{18}
-\acmMonth{1}
 
 % % at most 12 pages, excluding references, not anonymous
 % % Titles and Short Abstracts Due	4 January 2019
