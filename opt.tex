@@ -81,10 +81,10 @@ are permissible.
   redundant load is as follows.
   \begin{align*}
     \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} 
-    \supseteq&  \sem{ \bReg  \GETS \aLoc \SEMI \aCmd[\aLoc/\aReg]} \\
-    \supseteq&  \sem{\aCmd}[\aLoc/\aReg][\aLoc/\bReg] \cup  \textstyle\bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg][\aLoc/\bReg]\\
-    =& \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg] \cup  \textstyle\bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg]\\
-    =& \sem{\aReg \GETS \aLoc\SEMI \aCmd[\aReg/\bReg]}
+    &\supseteq  \sem{ \bReg  \GETS \aLoc \SEMI \aCmd[\aLoc/\aReg]} \\
+    &\supseteq  \sem{\aCmd}[\aLoc/\aReg][\aLoc/\bReg] \cup  \textstyle\bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg][\aLoc/\bReg]\\
+    &= \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg] \cup  \textstyle\bigcup_\aVal\;  (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aReg/ \bReg][\aLoc/\aReg]\\
+    &= \sem{\aReg \GETS \aLoc\SEMI \aCmd[\aReg/\bReg]}
     \tag*{\qedhere}
   \end{align*}
   % Similarly, store forwarding is proved by considering the implicit read subset of $\sem{\bReg \GETS \REF{\dExp} \SEMI \aCmd}$.

@@ -113,8 +113,9 @@ Let $(\aPS \after \aEv) = {\{ \bEv\in\Event \mid \aEv \le \bEv
 
 The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt $\reco$), even while  the races with existing independent writes are maintained.   A canonical example to keep in mind for this lemma is the program:
 \begin{align*}
-\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1  \SEMI \\[-.5ex]
-\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1  \SEMI 
+  (y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1)
+  \PAR
+  (x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1)
 \end{align*}
 with both registers getting value $1$ via the execution:
 \begin{tikzdisplay}[node distance=1em]
@@ -167,8 +168,8 @@ The key observation behind the proof is that change in a  prefixing read action 
 
 In the following lemma,  invert the $\reco$ relationship between a read and a write.   A canonical example to keep in mind for this lemma is the program:
 \begin{align*}
-\mbox{Thread 1: } &\VAR y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y  \SEMI \\[-.5ex]
-\mbox{Thread 2: } &\VAR x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x \SEMI
+(y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
+\PAR (x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x)
 \end{align*}
 with both registers getting value $0$ via the execution:
 \begin{tikzdisplay}[node distance=1em]
@@ -218,18 +219,18 @@ Any new  event $\bEv'$ in $\bPS \after \aEv'$ reading from $\aLoc$ cannot have a
 The $\reco$ order between writes that are not related by $\lt$ can be reversed. 
 A canonical example to keep in mind for this lemma is the program:
 \begin{align*}
-\mbox{Thread 1: } &\VAR x\GETS 1 \\[-.5ex]
-\mbox{Thread 2: } &\VAR x\GETS 0 
+(x\GETS 1)
+\PAR (x\GETS 0)
 \end{align*}
 \begin{tikzdisplay}[node distance=1em]
 \event{wy0}{\DW{x}{1}}{}
-\event{wx0}{\DW{x}{0}}{below=of wx0}
+\event{wx0}{\DW{x}{0}}{right=of wy0}
 \wk{wy0}{wx0}
 \end{tikzdisplay}
 The lemma constructs the execution:
 \begin{tikzdisplay}[node distance=1em]
 \event{wy0}{\DW{x}{1}}{}
-\event{wx0}{\DW{x}{0}}{below=of wx0}
+\event{wx0}{\DW{x}{0}}{right=of wy0}
 \wk{wx0}{wy0}
 \end{tikzdisplay}
 \begin{lemma}\label{cohww}
