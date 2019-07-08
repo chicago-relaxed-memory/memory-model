@@ -167,7 +167,7 @@ This effect is realized in the semantics in different ways in the following two 
   \po{rx1}{wy1}
 \end{tikzpicture}
 \end{displaymathsmall}
-Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  This is the pomset on the left.  In the pomset on the right, the external read of $x$ discharges the precondition to this event.  Formally, by introducing strong order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology and therefore elided.
+Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  This is the pomset on the left.  In the pomset on the right, the external read of $x$ discharges the precondition to this event.  Formally, by introducing order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology and therefore elided.
 
 Consider prefixing a write to the above program:
 \begin{math}
@@ -184,7 +184,7 @@ as in \citep{2019-sp}.
 This pomset is derived discharging the internal dependency $x=1$ from the left pomset above  in the semantics of $\aReg\GETS x\SEMI
   y\GETS \aReg$.  This feature is reminiscent of the eponymous ${\rrfi}$ in hardware memory models where writes from a thread are forwarded to a read in the same thread without global publication and no read action is recorded.    The Hoare triple corresponding to the above pomset is $\hoare{\TRUE}{x \GETS 1\SEMI \aReg \GETS x \SEMI y\GETS \aReg}{y =1, x=1}$.  This triple reflects the store forwarding optimization in compilers.
 
-As in \citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is \emph{weaker} than a formula $\phi$ if $\phi$ implies $\psi$.}can also happen by merging
+As in \citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is \emph{weaker} than a formula $\phi$ if $\phi$ implies $\psi$.} can also happen by merging
 actions.  Consider the program $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.  We derive:
 \[
 \frac{\hoare{\aReg=0}{y\GETS1}{y=1}, \ \ \  \hoare{\aReg\neq0}{y\GETS1}{y=1}}
@@ -475,7 +475,7 @@ location.
 There is no order from $(\DWRel{y}{1})$ to $(\DW{z}{1})$.  This behavior is
 allowed by \armeight.  Were the internal action made explicit, then the order
 shown in gray would be imposed; this behavior would be disallowed due to the
-evident cycle in strong order.
+evident cycle.
 
 
 The dependency calculation for $(\DW{z}{1})$ in this execution proceeds as
@@ -490,10 +490,10 @@ The semantics of $z\GETS \bReg$ includes a pomset with event
 $(\bReg=1\mid \DW{z}{1})$. The precondition is discharged internally by the
 write of $y=1$ without an externally visible dependency to an explicit read:
 Prefixing $\bReg\GETS y$ transforms the precondition to $y=1$.  As in the
-discussion of execution \eqref{m1}, the strong order from $(\DWRel{y}{1})$
+discussion of execution \eqref{m1}, the order from $(\DWRel{y}{1})$
 allows the precondition $y=1$ to be weakened to $1=1$, which is a tautology.
 Note that both write prefixing and read prefixing enable precondition
-weakening.  Only read prefixing imposes strong order; there is no order from
+weakening.  Only read prefixing imposes order; there is no order from
 the prefixed write to any subsequent action.
 
 \paragraph*{Invalidation of thread inlining. }
@@ -647,7 +647,7 @@ with control dependencies between the reads:
   %\po{ry1}{rx0}
 \end{tikzdisplay}
 Since our semantics does not enforce control dependencies between reads, 
-this execution is acyclic and is allowed.  If the first read in each thread is acquiring, there is strong order between the reads.
+this execution is acyclic and is allowed.  If the first read in each thread is acquiring, there is order between the reads.
 \begin{displaymatharray}{rl}
   &x\GETS0\SEMI x\GETS 1
   \PAR
@@ -755,7 +755,7 @@ has top level executions that result in the final outcome $x = y = 1$, such as:
   %\po{rx}{wy}
 \end{tikzdisplay}
 In \textsection\ref{sec:logic} we provide machinery to prove that this
-outcome is impossible if there is strong order from read to write in both
+outcome is impossible if there is order from read to write in both
 threads.  This order can be achieved by replacing the second thread
 \begin{math}
   (\bReg\GETS y\SEMI x\GETS1)
@@ -1641,7 +1641,7 @@ they agree on the action.  Overlapping of synchronization events is
 disallowed by item~\ref{pre-sync}.
 
 If $\cEv$ writes to a location that is also written by some $\aEv$ in $\aPSS$,
-item~\ref{pre-coherence} introduces weak order between them: $\cEv \gtN \aEv$.  This
+item~\ref{pre-coherence} introduces order between them: $\cEv \gtN \aEv$.  This
 ensures that these writes cannot be given the reverse order in an augmentation.
 
 If $\cEv$ reads from a location that occurs in the predicate of $\aEv$, then
