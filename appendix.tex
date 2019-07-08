@@ -58,18 +58,14 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \begin{itemize}
 \item ${\sle'}\supseteq{\sle}$.
 
-\item \ref{pre-read} changes to: if $\aAct$ reads $\aVal$ from $\aLoc$ then both
-  \begin{enumerate}
-  \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
-  \item[(\ref{pre-read}b)] if $\aEv$ is a write then either $\cEv\slt'\aEv$
-    or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-  \end{enumerate}
+\item Item \ref{pre-read}b changes to: if $\aEv$ is a write then either $\cEv\slt'\aEv$
+    or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
 
-\item \ref{pre-coherence} changes to:
- if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
-    then $\cEv \gtN' \aEv$,
+% \item Item \ref{pre-coherence} changes to:
+%  if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
+%     then $\cEv \gtN' \aEv$,
 
-\item \ref{pre-sync} if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \slt' \aEv$,$\cEv \gtN \aEv$
+\item Item \ref{pre-sync} changes to: if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \slt' \aEv$.
 \end{itemize}
 \end{itemize}
 
