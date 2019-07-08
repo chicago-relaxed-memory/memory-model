@@ -2,23 +2,23 @@
 \section{Modal pomsets}
 In order to perform a sharper analysis of dependency, we present an alternate semantics using modal pomsets defined below.
 \begin{definition}
-  A \emph{\tvalpom} is a tuple
+  A \emph{modal (memory model) pomset} is a tuple
   $(\Event, {\sle}, {\gtN},
   \labeling)$, such that
   \begin{itemize}
    \item $(\Event, {\gtN},
-  \labeling)$ is a pomset, and 
+  \labeling)$ is a memory model pomset, and 
 \item ${\sle} \subseteq {\gtN}$ is a partial order. 
   \end{itemize}
 \end{definition}
-We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{\star} \subseteq {\gtN}$.  
+We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{*} \subseteq {\gtN}$.  
 
 We list out a few observations to illustrate the relationship between \tvalpom s and memory pomsets.  We are given a  \tvalpom, 
   $(\Event, {\sle}, {\gtN}, \labeling)$.  Then:
 \begin{itemize}
 \item $(\Event, {\gtN},\labeling)$ is a memory pomset with the same reads-from relation.  
 
-\item Let $\reco$ be the restriction of $\gtN$ to conflicting actions on the same location.  Then, $(\Event, {\sle}, (\sle \cup \reco)^{\star}, \labeling)$ is a \tvalpom, and $(\sle \cup \reco)^{\star} \subseteq {\gtN}$.
+\item Let $\reco$ be the restriction of $\gtN$ to conflicting actions on the same location.  Then, $(\Event, {\sle}, (\sle \cup \reco)^{*}, \labeling)$ is a \tvalpom, and $(\sle \cup \reco)^{*} \subseteq {\gtN}$.
 \end{itemize}
 
 \paragraph*{Changes to definitions}
@@ -39,8 +39,10 @@ $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
   ${\labeling'}={\labeling}$, ${\sle'}\supseteq{\sle}$, and
   ${\gtN'}\supseteq{\gtN}$.
 
-\item The definitions of substitution, restriction and the filtering operations  stay the same, with $\sle$ carried over unchanged.  For example:
-\begin{definition}
+\item The definitions of substitution, restriction and the filtering
+  operations  stay the same, with $\sle$ carried over unchanged.  For
+  example, substitution is defined as follows:
+
 Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \Event$,
@@ -48,7 +50,7 @@ ${\sle'} = {\sle}$,
 ${\gtN'} = {\gtN}$,
 and
 $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
-\end{definition}
+
 
 \item In composition,we require ${\sle'}\supseteq{\sle^1}\cup{\sle^2}$
 
@@ -77,8 +79,8 @@ We use $\tsem{\aCmd}$ to stand for the \tvalpom\ semantics of $\aCmd$.
 
 Recall that \emph{generators} in the memory pomset semantics are pomsets that are minimal with respect to augmentation and implication.  These generators are induced by pomsets  that are minimal with respect to augmentation and implication in the \tvalpom\ semantics  in the following sense.  
 
-$(\Event, {\gtN},\labeling)$ is a generator for $\sem{aCmd}$ 
-if there exists  $(\Event, \slt, {\gtN},\labeling) \in \tsem{\aCmd}$ minimal wrt augmentation and implication, and  $\gtN = (\sle \cup \reco)^{\star}$.
+$(\Event, {\gtN},\labeling)$ is a generator for $\sem{\aCmd}$ 
+if there exists  $(\Event, \slt, {\gtN},\labeling) \in \tsem{\aCmd}$ minimal wrt augmentation and implication, and  $\gtN = (\sle \cup \reco)^{*}$.
 
 Furthermore, any strong order that is outside of program order must be induced by a reads-from.  In the two-thread case, we can state the latter
 property as follows: suppose $\aEv$ and $\bEv$ are not related by program
