@@ -590,7 +590,7 @@ For example, the following execution is consider data-race free.
   \internal{a2}{\DR{x}{1}}{right=of a1}
   %\graypo{a1}{a2}
   \event{a3}{\DWRel{y}{1}}{right=of a2}
-  %\graypo{a2}{a3}
+  \graypo{a2}{a3}
   \po[bend left]{a1}{a3}
   \event{b1}{\DRAcq{z}{1}}{right=3em of a3}
   \rf{a3}{b1}
@@ -1745,7 +1745,7 @@ thread-local reads do not cross acquire actions.  This prevents bad executions l
   \event{a6}{\DRAcq{b}{1}}{above=of b5}
   \rf{b5}{a6}
   \internal{a7}{\DR{x}{1}}{right=of a6}
-  %\graypo{a6}{a7}
+  \graypo{a6}{a7}
   \event{a8}{\DW{y}{1}}{right=of a7}
   %\graypo{a7}{a8}
   \po[out=20,in=160]{a6}{a8}
