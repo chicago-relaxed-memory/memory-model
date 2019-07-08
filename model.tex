@@ -173,12 +173,13 @@ The effect of the read is realized in the semantics in two different ways:
   \po{rx1}{wy1}
 \end{tikzpicture}
 \end{displaymathsmall}
-In the pomset on the left, the read is \emph{internal}, and therefore most be
-discharged by a preceding action in the same thread.  In the pomset on the
-right, the read is \emph{external}.  An external read may discharge the
-precondition on a event that is ordered after: by introducing order
-$(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, we may substitute $1$ for $x$ in the
-precondition, resulting in $1=1$, which is a tautology and therefore elided.
+In the pomset on the left, the read is \emph{internal}, and therefore the
+formula on the write actions must be discharged by a preceding action in the
+same thread.  In the pomset on the right, the read is \emph{external}.  An
+external read may discharge the precondition on a event that is ordered
+after: by introducing order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, we may
+substitute $1$ for $x$ in the precondition, resulting in $1=1$, which is a
+tautology and therefore elided.
 
 Consider prefixing a write to the above program:
 \begin{math}
