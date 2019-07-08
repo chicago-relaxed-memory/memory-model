@@ -214,12 +214,15 @@
 \newcommand{\begEv}{b}
 \newcommand{\comEv}{c}
 \newcommand{\lessdoteq}{\mathrel{\raisebox{-.7ex}{$\mkern1mu\mathord{\relbar}$}\mkern-13mu\mathord{\lessdot}}}
-\renewcommand{\le}{\mathrel{{\color{blue}\leq}}}
-\newcommand{\lt}{\mathrel{{\color{blue}<}}}
-\newcommand{\gtN}{\mathrel{{\color{orange!90!black}\leq}}}
-\newcommand{\geN}{\mathrel{{\color{orange!90!black}<}}}
-% \newcommand{\gtN}{\mathrel{{\color{orange!90!black}\lessdoteq}}}
-% \newcommand{\geN}{\mathrel{{\color{orange!90!black}\lessdot}}}
+%\renewcommand{\le}{\mathrel{{\color{blue}\leq}}}
+%% \newcommand{\lt}{\mathrel{{\color{blue}<}}}
+%% \newcommand{\gtN}{\mathrel{{\color{red!50!black}\leq}}}
+%% \newcommand{\geN}{\mathrel{{\color{red!50!black}<}}}
+\newcommand{\lt}{<}
+\newcommand{\gtN}{\leq}
+\newcommand{\geN}{<}
+% \newcommand{\gtN}{\mathrel{{\color{red!50!black}\lessdoteq}}}
+% \newcommand{\geN}{\mathrel{{\color{red!50!black}\lessdot}}}
 
 \newcommand{\Alphabet}{\Sigma}
 \newcommand{\labeling}{\lambda}
@@ -369,7 +372,7 @@
     }
 }
 \newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
-\tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=orange!90!black]
+\tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=red!50!black]
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
 
 \tikzstyle{graypo} = [->,color=gray,]
@@ -382,7 +385,7 @@
 \newcommand{\xpo}{\xarrowtikz{po}{}}%
 \tikzstyle{lift} = [->,double]
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
-\tikzstyle{wk} = [->,dashed,color=orange!90!black,]
+\tikzstyle{wk} = [->,dashed,color=red!50!black,]
 \newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
 \newcommand{\xwk}{\xarrowtikzlong{wk}{}}%
 
@@ -391,21 +394,21 @@
 \newcommand{\rrmw}{\ensuremath{\mathrel{\mathsf{rmw}}}}%
 \newcommand{\xrmw}{\xarrowtikz{rmw}{rmw}}%
 
-\tikzstyle{eco} = [->,color=orange!90!black,thick]
+\tikzstyle{eco} = [->,color=red!50!black,thick]
 \NewDocumentCommand \eco {O{} m O{} m} {\draw[eco,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{eco}$}  (#4);}
-\newcommand{\reco}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{eco}}}}%
+\newcommand{\reco}{\ensuremath{\mathrel{\color{red!50!black}\mathsf{eco}}}}%
 \newcommand{\xeco}{\xarrowtikz{eco}{eco}}%
-\tikzstyle{co} = [->,color=orange!90!black,thick]
+\tikzstyle{co} = [->,color=red!50!black,thick]
 \NewDocumentCommand \co {O{} m O{} m} {\draw[co,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{co}$}  (#4);}
-\newcommand{\rco}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{co}}}}%
+\newcommand{\rco}{\ensuremath{\mathrel{\color{red!50!black}\mathsf{co}}}}%
 \newcommand{\xco}{\xarrowtikz{co}{co}}%
-\tikzstyle{coi} = [->,color=orange!90!black,thick]
+\tikzstyle{coi} = [->,color=red!50!black,thick]
 \NewDocumentCommand \coi {O{} m O{} m} {\draw[coi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coi}$}  (#4);}
-\newcommand{\rcoi}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{coi}}}}%
+\newcommand{\rcoi}{\ensuremath{\mathrel{\color{red!50!black}\mathsf{coi}}}}%
 \newcommand{\xcoi}{\xarrowtikz{coi}{coi}}%
-\tikzstyle{coe} = [->,color=orange!90!black,thick]
+\tikzstyle{coe} = [->,color=red!50!black,thick]
 \NewDocumentCommand \coe {O{} m O{} m} {\draw[coe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coe}$}  (#4);}
-\newcommand{\rcoe}{\ensuremath{\mathrel{\color{orange!90!black}\mathsf{coe}}}}%
+\newcommand{\rcoe}{\ensuremath{\mathrel{\color{red!50!black}\mathsf{coe}}}}%
 \newcommand{\xcoe}{\xarrowtikz{coe}{coe}}%
 
 \tikzstyle{fr} = [->,color=red!90!black,thick]
