@@ -1,6 +1,6 @@
 
-\section{Three valued pomsets}
-In order to perform a sharper analysis of dependency, we present an alternate semantics using three valued pomsets defined below.
+\section{Modal pomsets}
+In order to perform a sharper analysis of dependency, we present an alternate semantics using modal pomsets defined below.
 \begin{definition}
   A \emph{\tvalpom} is a tuple
   $(\Event, {\sle}, {\gtN},
@@ -11,34 +11,28 @@ In order to perform a sharper analysis of dependency, we present an alternate se
 \item ${\sle} \subseteq {\gtN}$ is a partial order. 
   \end{itemize}
 \end{definition}
-We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{\star} \subseteq \geN$.  
-
-\citet{DBLP:conf/esop/HuthJS01} call $\slt$ a ``must transition''
-and $\geN$ a ``may transition''--- we have used  the terms ``strong order'' and ``weak order'' respectively.  In pictures, we have adopted
-\citeauthor{DBLP:journals/dc/Lamport86}'s notation, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$''.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  
-
-These intuitions motivate the definition of reads-from in this refined context.
-\begin{definition}
-  We say that $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ writes
-  $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
-  \begin{itemize}
-  \item $\bEv \slt \aEv$, and
-  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}
-\end{definition}
+We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{\star} \subseteq {\gtN}$.  
 
 We list out a few observations to illustrate the relationship between \tvalpom s and memory pomsets.  We are given a  \tvalpom, 
   $(\Event, {\sle}, {\gtN}, \labeling)$.  Then:
 \begin{itemize}
 \item $(\Event, {\gtN},\labeling)$ is a memory pomset with the same reads-from relation.  
 
-\item Let $\reco$ be the restriction of $\gtN$ to conflicting actions on the same location.  Then, $(\Event, {\sle}, (\sle \cup \gtN)^{\star}, \labeling)$ is a \tvalpom, and $(\sle \cup \reco)^{\star} \subseteq \gtN$.
+\item Let $\reco$ be the restriction of $\gtN$ to conflicting actions on the same location.  Then, $(\Event, {\sle}, (\sle \cup \reco)^{\star}, \labeling)$ is a \tvalpom, and $(\sle \cup \reco)^{\star} \subseteq {\gtN}$.
 \end{itemize}
 
 \paragraph*{Changes to definitions}
 The definition of the semantics of programs using \tvalpom\ largely follows the one using memory pomsets.  We sketch the changes to definitions below.
 
 \begin{itemize}
+\item
+  We say that $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ writes
+  $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
+  \begin{itemize}
+  \item $\bEv \slt \aEv$, and
+  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}
+
 \item 
 Augmentation has to include ${\slt}$. i.e 
 $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
@@ -93,7 +87,7 @@ such that $\aEv\xpox\aEv'$, $\bEv'\xpox\bEv$ and
 $\aEv \slt \aEv' \slt \bEv' \slt \bEv$.
 
 \subsection{Closure properties}
-The fine grain analysis of dependency in the three-valued semantics allows us to establish some closure properties of the semantics of programs.  
+The fine grain analysis of dependency in the modal semantics allows us to establish some closure properties of the semantics of programs.  
 
 We consider programs of the
 form $\vec{\aLoc}\GETS\vec{0}\SEMI\FENCE\SEMI\aCmd$, where $\aCmd$ is

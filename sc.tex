@@ -126,7 +126,7 @@ We prove the following theorem in \textsection\ref{drfproof}.
     $\aPS'\in \semsc{\aCmd}$ that has a data race.
   \end{itemize}
 \end{theorem}
-A key step of this proof is an analysis of the closure properties of the semantics.  In order to perform this fine grained analysis of dependency, we describe a variant of the semantics using three valued pomsets defined below.  
+A key step of this proof is an analysis of the closure properties of the semantics.  In order to perform this fine grained analysis of dependency, we describe a variant of the semantics using modal pomsets defined below.  
 \begin{definition}
   \label{def:tvalpom}
   A \emph{\tvalpom} is a tuple
@@ -138,10 +138,11 @@ A key step of this proof is an analysis of the closure properties of the semanti
 \item ${\sle} \subseteq {\gtN}$ is a partial order. 
   \end{itemize}
 \end{definition}
+These are the pomset equivalent of the \emph{modal transition systems} of~\citet{DBLP:conf/lics/LarsenT88},
 \citet{DBLP:conf/esop/HuthJS01} call $\slt$ a ``must transition''
-and $\geN$ a ``may transition''.  In anticipation, we have used  the terms ``strong order'' and ``weak order'' respectively, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$' in the pictures following Lamport's [\citeyear{DBLP:journals/dc/Lamport86}] notation.  The intuitive temporal meaning of $ \aEv \lt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \gtN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$. Thus, if  $ \neg (\aEv \gtN \bEv)$, $\aEv$ cannot precede $\bEv$.  
+and $\geN$ a ``may transition''.  In anticipation, we have used  the terms ``strong order'' and ``weak order'' respectively, drawing $\slt$ as a solid arrow ``$\xpo$'' and $\geN$ dashed ``$\xwk$' in the pictures following Lamport's [\citeyear{DBLP:journals/dc/Lamport86}] notation.  The intuitive temporal meaning of $ \aEv \slt \bEv$ is that $\aEv$ {\em must} strictly precede $\bEv$, whereas $ \aEv \geN \bEv$ is intended to connote that $\aEv$ may precede $\bEv$.
  
-The semantics of programs in the three-valued model proceeds as before, mutatis mutandis, with details described in the appendix.  This finer analysis of necessary and possible dependency allows us to establish the existence of pomsets in the semantics as we search for sequential witnesses to data races.    We provide some illustrative examples below.
+The semantics of programs in the modal model proceeds as before, mutatis mutandis, with details described in the appendix.  This finer analysis of necessary and possible dependency allows us to establish the existence of pomsets in the semantics as we search for sequential witnesses to data races.    We provide some illustrative examples below.
 
 
 For the program
