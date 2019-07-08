@@ -129,11 +129,19 @@ multiple arrow, we emphasize that they are all part of the same $\le$ relation.
 % \end{array}\]
 % for example:
 
-\paragraph{Within threads.}
-Within a single thread, $\lt$ captures the notion of \emph{dependency}:
-indicating that the related events cannot appear in the opposite order. 
- 
-A write event $\aEv$ has two kinds of dependencies.  First, the external dependency on reads $\bEv$ that is reflected as $\bEv  \lt \aEv$.  Second, it has internal dependencies reflected in the formula decorating $\aEv$.  In order for the write event to fire, both these dependencies need to be satisfied.  The external dependency on a read is satisfied by globally visible writes.   The internal dependency can only be fulfilled by a preceding actions in the same thread.  
+\paragraph{Dependencies.}
+A write event $\aEv$ has two kinds of dependencies.  First, it may have an
+external dependency on a read $\bEv$ from another thread, which is reflected
+in the order $\bEv \lt \aEv$.  Second, it may have an internal dependency on
+a preceding event in the same thread, which is reflected in the formula
+$\labelingForm(\aEv)$.  In order for the write event to ``fire,'' both these
+dependencies need to be satisfied.  The external dependency on a read is
+satisfied by globally visible writes.  The internal dependency can only be
+fulfilled by a preceding actions of the same thread.
+
+\paragraph{Intrathread dependencies.}
+Within a single thread, $\lt$ captures the notion of dependency,
+indicating that the related events cannot appear in the opposite order.  
 
 %It includes the dependency of writes on reads.
 %the absence of synchronization, this relation always goes \emph{from 
@@ -149,16 +157,14 @@ For example, semantics of $y\GETS \aReg$ contains the following pomset.
   \event{wy1}{\aReg=1 \mid \DW{y}{1}}{}
 \end{tikzdisplaylabel}
 that can be viewed as expressing the Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$. 
-
-The Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y =1}$ expresses the effect of prefixing an assignment to $\aReg$:
-\begin{math}
-  \aReg\GETS x\SEMI
-  y\GETS \aReg
-\end{math}
-This effect is realized in the semantics in different ways in the following two pomsets included in the semantics:
+The Hoare triple $\hoare{x =1}{\aReg\GETS x\SEMI y\GETS \aReg}{y =1}$ expresses the effect of prefixing an assignment to $\aReg$.
+The assignment to $\aReg$ causes a substitution in
+the precondition, changing the label to $(x=1\mid \DW{y}{1})$.
+The effect of the read is realized in the semantics in two different ways:
 \begin{displaymathsmall}
 \begin{tikzpicture}[baselinecenter,node distance=1em]
   \event{wy1}{x=1 \mid \DW{y}{1}}{}
+  \internal{rx1}{\DR{x}{1}}{left=of wy1}
 \end{tikzpicture} 
 \qquad\qquad{\text{\normalsize and}}\qquad\qquad
 \begin{tikzpicture}[baselinecenter,node distance=1em]
@@ -167,7 +173,12 @@ This effect is realized in the semantics in different ways in the following two 
   \po{rx1}{wy1}
 \end{tikzpicture}
 \end{displaymathsmall}
-Formally, the assignment to $\aReg$ causes a substitution in the precondition, changing the label to $(x=1\mid \DW{y}{1})$.  This is the pomset on the left.  In the pomset on the right, the external read of $x$ discharges the precondition to this event.  Formally, by introducing order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, this precondition substitutes $1$ for $x$, resulting in $1=1$, which is a tautology and therefore elided.
+In the pomset on the left, the read is \emph{internal}, and therefore most be
+discharged by a preceding action in the same thread.  In the pomset on the
+right, the read is \emph{external}.  An external read may discharge the
+precondition on a event that is ordered after: by introducing order
+$(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, we may substitute $1$ for $x$ in the
+precondition, resulting in $1=1$, which is a tautology and therefore elided.
 
 Consider prefixing a write to the above program:
 \begin{math}
@@ -178,14 +189,38 @@ Consider prefixing a write to the above program:
 In this special case when the value is read from a write of the same thread, the semantics includes:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
+  \internal{rx1}{\DR{x}{1}}{right=of wx1}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
 \end{tikzdisplay}
-as in \citep{2019-sp}.
-This pomset is derived discharging the internal dependency $x=1$ from the left pomset above  in the semantics of $\aReg\GETS x\SEMI
-  y\GETS \aReg$.  This feature is reminiscent of the eponymous ${\rrfi}$ in hardware memory models where writes from a thread are forwarded to a read in the same thread without global publication and no read action is recorded.    The Hoare triple corresponding to the above pomset is $\hoare{\TRUE}{x \GETS 1\SEMI \aReg \GETS x \SEMI y\GETS \aReg}{y =1, x=1}$.  This triple reflects the store forwarding optimization in compilers.
+as in \citep{2019-sp}.  This pomset is derived discharging the internal
+dependency $x=1$ from the left pomset above in the semantics of
+$\aReg\GETS x\SEMI y\GETS \aReg$.  This feature is reminiscent of the
+\emph{read-from internal} $({\rrfi})$ in hardware memory models, where writes
+from a thread are forwarded to a read in the same thread without global
+publication.
 
-As in \citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is \emph{weaker} than a formula $\phi$ if $\phi$ implies $\psi$.} can also happen by merging
-actions.  Consider the program $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.  We derive:
+The Hoare triple corresponding to the above pomset is
+$\hoare{\TRUE}{x \GETS 1\SEMI \aReg \GETS x \SEMI y\GETS \aReg}{y =1\land x=1}$.
+This triple reflects the store forwarding optimization in compilers.
+
+As seen above, preconditions can be weakened as a result of prefixing.  As in
+\citep{2019-sp}, weakening of preconditions\footnote{Formula $\psi$ is
+  \emph{weaker} than a formula $\phi$ if $\phi$ implies $\psi$.} can also
+happen by merging actions.
+% For example, mirroring the fact that the weakest precondition of $y=1$ is true for the program
+% $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$, its semantics includes a pomset with the single
+% action $(\DW{y}{1})$, with precondition $\TRUE$.
+%
+% In computing the dependencies for the conditional
+% statement, we first compute the then-part to contain
+% $(\aReg\neq0\mid\DW{y}{1})$ and the else-part to contain
+% $(\aReg=0\mid\DW{y}{1})$.  Mirroring the proof rule for conditionals in Hoare logic,  since the actions are the same in these events,
+% they can be merged into a single event whose precondition is the disjunction
+% of the preconditions of the individual events.  Thus, the semantics of
+% $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ includes
+% $(\aReg\neq0\lor \aReg=0\mid\DW{y}{1})$.  Since the precondition is a
+% tautology, we may elide it.  
+Consider the program $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$.  We derive:
 \[
 \frac{\hoare{\aReg=0}{y\GETS1}{y=1}, \ \ \  \hoare{\aReg\neq0}{y\GETS1}{y=1}}
 {\hoare{\TRUE}{\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI}{y=1}}
@@ -234,7 +269,7 @@ precedes $x\GETS 1$ in thread order.  This notion of conflict is stable under
 substitution (since actions are not subject to substitution).
 
 
-\paragraph{Between threads.}
+\paragraph{Interthread dependencies.}
 Between threads, $\lt$ includes reads-from, which always goes from writes to reads across threads.   We consider reads-from to be a strong order, which we visualize
 with a thick arrow ``$\xrf$''.  indicates that one thread has \emph{read-from}
 another.  Since new threads may introduce order from
