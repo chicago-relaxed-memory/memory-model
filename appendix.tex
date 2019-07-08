@@ -7,22 +7,22 @@ In order to perform a sharper analysis of dependency, we present an alternate se
   \labeling)$, such that
   \begin{itemize}
    \item $(\Event, {\gtN},
-  \labeling)$ is a memory model pomset, and 
+  \labeling)$ is a (memory model) pomset, and 
 \item ${\sle} \subseteq {\gtN}$ is a partial order. 
   \end{itemize}
 \end{definition}
 We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{*} \subseteq {\gtN}$.  
 
-We list out a few observations to illustrate the relationship between \tvalpom s and memory pomsets.  We are given a  \tvalpom, 
+We list out a few observations to illustrate the relationship between \tvalpom s and pomsets.  We are given a  \tvalpom, 
   $(\Event, {\sle}, {\gtN}, \labeling)$.  Then:
 \begin{itemize}
-\item $(\Event, {\gtN},\labeling)$ is a memory pomset with the same reads-from relation.  
+\item $(\Event, {\gtN},\labeling)$ is a pomset with the same reads-from relation.  
 
 \item Let $\reco$ be the restriction of $\gtN$ to conflicting actions on the same location.  Then, $(\Event, {\sle}, (\sle \cup \reco)^{*}, \labeling)$ is a \tvalpom, and $(\sle \cup \reco)^{*} \subseteq {\gtN}$.
 \end{itemize}
 
 \paragraph*{Changes to definitions}
-The definition of the semantics of programs using \tvalpom\ largely follows the one using memory pomsets.  We sketch the changes to definitions below.
+The definition of the semantics of programs using \tvalpom\ largely follows the one using pomsets.  We sketch the changes to definitions below.
 
 \begin{itemize}
 \item
@@ -71,9 +71,9 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 
 We use $\tsem{\aCmd}$ to stand for the \tvalpom\ semantics of $\aCmd$.  
 
-\subsection{Generators. } \tvalpom s provide a characterization of generators from section~\ref{sec:sc}.  
+\subsection{Generators. } Modal pomsets provide a characterization of generators from section~\ref{sec:sc}.  
 
-Recall that \emph{generators} in the memory pomset semantics are pomsets that are minimal with respect to augmentation and implication.  These generators are induced by pomsets  that are minimal with respect to augmentation and implication in the \tvalpom\ semantics  in the following sense.  
+Recall that \emph{generators} in the pomset semantics are pomsets that are minimal with respect to augmentation and implication.  These generators are induced by pomsets  that are minimal with respect to augmentation and implication in the \tvalpom\ semantics  in the following sense.  
 
 $(\Event, {\gtN},\labeling)$ is a generator for $\sem{\aCmd}$ 
 if there exists  $(\Event, \slt, {\gtN},\labeling) \in \tsem{\aCmd}$ minimal wrt augmentation and implication, and  $\gtN = (\sle \cup \reco)^{*}$.
@@ -249,7 +249,7 @@ Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can bui
 
 \section{Proof of DRF}\label{drfproof}
 
-In this section of the appendix, we develop a proof of DRF for \tvalpom s.  By the results in the earlier section, it yields DRF for the memory model pomset semantics, since the races are identical in both models.
+In this section of the appendix, we develop a proof of DRF for \tvalpom s.  By the results in the earlier section, it yields DRF for the pomset semantics, since the races are identical in both models.
 
 In the rest of this section, we assume that $\aPS$ is a generator for
 $\tsem{\aCmd}$.
