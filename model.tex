@@ -430,7 +430,7 @@ The restriction of $\geN$ to conflicting events on a single location is called t
 %\end{tikzdisplay}
 %This satisfies the requirements for fulfillment, but is not coherent.
 
-\paragraph{Synchronization}
+\paragraph{Synchronization.}
 The model ensures that events are ordered before a release and after an
 acquire.  This is a strong order which is visualized as a solid arrow, like
 order derived from dependency.  As an example, consider the program:
@@ -496,7 +496,7 @@ since no order is required between $(\DW x1)$ and $(\DW y1)$.
 Symmetrically, if we replace the acquire of the original program
 with a plain read, then the outcome $(\DR y1)$ and $(\DR x0)$ is possible.
 
-\paragraph{Impact of Internal reads}
+\paragraph{Impact of internal reads.}
 The ability to remove of the program order from a write to a read of the same thread as discussed earlier causes great expressivity in terms of permitted executions.  To see this, consider the example 3.6 from
 \cite{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{displaymath}
@@ -506,7 +506,6 @@ The ability to remove of the program order from a write to a read of the same th
   \PAR
   x\GETS z
 \end{displaymath}
-
 \begin{tikzdisplaylabel}[node distance=1em]{thread}
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
@@ -522,9 +521,10 @@ The ability to remove of the program order from a write to a read of the same th
   \rf{a4}{b1}
   \rf{b2}{a1}
 \end{tikzdisplaylabel}
-There is no order from $(\DWRel{y}{1})$ to $(\DW{z}{1})$.  This behavior is
+Internal actions do not need to be fulfilled by a matching write.  As a
+result, there is no order from $(\DWRel{y}{1})$ to $(\DW{z}{1})$.  This behavior is
 allowed by \armeight.  Were the internal action made external,
-then there would be order; this behavior would be disallowed due to the
+then there would be order due to the requirements of fulfillment; this behavior would be disallowed due to the
 evident cycle:
 \begin{tikzdisplay}[node distance=1em]
   \event{a1}{\DR{x}{1}}{}
@@ -541,8 +541,9 @@ evident cycle:
   \rf{a4}{b1}
   \rf{b2}{a1}
 \end{tikzdisplay}
-The internal actions also facilitate the definitions required in the proof
-of \drfsc\ (\textsection\ref{sec:sc}).  
+The explicit use of internal actions facilitate the translation to \armeight\
+(\textsection\ref{sec:arm}) and the definitions required in the proof of
+\drfsc\ (\textsection\ref{sec:sc}).
 
 The dependency calculation for $(\DW{z}{1})$ in this execution proceeds as
 follows.  Desugaring, the thread is
@@ -562,8 +563,62 @@ Note that both write prefixing and read prefixing enable precondition
 weakening.  Only read prefixing imposes order; there is no order from
 the prefixed write to any subsequent action.
 
-\paragraph*{Invalidation of thread inlining. }
-The behavior in~\ref{thread} is not possible if we split the first
+In defining \emph{data races} (and thus in the proof of \drfsc) it is
+important to position internal actions relative to synchronization actions.
+For example, the following execution is consider data-race free.
+\begin{displaymath}
+  x\GETS1\SEMI
+  \aReg\GETS x \SEMI
+  y\REL\GETS 1 \SEMI
+  \PAR
+  \bReg\GETS y\ACQ \SEMI
+  x\GETS 2
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \internal{a2}{\DR{x}{}}{right=of a1}
+  %\graypo{a1}{a2}
+  \event{a3}{\DWRel{y}{1}}{right=of a2}
+  \graypo{a2}{a3}
+  \po[bend left]{a1}{a3}
+  \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
+  \rf{a3}{b1}
+  \event{b2}{\DW{x}{2}}{right=of b1}
+  \po{b1}{b2}
+\end{tikzdisplay}
+However, if we commute the read of $x$ and the release of $y$, the resulting
+program has a data race.
+% \begin{displaymath}
+%   x\GETS0\SEMI
+%   x\GETS1\SEMI
+%   \aReg\GETS x \SEMI
+%   y\REL\GETS 1 \SEMI
+%   z\GETS\aReg
+%   \PAR
+%   \bReg\GETS z\ACQ \SEMI
+%   \cReg\GETS x
+% \end{displaymath}
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{a0}{\DW{x}{0}}{left=of a1}
+%   \wk{a0}{a1}
+%   \internal{a2}{\DR{x}{1}}{right=of a1}
+%   \graypo{a1}{a2}
+%    \event{a3}{\DWRel{y}{1}}{right=of a2}
+%   \graypo{a2}{a3}
+%   \po[bend left]{a1}{a3}
+%   \event{a4}{\DW{z}{1}}{right=of a3}
+%   \graypo[bend left]{a2}{a4}
+%   \event{b1}{\DRAcq{z}{1}}{below=of a4}
+%   \rf{a4}{b1}
+%   \event{b2}{\DR{x}{0}}{left=8em of b1}
+%   \po{b1}{b2}
+%   \wk{b2}{a1}
+%   \wk{a0}{b2}
+% \end{tikzdisplay}
+
+\paragraph*{Invalidation of thread inlining.}
+The behavior in execution~\eqref{thread} is not possible if we split the first
 thread in two:
 \begin{math}
   \aReg\GETS x\SEMI
@@ -573,6 +628,61 @@ thread in two:
 since that would make the read explicit, thus imposing the order
 shown in gray.   This shows that, like the JMM, our model invalidates thread
 inlining.
+
+\paragraph{Impact of internal writes.}
+In order to validate redundant write removal in \textsection\ref{sec:opt}, we
+include internal writes in addition to internal reads.  Internal writes
+cannot be used to fulfill an external read, but they can be used to satisfy
+the precondition on an internal read.
+In addition, internal writes prevent prior external writes from being used to fulfill
+a read.  Consider the program:
+\begin{displaymath}
+  x\GETS 1\SEMI
+  x\GETS 2\SEMI
+  y\REL\GETS 1
+  \PAR
+  \IF{y\ACQ}\THEN \aReg\GETS x \FI
+\end{displaymath}
+Both of the following executions violate the definition of fulfillment:
+\begin{displaymathsmall}
+\begin{tikzcenter}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \internal{a2}{\DW{x}{}}{right=of a1}
+  \graywk{a1}{a2}
+  \event{a3}{\DWRel{y}{1}}{right=of a2}
+  \graypo{a2}{a3}
+  \event{b1}{\DRAcq{y}{1}}{below=of a3}
+  \rf{a3}{b1}
+  \event{b2}{\DR{x}{1}}{left=of b1}
+  \po{b1}{b2}
+  \rf{a1}{b2}
+\end{tikzcenter}
+\qquad\qquad \qquad\qquad
+\begin{tikzcenter}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \internal{a2}{\DW{x}{}}{right=of a1}
+  \graywk{a1}{a2}
+  \event{a3}{\DWRel{y}{1}}{right=of a2}
+  \graypo{a2}{a3}
+  \event{b1}{\DRAcq{y}{1}}{below=of a3}
+  \rf{a3}{b1}
+  \event{b2}{\DR{x}{2}}{left=of b1}
+  \po{b1}{b2}
+  \rf{a2}{b2}
+\end{tikzcenter}
+\end{displaymathsmall}
+The left execution is not allowed since
+\begin{math}
+  (\DW{x}{1}) \lt (\iDW{x}{2}) \lt (\DR{x}{1})
+\end{math}
+and $(\iDW{x}{2})$ writes $x$.
+The right execution is not allowed since $(\iDW{x}{2})$ is an internal
+write, not an external one.
+In this example, if the second write to $x$ is internal, then there is no way
+to fulfill the read of $x$ by the second thread.  Of course, there are always
+executions where the second write is external, in which case the second
+thread can read $2$ for $x$.
+
 
 %Here is an example which uses a cycle in weak order rather than strong 
 %order.
@@ -625,59 +735,6 @@ inlining.
 %   \graywk{a3}{b2}
 % \end{tikzdisplay}
 
-In defining \emph{data races} (and thus in the proof of \drfsc) it is
-important to position internal reads relative to synchronization actions.
-For example, the following execution is consider data-race free.
-\begin{displaymath}
-  x\GETS1\SEMI
-  \aReg\GETS x \SEMI
-  y\REL\GETS 1 \SEMI
-  \PAR
-  \bReg\GETS y\ACQ \SEMI
-  x\GETS 2
-\end{displaymath}
-\begin{tikzdisplay}[node distance=1em]
-  \event{a1}{\DW{x}{1}}{}
-  \internal{a2}{\DR{x}{}}{right=of a1}
-  %\graypo{a1}{a2}
-  \event{a3}{\DWRel{y}{1}}{right=of a2}
-  \graypo{a2}{a3}
-  \po[bend left]{a1}{a3}
-  \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
-  \rf{a3}{b1}
-  \event{b2}{\DW{x}{2}}{right=of b1}
-  \po{b1}{b2}
-\end{tikzdisplay}
-However, if we commute the read of $x$ and the release of $y$, the resulting
-program has a data race.
-% \begin{displaymath}
-%   x\GETS0\SEMI
-%   x\GETS1\SEMI
-%   \aReg\GETS x \SEMI
-%   y\REL\GETS 1 \SEMI
-%   z\GETS\aReg
-%   \PAR
-%   \bReg\GETS z\ACQ \SEMI
-%   \cReg\GETS x
-% \end{displaymath}
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{a1}{\DW{x}{1}}{}
-%   \event{a0}{\DW{x}{0}}{left=of a1}
-%   \wk{a0}{a1}
-%   \internal{a2}{\DR{x}{1}}{right=of a1}
-%   \graypo{a1}{a2}
-%    \event{a3}{\DWRel{y}{1}}{right=of a2}
-%   \graypo{a2}{a3}
-%   \po[bend left]{a1}{a3}
-%   \event{a4}{\DW{z}{1}}{right=of a3}
-%   \graypo[bend left]{a2}{a4}
-%   \event{b1}{\DRAcq{z}{1}}{below=of a4}
-%   \rf{a4}{b1}
-%   \event{b2}{\DR{x}{0}}{left=8em of b1}
-%   \po{b1}{b2}
-%   \wk{b2}{a1}
-%   \wk{a0}{b2}
-% \end{tikzdisplay}
 
 \paragraph{Multi-copy atomicity.}  Many of the standard litmus tests for \mca\ are
 variants of \iriw\ (Independent Reads of Independent Writes), such as \iriw\
@@ -1188,7 +1245,7 @@ case, the predicate becomes $1\NOTEQ 1$.
     \end{tikzcenter}
 \end{displaymathsmall}
 
-\paragraph{Causality Test Cases. } 
+\paragraph{Causality test cases.} 
 \citet{PughWebsite} developed a set of twenty {causality test cases} in the
 process of revising the Java Memory Model (JMM)
 \cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
