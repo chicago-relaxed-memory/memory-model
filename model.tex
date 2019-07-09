@@ -321,14 +321,10 @@ so that it is monotone with respect to addition of new threads.
   \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 
-  An event \emph{is fulfilled} if it is fulfilled on $\aLoc$ for every
-  $\aLoc$ it reads externally.
+  A pomset is $\aLoc$-closed if every external read on $\aLoc$ is fulfilled,
+  and every event is independent of $\aLoc$.
 
-  A pomset is \emph{top-level} if
-  \begin{itemize}
-  \item every event is fulfilled, and
-  \item every precondition is either a tautology or is unsatisfiable.
-  \end{itemize}
+  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location $\aLoc$.
 \end{definition}
 
 For example, combining \eqref{m1} and \eqref{m2}, the semantics of
@@ -1671,7 +1667,12 @@ there is $\aPS\in\aPSS$ such that:
   % \end{enumerate}
 \item\label{pre-noread} if $\aAct$ is not a read then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-\item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then both
+\item\label{pre-iread} if $\aAct$ internally reads from $\aLoc$ then both
+  \begin{enumerate}
+  \item[(\ref{pre-iread}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+  \item[(\ref{pre-iread}b)] if $\aEv$ is a write then $\cEv\lt'\aEv$,
+  \end{enumerate}
+\item\label{pre-read} if $\aAct$ externally reads $\aVal$ from $\aLoc$ then both
   \begin{enumerate}
   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
   \item[(\ref{pre-read}b)] if $\aEv$ is a write then either $\cEv\lt'\aEv$
@@ -1997,9 +1998,9 @@ The role of internal writes in the semantics is to facilitate dead store.  Consi
 \end{tikzdisplay}
 but also:
 \begin{tikzdisplay}
- \internal{b}{\DW\bLoc0}{}
+ \internal{b}{\DW\bLoc{}}{}
    \event{c}{\DW\bLoc1}{right= of b}
-  \graypo{b}{c}
+  \graywk{b}{c}
 \end{tikzdisplay}
 The latter pomset is effectively the semantics of $\bLoc\GETS1$, thus validating the dead store transformation that eliminates the first write.  
  
@@ -2007,81 +2008,72 @@ Prefixing does not necessarily induce a
 dependency, even for read actions where the read is used.  To see that this
 is desirable, consider  the semantics of
 $\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI$.
-To begin, not that 
+To begin, note that 
 $\sem{\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ includes
-\begin{tikzinline}[node distance=1em]
-  \event{c}{\aReg\leq1 \mid \DW\aLoc2}{}
-\end{tikzinline}
+$(\aReg\leq1 \mid \DW\aLoc2)$
 which depends on $\aReg$.
 Then $\sem{\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ includes
 \begin{tikzdisplay}[node distance=1em]
-    \event{b}{\DR\bLoc1}{}
-    \internal{ry1}{\bLoc\leq1\DR{\bLoc}{1}}{right=of b}
+    \internal{ry1}{\DR{\bLoc}{}}{}
     \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of ry1}
-    \graypo{rx1}{c}
+    \graypo{ry1}{c}
 \end{tikzdisplay}
-with unordered read and write.
 Prefixing with a write to $\bLoc$, $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS
   2\FI}$ discharges the precondition of the write to $\aLoc$, yielding
-\begin{tikzinline}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \internal{ry1}{0 \leq0\DR{\bLoc}{1}}{right=of b}
-    \event{c}{0\leq1 \mid \DW\aLoc2}{right=of ry1}
-    \graypo{rx1}{c}
-\end{tikzinline}
-which is simply:
 \begin{tikzdisplay}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{\DW\aLoc2}{right=of b}
+    \internal{ry1}{\DR{\bLoc}{}}{right=of a}
+    \event{c}{0\leq1 \mid \DW\aLoc2}{right=of ry1}
+    \graypo{ry1}{c}
+\end{tikzdisplay}
+which simplifies to:
+\begin{tikzdisplay}[node distance=1em]
+    \event{a}{\DW\bLoc0}{}
+    \internal{ry1}{\DR{\bLoc}{}}{right=of a}
+    \event{c}{\DW\aLoc2}{right=of ry1}
+    \graypo{ry1}{c}
 \end{tikzdisplay}
 Here the thread-local value of $\bLoc$ discharges the predicate.
-Using the left-hand side of the read rule, the semantics of this program also includes
-\begin{tikzinline}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{c}{\DW\aLoc2}{right=of a}
-\end{tikzinline}.
 
-A variant which indicates the branch taken:
-$\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN
-  \aLoc\GETS2\SEMI\cLoc\GETS\aReg\FI}$
-includes
-\begin{tikzdisplay}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{\DW\aLoc2}{right=of b}
-    \event{d}{\DW\cLoc1}{right=of c}
-    \po[bend left]{b}{d}
-\end{tikzdisplay}
-A program to that witnesses the independence of $\DR\bLoc1$ and $\DW\aLoc2$ is
-\begin{math}
-  \IF{\bLoc\EQ0}\THEN
-    \IF{\aLoc\EQ2}\THEN
-      \bLoc\GETS1\SEMI
-      \IF{\cLoc\EQ1}\THEN\PASS\FI
-    \FI
-  \FI
-\end{math}.
-Putting these in parallel gives you:
-\begin{tikzdisplay}[node distance=1em]
-    \event{a}{\DW\bLoc0}{}
-    \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{\DW\aLoc2}{right=of b}
-    \event{d}{\DW\cLoc1}{right=of c}
-    \po[bend left]{b}{d}
-    \event{a2}{\DR\bLoc0}{below=of a}
-    \event{b2}{\DR\aLoc2}{right=of a2}
-    \event{c2}{\DW\bLoc1}{right=of b2}
-    \event{d2}{\DR\cLoc1}{right=of c2}
-    \po{a2}{b2}
-    \po{b2}{c2}
-    \po[bend right]{b2}{d2}
-    \rf{a}{a2}
-    \rf{c}{b2}
-    \rf{c2}{b}
-    \rf{d}{d2}
-\end{tikzdisplay}
+%% A variant which indicates the branch taken:
+%% $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN
+%%   \aLoc\GETS2\SEMI\cLoc\GETS\aReg\FI}$
+%% includes
+%% \begin{tikzdisplay}[node distance=1em]
+%%     \event{a}{\DW\bLoc0}{}
+%%     \event{b}{\DR\bLoc1}{right=of a}
+%%     \event{c}{\DW\aLoc2}{right=of b}
+%%     \event{d}{\DW\cLoc1}{right=of c}
+%%     \po[bend left]{b}{d}
+%% \end{tikzdisplay}
+%% A program to that witnesses the independence of $\DR\bLoc1$ and $\DW\aLoc2$ is
+%% \begin{math}
+%%   \IF{\bLoc\EQ0}\THEN
+%%     \IF{\aLoc\EQ2}\THEN
+%%       \bLoc\GETS1\SEMI
+%%       \IF{\cLoc\EQ1}\THEN\PASS\FI
+%%     \FI
+%%   \FI
+%% \end{math}.
+%% Putting these in parallel gives you:
+%% \begin{tikzdisplay}[node distance=1em]
+%%     \event{a}{\DW\bLoc0}{}
+%%     \event{b}{\DR\bLoc1}{right=of a}
+%%     \event{c}{\DW\aLoc2}{right=of b}
+%%     \event{d}{\DW\cLoc1}{right=of c}
+%%     \po[bend left]{b}{d}
+%%     \event{a2}{\DR\bLoc0}{below=of a}
+%%     \event{b2}{\DR\aLoc2}{right=of a2}
+%%     \event{c2}{\DW\bLoc1}{right=of b2}
+%%     \event{d2}{\DR\cLoc1}{right=of c2}
+%%     \po{a2}{b2}
+%%     \po{b2}{c2}
+%%     \po[bend right]{b2}{d2}
+%%     \rf{a}{a2}
+%%     \rf{c}{b2}
+%%     \rf{c2}{b}
+%%     \rf{d}{d2}
+%% \end{tikzdisplay}
 
 % Local Variables:
 % mode: latex
