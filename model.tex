@@ -179,9 +179,11 @@ The effect of the read is realized in the semantics in two different ways:
   \po{rx1}{wy1}
 \end{tikzpicture}
 \end{displaymathsmall}
+
 In the pomset on the left, the read is \emph{internal}, and therefore the
-formula on the write actions must be discharged by a preceding action in the
-same thread.  In the pomset on the right, the read is \emph{external}.  An
+formula on the write actions must be discharged by a preceding action in the  same thread.   In this execution, we have included an \emph{internal action}, which we visualize in grey.  
+
+In the pomset on the right, the read is \emph{external}.  An
 external read may discharge the precondition on a event that is ordered
 after: by introducing order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, we may
 substitute $1$ for $x$ in the precondition, resulting in $1=1$, which is a
@@ -496,10 +498,7 @@ The ability to remove of the program order from a write to a read of the same th
   \PAR
   x\GETS z
 \end{displaymath}
-To facilitate the definitions required in the proof
-of \drfsc\ (\textsection\ref{sec:sc}), we include an \emph{internal action},
-which we visualize in grey.  Internal actions do not read or write any
-location.  
+
 \begin{tikzdisplaylabel}[node distance=1em]{thread}
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
@@ -534,7 +533,8 @@ evident cycle:
   \rf{a4}{b1}
   \rf{b2}{a1}
 \end{tikzdisplay}
-
+The internal actions also facilitate the definitions required in the proof
+of \drfsc\ (\textsection\ref{sec:sc}).  
 
 The dependency calculation for $(\DW{z}{1})$ in this execution proceeds as
 follows.  Desugaring, the thread is
