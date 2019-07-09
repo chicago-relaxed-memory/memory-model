@@ -1683,7 +1683,7 @@ there is $\aPS\in\aPSS$ such that:
   \end{enumerate}
 % \item if $\aAct$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 % \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
-\item\label{pre-coherence} if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
+\item\label{pre-coherence} if $\aAct$ and $\aEv$ are writes to the same location
     then $\cEv \gtN' \aEv$,
 \item\label{pre-sync} if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, and
 \item\label{pre-acquire} if $\aAct$ is an acquire then $\labelingForm(\aEv)$ is location independent.
