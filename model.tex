@@ -1670,7 +1670,8 @@ there is $\aPS\in\aPSS$ such that:
 \item\label{pre-iread} if $\aAct$ internally reads from $\aLoc$ then both
   \begin{enumerate}
   \item[(\ref{pre-iread}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
-  \item[(\ref{pre-iread}b)] if $\aEv$ is a write then $\cEv\lt'\aEv$,
+  \item[(\ref{pre-iread}b)] if $\aEv$ is a write then either $\cEv\lt'\aEv$
+    or $\labelingForm(\aEv)$ is independent of $\aLoc$,
   \end{enumerate}
 \item\label{pre-read} if $\aAct$ externally reads $\aVal$ from $\aLoc$ then both
   \begin{enumerate}
