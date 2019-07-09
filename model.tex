@@ -1730,33 +1730,24 @@ If $\cEv$ reads from a location that occurs in the predicate of $\aEv$, then
 prefixing introduces order from $\cEv$ to $\aEv$.
 whose predicate depends on $\aLoc$. 
 For example, if $\aPSS$ contains %a pomset with only
-\begin{tikzinline}[node distance=1em]
-  \event{b}{y=1 \mid \DW{x}{1}}{}
-  \event{c}{x>0 \mid \DW{z}{1}}{right=of b}
-\end{tikzinline}
+$(x>0 \mid \DW{z}{1})$
 then $(\DR{x}{1})\prefix\aPSS$ contains:
 \begin{displaymathsmall}
 \begin{tikzcenter}[node distance=1em]
   \event{a}{\DR{x}{1}}{}
-  \event{b}{y=1 \mid \DW{x}{1}}{above right=0em and 2em of a}
-  \event{c}{1>0 \mid \DW{z}{1}}{below right=0em and 2em of a}
+  \event{c}{1>0 \mid \DW{z}{1}}{right=of a}
   \po{a}{c}
-  \wk{a}{b}
 \end{tikzcenter}
 \qquad\text{and}\qquad
 \begin{tikzcenter}[node distance=1em]
-  \event{a2}{\DR{x}{1}}{right=4em of a}
-  \event{b2}{y=1 \mid \DW{x}{1}}{above right=0em and 2em of a2}
-  \event{c2}{x>0 \mid \DW{z}{1}}{below right=0em and 2em of a2}
-  \wk{a2}{b2}
+  \event{a2}{\DR{x}{1}}{}
+  \event{c2}{x>0 \mid \DW{z}{1}}{right=of a2}
 \end{tikzcenter}
 \end{displaymathsmall}
 In order to weaken the predicate on $(\DW{z}{1})$, item~\ref{pre-read}b
-requires that we include the order from $(\DR{x}{1})$ to $(\DW{z}{1})$.
-If the precondition on $(\DW{z}{1})$ in $\aPSS$ was $x<0$, then, by
-item~\ref{pre-read}, all preconditions for $(\DW{z}{1})$ in
-$(\DR{x}{1})\prefix\aPSS$ must be equivalent to $\FALSE$, regardless of
-the ordering of the events.
+requires that we include the order from $(\DR{x}{1})$ to $(\DW{z}{1})$,
+but not if the predicate remains $x>0$ (which trivially
+implies $1>0$).
 
 % For example, if $\aAct$ and $\bAct$ write to the same location, $\aAct$ reads
 % $\aVal$ from $\aLoc$, $\bForm$ is independent of $\aLoc$, and $\aPSS$
