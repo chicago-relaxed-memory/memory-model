@@ -54,7 +54,12 @@ $\aVal$ from $\aLoc$, $(\DW{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
 $\aLoc$, and $(\DWRel{\aLoc}{\aVal})$, which is a \emph{release} that writes
 $\aVal$ to $\aLoc$. %, and $(\DF{})$, which is a acquire-release \emph{fence}.
 Actions that neither acquire nor release are \emph{relaxed}; other actions
-are \emph{synchronizations}. % \footnote{Fences have a limited role in our
+are \emph{synchronizations}.
+
+The actions listed above are \emph{external}.  Each external action has a
+corresponding \emph{internal} action, denoted by prefixing $\tau$.  Internal
+actions also read and write locations, just as external actions do.
+% \footnote{Fences have a limited role in our
 % discussion.  We inappropriately refer to them as synchronizations for
 % simplicity.}.
 
@@ -164,7 +169,8 @@ The effect of the read is realized in the semantics in two different ways:
 \begin{displaymathsmall}
 \begin{tikzpicture}[baselinecenter,node distance=1em]
   \event{wy1}{x=1 \mid \DW{y}{1}}{}
-  \internal{rx1}{\DR{x}{1}}{left=of wy1}
+  \internal{rx1}{x=1 \mid \DR{x}{1}}{left=of wy1}
+  \graypo{rx1}{wy1}
 \end{tikzpicture} 
 \qquad\qquad{\text{\normalsize and}}\qquad\qquad
 \begin{tikzpicture}[baselinecenter,node distance=1em]
@@ -192,6 +198,7 @@ In this special case when the value is read from a write of the same thread, the
   \event{wx1}{\DW{x}{1}}{}
   \internal{rx1}{\DR{x}{1}}{right=of wx1}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \graypo{rx1}{wy1}
 \end{tikzdisplay}
 as in \citep{2019-sp}.  This pomset is derived discharging the internal
 dependency $x=1$ from the left pomset above in the semantics of
@@ -294,15 +301,15 @@ so that it is monotone with respect to addition of new threads.
 
 \begin{definition}
   \label{def:rf}
-  We say that $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ writes
-  $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
+  We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ externally writes
+  $\aVal$ to $\aLoc$, $\aEv$ externally reads $\aVal$ from $\aLoc$,
   \begin{itemize}
   \item $\bEv \lt \aEv$, and
   \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 
   An event \emph{is fulfilled} if it is fulfilled on $\aLoc$ for every
-  $\aLoc$ it reads.
+  $\aLoc$ it reads externally.
 
   A pomset is \emph{top-level} if
   \begin{itemize}
@@ -500,7 +507,7 @@ location.
   \internal{a3}{\DR{y}{1}}{right=of a2}
   \event{a4}{\DW{z}{1}}{right=of a3}
   %\graypo{a2}{a3}
-  %\graypo{a3}{a4}
+  \graypo{a3}{a4}
   \event{b1}{\DR{z}{1}}{below=of a3}
   \event{b2}{\DW{x}{1}}{left=of b1}
   %\po[out=10,in=170]{a2}{a4}
@@ -1288,8 +1295,9 @@ For the actions of a data model, we require that
 
 We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
 $\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
-\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.  Actions that
-read or write are \emph{external}, other actions are \emph{internal}.
+\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.
+% Actions that
+% read or write are \emph{external}, other actions are \emph{internal}.
 % Actions in
 % $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
 % in $\Int=\Act\setminus\Ext$ are \emph{internal}.
@@ -1301,7 +1309,9 @@ is a \emph{release} if $\aAct\in\Rel$.
 
 We require that $\finternalize$ satisfy the following:
 \begin{itemize}
-\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
+\item $\finternalize(\aAct)$ reads $\aVal$ from $\aLoc$ exactly when $\aAct$ reads $\aVal$ from $\aLoc$,
+\item $\finternalize(\aAct)$ writes $\aVal$ from $\aLoc$ exactly when $\aAct$ writes $\aVal$ from $\aLoc$,
+%\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
 \item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, and 
 \item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release.
 \end{itemize}
@@ -1418,14 +1428,14 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 These operations are similar to those from models of concurrency such
 as~\cite{Brookes:1984:TCS:828.833}.
 
-We also define three filtering operations:
+We also define two filtering operations:
 \begin{itemize}
 \item \emph{guarding} $\aForm\guard\aPSS$, which
-  keeps pomsets where all preconditions imply $\aForm$, 
+  keeps pomsets where all preconditions imply $\aForm$, and
 \item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
-  where all preconditions are location independent, and
-\item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
-  that have an initial write to $\aLoc$.
+  where all preconditions are location independent.
+% \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
+%   that have an initial write to $\aLoc$.
 \end{itemize}
 
 %% A write generates a write event that may be visible
@@ -1491,10 +1501,10 @@ $\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labeli
 
 Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
 $\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
-
-Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
-$\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
-$\bEv\le\aEv$, for every release $\aEv\in\Event$.
+%
+% Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
+% $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
+% $\bEv\le\aEv$, for every release $\aEv\in\Event$.
 \end{definition}
 % Note that this liberalization allows reads more flexibility.  This is
 % desirable in the language and architectural models, but not necessarily in
@@ -1783,8 +1793,8 @@ thread-local reads do not cross acquire actions.  This prevents bad executions l
   \internal{a7}{\DR{x}{1}}{right=of a6}
   \graypo{a6}{a7}
   \event{a8}{\DW{y}{1}}{right=of a7}
-  %\graypo{a7}{a8}
-  \po[out=20,in=160]{a6}{a8}
+  \graypo{a7}{a8}
+  %\po[out=20,in=160]{a6}{a8}
 \end{tikzdisplay}
 In item~\ref{pre-acquire}, we do not require that $\bForm'$ is independent of
 every $\bLoc$; were we to require this, the definition would not be augment closed.
@@ -1903,14 +1913,14 @@ The semantics of programs is as follows\footnote{Fork parallelism is easily expr
   \\
   \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard (\iDR{\aLoc}{0}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; ({\aLoc}=\aVal) \guard (\iDR{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] 
   \\
   \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\;  (\aExp=\aVal) \guard\bigl((\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard (\iDW{\aLoc}{0}) \prefix \DW{\aLoc}{}\guard\sem{\aCmd}[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \textstyle\bigcup_\aVal\; ({\aExp}=\aVal) \guard \bigl((\iDW{\aLoc}{\aVal}) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc]
   %\\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
   % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
   % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\

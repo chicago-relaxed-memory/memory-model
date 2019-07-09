@@ -24,10 +24,11 @@ form $\vec{\aLoc}\GETS\vec{0}\SEMI\FENCE\SEMI\aCmd$, where $\aCmd$ is
 restriction-free.  Thus, all memory locations are initialized to $0$,
 initialization happens-before the execution of any command, and internal actions only arise from (intra-thread) implicit reads.
 
-We say that two actions have a \emph{data-race conflict} if at least one
-action is a write and the other is a write, read, or internal read to the
-same location.  Define the relation $\reco$ so that $(\aEv,\bEv)\in{\reco}$
-if $\aEv\gtN\bEv$ and $\aEv$ and $\bEv$ have a data-race conflict.
+% We say that two actions have a \emph{data-race conflict} if at least one
+% action is a write and the other is a write, read, or internal read to the
+% same location.
+Define the relation $\reco$ so that $(\aEv,\bEv)\in{\reco}$
+if $\aEv\gtN\bEv$ and $\aEv$ and $\bEv$ conflict.
 
 The program $x\GETS1\PAR x\GETS2$ is considered to have an SC data race, but
 $x\GETS1\SEMI x\GETS2$ does not.  In our semantics the only difference
@@ -80,7 +81,7 @@ that
 \begin{itemize}
 \item $\aEv$ and $\bEv$ are unordered by $\rhb$,
 \item $\labelingForm(\aEv)$ and $\labelingForm(\bEv)$ are tautologies, and
-\item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ have a data-race conflict.
+\item $\labelingAct(\aEv)$ and $\labelingAct(\bEv)$ conflict.
 \end{itemize}
 
 %The semantics of programs includes SC executions.
