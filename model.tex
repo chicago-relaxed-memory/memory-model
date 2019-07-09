@@ -197,10 +197,11 @@ Consider prefixing a write to the above program:
   \aReg\GETS x\SEMI
   y\GETS \aReg
 \end{math}.
-In this special case when the value is read from a write of the same thread, the semantics includes:
+We again have two cases, depending on whether the write to $\aLoc$ is \emph{internal}
+or \emph{external}:
 \begin{displaymathsmall}
 \begin{tikzpicture}[baselinecenter,node distance=1em]
-  \event{wx1}{\DW{x}{1}}{}
+  \internal{wx1}{\DW{x}{}}{}
   \internal{rx1}{\DR{x}{}}{right=of wx1}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \graypo{rx1}{wy1}
@@ -213,7 +214,7 @@ In this special case when the value is read from a write of the same thread, the
   \graypo{rx1}{wy1}
 \end{tikzpicture} 
 \end{displaymathsmall}
-similar to \citep{2019-sp}.  This pomset is derived discharging the internal
+This pomset is derived discharging the internal
 dependency $x=1$ from the left pomset above in the semantics of
 $\aReg\GETS x\SEMI y\GETS \aReg$.  This feature is reminiscent of the
 \emph{read-from internal} $({\rrfi})$ in hardware memory models, where writes
