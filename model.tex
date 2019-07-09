@@ -1972,6 +1972,20 @@ up with pomsets of the form
 \end{math}
 which depend on $\aReg$.
 
+The role of internal writes in the semantics is to facilitate dead store.  Consider the semantics of $\bLoc\GETS0 \SEMI \bLoc\GETS1$.  It includes not only:
+\begin{tikzdisplay}
+ \event{b}{\DW\bLoc0}{}
+   \event{c}{\DW\bLoc1}{right= of b}
+  \wk{b}{c}
+\end{tikzdisplay}
+but also:
+\begin{tikzdisplay}
+ \internal{b}{\DW\bLoc0}{}
+   \event{c}{\DW\bLoc1}{right= of b}
+  \graypo{b}{c}
+\end{tikzdisplay}
+The latter pomset is effectively the semantics of $\bLoc\GETS1$, thus validating the dead store transformation that eliminates the first write.  
+ 
 Prefixing does not necessarily induce a
 dependency, even for read actions where the read is used.  To see that this
 is desirable, consider  the semantics of
@@ -1985,7 +1999,9 @@ which depends on $\aReg$.
 Then $\sem{\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS 2\FI}$ includes
 \begin{tikzdisplay}[node distance=1em]
     \event{b}{\DR\bLoc1}{}
-    \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of b}
+    \internal{ry1}{\bLoc\leq1\DR{\bLoc}{1}}{right=of b}
+    \event{c}{\bLoc\leq1 \mid \DW\aLoc2}{right=of ry1}
+    \graypo{rx1}{c}
 \end{tikzdisplay}
 with unordered read and write.
 Prefixing with a write to $\bLoc$, $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF{\aReg\leq1}\THEN \aLoc\GETS
@@ -1993,7 +2009,9 @@ Prefixing with a write to $\bLoc$, $\sem{\bLoc\GETS0\SEMI\aReg\GETS\bLoc\SEMI\IF
 \begin{tikzinline}[node distance=1em]
     \event{a}{\DW\bLoc0}{}
     \event{b}{\DR\bLoc1}{right=of a}
-    \event{c}{0\leq1 \mid \DW\aLoc2}{right=of b}
+    \internal{ry1}{0 \leq0\DR{\bLoc}{1}}{right=of b}
+    \event{c}{0\leq1 \mid \DW\aLoc2}{right=of ry1}
+    \graypo{rx1}{c}
 \end{tikzinline}
 which is simply:
 \begin{tikzdisplay}[node distance=1em]
