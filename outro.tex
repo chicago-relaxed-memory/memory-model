@@ -1,6 +1,53 @@
 \section{Conclusions}
 \label{sec:outro}
 
+From \cite{vacuous}:
+
+\begin{quotation}
+  It would be nice to have a succinct description of the set of test cases in
+  which perturbation functions introduced inconsistencies. Ali Sezgin pointed
+  out this set is described by $rf \cup sdep$, where rf is the reads-from
+  relationship and sdep is ``semantic dependence'', roughly defined as those
+  dependency relationships in which at least some changes in the value at the
+  head of the dependency relationship propagate through, resulting in a
+  change at the tail of that relationship.
+
+  Prohibiting executions that have cycles in $rf \cup sdep$ can therefore be
+  expected to prohibit OOTA behaviors.
+
+  One beneficial consequence of this relationship to semantic dependency is
+  that $rf \cup nsdep$ cycles are allowed, where $nsdep \cap sdep$ is the empty set and
+  where $nsdep \cup sdep = dep$. This means that the compiler is free to replace
+  expressions that are known to always result in a single value with the
+  corresponding constant, without danger of introducing OOTA behavior. We
+  hypothesize that non-speculative code-reordering optimizations are
+  similarly unable to introduce OOTA behavior.
+
+  Defining ``semantic dependency'' sufficiently for formal modeling remains an
+  open issue. In the general case, this the question of whether or not a
+  given dependency is a semantic dependency is of course
+  undecidable. However, this question can be decided straightforwardly in
+  many common cases. One approach would be to flag dependencies that the tool
+  was unable to classify. Another approach would be to consider cases that a
+  given compiler might optimize, and to classify other cases as semantic
+  dependencies.
+\end{quotation}
+
+And also this:
+
+\begin{quotation}
+  This perturbation analysis appears to be equivalent to requiring that $rf \cup
+  sdep$ be acyclic. This is an extremely important result: It means that any
+  compiler optimization that substitutes a constant value for a read known to
+  return that value cannot induce OOTA behavior. This constraint should also
+  ensure that non-speculative code-movemenet optimizations should be
+  similarly unable to induce OOTA behavior.
+
+  Effective and efficient modeling of semantic dependencies (sdep) remains an
+  important open problem, although there is important work in progress
+  \cite{Pichon-Pharabod:2016:CSR:2837614.2837616}.
+\end{quotation}
+
 % Local Variables:
 % mode: latex
 % TeX-master: "paper"

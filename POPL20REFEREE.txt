@@ -1,0 +1,409 @@
+POPL 2020 Paper #70 Reviews and Comments
+===========================================================================
+Paper #70 Let go of that which does not serve you: Semantic Independence in
+a Model of Relaxed Memory
+
+
+Review #70A
+===========================================================================
+
+Overall merit
+-------------
+C. Weak Reject
+
+Reviewer expertise
+------------------
+Y. Knowledgeable
+
+Paper summary
+-------------
+The paper proposes a semantics for relaxed memory concurrency with certain properties such as excluding out-of-thin-air (OOTA) behaviours, DRF-SC guarantees, 
+compilation to TSO and ARMv8, support for compiler optimisations, and compositional reasoning of temporal properties.
+
+Comments for author
+-------------------
+============ Overall Evaluation ============
+
+The paper proposes a semantics for release, acquire, and relaxed accesses and
+establishes a number of properties which are essential for semantics of relaxed memory.
+Although I find the idea of invariant reasoning for temporal properties interesting, overall I was not satisfied with this paper. 
+In particular: 
+
+1) even though I am closely familiar with weak memory concurrency models and the literature of concurrent program logics, 
+I found the technical details of this paper impenetrable. The technical sections contain pages of dense definitions without much intuitive help for the reader. 
+The paper need significant improvement in writing in order to make it more accessible even to the specialist audience. 
+
+2) The proposed model crucial concurrency features such as atomic updates and SC accesses. I believe the main reason for excluding these features is that they are challenging for compositional reasoning. However, these features are staples of concurrency and are essential for any practical concurrency model. Is there any other reason why they are excluded? Is there an inherent limitation?
+
+3) The proofs of reordering and elimination transformations are non-trivial and are definitely not obvious. It is important to provide the full proofs and as far as I can tell these proofs are not provided. Without some sort of formal proof (even just a hand proof), I don't have much confidence in the results. 
+
+
+============Comments and Questions for Authors ============
+
+- Section 4: 'load-buffering and store-buffering litmus tests.'
+Which programs are you referring to?
+
+- Page 7: 'The resulting execution is disallowed due to the cycle.'
+Can you point out which cycle you mean? Later in definition of your semantics how do you ensure such acyclicity conditions?
+
+- The definition of dependency is not clearly stated.
+The paper uses several examples to use dependency to avoid OOTA, but a formal definition of dependency is missing.
+A clear definition of dependency is important as different semantics in the literature define dependency in different ways.
+
+- The semantics of 'fence' is not clear to me.
+Section 3.1 mention that fence is acqrel. Does this affect synchronization?
+
+- Please consider providing examples to explain combinators in Section 3.3, especially for parallel composition.
+
+
+
+Review #70B
+===========================================================================
+
+Overall merit
+-------------
+C. Weak Reject
+
+Reviewer expertise
+------------------
+X. Expert
+
+Paper summary
+-------------
+The authors present a new relaxed memory model for source-level
+languages like C and JAVA, which gives a denotational semantics that
+is thread-locally defined and based on pomset (partially ordered multi
+set). This model captues multi-copy atomicity and preserves semantic
+dependencies between events. The model satisfies the standard
+requirements: allowing single threaded compiler optimizations and
+efficient compilation to TSO and ARMv8, while satisfying the DRF-SC
+criterion. Moreover, the model supports compositional reasoning of
+temporal safety properties.
+
+Strengths
+---------
+- It provides a new relaxed-memory model in a more denotational style
+  that is thread-locally defined and composed between threads.
+
+- It satisfies the standard requirements: validating compiler optimizations
+  and compilation to architectures, and satisfying the DRF-SC property.
+
+- It captures multi-copy atomicity in a source-level semantics and
+  allows compositional reasoning of "temporal" safety properties.
+  As far as I know, this is the first such attempt.
+
+Weaknesses
+----------
+- It does not support efficient compilation to POWER.  However, it is
+  a trade-off for supporting multi-copy atomicity, which is needed for
+  compositional reasoning of "temporal" properties.
+
+- It lacks support of RMW (read-modify-write) operations such as CAS.
+
+- The definitions and proofs in the paper are too informal and
+  brief. In particular, many proofs are omitted or just rough
+  sketches, which is unacceptable considering the inherent
+  complexities of the model.  I will elaborate more on this point in
+  the comments below.
+
+Comments for author
+-------------------
+I really appreciate the attempt to support invariant reasoning in
+temporal logic, which would give a more robust model though not
+efficiently compiled to POWER, which I also think may be acceptable
+because POWER is less common than the other major architectures. If the
+claimed results were proven correct more formally (eg, by a long
+appendix with full details of the definitions and proofs), I would
+have given an accept to this paper.
+
+However, I have specific concerns about the correctness of the claimed
+results but could not check them due to the lack of formality of the
+development.
+
+First, I have a concern about the temporal logic result.  Consider the
+following example, which is a variant of (9) in Example 7.4, where
+upper-case letters are memory locations and lower-case letters are
+thread-local registers, and also every memory location is initialized
+with 0.
+
+```
+Y = X
+
+||
+
+r = Y
+if (r == 1) {
+  X = Y
+  A = 1
+} else {
+  X = 1
+}
+```
+
+As far as I can see, the invariant of Example 7.4 (given in line
+1068-1069) holds for the above example and thus exactly the same
+reasoning follows, which concludes that `A = 1` never happens.
+However, we can show that `A = 1` is allowed by the following sequence
+of optimizations of Thread 2.
+
+```
+==>
+
+r = Y
+if (r == 1) {
+  X = r             // load forwarding of r = Y
+  A = 1
+} else {
+  X = 1
+}
+
+==>
+
+r = Y
+if (r == 1) {
+  X = 1             // propagation of r == 1
+  A = 1
+} else {
+  X = 1
+}
+
+==>
+
+X = 1               // reordering of X = 1
+r = Y
+if (r == 1) {
+  A = 1
+} else {
+}
+```
+
+In this optimized program, even the SC execution allows `A = 1`.  The
+paper seem to claim that the above optimizations are valid in the
+model, and also according to my high-level understanding of the model,
+the optimizations seem to be sound. This result, if correct, is
+contradictory to the temporal logic result of the paper.
+
+Second, a variant of the example (7) given below, which captures the
+same point about the type unsafety of Lochbihler, should allow `A = 1` if
+load introduction is allowed. In general, load introduction is a valid
+single-threaded optimization, so if it is not allowed by the presented
+model, the authors should clarify that.
+
+The following is a variant of the example (7), where the third thread is
+changed from `Z = 0; Z = 1` to `Z = 1; Z = 0`.
+
+```
+Y = X
+
+||
+
+if (Z) {
+    X = 1
+} else {
+    X = Y
+    A = Y
+}
+
+||
+
+Z = 1
+Z = 0
+```
+
+Here, Thread 2 can be optimized as follows.
+
+```
+==>
+
+c = Z               // load introduction
+if (c == 1) {       // case analysis
+    if (Z) {
+        X = 1
+    } else {
+        X = Y
+        A = Y
+    }
+} else {
+    if (Z) {
+        X = 1
+    } else {
+        X = Y
+        A = Y
+    }
+}
+
+==>
+
+c = Z
+if (c == 1) {
+    d = Y           // load introduction
+    if (d == 1) {   // case analysis
+        if (Z) {
+            X = 1
+        } else {
+            X = Y
+            A = Y
+        }
+    } else {
+        if (Z) {
+            X = 1
+        } else {
+            X = Y
+            A = Y
+        }
+    }
+} else {
+    ...
+}
+
+==>
+
+c = Z
+if (c == 1) {
+    d = Y
+    if (d == 1) {
+        if (Z) {
+            X = 1
+        } else {
+            X = d   // load forwarding of d = Y
+            A = d   // load forwarding of d = Y
+        }
+    } else {
+        if (c) {    // load forwarding of c = Z
+            X = 1
+        } else {
+            X = Y
+            A = Y
+        }
+    }
+} else {
+    ...
+}
+
+==>
+
+c = Z
+if (c == 1) {
+    d = Y
+    if (d == 1) {
+        if (Z) {
+            X = 1
+        } else {
+            X = 1   // propagation of d == 1
+            A = 1   // propagation of d == 1
+        }
+    } else {
+        if (1) {    // propagation of c == 1
+            X = 1
+        } else {
+            X = Y
+            A = Y
+        }
+    }
+} else {
+    ...
+}
+
+==>
+
+c = Z
+if (c == 1) {
+    d = Y
+    if (d == 1) {
+        if (Z) {
+            X = 1
+        } else {
+            X = 1
+            A = 1
+        }
+    } else {
+        X = 1       // simplifying the branch
+    }
+} else {
+    ...
+}
+
+==>
+
+c = Z
+if (c == 1) {
+    X = 1           // reordering of X = 1
+    d = Y
+    if (d == 1) {
+        if (Z) {
+        } else {
+            A = 1
+        }
+    } else {
+    }
+} else {
+    ...
+}
+```
+
+Now, the optimized program can execute `A = 1` even in the SC execution.
+
+To summarize, I think the authors should be more careful when
+developing a model for such subtle and complex phenomenon like relaxed
+concurrency.  Formalizing in a proof assistant would be the best way
+but if that's too much requirement, then the authors should at least
+provide detailed definitions and proofs in the appendix.
+
+** Typos
+
+- L180. a event => an event
+- L501. writes from x => writes to x
+- L523. as a completed execution => is a completed execution
+- L845. maybe [[s := x; C]][x/r] instead of [[s := x; C[x/r]]]?
+
+Questions for authors’ response
+---------------------------------
+- In Definition 3.3, it is unclear what events can be joined.  Since
+  pomsets are closed under isomorphism, it seems that any "compatible"
+  events can be joined. Is that what the authors intended?  If so, it
+  is intuitively unclear what happens when completely unrelated events
+  are joined.
+
+- Please answer whether the authors agree with the two claims I made above.
+  If not, please give detailed answers for what's wrong in my claims.
+
+
+
+Review #70C
+===========================================================================
+
+Overall merit
+-------------
+C. Weak Reject
+
+Reviewer expertise
+------------------
+X. Expert
+
+Paper summary
+-------------
+This paper builds a semantics of concurrent programs over relaxed memory, uusing pomsets with seuqntial preconditions. This allows implementability on multi-copy atomic hardware memory models (such as TSO and ARMv8), and claims to prove a compositionality principle. This then does show that the model does not suffer from some classes of the "thin-air" problem that bedevils software memory models,
+
+Strengths
+---------
+The semantics is simple and reasonably well-explained. The combinators used are familiar operations, which increases confidence that "nothing is being swept under the carpet".
+
+Weaknesses
+----------
+It is not always clear what the precise conditions of the theorems
+proved are, and furthermore whether they generalise to cases of
+interest.
+
+Comments for author
+-------------------
+While the model, language and semantics are pretty clear and well-explained, I did not get much of a feeling for what the point was. And then when it came to the applications and the theorems, I was left fairly uneasy, since the important cases sometimes seem to be ignored. I would welcome learning if my concerns are unfounded and I missed the easy extensions of the theorems.
+
+1. The title speaks of semantic independence, but I do not see what this means precisely. Dealing with commands that are independent? In which case what is semantic about this notion? And what exactly does this semantic notion of independence buy you that is novel?
+
+2. I did not find the efficent implementation section very convincing. First of all, you sat "we leave out fences for simplicity" and then give an informal mapping. It is never clear if your theorem 5.1 extends to fences or not. If so, why leave it out? If not, why not? In any case, the interesting result would be with RMWs, and without it the ARMv8 model is fairly simple, particularly as the dependencies are not treated too precisely (to be clear, I am not saying a software model should reflect those dependencies precisely, just that they do not create any complications for a weak notion of dependency you care about).
+
+3. As said before, I would have liked to see what happens with RMWs. Also I did not see why you ignore loops, and restrict yourself to finite programs.
+
+4. I am also not very clear about the preconditions of the full abstraction theorem. Why does the theorem only work for the restriction-free fragment? In any case, while you say a full abstraction theorem applying to more general contexts and commands "can be achieved", do you have any evidence that this will be the case?
+
+5. The composition rule is fairly restricted in its domain of applicability. What happens to the more general case?
