@@ -1,3 +1,122 @@
+===========================================================================
+Response:
+
+We thank the referees for their comments.  We will incorporate your comments
+into the next version of the paper.  We thank referee B in particular for
+investing the time to synthesize and internalize the paper.  Within this
+context, we first describe our high level responses to the issues with
+detailed comments following.
+
+1) The putative counter examples to the theorems are NOT correct.
+
+2) The key case of composition IS parallel composition of threads. This is
+already an issue without features such as RMW and SC.  They can be added to
+the model (we sketch below)
+
+3) The notion of independence used in our model is the standard logical
+notion, explicitly stated in line 481.  (Phi is independent of x if for all
+values, phi[v/x] and phi are equivalent)
+
+
+SC IN MODEL. 
+   SC atomics can be incorporated in the model by requiring that the partial
+   order, when restricted to SC accesses, is a total order.  The compilation
+   (with expected extra fences) and composition results are unaffected. 
+
+RMW IN MODEL.
+   RMW accesses (such as compare-and-swap) can be modelled as actions which
+   are both read and write, for example (CAS x 1 2) reads 1 from x and writes
+   2. The rest of the model is unchanged. 
+
+DETAILED COMMENTS.
+
+Referee B.
+
+* In Definition 3.3, it is unclear what events can be joined.
+
+  The first case of the definition 3.3 describes the circumstances: the
+  labels have to be the same.
+
+* Example 1.  The second thread in your version of the program does NOT
+  satisfy:
+  
+     diamondpast(a=1) => (alwayspast[ (W x 1)  ==>  diamondpast (R y 1) ])
+
+  because there is an execution where the (W x 1) event does NOT have a
+  predecessor (R y 1) in the model of the program.
+
+  Each of your transformations in this example is permitted in our model.
+  So, you have demonstrated the existence of the execution invalidating the
+  invariant.  With your permission, we will incorporate your alternate
+  presentation of inferring independence into an example in the next version
+  of the paper.
+
+* Example 2.  In our model
+
+    [[ if (M) { C } else { C } ]]  NOT==  [[ C ]]
+
+  Instead it's a refinement:
+
+    [[ if (M) { C } else { C } ]]  \supseteq  [[ C ]]
+
+  So, the step of your transformation that introduces case analysis on d is
+  NOT a valid transformation.  We will be explicit about this in the next
+  version of the paper.
+
+  This is an interesting example of the effect of formalizing optimizations:
+  there are "obviously correct" optimizations (such as [[ if (M) { C } else {
+  C } ]] == [[ C ]]) which are individually reasonable, but which combine to
+  have unexpected results. Part of designing a model is choosing which
+  "obviously correct" optimizations to invalidate.
+
+
+Referee A.
+
+ * Section 4: 'load-buffering and store-buffering litmus tests.'
+
+          Load Buffering: (                           Store Buffering.
+             T1: r =x; y=1;                              T1:  y=1; r =x;
+             T2: s=y;  x=1;                              T2:  x=1; s=y;
+          Result: r=s=1                                 Result: r =s =0
+
+ * Page 7: Later in definition of your semantics how do you ensure such
+   acyclicity conditions?
+
+       Every pomset is acyclic (by first definition 2.1).  The cycle in Page
+       7 is W x1 --> R y 0 --> W y 1 --> R x 0 --> W x 1
+
+ * The semantics of 'fence' is not clear to me. Section 3.1 mention that
+   fence is acqrel. Does this affect synchronization?
+
+       It has the synchronization effects of both and acquire and a release.
+
+Referee C.
+
+ * Fences in ARM.
+
+       Left out of implementation section only to provide a hand checkable
+       full proof that is seen in appendix.
+
+ * Loops.
+
+       As is common for relaxed memory papers, we treat loops via unrolling,
+       as loops introduce complexity (such as issues around liveness and
+       continuity) and are orthogonal to the main topic of the paper.
+
+ * The composition rule is fairly restricted in its domain of applicability.
+
+         We disagree.  It includes THE interesting case, namely that of
+         parallel composition of threads.
+
+ * Preconditions of the full abstraction theorem.
+
+       The intent is to consider whole-thread programs.  If threads are fully
+       first class, eg. can be created freely within conditionals, we believe
+       that the theorem will hold.
+
+===========================================================================
+
+
 POPL 2020 Paper #70 Reviews and Comments
 ===========================================================================
 Paper #70 Let go of that which does not serve you: Semantic Independence in
@@ -17,25 +136,41 @@ Y. Knowledgeable
 
 Paper summary
 -------------
-The paper proposes a semantics for relaxed memory concurrency with certain properties such as excluding out-of-thin-air (OOTA) behaviours, DRF-SC guarantees, 
-compilation to TSO and ARMv8, support for compiler optimisations, and compositional reasoning of temporal properties.
+The paper proposes a semantics for relaxed memory concurrency with certain
+properties such as excluding out-of-thin-air (OOTA) behaviours, DRF-SC
+guarantees, compilation to TSO and ARMv8, support for compiler optimisations, and
+compositional reasoning of temporal properties. 
 
 Comments for author
 -------------------
 ============ Overall Evaluation ============
 
 The paper proposes a semantics for release, acquire, and relaxed accesses and
-establishes a number of properties which are essential for semantics of relaxed memory.
-Although I find the idea of invariant reasoning for temporal properties interesting, overall I was not satisfied with this paper. 
+establishes a number of properties which are essential for semantics of
+relaxed memory.  Although I find the idea of invariant reasoning for temporal
+properties interesting, overall I was not satisfied with this paper.
+
 In particular: 
 
-1) even though I am closely familiar with weak memory concurrency models and the literature of concurrent program logics, 
-I found the technical details of this paper impenetrable. The technical sections contain pages of dense definitions without much intuitive help for the reader. 
-The paper need significant improvement in writing in order to make it more accessible even to the specialist audience. 
+1) even though I am closely familiar with weak memory concurrency models and
+the literature of concurrent program logics, I found the technical details of
+this paper impenetrable. The technical sections contain pages of dense
+definitions without much intuitive help for the reader.  The paper need
+significant improvement in writing in order to make it more accessible even
+to the specialist audience.
 
-2) The proposed model crucial concurrency features such as atomic updates and SC accesses. I believe the main reason for excluding these features is that they are challenging for compositional reasoning. However, these features are staples of concurrency and are essential for any practical concurrency model. Is there any other reason why they are excluded? Is there an inherent limitation?
+2) The proposed model crucial concurrency features such as atomic updates and
+SC accesses. I believe the main reason for excluding these features is that
+they are challenging for compositional reasoning. However, these features are
+staples of concurrency and are essential for any practical concurrency
+model. Is there any other reason why they are excluded? Is there an inherent
+limitation?
 
-3) The proofs of reordering and elimination transformations are non-trivial and are definitely not obvious. It is important to provide the full proofs and as far as I can tell these proofs are not provided. Without some sort of formal proof (even just a hand proof), I don't have much confidence in the results. 
+3) The proofs of reordering and elimination transformations are non-trivial
+and are definitely not obvious. It is important to provide the full proofs
+and as far as I can tell these proofs are not provided. Without some sort of
+formal proof (even just a hand proof), I don't have much confidence in the
+results.
 
 
 ============Comments and Questions for Authors ============
@@ -44,16 +179,20 @@ The paper need significant improvement in writing in order to make it more acces
 Which programs are you referring to?
 
 - Page 7: 'The resulting execution is disallowed due to the cycle.'
-Can you point out which cycle you mean? Later in definition of your semantics how do you ensure such acyclicity conditions?
+Can you point out which cycle you mean? Later in definition of your semantics
+how do you ensure such acyclicity conditions? 
 
 - The definition of dependency is not clearly stated.
-The paper uses several examples to use dependency to avoid OOTA, but a formal definition of dependency is missing.
-A clear definition of dependency is important as different semantics in the literature define dependency in different ways.
+The paper uses several examples to use dependency to avoid OOTA, but a formal
+definition of dependency is missing. 
+A clear definition of dependency is important as different semantics in the
+literature define dependency in different ways. 
 
 - The semantics of 'fence' is not clear to me.
 Section 3.1 mention that fence is acqrel. Does this affect synchronization?
 
-- Please consider providing examples to explain combinators in Section 3.3, especially for parallel composition.
+- Please consider providing examples to explain combinators in Section 3.3,
+  especially for parallel composition. 
 
 
 
@@ -382,11 +521,18 @@ X. Expert
 
 Paper summary
 -------------
-This paper builds a semantics of concurrent programs over relaxed memory, uusing pomsets with seuqntial preconditions. This allows implementability on multi-copy atomic hardware memory models (such as TSO and ARMv8), and claims to prove a compositionality principle. This then does show that the model does not suffer from some classes of the "thin-air" problem that bedevils software memory models,
+This paper builds a semantics of concurrent programs over relaxed memory,
+uusing pomsets with seuqntial preconditions. This allows implementability on
+multi-copy atomic hardware memory models (such as TSO and ARMv8), and claims
+to prove a compositionality principle. This then does show that the model
+does not suffer from some classes of the "thin-air" problem that bedevils
+software memory models, 
 
 Strengths
 ---------
-The semantics is simple and reasonably well-explained. The combinators used are familiar operations, which increases confidence that "nothing is being swept under the carpet".
+The semantics is simple and reasonably well-explained. The combinators used
+are familiar operations, which increases confidence that "nothing is being
+swept under the carpet". 
 
 Weaknesses
 ----------
@@ -396,14 +542,35 @@ interest.
 
 Comments for author
 -------------------
-While the model, language and semantics are pretty clear and well-explained, I did not get much of a feeling for what the point was. And then when it came to the applications and the theorems, I was left fairly uneasy, since the important cases sometimes seem to be ignored. I would welcome learning if my concerns are unfounded and I missed the easy extensions of the theorems.
+While the model, language and semantics are pretty clear and well-explained,
+I did not get much of a feeling for what the point was. And then when it came
+to the applications and the theorems, I was left fairly uneasy, since the
+important cases sometimes seem to be ignored. I would welcome learning if my
+concerns are unfounded and I missed the easy extensions of the theorems. 
 
-1. The title speaks of semantic independence, but I do not see what this means precisely. Dealing with commands that are independent? In which case what is semantic about this notion? And what exactly does this semantic notion of independence buy you that is novel?
+1. The title speaks of semantic independence, but I do not see what this
+means precisely. Dealing with commands that are independent? In which case
+what is semantic about this notion? And what exactly does this semantic
+notion of independence buy you that is novel?
 
-2. I did not find the efficent implementation section very convincing. First of all, you sat "we leave out fences for simplicity" and then give an informal mapping. It is never clear if your theorem 5.1 extends to fences or not. If so, why leave it out? If not, why not? In any case, the interesting result would be with RMWs, and without it the ARMv8 model is fairly simple, particularly as the dependencies are not treated too precisely (to be clear, I am not saying a software model should reflect those dependencies precisely, just that they do not create any complications for a weak notion of dependency you care about).
+2. I did not find the efficent implementation section very convincing. First
+of all, you sat "we leave out fences for simplicity" and then give an
+informal mapping. It is never clear if your theorem 5.1 extends to fences or
+not. If so, why leave it out? If not, why not? In any case, the interesting
+result would be with RMWs, and without it the ARMv8 model is fairly simple,
+particularly as the dependencies are not treated too precisely (to be clear,
+I am not saying a software model should reflect those dependencies precisely,
+just that they do not create any complications for a weak notion of
+dependency you care about).
 
-3. As said before, I would have liked to see what happens with RMWs. Also I did not see why you ignore loops, and restrict yourself to finite programs.
+3. As said before, I would have liked to see what happens with RMWs. Also I
+did not see why you ignore loops, and restrict yourself to finite programs.
 
-4. I am also not very clear about the preconditions of the full abstraction theorem. Why does the theorem only work for the restriction-free fragment? In any case, while you say a full abstraction theorem applying to more general contexts and commands "can be achieved", do you have any evidence that this will be the case?
+4. I am also not very clear about the preconditions of the full abstraction
+theorem. Why does the theorem only work for the restriction-free fragment? In
+any case, while you say a full abstraction theorem applying to more general
+contexts and commands "can be achieved", do you have any evidence that this
+will be the case?
 
-5. The composition rule is fairly restricted in its domain of applicability. What happens to the more general case?
+5. The composition rule is fairly restricted in its domain of
+applicability. What happens to the more general case?
