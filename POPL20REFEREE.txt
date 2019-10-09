@@ -1,3 +1,38 @@
+Comment @A1 by Reviewer B
+---------------------------------------------------------------------------
+We think that the work needs more development. In particular, for RMWs it is
+not clear to us that the way they describe (an event that both reads and
+writes) maintains composability, or implementability. Lots of proofs as well
+are hand-waved away, even in a "more detailed" appendix. This feels like
+there is the germ of an initial idea, but lots of details need filling in to
+make it a definitive word.
+
+# Post-rebuttal comment
+
+The answer to one of my key questions is not so clear, which I will specify
+below. I hope this is clarified in the next version of the paper. Also, the
+authors can freely use the examples in my review.
+
+> The first case of the definition 3.3 describes the circumstances: the
+  labels have to be the same. 
+
+I was confused and the definition seems to make sense.
+
+> Example 1. The second thread in your version of the program does NOT
+  satisfy: `diamondpast(a=1) => (alwayspast[ (W x 1) ==> diamondpast (R y 1)
+  ])` because there is an execution where the (W x 1) event does NOT have a
+  predecessor (R y 1) in the model of the program 
+
+This is the unclear answer. I don't see how there is such an execution. To
+me, there is no essential difference between my example and the one in your
+paper. If there is such an execution, I am completely lost about your work,
+so that the paper really needs a revision to properly convey the ideas. Or if
+not (ie, you are confused about my example), the paper contains a serious
+flaw and thus needs a revision.
+
+Anyway, I would appreciate if you could give me the concrete execution of
+Example 1 where the condition does not hold.
+
 ===========================================================================
 Response:
 
