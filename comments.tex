@@ -75,13 +75,16 @@ Referee's program:
   \po{rx}{wy}
   \wk[bend left]{wy0}{wy}
   \event{wx0}{\DW{x}{0}}{below=of wy0}
-  \event{ry}{\DR{y}{1}}{right=4.5em of wx0}
+  \event{ry1}{\DR{y}{1}}{right=of wx0}
+  \event{ry}{\DR{y}{1}}{right=of ry1}
   \event{wx}{\DW{x}{1}}{right=of ry}
   \event{wa}{\DW{a}{1}}{right=4.5em of wx}
   \wk[bend right]{wx0}{wx}
+  \po{ry}{wx}
+  \rf{wy}{ry1}
   \rf{wy}{ry}
   \rf{wx}{rx}
-  \po[bend right]{ry}{wa}
+  \po[bend right]{ry1}{wa}
 \end{tikzdisplay}
 Note that there is no order between $\DR{y}{1}$ and $\DW{x}{1}$.
 
