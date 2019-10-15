@@ -206,7 +206,7 @@ or \emph{external}:
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \graypo{rx1}{wy1}
 \end{tikzpicture} 
-\qquad\qquad{\text{\normalsize and}}\qquad\qquad
+\qquad{\text{\normalsize and}}\qquad
 \begin{tikzpicture}[baselinecenter,node distance=1em]
   \event{wx1}{\DW{x}{1}}{}
   \internal{rx1}{\DR{x}{}}{right=of wx1}
@@ -657,7 +657,7 @@ Both of the following executions violate the definition of fulfillment:
   \po{b1}{b2}
   \rf{a1}{b2}
 \end{tikzcenter}
-\qquad\qquad \qquad\qquad
+ \qquad\qquad
 \begin{tikzcenter}[node distance=1em]
   \event{a1}{\DW{x}{1}}{}
   \internal{a2}{\DW{x}{}}{right=of a1}
@@ -822,32 +822,32 @@ The resulting execution is disallowed due to the  cycle.
 % \end{math}
 
 Another class of non-\mca\ behavior is characterized by the following litmus test.
-\begin{displaymath}
+\begin{displaymathsmall}
   \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
   \PAR
   \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
   \PAR
   \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
-\end{displaymath}
+\end{displaymathsmall}
 \begin{tikzdisplay}[node distance=1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DW{y}{0}}{right=of a1}
   \po{a1}{a2}
   \event{a3}{\DW{y}{1}}{right=of a2}
   \wk{a2}{a3}
-  \event{b1}{\DR{x}{1}}{right=3em of a3}
+  \event{b1}{\DR{x}{1}}{below=of a1}
   \event{b2}{\DW{y}{0}}{right=of b1}
   \po{b1}{b2}
   \event{b3}{\DW{y}{1}}{right=of b2}
   \wk{b2}{b3}
-  \event{c1}{\DR{x}{1}}{right=3em of b3}
+  \event{c1}{\DR{x}{1}}{below=of b1}
   \event{c2}{\DW{y}{0}}{right=of c1}
   \po{c1}{c2}
   \event{c3}{\DW{y}{1}}{right=of c2}
   \wk{c2}{c3}
   \rf{a3}{b1}
   \rf{b3}{c1}
-  \rf[out=170,in=10]{c3}{a1}  
+  \rf[out=210,in=210]{c3}{a1}  
 \end{tikzdisplay}
 This execution is disallowed due to the evident cycle.
 %in weak order. 
@@ -1059,7 +1059,7 @@ To see this, consider the program:
   \aReg\GETS e\ACQ\SEMI
   \bReg\GETS x \SEMI
   f\GETS\REL 1
-  \\[-2ex]
+  \\
   \begin{minipage}{1.0\linewidth}
     \begin{tikzdisplay}[node distance=1em]
       \event{a1}{\DRAcq{a}{1}}{}
@@ -1067,17 +1067,17 @@ To see this, consider the program:
       \po{a1}{a2}
       \event{a3}{\DWRel{b}{1}}{right=of a2}
       \po{a2}{a3}
-      \event{b1}{\DRAcq{c}{1}}{right=3em of a3}
-      \event{b2}{\DW{x}{2}}{right=of b1}
+      \event{b1}{\DRAcq{c}{1}}{below=of a3}
+      \event{b2}{\DW{x}{2}}{left=of b1}
       \po{b1}{b2}
-      \event{b3}{\DWRel{d}{1}}{right=of b2}
+      \event{b3}{\DWRel{d}{1}}{left=of b2}
       \po{b2}{b3}
-      \event{c1}{\DRAcq{e}{1}}{right=3em of b3}
+      \event{c1}{\DRAcq{e}{1}}{below=of b3}
       \event{c2}{\DR{x}{1}}{right=of c1}
       \po{c1}{c2}
       \event{c3}{\DWRel{f}{1}}{right=of c2}
       \po{c2}{c3}
-      \rf[out=10,in=170]{a2}{c2}
+      \rf[bend right]{a2}{c2}
     \end{tikzdisplay}
   \end{minipage}
 \end{gather*}
@@ -1093,25 +1093,26 @@ the second thread may become a blocker:
   \po{a1}{a2}
   \event{a3}{\DWRel{b}{1}}{right=of a2}
   \po{a2}{a3}
-  \event{b1}{\DRAcq{c}{1}}{right=3em of a3}
-  \event{b2}{\DW{x}{2}}{right=of b1}
+  \event{b1}{\DRAcq{c}{1}}{below=of a3}
+  \event{b2}{\DW{x}{2}}{left=of b1}
   \po{b1}{b2}
-  \event{b3}{\DWRel{d}{1}}{right=of b2}
+  \event{b3}{\DWRel{d}{1}}{left=of b2}
   \po{b2}{b3}
-  \event{c1}{\DRAcq{e}{1}}{right=3em of b3}
+  \event{c1}{\DRAcq{e}{1}}{below=of b3}
   \event{c2}{\DR{x}{1}}{right=of c1}
   \po{c1}{c2}
   \event{c3}{\DWRel{f}{1}}{right=of c2}
   \po{c2}{c3}
-  \rf[out=10,in=170]{a2}{c2}
-  \event{d1}{\DR{b}{1}}{below=of a3}
+  \rf[bend right]{a2}{c2}
+  %
+  \event{d1}{\DR{b}{1}}{right=of a3}
   \rf{a3}{d1}
-  \event{d2}{\DW{c}{1}}{below=of b1}
+  \event{d2}{\DW{c}{1}}{below=of d1}
   \po{d1}{d2}
   \rf{d2}{b1}
-  \event{e1}{\DR{d}{1}}{below=of b3}
+  \event{e1}{\DR{d}{1}}{left=of b3}
   \rf{b3}{e1}
-  \event{e2}{\DW{e}{1}}{below=of c1}
+  \event{e2}{\DW{e}{1}}{below=of e1}
   \po{e1}{e2}
   \rf{e2}{c1}
 \end{tikzdisplay}
@@ -1126,18 +1127,18 @@ to both writes:
   \po{a1}{a2}
   \event{a3}{\DWRel{b}{1}}{right=of a2}
   \po{a2}{a3}
-  \event{b1}{\DRAcq{c}{1}}{right=3em of a3}
-  \event{b2}{\DW{x}{2}}{right=of b1}
+  \event{b1}{\DRAcq{c}{1}}{below=of a3}
+  \event{b2}{\DW{x}{2}}{left=of b1}
   \po{b1}{b2}
-  \event{b3}{\DWRel{d}{1}}{right=of b2}
+  \event{b3}{\DWRel{d}{1}}{left=of b2}
   \po{b2}{b3}
-  \event{c1}{\DRAcq{e}{1}}{right=3em of b3}
+  \event{c1}{\DRAcq{e}{1}}{below=of b3}
   \event{c2}{\DR{x}{1}}{right=of c1}
   \po{c1}{c2}
   \event{c3}{\DWRel{f}{1}}{right=of c2}
   \po{c2}{c3}
-  \rf[out=10,in=170]{a2}{c2}
-  \wk[out=200,in=-20]{c2}{b2}
+  \rf[bend right]{a2}{c2}
+  \wk{c2}{b2}
 \end{tikzdisplay}
 This makes augmentation in the reverse order impossible.
 % The weak order required between the second and third threads stops any
@@ -1930,12 +1931,14 @@ defined as follows.
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
 \BNFSEP \FENCE\SEMI \aCmd
-\BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \\
-\BNFSEP& \aReg\GETS\aExp\SEMI \aCmd
-\BNFSEP \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd 
+\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
+\\
+\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd 
 \BNFSEP \aReg\GETS\REF{\cExp}\SEMI \aCmd
-\BNFSEP \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
+\\
+\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
 \BNFSEP \REF{\cExp}\GETS\aExp\SEMI \aCmd
 \end{align*}
 We use common syntax sugar, such as \emph{extended expressions}, which include

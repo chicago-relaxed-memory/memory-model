@@ -90,7 +90,7 @@
 \newcommand{\eqorder}{\sim}
 \newcommand{\suborder}{\sqsubseteq}
 \newcommand{\inj}{f}
-\newcommand{\hoare}[3]{\{#1\}\;#2\;\{#3\}}
+\newcommand{\hoare}[3]{\{#1\}\allowbreak\;#2\;\allowbreak\{#3\}}
 \newcommand{\fwp}{\textit{wp}}
 
 \newcommand{\aF}{\xi}
@@ -268,8 +268,8 @@
 \newcommand{\END}{\texttt{end}}
 \newcommand{\SKIP}{\texttt{skip}}
 \newcommand{\GETS}{\texttt{:}\mkern-1mu\texttt{=}\,}
-\newcommand{\SEQ}{\texttt{;}\,}
-\newcommand{\SEMI}{\texttt{;}\,}
+\newcommand{\SEQ}{\texttt{;}\,\allowbreak}
+\newcommand{\SEMI}{\texttt{;}\,\allowbreak}
 \newcommand{\IF}[1]{\texttt{if}\allowbreak\texttt{(}#1\texttt{)}}
 \newcommand{\PASS}{\texttt{pass}}
 \newcommand{\WHILE}{\texttt{while}\,}

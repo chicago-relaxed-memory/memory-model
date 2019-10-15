@@ -1,5 +1,7 @@
 %% For double-blind review submission
-\documentclass[acmsmall,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true}
+\documentclass[sigplan,10pt,review,anonymous]{acmart}
+%\documentclass[acmsmall,10pt,review,anonymous]{acmart}
+\settopmatter{printfolios=true}
 \AtEndPreamble{%
   \theoremstyle{acmdefinition}
   \newtheorem{remark}[theorem]{Remark}
@@ -256,24 +258,25 @@
 %   \email{jriely@cs.depaul.edu}}
 % }
 
+\input{comments}
 \input{intro}
 \input{model}
 \input{sc}
 \input{arm}
 \input{opt}
 \input{logic}
-%\input{variants}
 \input{ldrf}
-%\input{outro}
 \begin{small}
 \bibliography{bib}
 \end{small}
 \newpage
 \appendix
-\input{appendix}
-\input{examples}
-% \input{jamesintro}
-% \input{semicolon}
+% \input{appendix}
+% \input{examples}
+
+%\input{variants}
+%\input{jamesintro}
+%\input{semicolon}
 \end{document}
 
 % Local Variables:
