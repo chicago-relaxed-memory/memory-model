@@ -1,7 +1,8 @@
 \section{Comments for new version}
 Cleanup of \eqref{alan}
-\begin{equation}
-  \label{alan}
+\pagebreak
+Our example
+\begin{displaymath}
   (
     y\GETS0\SEMI y\GETS x
   \PAR
@@ -9,7 +10,7 @@ Cleanup of \eqref{alan}
   \PAR
     z\GETS0\SEMI z\GETS1
   )
-\end{equation}
+\end{displaymath}
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{rx}{\DR{x}{1}}{}
 %   \event{wy}{\DW{y}{1}}{below=of rx}
@@ -60,14 +61,14 @@ Cleanup of \eqref{alan}
 \end{tikzdisplay}
 
 Referee's program:
-\begin{equation}
-  \label{referee}
+\begin{displaymath}
   (
     y\GETS0\SEMI y\GETS x
   \PAR
     x\GETS0\SEMI \IF{y}\THEN x\GETS y\SEMI a\GETS1 \ELSE x\GETS1 \FI
   )
-\end{equation}
+\end{displaymath}
+This includes similarly doomed executions:
 \begin{tikzdisplay}[node distance=1em]
   \event{wy0}{\DW{y}{0}}{}
   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
@@ -83,6 +84,25 @@ Referee's program:
   \po{ry}{wx}
   \rf{wy}{ry1}
   \rf{wy}{ry}
+  \rf{wx}{rx}
+  \po[bend right]{ry1}{wa}
+\end{tikzdisplay}
+We can also use an internal read, but I think we still get a cycle:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wy0}{\DW{y}{0}}{}
+  \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
+  \event{wy}{\DW{y}{1}}{right=of rx}
+  \po{rx}{wy}
+  \wk[bend left]{wy0}{wy}
+  \event{wx0}{\DW{x}{0}}{below=of wy0}
+  \event{ry1}{\DR{y}{1}}{right=of wx0}
+  \internal{ry}{\DR{y}{1}}{right=of ry1}
+  \event{wx}{\DW{x}{1}}{right=of ry}
+  \event{wa}{\DW{a}{1}}{right=4.5em of wx}
+  \wk[bend right]{wx0}{wx}
+  \po{ry}{wx}
+  \rf{wy}{ry1}
+  \po[bend right]{ry1}{wx}
   \rf{wx}{rx}
   \po[bend right]{ry1}{wa}
 \end{tikzdisplay}
