@@ -1,0 +1,124 @@
+EHoare Logic.
+
+sigma: [vecx --> vecval]
+
+phi: [x --> (Valset, sigma)]:
+         such that for each x, sigma(x) in Valset(phi(x))
+
+phi1 ==> phi2 if:
+   forall x: ValSet(phi1(x)) subseteq ValSet(phi2(x))
+             sigma(phi1(x)) subseteq sigma(phi2(x))
+ 
+Sphi: [x --> (Value, sigma)] satisfying above
+
+{phi} P {psi} if for all Sphi1,Sphi2
+   Sphi ==> phi AND  {Sphi} P {Spsi}
+implies
+   Spsi ==> psi
+
+Rules:
+  {Sphi, Regs} r=x { Sphi, Regs[r -> Value(phi(x))] }
+  {Sphi, Regs} r=x_acq{ Sphi[sigma(Sphi(x))], Regs[r -> Value(phi(x))] }
+
+  {Sphi, Regs} x=r { Sphi[x -> (Regs(r), emptyset)],Regs }
+  {Sphi, Regs} xrel=r { Sphi[x -> (Regs(r),Sphi\x)],Regs }
+
+Others as before.
+
+
+Def: P' is linear read/write if for all memories sigma, all executions from <sigma, P'>
+        read (resp write) any variable at most once.
+
+Def: P' refines P if, P' is linear read/write and 
+       for all sigma, phi:
+         {sigma} P phi <==> {sigma'} P' {phi}
+     
+Def: Let P,P' be linear read/write. P' refines P in sigma if 
+            forall tau, tau'
+           {tau } P {sigma[tau']} <==> {tau\sigma } P' {tau'}
+
+Cases: sigma = emptyset.  P, P' are totally equivalent
+       sigma = tau.  P' has substituted in all values of sigma.
+
+Def: P' can sub for P in sigma, if there is a sequence of linear read/write P1...Pn such 
+that:
+   P1 refines P, and
+   P(i+1) refines Pi in tau subseteq sigma
+   Pn = P'
+
+Opsem model.
+
+   sigma: SC memory
+   Seq opsem: <P,M> --label --> <P',M'>, labels <W x v>, <R x, v>, tau
+   (1) x=M; P, sigma -- (W x v)---> P, sigma[x -->M(sigma)]
+   (2) (let r =x in P, sigma[x->v]) -- (R x v) ---> P[x/v], sigma[x/v]
+   (3) P, sigma  -- tau--> P', sigma if  P' refines P in sigma, 
+
+   Parallel: interleaving
+   
+Note: if the write is a release write, the label is Wrel
+      if the read is an acquire read, the label is Racq
+      
+
+
+Traces of a sequential thread.
+
+   Consider labeled sequences of the form
+    (P0, s0) --a-> (P1,s1) 
+   where:  If i is odd.
+                  Pi = P(i+1) 
+                  If label is W, s(i+1) = si[a].
+                  If label is R/acq/release, s(i+1) = si[a].
+                                     
+           If i is even.
+               Pi -weak label a -> P(i+1) by above sequential opsem, if i is even.
+
+   So, alternate moves of system and environment, with first move from system.  
+
+  The associated pomsets with this labeled sequence are those that satsify:
+       (a) Every label-i accessing x is after all conflicting label-j such that j<i
+       (b) Every system label-i = Racq is before all system label-j with j>i
+       (c) Every system label-i = Wrel is after all system label-j with j<i
+       (d) Every sytem  label-i = (W x v) is after all read (system or owise) labels with j<i
+
+Difference from Alan model.  The pomsets are series-parallel (ie. with N shapes) wrt concurrent
+R-W edges.
+           
+Fact 1: For each sequential program fragment P, there is a program fragment P' such that
+        * for all memories M, formulas phi
+                {M} P {phi}  <===> {M} P' {phi}
+        * in any execution, P' reads or writes any variable at most once
+
+
+Details: For each var x, there is a 
+         boolean register xread
+         integer register xreg
+         boolean register xchanged
+
+   Given P, consider:
+           vec{xread} = vec{false}
+           vec{xchangeds} = vec{false}
+           P'
+           vec{if (xcchanged) x = xreg; }
+
+     where P'= P with
+               each read r = x replaced by:
+                                   if (xread) r = xreg
+                                   else { xreg = x; xread = true; r = xreg;}
+               each write x = M replaced by
+                          xread = true; xreg = M; xchanged = true;
+
+   Claim:
+     (forall memories M)  {M} P {phi} <==> {M} P' {phi}, 
+   forall phi without references to vec{xrs}, vec{xcs}
+
+2. In POPL reject (with modified IF), 
+           
+3. DRF for op model:
+         Idea: any execution of P' is modeled by an execution of P in any memory
+   Maybe even LDRF??
+
+
+
+
+     
