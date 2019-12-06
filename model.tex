@@ -1251,11 +1251,17 @@ case, the predicate becomes $1\NOTEQ 1$.
 process of revising the Java Memory Model (JMM)
 \cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
 confirmed that our model gives the desired result for all twenty cases,
-unrolling loops as necessary.  Our model also gives the desired results for
+unrolling loops as necessary.
+% confirmed that our model gives the desired result these test cases, with the
+% following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
+% of TC1 and TC8 are only allowed in our model if the inferred range of
+% variables is included as a global assumption in the logic. 
+Our model also gives the desired results for
 all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
 \citet[\textsection 5.3]{SevcikThesis}.  Our model agrees with the JMM on the
 ``surprising and controversial behaviors'' of \citet[\textsection
 8]{Manson:2005:JMM:1047659.1040336}. \textsection\ref{sec:examples} develops some of these examples.
+
 
 \section{The Semantics of a Simple Concurrent Language}
 \label{sec:model}
