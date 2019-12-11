@@ -2,7 +2,44 @@
 
 \subsection{Address calculation}
 
+Definition of data model:
+\begin{itemize}
+\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
+\end{itemize}
+
+\begin{align*}
+\aCmd,\,\bCmd
+\BNFDEF& \cdots
+\BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
+\BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
+\end{align*}
+
+\begin{align*}
+  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDRmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \\
+  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDWmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
+\end{align*}
+
 \subsection{Fences}
+
+All fence actions are internal, do not read or write.
+\begin{align*}
+  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
+  \\
+  \aCmd,\,\bCmd
+  \BNFDEF& \cdots
+  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
+\end{align*}
+
+\begin{align*}
+  \sem{\FENCE\SEMI \aCmd} & =
+  (\DF{}) \prefix \sem{\aCmd}
+\end{align*}
 
 \subsection{Read-Modify-Write}
 
