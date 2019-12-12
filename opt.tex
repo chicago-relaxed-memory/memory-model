@@ -1,3 +1,10 @@
+\newcommand{\aCtxt}{{\mathcal C}}
+\newcommand{\aLocReg}{\aLoc_{{loc}}}
+\newcommand{\aRead}{\aLoc_{r}}
+\newcommand{\aChanged}{\aLoc_{c}}
+\newcommand{\linV}[1]{#1_{{\tt lin}}}
+
+
 \section{Single Threaded Optimizations}
 \label{sec:opt}
 
@@ -13,8 +20,9 @@
 % with a redundant action.
 
 As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations; concretely by validating several 
-single threaded optimizations including reordering of independent statements; and abstractly, by proving a full abstraction
-theorem for single threads without synchronization and connecting to traditional Hoare logic for sequential programs. 
+single threaded optimizations including reordering of independent statements; and by showing that our model validates {\em all} valid transformation of a sequential program without synchronization into a ``linear'' sequential program.   A key technical tool in the latter proof is the connection to traditional Hoare logic for sequential programs, that formalizes the sense in which the thread-local order of our model captures no more than those forced by data dependencies.  
+
+
 
 %In this section, we only consider commands $\aCmd$ that do not have any occurrence of $\PAR$. 
 
@@ -22,6 +30,11 @@ theorem for single threads without synchronization and connecting to traditional
 % $\aCmd \unrhd \bCmd$ if $\sem{\aCmd} \supseteq \sem{\bCmd}$
 % \end{definition}
 % Thus, in this case $\aCmd$ can be transformed into $\bCmd$ in any program context.  
+
+\paragraph*{Defining valid transformations}
+We first make the semantics insensitive to
+reads that are never used and to events with false preconditions.
+
 
 Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 there is $\aPS\in\aPSS$ such that:
@@ -31,11 +44,32 @@ ${\le'} = {\le}\restrict{\Event'}$,
 and
 ${\labeling'} = {\labeling}\restrict{\Event'}$.
 
-By Lemma~\ref{lem:monotone}, if $\sem{\aCmd} \supseteq \sem{\bCmd}$
-then $\aCmd$ can be transformed into $\bCmd$ in any program context.  Since
-unsatisfiable events are ignored in our architecture model, it is
-an immediate corollary that it is sufficient to show that
-$\fsat\sem{\aCmd} \supseteq \fsat\sem{\bCmd}$.
+Let $\readc(\aPSS)$ be the smallest augmentation
+closed set containing $\aPSS$ that also satisfies closure under the inclusion
+of useless reads: if $\aPS \in \readc(\aPSS)$, then
+$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\cup\{\aEv\}$,
+$\aEv \not \in \Event$, ${\le'} ={\le}$,
+${\labeling'} \restrict \Event = {\labeling}$, and
+$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ and $\aVal$.
+
+Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
+
+\begin{lemma}\label{freadssatcomp}[Compositionality of $\freadsat$]
+Let $\freadsat(\sem{\aCmd}) \subseteq \freadsat(\sem{\bCmd})$.  Then for any program context $\aCtxt\hole{}$
+\[ \freadsat(\sem{\aCtxt\hole{\aCmd}}) \subseteq \freadsat(\sem{\aCtxt\hole{\bCmd}}) \]
+\begin{proof}
+The proof follows from the following observations.
+\begin{itemize}
+\item $\readc, \fsat, \sem{}$ are monotone functions (for the inclusion order on sets of pomsets). 
+\item Unsatisfiable events are ignored in our architecture model.  
+\item The definitions of the combinators in section~\ref{sec:semantics} do not enforce any order relationships on the internal (read and write) events, permitting them to be deleted freely.
+\end{itemize}
+\end{proof}
+\end{lemma}
+Lemma~\ref{freadsatcomp} justifies the following definition of valid program transformations. 
+\begin{definition}
+A program fragment $\aCmd$ can be validly transformed into $\bCmd$ if  $\freadsat(\sem{\aCmd}) \supseteq  \freadsat(\sem{\bCmd})$.
+\end{definition}
 
 
 
@@ -45,8 +79,7 @@ We follow the terminology and presentation of section~7.1 of
 models that enforce extra ordering.
 
 %\paragraph*{Peephole optimizations. } 
-Certain transformations involving adjacent operations on the same location
-are permissible. 
+Certain transformations involving conditionals or adjacent operations on the same location are permissible. 
  
 \begin{lemma}
   Suppose $\aExp=0$ is a tautology and $\cExp=\dExp$ is a tautology.   Then the following hold.
@@ -56,6 +89,9 @@ are permissible.
 % \mbox{Dead Store} && \sem{\aLoc \GETS \aReg \SEMI \aLoc \GETS \bReg \SEMI \aCmd} \supseteq \sem{\aLoc \GETS \bReg \SEMI \aCmd}
 % \end{eqnarray*}
   \begin{align*}
+\tag{Value expansion}
+  \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+  \fsat\sem{\aCmd}  \\
   \tag{Dead Code} 
   \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &\supseteq 
   \fsat\sem{\bCmd} \\
@@ -70,6 +106,8 @@ are permissible.
   \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}
 \end{align*}
 \begin{proof}
+  Value expansion is an invariant maintained by the semantics.  The definition for prefixing enforces the invariant by expansion, whereas the other combinators maintain it.
+
   For dead code elimination, the result is immediate from the semantics.
   
   For dead store, note that no event in $\aCmd$ can depend on the first store,
@@ -90,6 +128,8 @@ are permissible.
   % Similarly, store forwarding is proved by considering the implicit read subset of $\sem{\bReg \GETS \REF{\dExp} \SEMI \aCmd}$.
 \end{proof}
 \end{lemma}
+Value-expansion is used to introduce case analysis on the possible values, eg. expanding $\aCmd$ to 
+$\IF{\aReg ==0}\THEN\aCmd\ELSE IF{\aReg ==1}\THEN\aCmd\ELSE \aCmd\FI\FI$.  
   
 %\paragraph*{Reorderings of independent statements}
 Certain reorderings involving adjacent operations on the distinct locations
@@ -182,6 +222,223 @@ followed by the valid elimination of redundant load
   (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS \cLoc).
 \end{math}
 
+\paragraph*{Invalid transformations}
+It is invalid to introduce new reads or writes.  For example, 
+\begin{align*}
+    \tag{Read-Intro-Invalid}
+\sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
+\IF{\aReg != \bReg} \THEN \cLoc \GETS 1} &\not\subseteq
+  \sem{\aReg \GETS \REF{\cExp} \SEMI \IF{\aReg != \bReg} \cLoc \GETS 1} \\
+    \tag{Write-Intro-Invalid}
+\sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd} &\not\subseteq
+  \sem{\aLoc \GETS 1 \SEMI \aCmd} \\
+\end{align*}
+
+For Read-Intro-Invalid, the left hand side contains the pomset:
+\begin{tikzdisplay}[node distance=1em]
+  \event{r1}{\DR{\aLoc}{1}}{}
+  \event{r2}{\DR{\aLoc}{1}}{}{right=4em of r1}
+  \event{w}{\DW{\cLoc}{1}} {below =of r1}
+  \po{r1}{w}
+  \po{r2}{w}
+\end{tikzdisplay}
+whereas the right hand side does not.
+
+For Write-Intro-Invalid, the non-inclusion is illustrated by considering the context  $\aCtxt\hole{}$ given by:
+\begin{align*}
+& \VAR \aLoc \GETS 0 \SEMI \\
+& \hole{} \PAR \\
+&  \aReg = \aLoc \SEMI  \IF{\aReg == 1} \THEN \aLoc \GETS 2 \FI  \SEMI  \bReg = \aLoc \SEMI  \IF{\bReg == 1} \THEN \cLoc \GETS 2 \FI
+\end{align*}
+where $\cLoc \not=\aLoc$ is a variable that is free in $\aCmd$.  
+$\aCtxt\hole{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd}$ contains a pomset that writes $\cLoc$ whereas 
+$\aCtxt\hole{\aLoc \GETS 1 \SEMI \aCmd}$  does not.
+
+Thus, the invalidity of the introduction of redundant writes is an artifact of coherence.  Redundant writes introduction is  validated in a model like the \jmm\ that lacks coherence.  
+
+
+
+\subsection{Relationship to Hoare logic}
+This invariant captured in the following theorem underlies the definitions in the semantics of sequential commands. In this theorem, we consider Hoare triples over formulas as per as per \textsection\ref{sec:data}.  We follow the treatment of Hoare logic as laid out in~\citet{gordonHoare}.  
+
+In the hypothesis of this theorem, we consider valid state assignments $\vec{\bLoc} =\vec{\aVal}$, so there arent multiple conflicting assignments to the same location.  
+\begin{theorem}\label{hoareGen}
+Let $\aCmd$ be a command without either synchronization or parallelism.   For all $i=1, \ldots m$, let $\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^i_n$ be a valid state. 
+
+The following Hoare triples is valid for all $i=1, \ldots m$. 
+\begin{displaymath}
+  \hoare{\aForm_i\land\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^n}{\aCmd}{\aLoc_i=\bVal_i}  
+\end{displaymath}
+if and only if
+$\readc\sem{\aCmd}$ contains a pomset  that includes for all $i=1, \ldots, n$
+\begin{tikzdisplay}[node distance=1em]
+  \event{r}{\smash{\vec{\bForm_i}}\mid\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}}{}
+  \internal{w1}{\vec{\cForm}\mid\DW{\aLoc_i}{\vec{\dVal}}}{right=4em of r}
+  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc_i}{\bVal_i}}{below right=of r}
+  \po{r}{w2}
+  \wk{w1}{w2}
+\end{tikzdisplay}
+where $\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}$ are all the events that precede $\aEv$, $\DW{\aLoc_i}{\bVal_i}$ is the maximum write on $\aLoc_i$,  and
+$\DW{\aLoc_i}{\vec{\dVal_i}}$ are all the other writes on $\aLoc_i$, marked here as internal writes.
+\begin{proof}
+The proof proceeds by induction on the number of steps of derivation of the proof of the Hoare triple.  
+
+We first consider the structural rules.  Precondition strengthening and postcondition weakening follow from augmentation closure.    
+The proof that the structural rule of disjunction:
+\[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
+\]
+holds  follows from the invariant that  $\sem{\aCmd}$ is closed under value-expansion.    The proof that the structural rule of conjunction:
+\[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
+\]
+holds follows from the determinacy of pomsets.  
+
+The remaining cases that use the rules for deducing Hoare triples by structural induction on the command follow straightforwardly from the semantics.    The only subtlety is to note that the write prefixing rule permits all non-maximum writes to be made internal.   
+\end{proof}
+\end{theorem}
+
+
+
+% \begin{theorem}
+% Let $\aCmd$ be a command without either synchronization or parallelism, such that
+% $\sem{\aCmd}$ contains an execution that includes
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+%   \wk{w1}{w2}
+%   \po{r}{w2}
+% \end{tikzdisplay}
+% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
+% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+% Then the following Hoare triple is valid:
+% \begin{displaymath}
+%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+% \end{displaymath}
+% \begin{proof}
+% The proof proceeds by structural induction on the command. 
+% \end{proof}
+% \end{theorem}
+
+
+We illustrate with a few examples.
+$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds.   In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{w1}{\DW{x}{1}}{}
+ \event{w2}{\DW{x}{2}}{right=of w1}
+\wk{w1}{w2}
+\end{tikzdisplay}
+
+The two pomsets corresponding to the triple $\hoare{x=1}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1\FI}{y=1}$ illustrate the two ways to satisfy preconditions in the above theorem.
+\begin{displaymathsmall}
+\mbox{Internal: }
+\begin{tikzcenter}
+\event{w}{x=1 \mid \DW{y}{1}}{}
+\end{tikzcenter}
+\qquad \qquad
+\mbox{External: }
+\begin{tikzcenter}
+\event{r}{\DR{x}{1}}{}
+\event{w}{\DW{y}{1}}{right=of r}
+\po{r}{w}
+\end{tikzcenter}
+\end{displaymathsmall}
+
+$\hoare{\TRUE}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} $ holds.  
+In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{w}{\DW{y}{1}}{}
+ \event{r}{\DR{x}{v}}{right=of w}
+\end{tikzdisplay}
+In contrast, in a semantics that forbids load buffering, where the best that one can prove is
+$\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
+$.
+
+Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI s \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
+$ \hoare{x=1}{\aCmd}{y=1}$ and
+$ \hoare{u=1}{\aCmd}{v=1}$
+hold.  In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{rx}{\DR{x}{1}}{}
+ \event{ru}{\DR{u}{1}}{right=of rx}
+ \event{wy}{\DW{y}{1}}{below=of rx}
+\event{wv}{\DW{u}{1}}{below=of ru}
+ \rf{rx}{wy}
+ \rf{ru}{wv}
+\end{tikzdisplay}
+
+
+Consider a fragment from example~\eqref{rfub}.
+\begin{align*}
+\bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+\end{align*}
+Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$.  
+In the semantics, this is mirrored by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{ry}{\DR{y}{41}}{}
+ \event{wx}{\DW{x}{42}}{right=of ry}
+ \event{wa}{\DW{a}{1}}{below=of rx}
+ \rf{ry}{wa}
+\end{tikzdisplay}
+
+\paragraph{``Linear'' programs}
+
+A program fragment is ``linear'' if it does at most one read and at most one write on any location in any execution.  Intuitively, this means that the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  
+
+With any sequential and synchronization free  program fragment, we associate a ``linear'' program fragment $\linV{\aCmd}$ as follows.
+\begin{definition}
+Let $\aCmd$ be a sequential and synchronization free  program fragment.  
+
+With each shared variable $\aLoc$, we associate a thread local variable $\aLocReg$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
+
+\begin{align*}
+\linV{\aCmd}= & \VAR\vec{\aLocReg} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
+& \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
+& \aCmd' \SEMI   \\
+& \overline{\IF \aChanged\  \aLoc= \aLocReg}
+\end{align*}
+where:
+$\aCmd'$ is derived from $\aCmd$ by replacing:
+\begin{itemize}
+\item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF  (\aChanged \lor\ \aRead) \THEN\  \aReg= \aLocReg \ELSE\  \aReg= \aLoc \SEMI \FI $,
+\item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocReg = \aExp$
+\end{itemize}
+\end{definition}
+\begin{theorem}
+Let $\aCmd$ be a command without either synchronization or parallelism.   Let $\aForm, \bForm$ be satisfiable formulas. Then: 
+\[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
+\begin{proof}
+Proof follows immediately from the soundness and completeness of Hoare logic for sequential operational semantics;  see~\citet{gordonHoare} for the formalized proof for the version of the logic that we are using.
+\end{proof}
+\end{theorem}
+
+ 
+\begin{theorem}\label{seqcompleteness}
+Let $\aCmd$, $\bCmd$ be sequential programs such that $\bCmd$ is linear and
+\[ (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm} \]
+Then:
+\[ \freadsat{\sem{\bCmd}} \subseteq \freadsat{\sem{\aCmd}} \]
+\begin{proof}
+The pomsets in the semantics of a linear sequential program fragment, such as $\sem{\bCmd}$, are generated by the augmentation closure of pomsets that have a special format that only include edges of the form: \begin{tikzdisplay}[node distance=1em]
+  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+  \eventl{\aEv}{w}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+  \po{r}{w}
+\end{tikzdisplay}
+where $\vec{\bLoc}\GETS \vec{\aLoc}$ has no conflicting assignments to the same variable, and where each $\aLoc$ appears in at most one write event. Thus, using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd}$ is completely determined by the Hoare triples satisfied by $\bCmd$.  
+
+By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $\bCmd$.  Using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd} \subseteq \fsat(\sem{\aCmd})$. 
+\end{proof}
+\end{theorem}
+
+
+
+
+
+
+\endinput 
+
+
+
+
 \subsection{Full abstraction for synchronization free threads}
 Our semantics is complete for reasoning about full-thread optimizations of synchronization free programs.
 
@@ -189,16 +446,7 @@ In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are
 restriction-free, composition-free (ie. single threaded), and
 synchronization-free (ie. no acquire, release, fence).
 
-In order to develop the proof, we first make the semantics insensitive to
-reads that are never used.  Let $\readc(\aPSS)$ be the smallest augmentation
-closed set containing $\aPSS$ that also satisfies closure under the inclusion
-of useless reads: if $\aPS \in \readc(\aPSS)$, then
-$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\cup\{\aEv\}$,
-$\aEv \not \in \Event$, ${\le'} ={\le}$,
-${\labeling'} \restrict \Event = {\labeling}$, and
-$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ and $\aVal$.
-
-Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
+In order to develop the proof, 
 
 This closure permits us to  describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
 \begin{definition}
@@ -295,120 +543,3 @@ We prove by induction on $\lt$ that $\testP{\aPS}{i}\hole{\aCmd}$  sets $b_i$ to
 \end{theorem}
 
 The full abstraction theorem applies only to full threads.  The reason for this limited statement is that our impoverished language does not permit  parallel composition to be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands can be achieved with these richer distinguishing contexts.  
-
-
-\subsection{Relationship to Hoare logic}
-In order to provide useful information about sequential commands in sequential contexts, we establish a relationship with Hoare triples for a sequential language.    
-
-This invariant captured in the following theorem underlies the definitions in the semantics of sequential commands.
-In this theorem, we consider Hoare triples over formulas as per as per \textsection\ref{sec:data}.
-\begin{theorem}
-Let $\aCmd$ be a command without either synchronization or parallelism. 
-
-The following Hoare triple is valid,
-\begin{displaymath}
-  \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-\end{displaymath}
-if and only if
-$\freadsat\sem{\aCmd}$ contains an execution that includes
-\begin{tikzdisplay}[node distance=1em]
-  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-  \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
-  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-  \wk{w1}{w2}
-  \po{r}{w2}
-\end{tikzdisplay}
-where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
-$\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-\begin{proof}
-The proof proceeds by structural induction on the command. 
-\end{proof}
-\end{theorem}
-
-% \begin{theorem}
-% Let $\aCmd$ be a command without either synchronization or parallelism, such that
-% $\sem{\aCmd}$ contains an execution that includes
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
-%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-%   \wk{w1}{w2}
-%   \po{r}{w2}
-% \end{tikzdisplay}
-% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
-% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-% Then the following Hoare triple is valid:
-% \begin{displaymath}
-%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-% \end{displaymath}
-% \begin{proof}
-% The proof proceeds by structural induction on the command. 
-% \end{proof}
-% \end{theorem}
-
-
-We illustrate with a few examples.
-$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds.   In the semantics, this is mirrored by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{w1}{\DW{x}{1}}{}
- \event{w2}{\DW{x}{2}}{right=of w1}
-\wk{w1}{w2}
-\end{tikzdisplay}
-
-The two pomsets corresponding to the triple $\hoare{x=1}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1\FI}{y=1}$ illustrate the two ways to satisfy preconditions in the above theorem.
-\begin{displaymathsmall}
-\mbox{Internal: }
-\begin{tikzcenter}
-\event{w}{x=1 \mid \DW{y}{1}}{}
-\end{tikzcenter}
-\qquad \qquad
-\mbox{External: }
-\begin{tikzcenter}
-\event{r}{\DR{x}{1}}{}
-\event{w}{\DW{y}{1}}{right=of r}
-\po{r}{w}
-\end{tikzcenter}
-\end{displaymathsmall}
-
-$\hoare{\TRUE}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} $ holds.  
-In the semantics, this is mirrored by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{w}{\DW{y}{1}}{}
- \event{r}{\DR{x}{v}}{right=of w}
-\end{tikzdisplay}
-In contrast, in a semantics that forbids load buffering, where the best that one can prove is
-$\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
-$.
-
-Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI s \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
-$ \hoare{x=1}{\aCmd}{y=1}$ and
-$ \hoare{u=1}{\aCmd}{v=1}$
-hold.  In the semantics, this is mirrored by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{rx}{\DR{x}{1}}{}
- \event{ru}{\DR{u}{1}}{right=of rx}
- \event{wy}{\DW{y}{1}}{below=of rx}
-\event{wv}{\DW{u}{1}}{below=of ru}
- \rf{rx}{wy}
- \rf{ru}{wv}
-\end{tikzdisplay}
-
-
-Consider a fragment from example~\eqref{rfub}.
-\begin{align*}
-\bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
-\end{align*}
-Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$.  
-In the semantics, this is mirrored by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{ry}{\DR{y}{41}}{}
- \event{wx}{\DW{x}{42}}{right=of ry}
- \event{wa}{\DW{a}{1}}{below=of rx}
- \rf{ry}{wa}
-\end{tikzdisplay}
-
-
-\endinput 
-
-
-
