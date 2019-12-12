@@ -1,38 +1,83 @@
-\section{Variations}
+\section{Additional Features}
 
-\citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
-security flaws that arise from speculative evaluation in computer
-microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
-\begin{definition}
-  %\label{def:3valued}
-  A \emph{3-valued pomset with preconditions} is a tuple
-  $(\Event, {\le}, {\gtN}, \labeling)$, such that
-  \begin{itemize}
-  \item $\Event$ is a set of \emph{states},
-  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
-  \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
-    \begin{itemize}
-    \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$, \hfill
-      (Inclusion)
-    \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then
-      $\bEv = \aEv$, and \hfill (Consistency)
-    \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$
-      then $\cEv \gtN \aEv$.  \hfill (Semi-transitivity)
-    \end{itemize}
-  \end{itemize}
+\subsection{Address calculation}
 
-  A \emph{(memory model) pomset} is a 3-valued pomset with preconditions,
-  such that
-  \begin{itemize}
-  \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$, and \hfill (Causal-strengthening)
-  \end{itemize}
-\end{definition}
-The axioms for $\gtN$ are adapted
-from~\citet[A1--A3]{DBLP:journals/dc/Lamport86}.  
+Definition of data model:
+\begin{itemize}
+\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
+\end{itemize}
 
-\begin{definition}
-  A pomset \emph{coherent} if, when restricted to events that read or write
-  any single location $\aLoc$, $\gtN$ forms a partial order.
-\end{definition}
+\begin{align*}
+\aCmd,\,\bCmd
+\BNFDEF& \cdots
+\BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
+\BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
+\end{align*}
+
+\begin{align*}
+  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDRmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \\
+  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDWmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
+\end{align*}
+
+\subsection{Fences}
+
+All fence actions are internal, do not read or write.
+\begin{align*}
+  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
+  \\
+  \aCmd,\,\bCmd
+  \BNFDEF& \cdots
+  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
+\end{align*}
+
+\begin{align*}
+  \sem{\FENCE\SEMI \aCmd} & =
+  (\DF{}) \prefix \sem{\aCmd}
+\end{align*}
+
+\subsection{Read-Modify-Write}
+
+% \section{Variations}
+
+% \citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
+% security flaws that arise from speculative evaluation in computer
+% microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
+% \begin{definition}
+%   %\label{def:3valued}
+%   A \emph{3-valued pomset with preconditions} is a tuple
+%   $(\Event, {\le}, {\gtN}, \labeling)$, such that
+%   \begin{itemize}
+%   \item $\Event$ is a set of \emph{states},
+%   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
+%   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
+%   \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
+%     \begin{itemize}
+%     \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$, \hfill
+%       (Inclusion)
+%     \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then
+%       $\bEv = \aEv$, and \hfill (Consistency)
+%     \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$
+%       then $\cEv \gtN \aEv$.  \hfill (Semi-transitivity)
+%     \end{itemize}
+%   \end{itemize}
+
+%   A \emph{(memory model) pomset} is a 3-valued pomset with preconditions,
+%   such that
+%   \begin{itemize}
+%   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
+%     $\labelingForm(\bEv)$, and \hfill (Causal-strengthening)
+%   \end{itemize}
+% \end{definition}
+% The axioms for $\gtN$ are adapted
+% from~\citet[A1--A3]{DBLP:journals/dc/Lamport86}.  
+
+% \begin{definition}
+%   A pomset \emph{coherent} if, when restricted to events that read or write
+%   any single location $\aLoc$, $\gtN$ forms a partial order.
+% \end{definition}

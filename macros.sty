@@ -1,3 +1,15 @@
+\newcommand{\amode}{\mu}
+\newcommand{\fmode}{\nu}
+\newcommand{\REL}{^{\mathsf{rel}}}
+\newcommand{\ACQ}{^{\mathsf{acq}}}
+\newcommand{\RLX}{^{\mathsf{rlx}}}
+\newcommand{\mSC}{^{\mathsf{sc}}}
+\newcommand{\modeRA}{{\mathsf{ra}}}
+\newcommand{\modeRLX}{{\mathsf{rlx}}}
+\newcommand{\modeREL}{{\mathsf{rel}}}
+\newcommand{\modeACQ}{{\mathsf{acq}}}
+\newcommand{\modeSC}{{\mathsf{sc}}}
+
 %\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
 
 \newcommand{\hole}[1]{\ifnotemptyelse{#1}{[{#1}]}{[\textnormal{--}]}}
@@ -129,9 +141,9 @@
 \newcommand{\pair}[2]{\langle#1,\,#2\rangle}
 % \newcommand{\freads}{\mathsf{reads}}
 % \newcommand{\fwrites}{\mathsf{writes}}
-\newcommand{\rreads}{\mathsf{Reads}}
-\newcommand{\rwrites}{\mathsf{Writes}}
-\newcommand{\finternalize}{\mathsf{internalize}}
+\newcommand{\rreads}{\mathsf{Rd}}
+\newcommand{\rwrites}{\mathsf{Wr}}
+\newcommand{\finternalize}{\tau}%\mathsf{internalize}}
 
 \newcommand{\Sub}{\mathcal{S}}
 \newcommand{\aSub}{\sigma}
@@ -178,8 +190,8 @@
 
 \newcommand{\Int}{\mathsf{Internal}}
 \newcommand{\Ext}{\mathsf{External}}
-\newcommand{\Rel}{\mathsf{Release}}
-\newcommand{\Acq}{\mathsf{Acquire}}
+\newcommand{\Rel}{\mathsf{Rel}}
+\newcommand{\Acq}{\mathsf{Acq}}
 \newcommand{\Act}{\mathcal{A}}
 \newcommand{\aActSub}{\alpha}
 \newcommand{\bActSub}{\beta}
@@ -188,11 +200,19 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
+\newcommand{\DRSC}[2]{\smash{\mathsf{R^{sc}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DWSC}[2]{\smash{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
 \newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
 \newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\mathsf{F}^{#1}}
+\newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
+\newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
+\newcommand{\iDRmode}[2]{\mathsf{R^{\amode}}\ifnotempty{#1}{\,#1\,\bot}}
+\newcommand{\iDWmode}[2]{\mathsf{W^{\amode}}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDRAcq}[2]{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDWRel}[2]{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,\bot}}
@@ -230,8 +250,8 @@
 
 \newcommand{\Alphabet}{\Sigma}
 \newcommand{\labeling}{\lambda}
-\newcommand{\labelingForm}{\lambda_{\Formulae}}
-\newcommand{\labelingAct}{\lambda_{\Act}}
+\newcommand{\labelingForm}{\Formulae}%\lambda_{\Formulae}}
+\newcommand{\labelingAct}{\Act}%\lambda_{\Act}}
 
 \newcommand{\RF}{\mathsf{RF}}
 
@@ -253,8 +273,6 @@
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
 \newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\SC}}
 %\newcommand{\semsc}[1]{\textit{SC}\llbracket#1\rrbracket}
-\newcommand{\REL}{^{\mathsf{rel}}}
-\newcommand{\ACQ}{^{\mathsf{acq}}}
 \newcommand{\FENCE}{\texttt{fence}}
 \newcommand{\BEGIN}{\texttt{begin}}
 \newcommand{\COMMIT}{\texttt{commit}}
@@ -300,6 +318,7 @@
 \newcommand{\GCC}{\texttt{gcc}}
 \newcommand{\CLANG}{\texttt{clang}}
 
+%\usepackage[defblank]{paralist}
 \usepackage{xparse}
 \usepackage[T1]{fontenc}
 \usepackage{alltt}

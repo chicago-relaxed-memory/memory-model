@@ -7,6 +7,37 @@ examples, we unroll loops, correct typos and simplify the code.
 
 \subsection{Causality test case 8}
 
+\begin{comment}
+Consider the program variant:
+
+x=0; r=x; if(r<2){y=1} || x=5
+
+[[ y=1 ]] contains (Wy1)
+
+[[ if(r<2){y=1} ]] contains (r<2|Wy1)
+
+[[ r=x; if(r<2){y=1} ]] contains (Rx5)  (x<2|Wy1)  //with no order
+
+[[ x=0; r=x; if(r<2){y=1} ]] contains (Wx0)  (Rx5)  (x<2|Wy1) //does not work, since violates (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥].
+ 
+
+Another example:
+So consider the single threaded program
+
+x=4; x=5; r=x; if(r==4){y=1}
+
+Clearly, this should not be able to give us Wy1.
+Here is why that is not possible:
+
+[[ y=1 ]] contains (Wy1)
+
+[[ if(r==4){y=1} ]] contains (r==4|Wy1)
+
+[[ r=x; if(r==4){y=1} ]] contains (Rx5)  (x==4|Wy1) // with no order
+
+[[ x=5; r=x; if(r==4){y=1} ]] contains (Wx5)-->(Rx5)  (5==4|Wy1) // 5 is forced.
+\end{comment}
+
 Test case 8 asks whether:
 \begin{displaymath}
    x\GETS 0\SEMI
@@ -92,6 +123,49 @@ arriving at:
 % \end{math}
 % we can use this case since $\TRUE$ implies $0<2$.
 
+Test case 1 is similar.
+  
+This reasoning does not apply if the thread reads a value of $2$ or greater.
+Consider
+\begin{math}
+  (\DR{x}{2}) \prefix (x<2\mid\DW{y}{1}).
+\end{math}
+Definition~\ref{def:prefix}(\ref{pre-read}a) requires that the predicate
+of the write action must imply $(x<2)[2/x]$, which is equivalent to $\FALSE$.
+
+
+\begin{comment}
+Consider the program variant:
+
+x=0; r=x; if(r<2){y=1} || x=5
+
+[[ y=1 ]] contains (Wy1)
+
+[[ if(r<2){y=1} ]] contains (r<2|Wy1)
+
+[[ r=x; if(r<2){y=1} ]] contains (Rx5)  (x<2|Wy1)  //with no order
+
+[[ x=0; r=x; if(r<2){y=1} ]] contains (Wx0)  (Rx5)  (x<2|Wy1) //does not work, since violates (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥].
+ 
+
+Another example:
+So consider the single threaded program
+
+x=4; x=5; r=x; if(r==4){y=1}
+
+Clearly, this should not be able to give us Wy1.
+Here is why that is not possible:
+
+[[ y=1 ]] contains (Wy1)
+
+[[ if(r==4){y=1} ]] contains (r==4|Wy1)
+
+[[ r=x; if(r==4){y=1} ]] contains (Rx5)  (x==4|Wy1) // with no order
+
+[[ x=5; r=x; if(r==4){y=1} ]] contains (Wx5)-->(Rx5)  (5==4|Wy1) // 5 is forced.
+\end{comment}
+
+  
 \subsection{Causality test case 9}
 
 Test case 9 asks whether:

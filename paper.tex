@@ -1,6 +1,7 @@
+% at most 12 pages, % excluding references. 
 %% For double-blind review submission
-\documentclass[sigplan,10pt,anonymous]{acmart}
-%\documentclass[sigplan,10pt,review,anonymous]{acmart}
+%\documentclass[sigplan,10pt,anonymous]{acmart}
+\documentclass[sigplan,10pt,review,anonymous]{acmart}
 \settopmatter{printfolios=true}
 \AtEndPreamble{%
   \theoremstyle{acmdefinition}
@@ -110,6 +111,7 @@
 % \titlenote{with title note}             %% \titlenote is optional;
 %                                         %% can be repeated if necessary;
 %                                         %% contents suppressed with 'anonymous'
+
 % \subtitle{Subtitle}                     %% \subtitle is optional
 % \subtitlenote{with subtitle note}       %% \subtitlenote is optional;
 %                                         %% can be repeated if necessary;
@@ -258,21 +260,22 @@
 %   \email{jriely@cs.depaul.edu}}
 % }
 
-\input{comments}
 \input{intro}
 \input{model}
 \input{sc}
 \input{arm}
 \input{opt}
 \input{logic}
-\input{ldrf}
+\input{variants}
+\input{outro}
 \begin{small}
 \bibliography{bib}
 \end{small}
 \newpage
 \appendix
-% \input{appendix}
-% \input{examples}
+\input{appendix}
+\input{examples}
+\input{comments}
 
 %\input{variants}
 %\input{jamesintro}

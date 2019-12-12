@@ -186,7 +186,7 @@ In the pomset on the left, the read is \emph{internal}, and therefore the
 formula on the write actions must be discharged by a preceding action in the  same thread.   In this execution, we have included an \emph{internal action}, which we visualize in grey.  
 
 In the pomset on the right, the read is \emph{external}.  An
-external read may discharge the precondition on a event that is ordered
+external read may discharge the precondition on an event that is ordered
 after: by introducing order $(\DR{x}{1})\xpo(x=1\mid\DW{y}{1})$, we may
 substitute $1$ for $x$ in the precondition, resulting in $1=1$, which is a
 tautology and therefore elided.
@@ -319,7 +319,8 @@ so that it is monotone with respect to addition of new threads.
   $\aVal$ to $\aLoc$, $\aEv$ externally reads $\aVal$ from $\aLoc$,
   \begin{itemize}
   \item $\bEv \lt \aEv$, and
-  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+
+  \item if $\cEv$ externally writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 
   A pomset is $\aLoc$-closed if every external read on $\aLoc$ is fulfilled,
@@ -1251,11 +1252,17 @@ case, the predicate becomes $1\NOTEQ 1$.
 process of revising the Java Memory Model (JMM)
 \cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
 confirmed that our model gives the desired result for all twenty cases,
-unrolling loops as necessary.  Our model also gives the desired results for
+unrolling loops as necessary.
+% confirmed that our model gives the desired result these test cases, with the
+% following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
+% of TC1 and TC8 are only allowed in our model if the inferred range of
+% variables is included as a global assumption in the logic. 
+Our model also gives the desired results for
 all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
 \citet[\textsection 5.3]{SevcikThesis}.  Our model agrees with the JMM on the
 ``surprising and controversial behaviors'' of \citet[\textsection
 8]{Manson:2005:JMM:1047659.1040336}. \textsection\ref{sec:examples} develops some of these examples.
+
 
 \section{The Semantics of a Simple Concurrent Language}
 \label{sec:model}
@@ -1326,8 +1333,8 @@ We require that data models satisfy the following:
 \item the sets of values, registers and memory locations are disjoint,
 \item values include at least the constants $0$ and $1$,
 \item expressions include at least registers and values,
-\item memory locations have the form $\REF{\aVal}$,
-\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
+%\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations, % or the operator $\REF{\aExp}$,
 \item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
   $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
@@ -1354,7 +1361,9 @@ For the actions of a data model, we require that
 \begin{itemize}
 \item there are partial functions $\rreads$ and
   $\rwrites: \Act \fun (\Loc \times \Val_\bot)$,
-\item there are sets $\Rel$ and $\Acq \subseteq\Act$, and
+\item there are sets $\Acq$ and $\Rel$ and $\SC \subseteq\Act$ such that
+  $\SC\cap\rreads\subseteq\Acq$ and
+  $\SC\cap\rwrites\subseteq\Rel$, and
 \item there is a function $\finternalize: (\Loc\times\Act) \fun \Act$ that
   satisfies the restrictions given below.
 \end{itemize}
@@ -1372,27 +1381,34 @@ actions that read or write $\bot$ are \emph{internal}.
 % $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
 % in $\Int=\Act\setminus\Ext$ are \emph{internal}.
 
-We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, and that $\aAct$
-is a \emph{release} if $\aAct\in\Rel$.  
+We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, that $\aAct$
+is a \emph{release} if $\aAct\in\Rel$, and that $\aAct$ is \emph{SC} if $\aAct\in\SC$.  
 % We say that $\aAct$ is a
 % \emph{synchronization} if it is either a release or an acquire.
 
 We require that $\finternalize$ satisfy the following:
 \begin{itemize}
 \item $\finternalize(\aAct)$ reads $\bot$ from $\aLoc$ exactly when $\aAct$ reads from $\aLoc$,
-\item $\finternalize(\aAct)$ writes $\bot$ from $\aLoc$ exactly when $\aAct$ writes from $\aLoc$,
+\item $\finternalize(\aAct)$ writes $\bot$ to $\aLoc$ exactly when $\aAct$ writes to $\aLoc$,
 %\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
-\item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, and 
-\item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release.
+\item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, 
+\item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release, and
+\item $\finternalize(\aAct)$ is SC exactly when $\aAct$ is SC. 
 \end{itemize}
 
-As noted in \textsection\ref{sec:model:intro}, our example language includes acquiring
-read $(\DRAcq{\aLoc}{\aVal})$, relaxed read $(\DR{\aLoc}{\aVal})$, releasing
+As noted in \textsection\ref{sec:model:intro}, our example language includes
+SC read $(\DRSC{\aLoc}{\aVal})$, acquiring
+read $(\DRAcq{\aLoc}{\aVal})$, relaxed read $(\DR{\aLoc}{\aVal})$, SC write
+$(\DWSC{\aLoc}{\aVal})$, releasing
 write $(\DWRel{\aLoc}{\aVal})$, and relaxed write $(\DW{\aLoc}{\aVal})$.
 For each external action, we also define a corresponding internal action
 %which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
-$(\iDRAcq{\aLoc}{\aVal})$, $(\iDR{\aLoc}{\aVal})$,
-$(\iDWRel{\aLoc}{\aVal})$, and $(\iDW{\aLoc}{\aVal})$.
+$(\iDRSC{\aLoc}{\aVal})$,
+$(\iDRAcq{\aLoc}{\aVal})$,
+$(\iDR{\aLoc}{\aVal})$,
+$(\iDWSC{\aLoc}{\aVal})$,
+$(\iDWRel{\aLoc}{\aVal})$, and
+$(\iDW{\aLoc}{\aVal})$.
 In pictures, we draw internal actions grayed out,
 rather than using $\bot$.  % For example, the ``read'' action is internal in:
 % \begin{tikzdisplay}[node distance=1em]
@@ -1402,7 +1418,7 @@ rather than using $\bot$.  % For example, the ``read'' action is internal in:
 %   \po{wx1}{wy1}
 % \end{tikzdisplay}
 
-We also include acquire-release fences of the form $(\DF)$.
+%We also include acquire-release fences of the form $(\DF)$.
 
 % In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
 % indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
@@ -1444,7 +1460,7 @@ respect to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
   implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
 \end{definition}
 Each
-$\aPS\in\sem{\aCmd}$ as a \emph{completed} execution.  So, we do not expect $\sem{\aCmd}$ to be prefixed closed.  However, implication
+$\aPS\in\sem{\aCmd}$ is a \emph{completed} execution.  So, we do not expect $\sem{\aCmd}$ to be prefixed closed.  However, implication
 closure in a memory-model pomset does give something similar: any event
 $\aEv$ can be given an unsatisfiable precondition, which means that every
 event ordered after $\aEv$ must also be unsatisfiable, as per
@@ -1486,7 +1502,7 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   pomsets that are $\aLoc$-closed,
 % \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
 %   keeping pomsets where all events imply $\aForm$,
-% \item \emph{independency filtering} $\Loc\guard\aPSS$, which filters
+% \item \emph{independency filtering} $\Loc \guard\aPSS$, which filters
 %   $\aPSS$, keeping pomsets all events are independent of every location,
 % \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which filters
 %   $\aPSS$, keeping pomsets that have an initial write to $\aLoc$,
@@ -1502,8 +1518,8 @@ We also define two filtering operations:
 \begin{itemize}
 \item \emph{guarding} $\aForm\guard\aPSS$, which
   keeps pomsets where all preconditions imply $\aForm$, and
-\item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
-  where all preconditions are location independent.
+% \item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
+%   where all preconditions are location independent.
 % \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
 %   that have an initial write to $\aLoc$.
 \end{itemize}
@@ -1569,8 +1585,8 @@ $\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labeli
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
 
-Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
-$\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
+% Let $(\Loc\guard \aPSS)$ be the subset of $\aPSS$ such that
+% $\aPS\in\aPSS$ whenever $\labelingForm(\aEv)$ is location independent, for every $\aEv\in\Event$.
 %
 % Let $(\DW{\aLoc}{} \guard \aPSS)$ be the subset of $\aPSS$ such that
 % $\aPS\in\aPSS$ whenever there is some $\bEv$ that writes $\aLoc$ such that
@@ -1613,29 +1629,20 @@ whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that:
 \item $\Event' = \Event^1 \cup \Event^2$,
 \item ${\le'}\supseteq{\le^1}\cup{\le^2}$, %if $\aEv \le^1 \bEv$ or $\aEv \le^2 \bEv$ then $\aEv \le' \bEv$,
 %\item ${\gtN'}\supseteq{\gtN^1}\cup{\gtN^2}$, and %if $\aEv \gtN^1 \bEv$ or $\aEv \gtN^2 \bEv$ then $\aEv \gtN' \bEv$,
-% \item if $\labeling'(\aEv) = (\aForm' \mid \aAct)$ then either:
-%   \begin{itemize}
-%   \item $\labeling^1(\aEv) = (\aForm^1 \mid \aAct)$ and $\labeling^2(\aEv) = (\aForm^2 \mid \aAct)$
-%     and $\aForm'$ implies $\aForm^1 \lor \aForm^2$,
-%   \item $\labeling^1(\aEv) = (\aForm^1 \mid \aAct)$ and $\aEv \not\in \Event^2$
-%     and $\aForm'$ implies $\aForm^1$, or
-%   \item $\labeling^2(\aEv) = (\aForm^2 \mid \aAct)$ and $\aEv \not\in \Event^1$
-%     and $\aForm'$ implies $\aForm^2$.
-%   \end{itemize}
 \item either
-  % \begin{gather*}
-  %   \labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\
-  %   \aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\    
-  %   \aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
-  % \end{gather*}
-  \begin{itemize}
-  \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv)
-    \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)$,
-  \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv),\;\; \aEv \not\in \Event^2\,
-    \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor$
-  \item $\labelingAct'(\aEv) = \labelingAct^2(\aEv),\;\; \aEv \not\in \Event^1\,
-    \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
-  \end{itemize}
+  \begin{align*}
+    \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+    &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+  \end{align*}
+  % \begin{itemize}
+  % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv)
+  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)$,
+  % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv),\;\; \aEv \not\in \Event^2\,
+  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor$
+  % \item $\labelingAct'(\aEv) = \labelingAct^2(\aEv),\;\; \aEv \not\in \Event^1\,
+  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
+  % \end{itemize}
 \end{itemize}
 \end{definition}
 Composition is used in giving the semantics for conditionals and concurrency.
@@ -1683,6 +1690,61 @@ then $\aPSS^1 \parallel \aPSS^2$ contains:
 % \end{tikzdisplay}
 
 
+\begin{definition}
+  Let $\aPS$ and $\aPS'$ be pomsets such that 
+  $\Event' = \Event \cup \{\cEv\}$ and $\labelingAct'(\aEv) = \labelingAct(\aEv)$.
+  We say that \emph{$\cEv$ discharges $\aPS$ in $\aPS'$} if
+% \begin{enumerate}
+% \item\label{pre-noread} if $\labelingAct'(\cEv)$ %$\aAct$
+%   is not a read then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+% \item\label{pre-iread} if $\labelingAct'(\cEv)$ %$\aAct$
+%   internally reads from $\aLoc$ then both
+%   \begin{enumerate}
+%   \item[(\ref{pre-iread}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+%   \item[(\ref{pre-iread}b)] if $\aEv$ writes then either $\cEv\lt'\aEv$
+%     or $\labelingForm(\aEv)$ is independent of $\aLoc$, and
+%   \end{enumerate}
+% \item\label{pre-read} if $\labelingAct'(\cEv)$ %$\aAct$
+%   externally reads $\aVal$ from $\aLoc$ then both
+%   \begin{enumerate}
+%   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
+%   \item[(\ref{pre-read}b)] if $\aEv$ writes then either $\cEv\lt'\aEv$
+%     or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+%   \end{enumerate}
+% \end{enumerate}
+\begin{enumerate}
+% \item\label{dis-ext1} if $\labelingAct'(\cEv)$ externally reads $\aVal$ from
+%   $\aLoc$ then $\labelingForm'(\aEv)$ implies
+%   $\labelingForm(\aEv)[\aVal/\aLoc]$,
+% \item\label{dis-int1} if $\labelingAct'(\cEv)$ does not externally read then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+% % \item\label{dis-ext2} if $\labelingAct(\aEv)$ writes and
+% %   $\labelingAct'(\cEv)$ externally reads then either $\cEv\lt'\aEv$ or
+% %   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+% % \item\label{dis3-int2} if $\labelingAct(\aEv)$ writes and
+% %   $\labelingAct'(\cEv)$ internally reads from $\aLoc$ then either
+% %   $\cEv\lt'\aEv$ or $\labelingForm(\aEv)$ is independent of $\aLoc$.
+% \item\label{dis-ext2} if $\labelingAct(\aEv)$ writes,
+%   $\labelingAct'(\cEv)$ externally reads, and $\labelingForm'(\aEv)$ does not
+%   imply $\labelingForm(\aEv)$, then $\cEv\lt'\aEv$, and
+% \item\label{dis3-int2} if $\labelingAct(\aEv)$ writes, $\labelingAct'(\cEv)$
+%   internally reads from $\aLoc$, and $\labelingForm(\aEv)$ is not independent
+%   of $\aLoc$, then $\cEv\lt'\aEv$.
+\item\label{dis-int1} if $\cEv$ does not externally read then
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+\item\label{dis-ext1} if $\cEv$ externally reads $\aVal$ from
+  $\aLoc$ then $\labelingForm'(\aEv)$ implies
+  $\labelingForm(\aEv)[\aVal/\aLoc]$,
+\item\label{dis-ext2} if $\cEv$ externally reads, $\aEv$ writes, but
+  $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$, then
+  $\cEv\lt'\aEv$, and
+\item\label{dis3-int2} if $\cEv$ internally reads from $\aLoc$, if $\aEv$
+  writes, but $\labelingForm(\aEv)$ is not independent of $\aLoc$, then
+  $\cEv\lt'\aEv$.
+\end{enumerate}
+\end{definition}
+
 %\subsubsection{Prefixing}
 \begin{definition}
   \label{def:prefix}
@@ -1691,79 +1753,84 @@ there is $\aPS\in\aPSS$ such that:
 \begin{enumerate}
 \item\label{pre-E} $\Event' = \Event \cup \{\cEv\}$,
 \item\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-%\item\label{pre-gtN} ${\gtN'}\supseteq{\gtN}$, %if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
-% \item $\labelingAct'(\cEv) = \aAct$, 
-% \item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =
-%   (\bForm' \mid \bAct)$, where:
-%   \begin{itemize}
-%   \item if $\aAct$ is an acquire then $\bForm'$ is independent of every $\bLoc$,
-%   \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
-%   \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
-%     \begin{itemize}
-%     \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
-%     \item either $\bForm'$ implies $\bForm$ or $\cEv\lt'\aEv$, 
-%     \end{itemize}
-%   \end{itemize}
-% \item if $\labelingAct(\aEv) = \bAct$ then:
-%   \begin{itemize}
-%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv \lt' \aEv$, 
-%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
-%     then $\cEv \gtN' \aEv$, and
-%   \end{itemize}
+%%\item\label{pre-gtN} ${\gtN'}\supseteq{\gtN}$, %if $\aEv \gtN \bEv$ then $\aEv \gtN' \bEv$,
+%% \item $\labelingAct'(\cEv) = \aAct$, 
+%% \item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =
+%%   (\bForm' \mid \bAct)$, where:
+%%   \begin{itemize}
+%%   \item if $\aAct$ is an acquire then $\bForm'$ is independent of every $\bLoc$,
+%%   \item if $\aAct$ does not read then $\bForm'$ implies $\bForm$,
+%%   \item if $\aAct$ reads then $\aVal$ from $\aLoc$ then
+%%     \begin{itemize}
+%%     \item $\bForm'$ implies $\bForm[\aVal/\aLoc]$, and
+%%     \item either $\bForm'$ implies $\bForm$ or $\cEv\lt'\aEv$, 
+%%     \end{itemize}
+%%   \end{itemize}
+%% \item if $\labelingAct(\aEv) = \bAct$ then:
+%%   \begin{itemize}
+%%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv \lt' \aEv$, 
+%%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+%%     then $\cEv \gtN' \aEv$, and
+%%   \end{itemize}
 \item\label{pre-act} $\labelingAct'(\cEv) = \aAct$, $\labelingAct'(\aEv) = \labelingAct(\aEv)$, and
    $\labelingForm'(\cEv)$ implies $\aForm$,
-% \item\label{pre-implies} either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or
-%   $\aAct$ is a read and if $\aEv$ is a write then $\cEv\lt'\aEv$,
-% \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
-%    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
-% \item\label{pre-nowrite} if $\aAct$ is neither reads nor writes, then $\labelingForm'(\aEv)$
-%  implies $\labelingForm(\aEv)$,
-% \item\label{pre-write} if $\aAct$ writes $\aVal$ to $\aLoc$ then
-%  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-  % either
-  % \begin{enumerate}
-  % \item[(\ref{pre-write}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, or
-  % \item[(\ref{pre-write}b)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-  % \end{enumerate}
-\item\label{pre-noread} if $\aAct$ is not a read then
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-\item\label{pre-iread} if $\aAct$ internally reads from $\aLoc$ then both
-  \begin{enumerate}
-  \item[(\ref{pre-iread}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
-  \item[(\ref{pre-iread}b)] if $\aEv$ is a write then either $\cEv\lt'\aEv$
-    or $\labelingForm(\aEv)$ is independent of $\aLoc$,
-  \end{enumerate}
-\item\label{pre-read} if $\aAct$ externally reads $\aVal$ from $\aLoc$ then both
-  \begin{enumerate}
-  \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
-  \item[(\ref{pre-read}b)] if $\aEv$ is a write then either $\cEv\lt'\aEv$
-    or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-  \end{enumerate}
-% \item if $\aAct$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-% \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
-\item\label{pre-coherence} if $\aAct$ and $\labelingAct(\aEv)$ are external actions in conflict,
+%% \item\label{pre-implies} either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or
+%%   $\aAct$ is a read and if $\aEv$ is a write then $\cEv\lt'\aEv$,
+%% \item\label{pre-read} if $\aAct$ reads $\aVal$ from $\aLoc$ then
+%%    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, %
+%% \item\label{pre-nowrite} if $\aAct$ is neither reads nor writes, then $\labelingForm'(\aEv)$
+%%  implies $\labelingForm(\aEv)$,
+%% \item\label{pre-write} if $\aAct$ writes $\aVal$ to $\aLoc$ then
+%%  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+%  % either
+%  % \begin{enumerate}
+%  % \item[(\ref{pre-write}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, or
+%  % \item[(\ref{pre-write}b)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+%  % \end{enumerate}
+\item\label{pre-discharge} $\cEv$ discharges $\aPS$ in $\aPS'$, 
+% \item\label{pre-noread} if $\aAct$ is not a read then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+% \item\label{pre-iread} if $\aAct$ internally reads from $\aLoc$ then both
+%   \begin{enumerate}
+%   \item[(\ref{pre-iread}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+%   \item[(\ref{pre-iread}b)] if $\labelingAct(\aEv)$ is a write then either $\cEv\lt'\aEv$
+%     or $\labelingForm(\aEv)$ is independent of $\aLoc$,
+%   \end{enumerate}
+% \item\label{pre-read} if $\aAct$ externally reads $\aVal$ from $\aLoc$ then both
+%   \begin{enumerate}
+%   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
+%   \item[(\ref{pre-read}b)] if $\labelingAct(\aEv)$ is a write then either $\cEv\lt'\aEv$
+%     or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+%   \end{enumerate}
+%% \item if $\aAct$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+%% \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
+\item\label{pre-coherence} if $\cEv$ and $\aEv$ are external actions in conflict,
     then $\cEv \gtN' \aEv$,
-\item\label{pre-sync} if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \lt' \aEv$, and
-\item\label{pre-acquire} if $\aAct$ is an acquire then $\labelingForm(\aEv)$ is location independent.
-% \item if $\aAct$ is a read but not a synchronization then either
-%   $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
-%   that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
-% \item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =
-%   (\bForm' \mid \bAct)$, where:
-%   \begin{itemize}
-%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv \lt' \aEv$, 
-%   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
-%     then $\cEv \gtN' \aEv$, and
-%   \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
-%     % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$} & \textsc{[dependent read]} \\
-%     % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
-%     % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
-%     \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
-%     \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
-%     \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
-%   \end{array}\right.\)
-%   \end{itemize}
+\item\label{pre-sync} if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
+\item\label{pre-sc} if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, 
+\item\label{pre-acquire} if $\cEv$ is an acquire then $\labelingForm(\aEv)$
+  is location independent, and
+\item\label{pre-internal} if $\cEv$ internally writes $\aLoc$, then for any
+  release $\aEv$, there some $\cEv\lt'\bEv\lt'\aEv$ that externally writes $\aLoc$.
+%% \item if $\aAct$ is a read but not a synchronization then either
+%%   $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
+%%   that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
+%% \item if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) =
+%%   (\bForm' \mid \bAct)$, where:
+%%   \begin{itemize}
+%%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\cEv \lt' \aEv$, 
+%%   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+%%   \item if $\aAct$ and $\bAct$ both touch the same location and one is a write,
+%%     then $\cEv \gtN' \aEv$, and
+%%   \item $\bForm'$ implies \(\left\{\begin{array}{l@{~}ll}
+%%     % \bForm[\aVal/\aLoc]                     & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$} & \textsc{[dependent read]} \\
+%%     % \bForm[\aVal/\aLoc] \text{ and } \bForm & \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  & \textsc{[independent read]} \\
+%%     % \bForm                                  & \mbox{otherwise}                                              & \textsc{[non-read]} \\        
+%%     \bForm[\aVal/\aLoc]                     \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$ and $\cEv\lt'\aEv$} \\\qquad \textsc{[dependent read]} \\[\jot]
+%%     \bForm[\aVal/\aLoc] \text{ and } \bForm \\\quad \mbox{if $\aAct$ reads $\aVal$ from $\aLoc$}                  \\\qquad \textsc{[independent read]} \\[\jot]
+%%     \bForm                                  \\\quad \mbox{otherwise}                                              \\\qquad \textsc{[non-read]} \\
+%%   \end{array}\right.\)
+%%   \end{itemize}
 \end{enumerate}
 \end{definition}
 % The last condition ensures that useless reads are not included.
@@ -1882,7 +1949,7 @@ The following lemma is immediate from the definitions.
 % \item $\aPSS'\aSub \supseteq \aPSS\aSub$,
 % \item $\nu\aLoc\st\aPSS' \supseteq \nu\aLoc\st\aPSS$,
 % \item $\aForm\guard\aPSS' \supseteq \aForm\guard\aPSS$,
-% \item $\Loc\guard\aPSS' \supseteq \Loc\guard\aPSS$,
+% \item $\Loc \guard\aPSS' \supseteq \Loc \guard\aPSS$,
 % \item $\DW{\aLoc}{}\guard\aPSS' \supseteq \DW{\aLoc}{}\guard\aPSS$,
 % \item $\aPSS'_1\parallel\aPSS'_2 \supseteq \aPSS_1\parallel\aPSS_2$, and
 % \item $\aAct\prefix\aPSS' \supseteq \aAct\prefix\aPSS$.
@@ -1926,21 +1993,24 @@ The following lemma is immediate from the definitions.
 We consider a simple shared-memory concurrent language, with statements
 defined as follows.
 \begin{align*}
+  \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  \\
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
 \BNFSEP \aCmd \PAR \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
-\BNFSEP \FENCE\SEMI \aCmd
 \\
 \BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \BNFSEP \aReg\GETS\aExp\SEMI \aCmd
 \\
-\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd 
-\BNFSEP \aReg\GETS\REF{\cExp}\SEMI \aCmd
-\\
-\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd
-\BNFSEP \REF{\cExp}\GETS\aExp\SEMI \aCmd
+\BNFSEP& \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
+\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \end{align*}
+
+We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
+
+We elide the $\modeRLX$-mode annotation in examples.
+
 We use common syntax sugar, such as \emph{extended expressions}, which include
 memory locations.  For example, if the extended expression $\aEExp$ includes
 a single occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is
@@ -1955,24 +2025,22 @@ $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
 % In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
-% \begin{figure*}
-The semantics of programs is as follows\footnote{Fork parallelism is easily expressible in this
-  framework:
-  $\sem{\aCmd \LPAR \bCmd} = \sem{\aCmd} \parallel \Loc \guard
-  \sem{\bCmd}$.}:
+% \begin{figure*}1
+The semantics of programs is as follows: % \footnote{Fork parallelism is easily expressible in this
+  % framework:
+  % $\sem{\aCmd \LPAR \bCmd} = \sem{\aCmd} \parallel \Loc\guard
+  % \sem{\bCmd}$.}:
 \allowdisplaybreaks
 \begin{align*}
   \sem{\SKIP} & =
   \{ \emptyset \}
   \\
   \sem{\aCmd \PAR \bCmd} & =
-  \Loc \guard \sem{\aCmd} \parallel \Loc \guard \sem{\bCmd} 
+  %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
+  \sem{\aCmd} \parallel \sem{\bCmd} 
   \\
   \sem{\VAR\aLoc\SEMI \aCmd} & =
   \nu \aLoc \st \sem{\aCmd}
-  \\
-  \sem{\FENCE\SEMI \aCmd} & =
-  (\DF{}) \prefix \sem{\aCmd}
   \\  
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
@@ -1980,29 +2048,35 @@ The semantics of programs is as follows\footnote{Fork parallelism is easily expr
   \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
   \sem{\aCmd}[\aExp/\aReg] 
   \\
-  \sem{\aReg\GETS\REFAcq{\cExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\
-  \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDR{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
-  \\
-  \sem{\REFRel{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc] 
-  \\
-  \sem{\REF{\cExp}\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DW\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDW{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]
-  %\\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal) \guard \DW{\aLoc}{} \guard \sem{\aCmd}[\aExp/\aLoc]
-  % \sem{\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DW\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  % \sem{\REL\aLoc\GETS\aExp\SEMI \aCmd} & = \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}\bigr)[\aExp/\aLoc] \\
-  % \sem{\aReg\GETS\REF{\cExp}\SEMI \aCmd} & = \textstyle\bigcup_\aLoc\; (\REF{\cExp}=\aLoc) \guard (\sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]) \\
-  % \sem{\aReg\GETS\aLoc\SEMI \aCmd} & =  \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-  % \sem{\ACQ\aReg\GETS\aLoc\SEMI \aCmd} & =  \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
-% \caption{Semantics of a concurrent shared-memory language}
-% \label{fig:programs}
-% \end{figure*}
+  % \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+  % (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  % \\ & \mkern2mu\cup
+  % \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  % \\
+  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+  (\iDWmode{\aLoc}{}) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \\ & \mkern2mu\cup
+  \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
 \end{align*}
+% The definition of read then chooses a set of predicates, values in V and pomsets in [[C]] so that 
+% [[ r=x; C]] contains pomsets of the form  ||_{k in K} (phi_k |> Rxv_k => Pk)
+% where the phi_k are disjoint and Pk in [[ C ]][x/r]
+% by disjoint, we mean that for any i,j in K: if phi_i /\ phi_j is satisfiable then I=j
+
+\begin{definition}
+  Let $\aPS'\in\sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd}$ whenever\\
+  $\aPS'=(\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]$ or
+  $\aPS'=\PAR_{k\in K}(\aForm_k \mid \DRmode\aLoc{\aVal_k}) \prefix \aPS$
+  where $\aPS\in\sem{\aCmd}[\aLoc/\aReg]$ and $\aForm_k$ are
+  disjoint\footnote{For $i$, $j$ in $K$: if $\aForm_i \land \aForm_j$ is
+    satisfiable then $i=j$.}.
+\end{definition}
+
+% Let $\aPS'\in \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd}$ whenever
+% $\aPS'=(\iDWmode{\aLoc}{}) \prefix \sem{\aCmd}[\aExp/\aLoc]$  or 
+% $\aPS'=\PAR_{k\in K}(\aExp=\aVal_k \land \aForm_k \mid \DWmode\aLoc{\aVal_k})) \prefix \aPS$
+% where $\aPS\in\sem{\aCmd}[\aLoc/\aReg]$ and
+% $\aForm_k$ are disjoint\footnote{For $i$, $j$ in $K$: if $\aForm_i \land \aForm_j$ is satisfiable then $i=j$.}.
 
 The semantics of relaxed reads is the union of two sets.  The first set adds
 a read action to each pomset in $\sem{\aCmd}$; the second adds an internal
