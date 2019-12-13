@@ -6,7 +6,7 @@
 There are two dimensions to ``implementation flexibility''.  Firstly, the model should be realizable on modern hardware with minimal synchronization.  A canonical example is that the relaxed atomics of C11 (or the plain variables of Java) should not require any extra synchronization.  Secondly, the  model should facilitate compiler transformations.    Ideally, the model should support the known transformations used to optimize  synchronization free single threaded code.  A canonical example is the  commuting of independent statements.
 
 
-There are also two dimensions to ``ease-of-use''.  Firstly,the \emph{data race free-sequentially consistent (\drfsc)} criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs.    Secondly, all programs, including those with data races,  should support compositional reasoning on temporal safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.  The simplest form of such a composition principle is:
+There are also two dimensions to ``ease-of-use''.  Firstly,the \emph{data race free-sequentially consistent (\drfsc)} criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs.    Secondly, all programs, including those with data races,  should support compositional reasoning on temporal safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649} \footnote{The simplest form of such a composition principle is:
 \[
   \frac{
       \afo, \aPSS_1 \models\afo
@@ -14,9 +14,9 @@ There are also two dimensions to ``ease-of-use''.  Firstly,the \emph{data race f
       \afo, \aPSS_2 \models\afo
     }{\aPSS_1 \parallel \aPSS_2 \models \afo}
 \]
-where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$.  This cyclical compositional proof rule permits us to reason separately about individual threads. 
+where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$. } to permit us to reason separately about individual threads validating safety properties. 
 
-``Out Of Thin Air'' (\oota) executions cause the violation of the 
+``Out Of Thin Air'' (\oota) executions invalidate the 
 composability  of safety properties.    Consider the ``type unsafety'' example, from
 \citep[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
 \begin{equation}
@@ -39,17 +39,18 @@ Whereas the JMM was designed with these two aims, the JMM and the related models
 
 Our approach has two key ingredients.  
 
-First, we address cross-thread dependencies simply by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}.  The acylicity of the pomset provides an axiomatic basis for a global notion of time, as envisioned in chapter 3.3 of~\citet{AlglaveThesis},  capturing the essence of multi-copy atomicity (\mca) in a software memory model. \footnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
+First, we focus on  multi-copy atomicity (\mca) in a software memory model. \footnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}  As envisioned in chapter 3.3 of~\citet{AlglaveThesis},  this permits us to address cross-thread dependencies simply by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}, with the acylicity of the pomset providing a global notion of time.  
 
-Second, we weaken the program-order within a thread to a preferred program order that only captures essential dependencies.  We use classical Hoare logic~\citep{Hoare:1969:ABC:363235.363259}.  
+Second, we weaken the program-order within a thread to a preferred program order that only captures essential dependencies.  We use classical Hoare logic~\citep{Hoare:1969:ABC:363235.363259}, as presented in~\citet{gordonHoare}.  
 Consider the following sequential program fragments
 \begin{align*}
 & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1 \\
-& \aCmd_2: \aReg \GETS \aLoc \SEMI \IF (\aReg == 0) \bLoc \GETS 1 \ELSE \bLoc \GETS 1 \\
-& \aCmd_3: \aLoc \GETS 1 \SEMI \IF (\aReg != 0) \bLoc \GETS 1 \FI
+& \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg == 0} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI \\
+& \aCmd_3: \aLoc \GETS 1 \SEMI \IF{\aReg != 0} \THEN \bLoc \GETS 1 \FI \\
+&\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
-The Hoare triples $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$ holds for $i=1,\ldots,3$, capturing the essence of the idea that the program order of $\bLoc \GETS 1$ can be removed and that the write of $1$ to $\bLoc$ can be commuted to the beginning\footnote{Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
-DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}
+All the above program fragments satisfy the same Hoare triples.  In particular, $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$ holds for all $i=1,\ldots,4$, capturing the essence of the idea that the program order into $\bLoc \GETS 1$ can be removed and that the write of $1$ to $\bLoc$ can be commuted to the beginning\footnote{Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
+DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.} .
 
 
 We show the following.
@@ -66,9 +67,13 @@ However, a semantic version of \mca\ in our model means that a compilation to \a
 \item The model validates a variety of single threaded transformations including reordering of independent statements and roach motel laws for synchronization  (\textsection\ref{sec:opt}).
 \end{itemize}
 On the last point, we demonstrate a further completeness result.  Whereas the JMM aims to validate {\em all} sequential optimizations, it is clear that is impossible.  For example, the introduction of redundant reads  but not valid concurrently. Thus, $\aReg \GETS \REF{\aLoc} \SEMI \IF{\aReg != \aReg} \cLoc \GETS 1 \FI$ cannot be replaced by $\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
-\IF{\aReg != \bReg} \THEN \cLoc \GETS 1 \FI$.   Similarly for redundant writes; $\aLoc \GETS 1$ cannot be replaced by $\aLoc \GETS 1 \SEMI \aLoc \GETS 1 $ in a model with coherence.  
+\IF{\aReg != \bReg} \THEN \cLoc \GETS 1 \FI$.  
 
-Our model does the best possible within these constraints.   Call a program fragment ``linear'' if it does at most one read and at most one write on any location in any execution.  Thus, the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  We show that if sequntial and synchronization free $\aCmd$ and $\bCmd$ are sequentially equivalent, and furthermore $\bCmd$ is ``'linear'' in this sense, then $\aCmd$ can be validly replaced by $\bCmd$.  
+% Similarly, for redundant writes; $\aLoc \GETS 1$ cannot be 
+% replaced by $\aLoc \GETS 1 \SEMI \aLoc \GETS 1 $ in a model 
+% with coherence.  
+
+Our model does the best possible under these constraints.   Call a program fragment ``linear'' if it does at most one read and at most one write on any location in any execution.  Thus, the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  We show that if sequential and synchronization free $\aCmd$ and $\bCmd$ are sequentially equivalent, and furthermore $\bCmd$ is ``'linear'' in this sense, then $\aCmd$ can be validly replaced by $\bCmd$.  
 
 
 
