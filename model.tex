@@ -1,6 +1,13 @@
-\section{An Introduction to the Model}
+\section{The Model}
 \label{sec:model:intro}
 
+We define the model and give the semantics of a concurrent language.  We
+layer the presentation, beginning with a simple language that supports only
+read and write operations.  Later, we define extensions that incorporate
+address computation, fences, and read-modify-write operations.  As is common
+for work on relaxed memory, we treat loops via unrolling: loops introduce
+complexities---such as liveness and continuity---that are orthogonal to the
+main topic of the paper.
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
@@ -36,47 +43,227 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-% \citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
-% security flaws that arise from speculative evaluation in computer
-% microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
-% We build on their work to define a model of relaxed memory
-% \emph{architecture}.  Interestingly, the model naturally captures multi-copy
-% atomicity (\mca).
+\paragraph{Data models.}
+A \emph{data model} consists of:
+\begin{itemize}
+\item a set of \emph{values} $\Val$, ranged over by
+  $\aVal$, $\bVal$, $\dVal$ and $\cVal$,
+\item a set of \emph{registers} $\Reg$, ranged over by
+  $\aReg$ and $\bReg$,
+\item a set of \emph{expressions} $\Exp$, ranged over by
+  $\aExp$, $\bExp$, $\cExp$ and $\dExp$,
+\item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
+  $\bLoc$, 
+\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$, and
+\item a set of \emph{logical formulae} $\Formulae$, ranged over by
+  $\aForm$ and $\bForm$.
+\end{itemize}
 
-In this section, we define the model, provide some intuitions about the
-semantics, and work through a series of illustrative examples.  We present
-precise details of the semantics in \textsection\ref{sec:model}.
+Let $\aSub$ range over substitutions of the form
+$[\aLoc/\aReg]$ or $[\bExp/\aLoc]$.
 
-Let $\Act$ be a set of \emph{actions}, that includes actions of the form
-$(\DR{\aLoc}{\aVal})$, which \emph{reads} value $\aVal$ from location
-$\aLoc$, $(\DRAcq{\aLoc}{\aVal})$, which is an \emph{acquire} that reads
-$\aVal$ from $\aLoc$, $(\DW{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
-$\aLoc$, and $(\DWRel{\aLoc}{\aVal})$, which is a \emph{release} that writes
-$\aVal$ to $\aLoc$. %, and $(\DF{})$, which is a acquire-release \emph{fence}.
-Actions that neither acquire nor release are \emph{relaxed}; other actions
-are \emph{synchronizations}.
+We require that data models satisfy the following:
+\begin{itemize}
+\item values, registers, and memory locations are disjoint,
+\item values include at least the constants $0$ and $1$,
+\item expressions include at least registers and values,
+%\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations, % or the operator $\REF{\aExp}$,
+\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
+  $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
+\item formulae are closed under negation, conjunction, disjunction, and
+  substitution\footnote{Since formulae are closed under substitutions of the
+    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
+    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
+    \emph{extended expression} that includes memory locations.  We elide the
+    details.  By composition of the closure conditions, formulae must also be
+    closed under that substitutions of the form
+    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
+\item there is a relation $\vDash$ between formulae.
+\end{itemize}
 
-The actions listed above are \emph{external}.  Each external action has a
-corresponding \emph{internal} action, denoted by prefixing $\tau$.  Internal
-actions also read and write locations, just as external actions do,
-but are not used to model communication between threads,
-so we do not record their value.
+For the actions of a data model, we require that
+% \begin{itemize}
+% \item
+  there are partial functions $\rreads$ and
+  $\rwrites: \Act \fun (\Loc \times \Val_\bot)$, and
+%\item
+  there are sets $\Acq$ and $\Rel$ and $\SC \subseteq\Act$ such that
+  $\SC\cap\rreads\subseteq\Acq$ and
+  $\SC\cap\rwrites\subseteq\Rel$. %, and
+% \item there is a function $\finternalize: \Act \fun \Act$ that
+%   satisfies the restrictions given below.
+%\end{itemize}
+%
+We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
+$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
+\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.
+We say that $\aAct$ \emph{reads from} $\aLoc$ whenever
+$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes to}
+$\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$, for some $\aVal$. % (possibly $\bot$).
+%
+% Actions that read or write values are \emph{external},
+% actions that read or write $\bot$ are \emph{internal}.
+% % Actions in
+% % $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
+% % in $\Int=\Act\setminus\Ext$ are \emph{internal}.
+%
+We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, that $\aAct$
+is a \emph{release} if $\aAct\in\Rel$, and that $\aAct$ is \emph{SC} if $\aAct\in\SC$.  
+% % We say that $\aAct$ is a
+% % \emph{synchronization} if it is either a release or an acquire.
+
+% The actions listed above are \emph{external}.  Each external action has a
+% corresponding \emph{internal} action, denoted by prefixing $\tau$.  Internal
+% actions also read and write locations, just as external actions do,
+% but are not used to model communication between threads,
+% so we do not record their value.
 % \footnote{Fences have a limited role in our
 % discussion.  We inappropriately refer to them as synchronizations for
 % simplicity.}.
 
-Two actions \emph{conflict} if one writes a location and the other
-either reads or writes the same location.
 
-Let $\Formulae$ be a set of logical formulae, such as $(\aLoc=1)$ or
-$(\aReg=\bReg+1)$, where $\aReg$ and $\bReg$ are register names.
+Logical formulae include equations over locations and registers, such
+$(\aLoc=1)$ and $(\aReg=\bReg+1)$.  Formulae are \emph{open}, in that
+occurrences of register names and memory locations are subject to
+substitutions of the form $\aForm[\aLoc/\aReg]$ and $\aForm[\bExp/\aLoc]$,
+where $\aLoc$ is a memory location, $\aReg$ is a register and $\bExp$ is an
+memory-location-free expression.  Actions are not subject to substitution.
 
-Formulae are \emph{open}, in that occurrences of register names and memory
-locations are subject to substitutions of the form $\aForm[\aLoc/\aReg]$ and
-$\aForm[\bExp/\aLoc]$, where $\aLoc$ is a memory location, $\aReg$ is a
-register and $\bExp$ is an memory-location-free expression.  Actions are not
-subject to substitution.
 
+% % We require that $\finternalize$ satisfy the following:
+% % \begin{itemize}
+% % \item $\finternalize(\aAct)$ reads $\bot$ from $\aLoc$ exactly when $\aAct$ reads from $\aLoc$,
+% % \item $\finternalize(\aAct)$ writes $\bot$ to $\aLoc$ exactly when $\aAct$ writes to $\aLoc$,
+% % %\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
+% % \item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, 
+% % \item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release, and
+% % \item $\finternalize(\aAct)$ is SC exactly when $\aAct$ is SC. 
+% % \end{itemize}
+
+% As noted in \textsection\ref{sec:model:intro}, our example language includes
+% SC read $(\DRSC{\aLoc}{\aVal})$, acquiring
+% read $(\DRAcq{\aLoc}{\aVal})$, relaxed read $(\DR{\aLoc}{\aVal})$, SC write
+% $(\DWSC{\aLoc}{\aVal})$, releasing
+% write $(\DWRel{\aLoc}{\aVal})$, and relaxed write $(\DW{\aLoc}{\aVal})$.
+% For each external action, we also define a corresponding internal action
+% %which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
+% $(\iDRSC{\aLoc}{\aVal})$,
+% $(\iDRAcq{\aLoc}{\aVal})$,
+% $(\iDR{\aLoc}{\aVal})$,
+% $(\iDWSC{\aLoc}{\aVal})$,
+% $(\iDWRel{\aLoc}{\aVal})$, and
+% $(\iDW{\aLoc}{\aVal})$.
+% In pictures, we draw internal actions grayed out,
+% rather than using $\bot$.  % For example, the ``read'' action is internal in:
+% % \begin{tikzdisplay}[node distance=1em]
+% %   \event{wx1}{\DW{x}{1}}{}
+% %   \internal{rx1}{\DR{x}{1}}{below right=of rx1}
+% %   \event{wy1}{\DW{y}{1}}{above right=of wy0}
+% %   \po{wx1}{wy1}
+% % \end{tikzdisplay}
+
+%We also include acquire-release fences of the form $(\DF)$.
+
+% In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
+% indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
+% \begin{displaymath}
+%   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
+% \end{displaymath}
+
+% \subsection{3-valued pomsets with preconditions}
+
+% Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
+
+For the formulae of the data model,
+we say that $\aForm$ is \emph{independent of $\aLoc$} whenever
+$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$, and that
+$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$ is
+\emph{location independent} if it is independent of every location.
+%
+We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
+that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, and that
+$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
+
+\paragraph{Example Language.}
+Our example language include actions of the form
+$(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads} value $\aVal$ from location
+$\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
+$\aLoc$.
+% The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
+% \emph{release-acquire} ($\modeRA$) or \emph{sequentially-consistent} ($\modeSC$).
+The \emph{mode} $\amode \BNFDEF \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC$ is
+either \emph{relaxed}, \emph{release-acquire}, or
+\emph{sequentially-consistent}.
+As expected, $\modeRA$ and $\modeSC$ reads are acquires; $\modeRA$ and
+$\modeSC$ writes are releases.
+%We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
+
+We elide the $\modeRLX$-mode annotation in examples.
+
+\begin{comment}
+\footnote{We only consider executions where register state is empty in
+  forked threads.  Given item~\ref{pre-acquire} of
+  Definition~\ref{def:prefix}, a sufficient condition is that parallel
+  composition is always preceded by an acquire fence, as in programs of the
+  form:
+  \begin{displaymath}
+    \VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+  \end{displaymath}
+  where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
+  in drawings, we often drop the explicit fence.}.
+\end{comment}
+% \begin{align*}
+% \aCmd,\,\bCmd
+% \BNFDEF& \SKIP \tag{No Operation}
+% \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
+% \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
+% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+% \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
+% \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
+% \end{align*}
+
+
+The syntax of statements is as follows.
+\begin{align*}
+  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  % \\
+\aCmd,\,\bCmd
+\BNFDEF& \SKIP
+\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
+\BNFSEP \VAR\aLoc\SEMI \aCmd
+\\
+\BNFSEP&\aCmd \PAR \bCmd
+\BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+\\
+\BNFSEP& \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
+\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
+\end{align*}
+
+
+
+We use common syntax sugar, such as \emph{extended expressions}, which include
+memory locations.  For example, if the extended expression $\aEExp$ includes
+a single occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is
+shorthand for $\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.
+Each occurrence of $\aLoc$ in an extended expression corresponds to an
+independent read.  We also write
+$\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as shorthand for
+$\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
+% and
+% $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
+% $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
+
+\paragraph{The semantic domain.}
 Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{GISCHER1988199}.
 \begin{definition}
   \label{def:mmpomset}
@@ -86,7 +273,7 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-    from which we derive $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
+    from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
     % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ whenever
     % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
@@ -96,23 +283,186 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
     $\labelingForm(\bEv)$.
   \end{itemize}
 \end{definition}
-In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global
-happens-before'' relation.  The restriction of $\lt$ to conflicting writes is
-called the coherence order, $\rco$.  
-
 We refer to ``memory model pomsets'' as ``{pomsets}''.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
 $\aForm$ when it is a tautology.
+%
+We lift terminology from logical formulae and actions to events. For example,
+we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
+and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
 
-We give the semantics of a program as a set of pomsets, where each pomset
-corresponds to a single execution.  We visualize a pomset as a directed graph where
-the nodes are drawn from $\Event$, each node $\aEv$ is labeled with
-$\labeling(\aEv)$, and order is drawn as an edge.
-We elide events with unsatisfiable preconditions.
-As discussed below, we visualize order using 
-arrows that indicate the reason that the order arises.  Although we use
-multiple arrow, we emphasize that they are all part of the same $\le$ relation.
+% In this paper, we are not investigating microarchitecture.  So we make the
+% global assumption formulae can only get stronger in dependent actions:
+
+We give the semantics of programs as sets of pomsets.  
+%
+We expect sets of pomsets given by the semantics to be closed with
+respect to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
+\begin{definition}
+  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
+  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
+  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
+
+  $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
+  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
+
+  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  %${\gtN'}={\gtN}$,
+  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
+\end{definition}
+Each pomset $\aPS\in\sem{\aCmd}$ is a \emph{completed} execution of $\aCmd$;
+we sometimes refer to pomsets as \emph{executions}.  Because they are
+completed executions, we do not expect $\sem{\aCmd}$ to be prefixed closed.
+However, implication closure in a memory-model pomset does give something
+similar: any event $\aEv$ can be given an unsatisfiable precondition, which
+means that every event ordered after $\aEv$ must also be unsatisfiable, as
+per Definition~\ref{def:mmpomset}.  In many applications of the model,
+unsatisfiable events are ignored, thus providing a kind of prefix closure.
+% \begin{definition}
+%   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
+%   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
+%   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
+%   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+%   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
+% \end{definition}
+
+% Restriction also filters a set of pomsets; we have
+% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% The definition requires that we define
+% when a read is possible.
+
+% \begin{definition}\label{def:rf}
+%   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
+%   \begin{itemize}
+%   \item $\bEv \lt \aEv$,  
+%   \item $\aEv$ implies $\bEv$,
+%   \item $\bEv$ writes $\aVal$ to $\aLoc$,
+%     and $\aEv$ reads $\aVal$ from $\aLoc$, and
+%   \item if $\cEv$ writes to $\aLoc$
+%     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+%   \end{itemize}
+% \end{definition}
+
+% \citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
+% security flaws that arise from speculative evaluation in computer
+% microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
+% We build on their work to define a model of relaxed memory
+% \emph{architecture}.  Interestingly, the model naturally captures multi-copy
+% atomicity (\mca).
+
+% In this section, we define the model, provide some intuitions about the
+% semantics, and work through a series of illustrative examples.  We present
+% precise details of the semantics in \textsection\ref{sec:model}.
+
+We visualize a pomset as a directed graph where the nodes are drawn from
+$\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is
+drawn as an edge.  We elide events with unsatisfiable preconditions.  In
+examples, we draw pomsets that are augmentation-minimal and
+implication-minimal.  For example, the semantics of
+\begin{math}
+  \VAR\aLoc\SEMI(
+  x\GETS 0\SEMI
+  x\GETS 1
+  \PAR
+  y\GETS x)
+  %\aReg\GETS x\SEMI y\GETS \aReg)
+\end{math}
+includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \rf{wx1}{rx1}
+  \wk{wx0}{wx1}
+  \po{rx1}{wy1}
+\end{tikzdisplay}
+We visualize order using arrows that indicate the reason that the order
+arises.
+$\DW{x}{1}\xrf\DR{x}{1}$ is a \emph{reads-from} requirement: the read of $x$
+must be fulfilled by a matching write.
+$\DW{x}{0}\xwk\DW{x}{1}$ is a \emph{coherence} requirement: the write of $1$
+must follow the write to $0$, since these are in program order.
+$\DR{x}{1}\xpo\DW{y}{1}$ is a \emph{dependency} requirement: the write to $y$
+depends on the read of $x$.
+Although we use multiple arrows, we emphasize that they are all part
+of the same $\le$ relation.
+
+The logical formulae associated with events are \emph{preconditions}.
+Thus, each of the following programs gives rise to the pomset below:
+\begin{align*}
+  \begin{gathered}
+    \IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{r<0\mid\DW{y}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    y\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{r=1\mid\DW{y}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+These capture control and data dependencies, respectively.
+
+At top level, we expect preconditions to be either tautological or
+unsatisfiable---true or false.  Substitution into preconditions arises via
+prefixing.  Reading $x$, for example, we arrive at:
+\begin{align*}
+  \begin{gathered}
+    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{1<0\mid\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    r\GETS x\SEMI y\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{1=1\mid\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+We drop preconditions on tautological events and cross out unsatisfiable ones:
+\begin{align*}
+  \begin{gathered}
+    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \nonevent{wy1}{\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    r\GETS x\SEMI y\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+
+\paragraph{Semantics of the Example Language.}
+In the remainder of this section, we explain the semantics of our example
+language.  By far the most complex operators are the prefixing
+operators---read and write---which introduce new actions.  We first discuss
+the other operators.
 % the orders are drawn with
 % \citeauthor{DBLP:journals/dc/Lamport86}'s notation.  
 % For example:
@@ -135,6 +485,268 @@ multiple arrow, we emphasize that they are all part of the same $\le$ relation.
 %     {\gtN} = {\le}\cup\{(2,3)\}
 % \end{array}\]
 % for example:
+
+
+The semantics of $\SKIP$ and register assignment are simple.
+\begin{definition}
+Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+$\Event' = \Event$,
+${\le'} = {\le}$, 
+%${\gtN'} = {\gtN}$,
+and
+$\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
+\begin{align*}
+  \sem{\SKIP} & \eqdef
+  \{ \emptyset \}
+  \\  
+  \sem{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
+  \sem{\aCmd}[\aExp/\aReg] 
+\end{align*}
+\end{definition}
+
+%\paragraph{Fulfillment and Variable Declaration.}
+At the point a variable is declared, every read must be \emph{fulfilled} by a
+matching write.
+
+\begin{definition}
+  \label{def:rf}
+  We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ \externally writes
+  $\aVal$ to $\aLoc$, $\aEv$ \externally reads $\aVal$ from $\aLoc$,
+  \begin{itemize}
+  \item
+    $\bEv \lt \aEv$, and
+  \item
+    if $\cEv$ \externally writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}
+
+  A pomset is $\aLoc$-closed if every \external read on $\aLoc$ is fulfilled,
+  and every event is independent of $\aLoc$.
+
+  Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$
+  whenever and $\aPS$ is $\aLoc$-closed.
+\begin{align*}
+  \sem{\VAR\aLoc\SEMI \aCmd} & \eqdef
+  \nu \aLoc \st \sem{\aCmd}  
+\end{align*}
+
+  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location $\aLoc$.
+\end{definition}
+
+Fulfillment imposes order between any two writes that are read, but not
+necessarily between unread writes.  Consider the following program and
+top-level execution:
+\begin{displaymath}
+  x\GETS 3
+  \PAR
+  x\GETS 4
+  \PAR
+  r\GETS x\SEMI r\GETS x 
+  \PAR
+  x\GETS 1
+  \PAR
+  x\GETS2
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{wx2}{\DW{x}{2}}{below=of wx1}
+  \event{rx1a}{\DR{x}{1}}{left=of wx1}
+  \event{rx2a}{\DR{x}{2}}{left=of wx2}
+  %\po{rx1a}{rx2a}
+  \rf{wx1}{rx1a}
+  \rf{wx2}{rx2a}
+  \wk{rx1a}{wx2}
+  \wk{wx1}{wx2}
+  %\event{wx3}{\DW{x}{3}}{below left=-.2em and 1em of rx1a}
+  \event{wx3}{\DW{x}{3}}{left=of rx1a}
+  \event{wx4}{\DW{x}{4}}{left=of rx2a}
+  \wk{rx1a}{wx3}
+  \wk{rx2a}{wx3}
+  %\wk{rx1a}{wx4}
+  \wk{rx2a}{wx4}
+\end{tikzdisplay}
+
+\textcolor{red}{Comment on eco?}
+
+\paragraph{Composition, Concurrency and Conditional.}
+
+Composition is roughly union:
+$(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ whenever
+$\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  Thus we have:
+\begin{displaymath}
+  \IF{r<0}\THEN y\GETS1\FI
+  \PAR
+  \IF{r\geq0}\THEN y\GETS1\FI
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{r<0\mid\DW{x}{1}}{}
+  \event{wx2}{r\geq0\mid\DW{x}{1}}{right=of wx1}
+\end{tikzdisplay}
+In addition, however, we allow that events with the same label may collapse,
+taking the disjunction of their preconditions.  Thus, the semantics of this
+program also includes:
+% \begin{displaymath}
+%   \IF{r<0}\THEN y\GETS1\FI
+%   \PAR
+%   \IF{r\geq0}\THEN y\GETS1\FI
+% \end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx1}{r<0\lor r\geq0\mid\DW{x}{1}}{}
+\end{tikzdisplay}
+Collapsed events inherit order from both sides of the composition.
+Thus, if
+$\aPSS^1$ and $\aPSS^2$ contain:
+\begin{tikzdisplay}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm^1 \mid \bAct}{right=of a}
+  \po{a}{b}
+  \event{b2}{\bForm^2 \mid \bAct}{right=3em of b}
+  \event{c2}{\cForm \mid \cAct}{right=of b2}
+  \po{b2}{c2}
+\end{tikzdisplay}
+then $\aPSS^1 \parallel \aPSS^2$ contains:
+\begin{tikzdisplay}[node distance=1em]
+  \event{a}{\aForm \mid \aAct}{}
+  \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
+  \event{c}{\cForm \mid \cAct}{right=of b}
+  \po{a}{b}
+  \po{b}{c}
+\end{tikzdisplay}
+
+Concurrency and conditional execution are defined using composition,
+validating the equation:
+\begin{displaymath}
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+  =
+  \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
+\end{displaymath}
+\begin{definition}
+Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
+% \begin{itemize}
+% \item
+  $\Event' = \Event^1 \cup \Event^2$,
+%\item
+  ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
+% if $\aEv \le^1 \bEv$ or $\aEv \le^2 \bEv$ then $\aEv \le' \bEv$,
+%\item ${\gtN'}\supseteq{\gtN^1}\cup{\gtN^2}$, and %if $\aEv \gtN^1 \bEv$ or $\aEv \gtN^2 \bEv$ then $\aEv \gtN' \bEv$,
+%\item
+  either
+  \begin{align*}
+    \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+    &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+  \end{align*}
+  Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
+  $\aPS\in\aPSS$ whenever $\aForm$ implies $\labelingForm(\aEv)$, for every
+  $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
+  % \begin{itemize}
+  % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv)
+  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)$,
+  % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv),\;\; \aEv \not\in \Event^2\,
+  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor$
+  % \item $\labelingAct'(\aEv) = \labelingAct^2(\aEv),\;\; \aEv \not\in \Event^1\,
+  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
+  % \end{itemize}
+%\end{itemize}
+\begin{align*}
+  \sem{\aCmd \PAR \bCmd} & \eqdef
+  %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
+  \sem{\aCmd} \parallel \sem{\bCmd} 
+  \\
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
+  \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
+  % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
+\end{align*}
+\end{definition}
+
+\paragraph{SC Prefixing.}
+
+For programs without data or control dependencies, the simplest candidate
+definitions of read and write result in top-level executions being
+sequentially consistent:
+\begin{align*}
+  \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+  \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aLoc/\aReg] 
+  \\
+  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aExp/\aLoc]
+\end{align*}
+where for any $\aPS\in\aPSS$, the operator
+$(\aForm \mid \aAct) \prefixsc \aPSS$ adds a new event that precedes all of the
+``old'' events in $\aPS$ in pomset order.
+%
+For example consider the candidate execution for the \emph{store buffering}
+litmus test:
+\begin{displaymath}  
+  x\GETS0\SEMI x\GETS1\SEMI\aReg\GETS y
+  \PAR
+  y\GETS0\SEMI y\GETS1\SEMI \aReg\GETS x
+\end{displaymath}
+\begin{tikzdisplaylabeltag}[node distance=1em]{SB}
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{below=of wx0}
+  \event{wx}{\DW{x}{1}}{right=of wx0}
+  \event{wy}{\DW{y}{1}}{right=of wy0}
+  \event{ry}{\DR{y}{0}}{right=of wx}
+  \event{rx}{\DR{x}{0}}{right=of wy}
+  \wk{wx0}{wx}
+  \wk{wy0}{wy}
+  \po{wy}{rx}
+  \po{wx}{ry}
+  \rf{wy0}{ry}
+  \rf{wx0}{rx}
+  \wk{ry}{wy}
+  \wk{rx}{wx}
+  %\po{rx}{wy}
+\end{tikzdisplaylabeltag}
+\textcolor{red}{Comment on this: This version of prefixing includes all of
+  program order in pomset order; with eco you get SC.}
+
+For programs with dependencies, the definition is subtler.
+\begin{definition}
+  \label{def:pre-sc}
+Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+\begin{enumerate}
+\item\label{pre-E} $\Event' = \Event \cup \{\cEv\}$,
+\item\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+\item\label{pre-act} $\labelingAct'(\cEv) = \aAct$, $\labelingAct'(\aEv) = \labelingAct(\aEv)$, and
+   $\labelingForm'(\cEv)$ implies $\aForm$,
+\item\label{dis-ext1} if $\cEv$ \externally reads $\aVal$ from
+  $\aLoc$ then $\labelingForm'(\aEv)$ implies
+  $\labelingForm(\aEv)[\aVal/\aLoc]$, 
+\item\label{dis-int1} if $\cEv$ does not \externally read then
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+\item\label{pre-order} $\cEv \lt' \aEv$, 
+\end{enumerate}
+\end{definition}
+
+\textcolor{red}{Examples of how dependencies can weaken and how bad futures
+  get rmeoved}
+
+Full definition 
+\begin{definition}
+  \label{def:prefix}
+Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ that satisfies the first \ref{dis-int1} items of
+Definition \ref{def:pre-sc} such that:
+\begin{enumerate}
+\item\label{dis-ext2} if $\aEv$ writes and $\cEv$ \externally reads, but
+  $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$, then
+  $\cEv\lt'\aEv$, and
+\item\label{pre-coherence} if $\cEv$ and $\aEv$ are \external actions in conflict,
+    then $\cEv \gtN' \aEv$,
+\item\label{pre-sync} if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
+\item\label{pre-sc} if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, 
+\item\label{pre-acquire} if $\cEv$ is an acquire then $\labelingForm(\aEv)$
+  is location independent.
+\end{enumerate}
+\end{definition}
+
+\subsection{More}
+
+
 
 \paragraph{Dependencies.}
 A write event $\aEv$ has two kinds of dependencies.  First, it may have an
@@ -313,21 +925,6 @@ so that it is monotone with respect to addition of new threads.
 %   % that $\gtN$ forms a total order.
 % \end{definition}
 
-\begin{definition}
-  \label{def:rf}
-  We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ externally writes
-  $\aVal$ to $\aLoc$, $\aEv$ externally reads $\aVal$ from $\aLoc$,
-  \begin{itemize}
-  \item $\bEv \lt \aEv$, and
-
-  \item if $\cEv$ externally writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}
-
-  A pomset is $\aLoc$-closed if every external read on $\aLoc$ is fulfilled,
-  and every event is independent of $\aLoc$.
-
-  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location $\aLoc$.
-\end{definition}
 
 For example, combining \eqref{m1} and \eqref{m2}, the semantics of
 \begin{math}
@@ -369,7 +966,7 @@ and execution:
   \event{wx2}{\DW{x}{2}}{below=of wx1}
   \event{rx1a}{\DR{x}{1}}{left=of wx1}
   \event{rx2a}{\DR{x}{2}}{left=of wx2}
-  \po{rx1a}{rx2a}
+  %\po{rx1a}{rx2a}
   \rf{wx1}{rx1a}
   \rf{wx2}{rx2a}
   \wk{rx1a}{wx2}
@@ -737,7 +1334,12 @@ thread can read $2$ for $x$.
 % \end{tikzdisplay}
 
 
-\paragraph{Multi-copy atomicity.}  Many of the standard litmus tests for \mca\ are
+\paragraph{Multi-copy atomicity.}
+In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global
+happens-before'' relation.  The restriction of $\lt$ to conflicting writes is
+called the coherence order, $\rco$.  
+
+Many of the standard litmus tests for \mca\ are
 variants of \iriw\ (Independent Reads of Independent Writes), such as \iriw\
 with control dependencies between the reads:
 \begin{displaymatharray}{rl}
@@ -1051,15 +1653,15 @@ To see this, consider the program:
 \begin{gather*}
   \aReg\GETS a\ACQ\SEMI
   x\GETS1 \SEMI
-  b\GETS\REL 1
+  b\REL\GETS 1
   \PAR
   \aReg\GETS c\ACQ\SEMI
   x\GETS2 \SEMI
-  d\GETS\REL 1
+  d\REL\GETS 1
   \PAR
   \aReg\GETS e\ACQ\SEMI
   \bReg\GETS x \SEMI
-  f\GETS\REL 1
+  f\REL\GETS 1
   \\
   \begin{minipage}{1.0\linewidth}
     \begin{tikzdisplay}[node distance=1em]
@@ -1307,199 +1909,23 @@ Differences with \cite{2019-sp}:
 
 
 
-\subsection{Data models}
-\label{sec:data}
-
-A \emph{data model} consists of:
-\begin{itemize}
-\item a set of \emph{values} $\Val$, ranged over by
-  $\aVal$, $\bVal$, $\dVal$ and $\cVal$,
-\item a set of \emph{registers} $\Reg$, ranged over by
-  $\aReg$ and $\bReg$,
-\item a set of \emph{expressions} $\Exp$, ranged over by
-  $\aExp$, $\bExp$, $\cExp$ and $\dExp$,
-\item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
-  $\bLoc$, 
-\item a set of \emph{logical formulae} $\Formulae$, ranged over by
-  $\aForm$ and $\bForm$, and
-\item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$.
-\end{itemize}
-
-Let $\aSub$ range over substitutions of the form
-$\aForm[\aLoc/\aReg]$ or $\aForm[\bExp/\aLoc]$.
-
-We require that data models satisfy the following:
-\begin{itemize}
-\item the sets of values, registers and memory locations are disjoint,
-\item values include at least the constants $0$ and $1$,
-\item expressions include at least registers and values,
-%\item memory locations have the form $\REF{\aVal}$,
-\item expressions do \emph{not} include memory locations, % or the operator $\REF{\aExp}$,
-\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
-  $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
-\item formulae are closed under negation, conjunction, disjunction, and
-  substitution\footnote{Since formulae are closed under substitutions of the
-    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
-    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
-    \emph{extended expression} that includes memory locations.  We elide the
-    details.  By composition of the closure conditions, formulae must also be
-    closed under that substitutions of the form
-    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
-\item there is a relation $\vDash$ between formulae.
-\end{itemize}
-
-We say that $\aForm$ is \emph{independent of $\aLoc$} whenever
-$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$ for every $\aVal$, and that
-$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$ is
-\emph{location independent} if it is independent of every location.
-
-We say that $\aForm$ \emph{implies} $\bForm$ whenever $\aForm\vDash\bForm$,
-that $\aForm$ is a \emph{tautology} whenever $\TRUE\vDash\aForm$, that
-$\aForm$ is \emph{unsatisfiable} whenever $\aForm\vDash\FALSE$.
-
-For the actions of a data model, we require that
-\begin{itemize}
-\item there are partial functions $\rreads$ and
-  $\rwrites: \Act \fun (\Loc \times \Val_\bot)$,
-\item there are sets $\Acq$ and $\Rel$ and $\SC \subseteq\Act$ such that
-  $\SC\cap\rreads\subseteq\Acq$ and
-  $\SC\cap\rwrites\subseteq\Rel$, and
-\item there is a function $\finternalize: (\Loc\times\Act) \fun \Act$ that
-  satisfies the restrictions given below.
-\end{itemize}
-
-We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ whenever
-$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
-\emph{to} $\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$.
-We say that $\aAct$ \emph{reads from} $\aLoc$ whenever
-$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes to}
-$\aLoc$ whenever $\rwrites(\aAct) = (\aLoc,\aVal)$, for some $\aVal$ (possibly $\bot$).
-
-Actions that read or write values are \emph{external},
-actions that read or write $\bot$ are \emph{internal}.
-% Actions in
-% $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
-% in $\Int=\Act\setminus\Ext$ are \emph{internal}.
-
-We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, that $\aAct$
-is a \emph{release} if $\aAct\in\Rel$, and that $\aAct$ is \emph{SC} if $\aAct\in\SC$.  
-% We say that $\aAct$ is a
-% \emph{synchronization} if it is either a release or an acquire.
-
-We require that $\finternalize$ satisfy the following:
-\begin{itemize}
-\item $\finternalize(\aAct)$ reads $\bot$ from $\aLoc$ exactly when $\aAct$ reads from $\aLoc$,
-\item $\finternalize(\aAct)$ writes $\bot$ to $\aLoc$ exactly when $\aAct$ writes to $\aLoc$,
-%\item the codomain of $\finternalize$ includes only internal actions, %$\fcodom(\finternalize)\subseteq\Int$,
-\item $\finternalize(\aAct)$ is an acquire exactly when $\aAct$ is an acquire, 
-\item $\finternalize(\aAct)$ is a release exactly when $\aAct$ is a release, and
-\item $\finternalize(\aAct)$ is SC exactly when $\aAct$ is SC. 
-\end{itemize}
-
-As noted in \textsection\ref{sec:model:intro}, our example language includes
-SC read $(\DRSC{\aLoc}{\aVal})$, acquiring
-read $(\DRAcq{\aLoc}{\aVal})$, relaxed read $(\DR{\aLoc}{\aVal})$, SC write
-$(\DWSC{\aLoc}{\aVal})$, releasing
-write $(\DWRel{\aLoc}{\aVal})$, and relaxed write $(\DW{\aLoc}{\aVal})$.
-For each external action, we also define a corresponding internal action
-%which replaces the letter $\mathsf{R}$ or $\mathsf{W}$ with $\tau$.
-$(\iDRSC{\aLoc}{\aVal})$,
-$(\iDRAcq{\aLoc}{\aVal})$,
-$(\iDR{\aLoc}{\aVal})$,
-$(\iDWSC{\aLoc}{\aVal})$,
-$(\iDWRel{\aLoc}{\aVal})$, and
-$(\iDW{\aLoc}{\aVal})$.
-In pictures, we draw internal actions grayed out,
-rather than using $\bot$.  % For example, the ``read'' action is internal in:
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{wx1}{\DW{x}{1}}{}
-%   \internal{rx1}{\DR{x}{1}}{below right=of rx1}
-%   \event{wy1}{\DW{y}{1}}{above right=of wy0}
-%   \po{wx1}{wy1}
-% \end{tikzdisplay}
-
-%We also include acquire-release fences of the form $(\DF)$.
-
-% In examples, we use fence actions of the form $(\DF{\aF})$, where the annotation
-% indicates that the fence is a release ($\FR$), an acquire ($\FA$) or both ($\FF$):
-% \begin{displaymath}
-%   \aF\BNFDEF\FR\BNFSEP\FA\BNFSEP\FF
-% \end{displaymath}
-
-% \subsection{3-valued pomsets with preconditions}
-
-% Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
-
-\subsection{The semantic domain}
-\label{sec:sets}
-Recall Definition~\ref{def:mmpomset} of memory model pomsets.
-
-We lift terminology from logical formulae and actions to events. For example,
-we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
-and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
-
-% In this paper, we are not investigating microarchitecture.  So we make the
-% global assumption formulae can only get stronger in dependent actions:
-
-We give the semantics of programs as sets of pomsets.  Each pomset
-$\aPS\in\sem{\aCmd}$ will represent a single execution of $\aCmd$.
-
-We expect the sets of pomsets given by the semantics to be closed with
-respect to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
-\begin{definition}
-  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
-  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
-
-  $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
-  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
-
-  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
-  %${\gtN'}={\gtN}$,
-  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
-  implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
-\end{definition}
-Each
-$\aPS\in\sem{\aCmd}$ is a \emph{completed} execution.  So, we do not expect $\sem{\aCmd}$ to be prefixed closed.  However, implication
-closure in a memory-model pomset does give something similar: any event
-$\aEv$ can be given an unsatisfiable precondition, which means that every
-event ordered after $\aEv$ must also be unsatisfiable, as per
-Definition~\ref{def:mmpomset}.  Since unsatisfiable events are ignored by our model, this
-provides a kind of prefix closure.
-% \begin{definition}
-%   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
-%   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
-%   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
-%   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
-%   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
-% \end{definition}
-
-% Restriction also filters a set of pomsets; we have
-% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
-% The definition requires that we define
-% when a read is possible.
-
-% \begin{definition}\label{def:rf}
-%   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ whenever: 
-%   \begin{itemize}
-%   \item $\bEv \lt \aEv$,  
-%   \item $\aEv$ implies $\bEv$,
-%   \item $\bEv$ writes $\aVal$ to $\aLoc$,
-%     and $\aEv$ reads $\aVal$ from $\aLoc$, and
-%   \item if $\cEv$ writes to $\aLoc$
-%     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-%   \end{itemize}
-% \end{definition}
-
 \subsection{Combinators}
 \label{sec:combinators}
 We give the semantics using combinators over sets of pomsets, defined below.
+These operations are similar to those from models of concurrency such
+as~\cite{Brookes:1984:TCS:828.833}.
 Using $\aPSS$ to range over sets of pomsets, these are:
 \begin{itemize}
+\item \emph{restriction} $\nu\aLoc\st\aPSS$, which keeps 
+  $\aLoc$-closed pomsets,
+\item \emph{guarding} $\aForm\guard\aPSS$, which
+  keeps pomsets where all preconditions imply $\aForm$, 
+\item \emph{release filtering} $\relfilt{\aLoc}\aPSS$, which keeps pomsets where
+  every release is preceded by \anexternal write to $\aLoc$,
 \item \emph{substitution} $\aPSS\aSub$, which applies the substitution to
   every precondition,
-\item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
-  pomsets that are $\aLoc$-closed,
+% \item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
+%   pomsets that are $\aLoc$-closed,
 % \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
 %   keeping pomsets where all events imply $\aForm$,
 % \item \emph{independency filtering} $\Loc \guard\aPSS$, which filters
@@ -1510,14 +1936,13 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 \item \emph{prefixing} $(\aForm \mid \aAct)\prefix\aPSS$, which adds an event $\cEv$ with label
   $(\aForm \mid \aAct)$ to pomsets in $\aPSS$, ordering $\cEv$ before any $\aEv$ whose predicate
   depends on the value read by $\aAct$. We elide $\aForm$ when it is a tautology.
-\end{itemize}
-These operations are similar to those from models of concurrency such
-as~\cite{Brookes:1984:TCS:828.833}.
-
-We also define two filtering operations:
-\begin{itemize}
-\item \emph{guarding} $\aForm\guard\aPSS$, which
-  keeps pomsets where all preconditions imply $\aForm$, and
+% \end{itemize}
+% We also define two filtering operations:
+% \begin{itemize}
+% \item \emph{guarding} $\aForm\guard\aPSS$, which
+%   keeps pomsets where all preconditions imply $\aForm$, and
+% \item \emph{restriction} $\nu\aLoc\st\aPSS$, which keeps 
+%   pomsets that are $\aLoc$-closed.
 % \item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
 %   where all preconditions are location independent.
 % \item \emph{write filtering} $\DW{\aLoc}{}\guard\aPSS$, which keeps pomsets
@@ -1544,8 +1969,8 @@ We also define two filtering operations:
 % Guarding and restriction filter a set of pomsets; we have
 % $(\aForm\guard\aPSS)\subseteq\aPSS$ and
 % $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
-
-The definitions of substitution, restriction and the filtering operations %guarding and write filtering
+\noindent
+The first few definitions %guarding and write filtering
 are straightforward\footnote{We have chosen the definition of restriction for
   its simplicity.  It is worth noting, however, that our definition does not
   support renaming of variables.  In particular
@@ -1554,33 +1979,28 @@ are straightforward\footnote{We have chosen the definition of restriction for
   support renaming, $(\nu\aLoc\st\aPSS)$ would need to either remove or
   relabel events that mention $\aLoc$.}:
 \begin{definition}
+
+Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+$\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
+
+Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+every release $\aEv$ has a preceding $\bEv\le\aEv$ that \externally writes $\aLoc$.
+
   %For a substitution $\aSub$, of the form $[\aLoc/\aReg]$ or $[\bExp/\aLoc]$,
-  Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that:
-$\Event' = \Event$,
-${\le'} = {\le}$, 
-%${\gtN'} = {\gtN}$,
-and
-$\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aAct)$ then $\labeling'(\aEv) =
 %   (\bForm\aSub \mid \aAct)$, and
 % \item if $\labeling(\aEv) = (\bForm \mid \aSub)$ then $\labeling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
 %\end{itemize}
 
-  % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-  % and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
+% Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+% there is $\aPS\in\aPSS$ such that $\aPS$ is $\aLoc$-closed and:
+% $\Event' = \Event$,
+% ${\le'} = {\le}$, 
+% %${\gtN'} = {\gtN}$,
+% and
+% $\labeling'(\aEv) = (\bForm \mid \finternalize(\aAct))$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
 
-Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that $\aPS$ is $\aLoc$-closed and:
-$\Event' = \Event$,
-${\le'} = {\le}$, 
-%${\gtN'} = {\gtN}$,
-and
-$\labeling'(\aEv) = (\bForm \mid \finternalize(\aAct))$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
-
-Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-$\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
 % \begin{itemize}
 % \item if $\labeling(\aEv) = (\bForm \mid \aActSub)$ then $\aForm$ implies $\bForm$.
 % \end{itemize}
@@ -1706,7 +2126,7 @@ then $\aPSS^1 \parallel \aPSS^2$ contains:
 %     or $\labelingForm(\aEv)$ is independent of $\aLoc$, and
 %   \end{enumerate}
 % \item\label{pre-read} if $\labelingAct'(\cEv)$ %$\aAct$
-%   externally reads $\aVal$ from $\aLoc$ then both
+%   \externally reads $\aVal$ from $\aLoc$ then both
 %   \begin{enumerate}
 %   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
 %   \item[(\ref{pre-read}b)] if $\aEv$ writes then either $\cEv\lt'\aEv$
@@ -1714,36 +2134,39 @@ then $\aPSS^1 \parallel \aPSS^2$ contains:
 %   \end{enumerate}
 % \end{enumerate}
 \begin{enumerate}
-% \item\label{dis-ext1} if $\labelingAct'(\cEv)$ externally reads $\aVal$ from
+% \item\label{dis-ext1} if $\labelingAct'(\cEv)$ \externally reads $\aVal$ from
 %   $\aLoc$ then $\labelingForm'(\aEv)$ implies
 %   $\labelingForm(\aEv)[\aVal/\aLoc]$,
-% \item\label{dis-int1} if $\labelingAct'(\cEv)$ does not externally read then
+% \item\label{dis-int1} if $\labelingAct'(\cEv)$ does not \externally read then
 %   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 % % \item\label{dis-ext2} if $\labelingAct(\aEv)$ writes and
-% %   $\labelingAct'(\cEv)$ externally reads then either $\cEv\lt'\aEv$ or
+% %   $\labelingAct'(\cEv)$ \externally reads then either $\cEv\lt'\aEv$ or
 % %   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
 % % \item\label{dis3-int2} if $\labelingAct(\aEv)$ writes and
 % %   $\labelingAct'(\cEv)$ internally reads from $\aLoc$ then either
 % %   $\cEv\lt'\aEv$ or $\labelingForm(\aEv)$ is independent of $\aLoc$.
 % \item\label{dis-ext2} if $\labelingAct(\aEv)$ writes,
-%   $\labelingAct'(\cEv)$ externally reads, and $\labelingForm'(\aEv)$ does not
+%   $\labelingAct'(\cEv)$ \externally reads, and $\labelingForm'(\aEv)$ does not
 %   imply $\labelingForm(\aEv)$, then $\cEv\lt'\aEv$, and
 % \item\label{dis3-int2} if $\labelingAct(\aEv)$ writes, $\labelingAct'(\cEv)$
 %   internally reads from $\aLoc$, and $\labelingForm(\aEv)$ is not independent
 %   of $\aLoc$, then $\cEv\lt'\aEv$.
-\item\label{dis-int1} if $\cEv$ does not externally read then
+\item\label{dis-int11} if $\cEv$ does not \externally read then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-\item\label{dis-ext1} if $\cEv$ externally reads $\aVal$ from
+\item\label{dis-ext1} if $\cEv$ \externally reads $\aVal$ from
   $\aLoc$ then $\labelingForm'(\aEv)$ implies
   $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item\label{dis-ext2} if $\cEv$ externally reads, $\aEv$ writes, but
+\item\label{dis-ext2} if $\aEv$ writes and $\cEv$ \externally reads, but
   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$, then
   $\cEv\lt'\aEv$, and
-\item\label{dis3-int2} if $\cEv$ internally reads from $\aLoc$, if $\aEv$
-  writes, but $\labelingForm(\aEv)$ is not independent of $\aLoc$, then
+\item\label{dis3-int2} if $\aEv$ writes and $\cEv$ internally reads from
+  $\aLoc$,  but $\labelingForm(\aEv)$ is not independent of $\aLoc$, then 
   $\cEv\lt'\aEv$.
 \end{enumerate}
 \end{definition}
+
+Two actions \emph{conflict} if one writes a location and the other
+either reads or writes the same location.
 
 %\subsubsection{Prefixing}
 \begin{definition}
@@ -1796,7 +2219,7 @@ there is $\aPS\in\aPSS$ such that:
 %   \item[(\ref{pre-iread}b)] if $\labelingAct(\aEv)$ is a write then either $\cEv\lt'\aEv$
 %     or $\labelingForm(\aEv)$ is independent of $\aLoc$,
 %   \end{enumerate}
-% \item\label{pre-read} if $\aAct$ externally reads $\aVal$ from $\aLoc$ then both
+% \item\label{pre-read} if $\aAct$ \externally reads $\aVal$ from $\aLoc$ then both
 %   \begin{enumerate}
 %   \item[(\ref{pre-read}a)] $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$, and
 %   \item[(\ref{pre-read}b)] if $\labelingAct(\aEv)$ is a write then either $\cEv\lt'\aEv$
@@ -1804,14 +2227,14 @@ there is $\aPS\in\aPSS$ such that:
 %   \end{enumerate}
 %% \item if $\aAct$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 %% \item if $\aAct$ reads then either $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\cEv\lt'\aEv$,  %
-\item\label{pre-coherence} if $\cEv$ and $\aEv$ are external actions in conflict,
+\item\label{pre-coherence} if $\cEv$ and $\aEv$ are \external actions in conflict,
     then $\cEv \gtN' \aEv$,
 \item\label{pre-sync} if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
 \item\label{pre-sc} if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, 
 \item\label{pre-acquire} if $\cEv$ is an acquire then $\labelingForm(\aEv)$
-  is location independent, and
-\item\label{pre-internal} if $\cEv$ internally writes $\aLoc$, then for any
-  release $\aEv$, there some $\cEv\lt'\bEv\lt'\aEv$ that externally writes $\aLoc$.
+  is location independent.
+% \item\label{pre-internal} if $\cEv$ internally writes $\aLoc$, then for any
+%   release $\aEv$, there some $\cEv\lt'\bEv\lt'\aEv$ that \externally writes $\aLoc$.
 %% \item if $\aAct$ is a read but not a synchronization then either
 %%   $\labelingForm'(\cEv)$ is unsatisfiable or there is some $\aEv$ such
 %%   that $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$.
@@ -1960,69 +2383,6 @@ The following lemma is immediate from the definitions.
 \label{sec:semantics}
 
 
-\begin{comment}
-\footnote{We only consider executions where register state is empty in
-  forked threads.  Given item~\ref{pre-acquire} of
-  Definition~\ref{def:prefix}, a sufficient condition is that parallel
-  composition is always preceded by an acquire fence, as in programs of the
-  form:
-  \begin{displaymath}
-    \VAR\vec{\aLoc}\SEMI
-    \vec{\aLoc}\GETS\vec{0}\SEMI
-    \vec{\bLoc}\GETS\vec{0}\SEMI
-    \FENCE\SEMI
-    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
-  \end{displaymath}
-  where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
-  in drawings, we often drop the explicit fence.}.
-\end{comment}
-% \begin{align*}
-% \aCmd,\,\bCmd
-% \BNFDEF& \SKIP \tag{No Operation}
-% \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
-% \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-% \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
-% \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
-% \end{align*}
-
-
-We consider a simple shared-memory concurrent language, with statements
-defined as follows.
-\begin{align*}
-  \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
-  \\
-\aCmd,\,\bCmd
-\BNFDEF& \SKIP
-\BNFSEP \aCmd \PAR \bCmd
-\BNFSEP \VAR\aLoc\SEMI \aCmd
-\\
-\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
-\\
-\BNFSEP& \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
-\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
-\end{align*}
-
-We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
-
-We elide the $\modeRLX$-mode annotation in examples.
-
-We use common syntax sugar, such as \emph{extended expressions}, which include
-memory locations.  For example, if the extended expression $\aEExp$ includes
-a single occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is
-shorthand for $\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.
-Each occurrence of $\aLoc$ in an extended expression corresponds to an
-independent read.  We also write
-$\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as shorthand for
-$\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$ and
-$\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
-$\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
 % In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
 % \begin{figure*}1
@@ -2032,29 +2392,30 @@ The semantics of programs is as follows: % \footnote{Fork parallelism is easily 
   % \sem{\bCmd}$.}:
 \allowdisplaybreaks
 \begin{align*}
-  \sem{\SKIP} & =
-  \{ \emptyset \}
-  \\
-  \sem{\aCmd \PAR \bCmd} & =
-  %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
-  \sem{\aCmd} \parallel \sem{\bCmd} 
-  \\
-  \sem{\VAR\aLoc\SEMI \aCmd} & =
-  \nu \aLoc \st \sem{\aCmd}
-  \\  
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
-  \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
-  \\
-  \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
-  \sem{\aCmd}[\aExp/\aReg] 
-  \\
+  % \sem{\SKIP} & =
+  % \{ \emptyset \}
+  % \\
+  % \sem{\VAR\aLoc\SEMI \aCmd} & =
+  % \nu \aLoc \st \sem{\aCmd}
+  % \\  
+  % \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
+  % \sem{\aCmd}[\aExp/\aReg] 
+  % \\
+  % \sem{\aCmd \PAR \bCmd} & =
+  % %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
+  % \sem{\aCmd} \parallel \sem{\bCmd} 
+  % \\
+  % \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
+  % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
+  % \\
   % \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
   % (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
   % \\ & \mkern2mu\cup
   % \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
   % \\
   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-  (\iDWmode{\aLoc}{}) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  (\iDWmode{\aLoc}{}) \prefix \relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
+  \textif \amode=\modeRLX
   \\ & \mkern2mu\cup
   \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
 \end{align*}

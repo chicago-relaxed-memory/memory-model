@@ -1,7 +1,11 @@
+\newcommand{\anexternal}{a }
+\newcommand{\external}{}
+\newcommand{\externally}{}
+
 \newcommand{\amode}{\mu}
 \newcommand{\fmode}{\nu}
-\newcommand{\REL}{^{\mathsf{rel}}}
-\newcommand{\ACQ}{^{\mathsf{acq}}}
+\newcommand{\REL}{^{\mathsf{ra}}}
+\newcommand{\ACQ}{^{\mathsf{ra}}}
 \newcommand{\RLX}{^{\mathsf{rlx}}}
 \newcommand{\mSC}{^{\mathsf{sc}}}
 \newcommand{\modeRA}{{\mathsf{ra}}}
@@ -23,8 +27,8 @@
 \newcommand{\IDW}{\ID{\mathsf{W}}}
 
 
-%\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
-\newcommand{\eqdef}{=}
+\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
+%\newcommand{\eqdef}{=}
 \newcommand{\rel}{{\tt rel}}
 
 
@@ -85,6 +89,7 @@
 \newenvironment{scope}{\bgroup\ignorespaces}{\egroup\ignorespacesafterend}
 \newenvironment{tikzinline}[1][]{\bgroup\small\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
 \newenvironment{tikzdisplaylabel}[2][]{\bgroup\small\begin{equation}\label{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
+\newenvironment{tikzdisplaylabeltag}[2][]{\bgroup\small\begin{equation}\label{#2}\tag{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{tikzdisplay}[1][]{\bgroup\small\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{tikzcenter}[1][]{\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}}
 \newcommand{\fdom}{\mathsf{domain}}
@@ -206,8 +211,8 @@
 \newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
 \newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\,#2\ifnotempty{#3}{\,#3}}}
+\newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\,#2\ifnotempty{#3}{\,#3}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\mathsf{F}^{#1}}
 \newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
@@ -260,8 +265,10 @@
 \newcommand{\partialfun}{\mathbin\rightharpoonup}
 \newcommand{\fun}{\mathbin\rightarrow}
 \newcommand{\prefix}{\mathbin\Rightarrow}
+\newcommand{\prefixsc}{\mathbin{\xRightarrow{\mathsf{sc}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
+\newcommand{\relfilt}[1]{\modeREL\,#1\guard}
 \newcommand{\st}{\mathbin.}
 
 \newcommand{\aPS}{P}
