@@ -411,9 +411,17 @@ Thus, each of the following programs gives rise to the pomset below:
 \end{align*}
 These capture control and data dependencies, respectively.
 
-At top level, we expect preconditions to be either tautological or
-unsatisfiable---true or false.  Substitution into preconditions arises via
-prefixing.  Reading $x$, for example, we arrive at:
+In \textsection\ref{sec:opt} we show that pomsets preconditions are closely
+tied to Hoare logic.  For example, the right pomset above can be seen as an
+expression of the Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
+The Hoare triple $\hoare{x =1}{\aReg\GETS x\SEMI y\GETS \aReg}{y =1}$ expresses the effect of prefixing an assignment to $\aReg$.
+The assignment to $\aReg$ causes a substitution in
+the precondition, changing the label to $(x=1\mid \DW{y}{1})$.
+
+% At top level, we expect preconditions to be either tautological or
+% unsatisfiable---true or false.
+In our semantics, substitution into preconditions arises via
+prefixing.  Reading $1$ for $x$, for example, we arrive at:
 \begin{align*}
   \begin{gathered}
     r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
@@ -457,6 +465,7 @@ We drop preconditions on tautological events and cross out unsatisfiable ones:
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
+
 
 \paragraph{Semantics of the Example Language.}
 In the remainder of this section, we explain the semantics of our example
@@ -505,8 +514,8 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \end{align*}
 \end{definition}
 
-%\paragraph{Fulfillment and Variable Declaration.}
-At the point a variable is declared, every read must be \emph{fulfilled} by a
+\paragraph{Location Binding and Fulfillment.}
+At the point a location is bound, every read must be \emph{fulfilled} by a
 matching write.
 
 \begin{definition}
@@ -660,6 +669,8 @@ whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
 \end{align*}
 \end{definition}
 
+\textcolor{red}{Add hoare logic comment}
+
 \paragraph{SC Prefixing.}
 
 For programs without data or control dependencies, the simplest candidate
@@ -711,37 +722,83 @@ there is $\aPS\in\aPSS$ such that:
 \begin{enumerate}
 \item\label{pre-E} $\Event' = \Event \cup \{\cEv\}$,
 \item\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-\item\label{pre-act} $\labelingAct'(\cEv) = \aAct$, $\labelingAct'(\aEv) = \labelingAct(\aEv)$, and
-   $\labelingForm'(\cEv)$ implies $\aForm$,
-\item\label{dis-ext1} if $\cEv$ \externally reads $\aVal$ from
-  $\aLoc$ then $\labelingForm'(\aEv)$ implies
-  $\labelingForm(\aEv)[\aVal/\aLoc]$, 
-\item\label{dis-int1} if $\cEv$ does not \externally read then
+\item[3a.] $\labelingAct'(\cEv) = \aAct$,
+\item[3b.] $\labelingForm'(\cEv)$ implies $\aForm$,
+\item[4a.] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
+\item[4b.] if $\cEv$ \externally reads $\aVal$ from $\aLoc$ then
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+\item[4c.] if $\cEv$ does not \externally read then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
-\item\label{pre-order} $\cEv \lt' \aEv$, 
+\item[5.] $\cEv \lt' \aEv$, 
 \end{enumerate}
 \end{definition}
+
+Item 3 describes the label of the new event $\cEv$.
+Item 4 describes the label of old events $\aEv$.
 
 \textcolor{red}{Examples of how dependencies can weaken and how bad futures
   get rmeoved}
 
 Full definition 
+
+
 \begin{definition}
   \label{def:prefix}
+Two actions \emph{conflict} if one writes a location and the other
+either reads or writes the same location.
+
 Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ that satisfies the first \ref{dis-int1} items of
+there is $\aPS\in\aPSS$ that satisfies the items 1-4 of
 Definition \ref{def:pre-sc} such that:
 \begin{enumerate}
-\item\label{dis-ext2} if $\aEv$ writes and $\cEv$ \externally reads, but
-  $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$, then
-  $\cEv\lt'\aEv$, and
-\item\label{pre-coherence} if $\cEv$ and $\aEv$ are \external actions in conflict,
+\item[5a.] if %$\cEv$ \externally reads and
+  $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
+  $\cEv\lt'\aEv$,
+\item[5b.] if $\cEv$ and $\aEv$ are \external actions in conflict,
     then $\cEv \gtN' \aEv$,
-\item\label{pre-sync} if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
-\item\label{pre-sc} if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, 
-\item\label{pre-acquire} if $\cEv$ is an acquire then $\labelingForm(\aEv)$
+\item[5c.] if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
+\item[5d.] if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, and
+\item[6.] if $\cEv$ is an acquire then $\labelingForm(\aEv)$
   is location independent.
 \end{enumerate}
+\end{definition}
+Note that condition 5a is implied by item 4c when $\cEv$ is not a read.
+
+Condition 6 is not needed here.  We will explain this when narrating internal actions.
+
+\paragraph{Write Actions.}
+
+\begin{definition}
+  Let $(\relfilt{\modeRLX}{\aLoc} \aPSS)$ be
+  the subset of $\aPSS$ such that
+  $\aPS\in\aPSS$ whenever every release $\aEv$ has a preceding $\bEv\le\aEv$
+  that \externally writes $\aLoc$.
+  Let $(\relfilt {\amode}{\aLoc} \aPSS)$ be the empty set if
+  $\amode\neq\modeRLX$.
+  \begin{align*}
+    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+    (\iDWmode{\aLoc}{}) \prefix \relfilt{\amode}{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
+    \\ & \mkern2mu\cup
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \end{align*}
+\end{definition}
+
+\paragraph{Read Actions.}
+Sadly, this does not validate case analysis:
+\begin{align*}
+  \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+  (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \\ & \mkern2mu\cup
+  \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+\end{align*}
+
+\begin{definition}
+  Let $\aPS'\in\sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd}$ whenever\\
+  $\aPS'=(\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]$ or
+  $\aPS'=\PAR_{k\in K}(\aForm_k \mid \DRmode\aLoc{\aVal_k}) \prefix \aPS$
+  where $\aPS\in\sem{\aCmd}[\aLoc/\aReg]$ and $\aForm_k$ are
+  disjoint\footnote{For $i$, $j$ in $K$: if $\aForm_i \land \aForm_j$ is
+    satisfiable then $i=j$.}.
 \end{definition}
 
 \subsection{More}
@@ -1920,8 +1977,8 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   $\aLoc$-closed pomsets,
 \item \emph{guarding} $\aForm\guard\aPSS$, which
   keeps pomsets where all preconditions imply $\aForm$, 
-\item \emph{release filtering} $\relfilt{\aLoc}\aPSS$, which keeps pomsets where
-  every release is preceded by \anexternal write to $\aLoc$,
+% \item \emph{release filtering} $\relfilt{\aLoc}\aPSS$, which keeps pomsets where
+%   every release is preceded by \anexternal write to $\aLoc$,
 \item \emph{substitution} $\aPSS\aSub$, which applies the substitution to
   every precondition,
 % \item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
@@ -1983,8 +2040,8 @@ are straightforward\footnote{We have chosen the definition of restriction for
 Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
 $\aForm$ implies $\labelingForm(\aEv)$, for every $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
 
-Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
-every release $\aEv$ has a preceding $\bEv\le\aEv$ that \externally writes $\aLoc$.
+% Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+% every release $\aEv$ has a preceding $\bEv\le\aEv$ that \externally writes $\aLoc$.
 
   %For a substitution $\aSub$, of the form $[\aLoc/\aReg]$ or $[\bExp/\aLoc]$,
 % \begin{itemize}
@@ -2391,34 +2448,34 @@ The semantics of programs is as follows: % \footnote{Fork parallelism is easily 
   % $\sem{\aCmd \LPAR \bCmd} = \sem{\aCmd} \parallel \Loc\guard
   % \sem{\bCmd}$.}:
 \allowdisplaybreaks
-\begin{align*}
-  % \sem{\SKIP} & =
-  % \{ \emptyset \}
-  % \\
-  % \sem{\VAR\aLoc\SEMI \aCmd} & =
-  % \nu \aLoc \st \sem{\aCmd}
-  % \\  
-  % \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
-  % \sem{\aCmd}[\aExp/\aReg] 
-  % \\
-  % \sem{\aCmd \PAR \bCmd} & =
-  % %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
-  % \sem{\aCmd} \parallel \sem{\bCmd} 
-  % \\
-  % \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
-  % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
-  % \\
-  % \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-  % (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
-  % \\ & \mkern2mu\cup
-  % \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  % \\
-  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-  (\iDWmode{\aLoc}{}) \prefix \relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
-  \textif \amode=\modeRLX
-  \\ & \mkern2mu\cup
-  \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-\end{align*}
+% \begin{align*}
+%   % \sem{\SKIP} & =
+%   % \{ \emptyset \}
+%   % \\
+%   % \sem{\VAR\aLoc\SEMI \aCmd} & =
+%   % \nu \aLoc \st \sem{\aCmd}
+%   % \\  
+%   % \sem{\aReg\GETS\aExp\SEMI \aCmd} & =
+%   % \sem{\aCmd}[\aExp/\aReg] 
+%   % \\
+%   % \sem{\aCmd \PAR \bCmd} & =
+%   % %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
+%   % \sem{\aCmd} \parallel \sem{\bCmd} 
+%   % \\
+%   % \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
+%   % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
+%   % \\
+%   % \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+%   % (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+%   % \\ & \mkern2mu\cup
+%   % \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+%   % \\
+%   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+%   (\iDWmode{\aLoc}{}) \prefix \relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
+%   \textif \amode=\modeRLX
+%   \\ & \mkern2mu\cup
+%   \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+% \end{align*}
 % The definition of read then chooses a set of predicates, values in V and pomsets in [[C]] so that 
 % [[ r=x; C]] contains pomsets of the form  ||_{k in K} (phi_k |> Rxv_k => Pk)
 % where the phi_k are disjoint and Pk in [[ C ]][x/r]

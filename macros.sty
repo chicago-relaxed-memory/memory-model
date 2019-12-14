@@ -1,3 +1,5 @@
+\newcommand{\nofootnote}[1]{}
+
 \newcommand{\anexternal}{a }
 \newcommand{\external}{}
 \newcommand{\externally}{}
@@ -207,8 +209,8 @@
 \newcommand{\dAct}{d}
 \newcommand{\DRSC}[2]{\smash{\mathsf{R^{sc}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
 \newcommand{\DWSC}[2]{\smash{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
-\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
-\newcommand{\DWRel}[2]{\smash{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
+\newcommand{\DRAcq}[2]{\smash{\mathsf{R\ACQ}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
+\newcommand{\DWRel}[2]{\smash{\mathsf{W\REL}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 \newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\,#2\ifnotempty{#3}{\,#3}}}
@@ -218,8 +220,8 @@
 \newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDRmode}[2]{\mathsf{R^{\amode}}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDWmode}[2]{\mathsf{W^{\amode}}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDRAcq}[2]{\mathsf{R^{acq}}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDWRel}[2]{\mathsf{W^{rel}}\ifnotempty{#1}{\,#1\,\bot}}
+\newcommand{\iDRAcq}[2]{\mathsf{R\ACQ}\ifnotempty{#1}{\,#1\,\bot}}
+\newcommand{\iDWRel}[2]{\mathsf{W\REL}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,\bot}}
 \newcommand{\iDW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,\bot}}
 %% \newcommand{\iDRAcq}[2]{\mathsf{\tau R^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
@@ -268,7 +270,7 @@
 \newcommand{\prefixsc}{\mathbin{\xRightarrow{\mathsf{sc}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
-\newcommand{\relfilt}[1]{\modeREL\,#1\guard}
+\newcommand{\relfilt}[2]{#1\,#2\guard}
 \newcommand{\st}{\mathbin.}
 
 \newcommand{\aPS}{P}

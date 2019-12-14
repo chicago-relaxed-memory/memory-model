@@ -3,10 +3,14 @@
 
 %In order to sharpen the criteria to evaluate memory models, we first outline desiderata  that concretize the above prescription.  
 
-There are two dimensions to ``implementation flexibility''.  Firstly, the model should be realizable on modern hardware with minimal synchronization.  A canonical example is that the relaxed atomics of C11 (or the plain variables of Java) should not require any extra synchronization.  Secondly, the  model should facilitate compiler transformations.    Ideally, the model should support the known transformations used to optimize  synchronization free single threaded code.  A canonical example is the  commuting of independent statements.
+There are two dimensions to ``implementation flexibility''.  Firstly, the model should be realizable on modern hardware with minimal synchronization.  A canonical example is that the relaxed atomics of C11 (or the plain variables of Java) should not require any extra synchronization.
+
+Secondly, the  model should facilitate compiler transformations.    Ideally, the model should support the known transformations used to optimize  synchronization free single threaded code.  A canonical example is the  commuting of independent statements.
 
 
-There are also two dimensions to ``ease-of-use''.  Firstly,the \emph{data race free-sequentially consistent (\drfsc)} criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs.    Secondly, all programs, including those with data races,  should support compositional reasoning on temporal safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649} \footnote{The simplest form of such a composition principle is:
+There are also two dimensions to ``ease-of-use''.  Firstly,the \emph{data race free-sequentially consistent (\drfsc)} criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits the programmer to forget about relaxed memory for correctly synchronized programs.
+
+Secondly, all programs, including those with data races,  should support compositional reasoning on temporal safety properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}\nofootnote{TOO MUCH FOR HERE The simplest form of such a composition principle is:
 \[
   \frac{
       \afo, \aPSS_1 \models\afo
@@ -14,79 +18,103 @@ There are also two dimensions to ``ease-of-use''.  Firstly,the \emph{data race f
       \afo, \aPSS_2 \models\afo
     }{\aPSS_1 \parallel \aPSS_2 \models \afo}
 \]
-where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$. } to permit us to reason separately about individual threads validating safety properties. 
-
-``Out Of Thin Air'' (\oota) executions invalidate the 
-composability  of safety properties.    Consider the ``type unsafety'' example, from
+where $\afo$ is a temporal safety property on read and write actions, and $\afo, \aPSS_1 \models\afo$ indicates that $\aPSS_1$ satisfies $\afo$ if the environment satisfies $\afo$.}.
+%to permit us to reason separately about individual threads validating safety properties. 
+% ``Out Of Thin Air'' (\oota) executions invalidate the 
+% composability  of safety properties.
+Consider the ``type unsafety'' example, from
 \citep[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
-\begin{equation}
-  \label{types}
+\begin{displaymath}
+  %\label{types}
   %x\GETS 0 \SEMI  y\GETS 0  \SEMI  b\GETS 0 \SEMI  
-  x\GETS y
-  \PAR
-  \aReg\GETS x \SEMI \IF{b} \THEN \bReg \GETS \NEW \texttt{C()} \ELSE \aReg \GETS \NEW \texttt{D()} \FI  \SEMI y \GETS \aReg \SEMI  
-  \PAR
-  b \GETS 1   
-\end{equation}
-Prima facie, the allocation operation can pick the same address for the two new objects, because only one of them occurs in any one execution.   This causes type safety to break for racy programs in the JMM, forcing~\citeauthor{DBLP:journals/toplas/Lochbihler13} to include the type information in the address itself.
-Informally, all threads satisfy the invariant that conjoins ``a creation of a \texttt{C} object is preceded by a read of \texttt{b} as $1$'' and ``a creation of a \texttt{D} object is preceded by a read of \texttt{b} as $0$''.  If composability of safety were to hold, the full program satisfies the invariant,   and facilitates the proof of a temporal invariant that forbids``pointer forging''  within a single execution.  
+  \begin{array}[t]{l}
+    x\GETS y
+    \PAR
+    b \GETS 1   
+    \PAR\\
+    \aReg\GETS x \SEMI \IF{b} \THEN \bReg \GETS \NEW \texttt{C()} \ELSE \aReg \GETS \NEW \texttt{D()} \FI  \SEMI y \GETS \aReg \SEMI 
+  \end{array}
+\end{displaymath}
+Informally, all threads satisfy the invariant that conjoins ``a creation of a \texttt{C} object is preceded by a read of \texttt{b} as $1$'' and ``a creation of a \texttt{D} object is preceded by a read of \texttt{b} as $0$''.  If composability of safety were to hold, the full program would satisfy the invariant.
+\citeauthor{DBLP:journals/toplas/Lochbihler13} argues that composability is necessary to prove type safety of racy Java programs without partitioning memory by type---an unrealistic assumption for any memory allocator. %    and facilitates the proof of a temporal invariant that forbids``pointer forging''  within a single execution.  
+ % Prima facie, the allocation operation can pick the same address for the two new objects, because only one of them occurs in any one execution.   This causes type safety to break for racy programs in the JMM, forcing~\citeauthor{DBLP:journals/toplas/Lochbihler13} to include the type information in the address itself.
 
-Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citet{Lamport:1979:MMC:1311099.1311750}, \citet{Dolan:2018:BDR:3192366.3192421}, \citet{DBLP:conf/pldi/LahavVKHD17}, \citet{DBLP:conf/lics/JeffreyR16}, RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} and~\citet{BoehmOOTA}.  However, {\em all} of them invalidate reordering of independent statements.  \cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/lics/JeffreyR16} forbid breaking of the program order from reads to writes and thus require extra fences after read actions in hardware implementations.  The results of \citet{Boehm:2014:OGA:2618128.2618134} show that the RC11 model\cite{DBLP:conf/pldi/LahavVKHD17} forces a dependency or a fence between a relaxed atomic read and a subsequent relaxed atomic write.  
+Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citep{Lamport:1979:MMC:1311099.1311750}, \citep{Dolan:2018:BDR:3192366.3192421}, \citep{DBLP:conf/pldi/LahavVKHD17}, \citep{DBLP:conf/lics/JeffreyR16}, RC11 \citep{DBLP:conf/pldi/LahavVKHD17}, and~\citep{BoehmOOTA}.  However, these models all invalidate reordering of independent statements.  Several require extra fences after read actions in hardware implementations. % \cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/lics/JeffreyR16} forbid breaking of the program order from reads to writes and thus require extra fences after read actions in hardware implementations.
+% \citep{Boehm:2014:OGA:2618128.2618134} show that the RC11 model %\cite{DBLP:conf/pldi/LahavVKHD17}
+% forces a dependency or a fence between a relaxed atomic read and a subsequent relaxed atomic write.  
 
 
-Whereas the JMM was designed with these two aims, the JMM and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10}, \citet{DBLP:conf/popl/KangHLVD17} and~\citet{Chakraborty:2019} invalidate compositional reasoning, as demonstrated by variants of \citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example.  
+% Whereas the JMM was designed with these two aims,
+The JMM and the related models of~\citet{DBLP:conf/esop/JagadeesanPR10}, \citet{DBLP:conf/popl/KangHLVD17} and~\citet{Chakraborty:2019} invalidate compositional reasoning, as demonstrated by variants of \citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example.  Thus these approaches fail to support either type safety or realistic memory allocation.
 
 
 Our approach has two key ingredients.  
 
-First, we focus on  multi-copy atomicity (\mca) in a software memory model. \footnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}  As envisioned in chapter 3.3 of~\citet{AlglaveThesis},  this permits us to address cross-thread dependencies simply by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}, with the acylicity of the pomset providing a global notion of time.  
+First, we focus on  multi-copy atomicity (\mca) in a software memory model\footnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}.  As envisioned in chapter 3.3 of~\citet{AlglaveThesis},  this permits us to address cross-thread dependencies simply by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}, with the acylicity of the pomset providing a global notion of time.  
 
-Second, we weaken the program-order within a thread to a preferred program order that only captures essential dependencies.  We use classical Hoare logic~\citep{Hoare:1969:ABC:363235.363259}, as presented in~\citet{gordonHoare}.  
-Consider the following sequential program fragments
+As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model.  We believe it has the same appeal at the language-level.  
+
+Second, we weaken the program-order within a thread to capture only essential dependencies.
+Previous language models have used syntactic notions of dependency \cite{Batty:2011:MCC:1926385.1926394}.
+Instead, we embed formulae in pomset events, using classical
+Hoare logic~\citep{Hoare:1969:ABC:363235.363259, gordonHoare} to compute dependencies when calculating the semantics of read and write events. %, as presented by~\citet{}.  
+
+Consider the following sequential program fragments:
 \begin{align*}
-& \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1 \\
-& \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg == 0} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI \\
-& \aCmd_3: \aLoc \GETS 1 \SEMI \IF{\aReg != 0} \THEN \bLoc \GETS 1 \FI \\
+& \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1 \\[-1ex]
+& \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI \\[-1ex]
+& \aCmd_3: \aLoc \GETS 1 \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI \\[-1ex]
 &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
-All the above program fragments satisfy the same Hoare triples.  In particular, $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$ holds for all $i=1,\ldots,4$, capturing the essence of the idea that the program order into $\bLoc \GETS 1$ can be removed and that the write of $1$ to $\bLoc$ can be commuted to the beginning\footnote{Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
-DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.} .
+These fragments satisfy the same Hoare triples---in particular, $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$.  In each case, the write of $y$ is independent of
+any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it.\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
+DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
 
 
 We show the following.
 \begin{itemize}
-\item The model can account for the full suite of features found in the C11 memory model, including relaxed/release-acquire and SC atomics, fences, and RMW.
+\item The model accounts for all the concurrency features of the C11 memory model, including relaxed, release-acquire and SC atomics, fences, and RMW.
 
 \item The model satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}).
 
-\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables  (\textsection\ref{sec:arm}).
-However, a semantic version of \mca\ in our model means that a compilation to \armseven\ or \ppc\ requires extra synchronization.  
+\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}).
 
-\item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  Thus, it supports the infrastructure required to prove a realistic type safety theorem that includes racy programs without requiring that that the type information is included in the address itself.
+\item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  
 
-\item The model validates a variety of single threaded transformations including reordering of independent statements and roach motel laws for synchronization  (\textsection\ref{sec:opt}).
+\item The model validates single-threaded compiler optimizations, as discussed below (\textsection\ref{sec:opt}).
 \end{itemize}
-On the last point, we demonstrate a further completeness result.  Whereas the JMM aims to validate {\em all} sequential optimizations, it is clear that is impossible.  For example, the introduction of redundant reads  but not valid concurrently. Thus, $\aReg \GETS \REF{\aLoc} \SEMI \IF{\aReg != \aReg} \cLoc \GETS 1 \FI$ cannot be replaced by $\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
-\IF{\aReg != \bReg} \THEN \cLoc \GETS 1 \FI$.  
 
+We discuss compiler optimizations both concretely and abstractly.
+Concretely, we show the validity of specific optimizations, such as the roach motel laws for synchronization.
+Abstractly, we establish sufficient conditions to replace any command $\aCmd$ by an equivalent $\bCmd$: if
+$\aCmd$ and $\bCmd$ are synchronization free and sequentially equivalent, and furthermore $\bCmd$ is \emph{linear}---performs at most one read and at most one write on any location in any execution---then $\aCmd$ can be refined to $\bCmd$.  
+
+The linearity restriction ensures that the context cannot interfere with the atomic execution of the command, and, dually, that the atomic execution of the command cannot interfere with the context.   To see the need for this, consider that the introduction of redundant reads is valid sequentially, but not valid concurrently. For example, $\aReg \GETS \REF{\aLoc} \SEMI \IF{\aReg != \aReg} \cLoc \GETS 1 \FI$ cannot be replaced by $\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI  \IF{\aReg != \bReg} \THEN \cLoc \GETS 1 \FI$.  In a concurrent context, the latter program may see different values for the two reads.
+% On the last point, we demonstrate a further completeness result.  Whereas the JMM aims to validate {\em all} sequential optimizations, it is clear that is impossible.  For example, the introduction of redundant reads  but not valid concurrently. Thus, $\aReg \GETS \REF{\aLoc} \SEMI \IF{\aReg != \aReg} \cLoc \GETS 1 \FI$ cannot be replaced by $\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
+% \IF{\aReg != \bReg} \THEN \cLoc \GETS 1 \FI$.  
+
+% Our model does the best possible under these constraints.   Call a program fragment ``linear'' if it does at most one read and at most one write on any location in any execution.  Thus, the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  We show that if sequential and synchronization free $\aCmd$ and $\bCmd$ are sequentially equivalent, and furthermore $\bCmd$ is ``'linear'' in this sense, then $\aCmd$ can be validly replaced by $\bCmd$.  
 % Similarly, for redundant writes; $\aLoc \GETS 1$ cannot be 
 % replaced by $\aLoc \GETS 1 \SEMI \aLoc \GETS 1 $ in a model 
-% with coherence.  
+% with coherence.
 
-Our model does the best possible under these constraints.   Call a program fragment ``linear'' if it does at most one read and at most one write on any location in any execution.  Thus, the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  We show that if sequential and synchronization free $\aCmd$ and $\bCmd$ are sequentially equivalent, and furthermore $\bCmd$ is ``'linear'' in this sense, then $\aCmd$ can be validly replaced by $\bCmd$.  
 
 
 
 
 %\paragraph*{Rest of the paper. }  We begin with an informal introduction to the modeling ideas in \textsection\ref{sec:model:intro}, developing the precise formalities in \textsection\ref{sec:model}.   \textsection\ref{sec:sc} proves the DRF theorem, whereas \textsection\ref{sec:arm} provides a compilation into \armeight\ and \tso.  Single threaded optimizations, and the associated completeness theorems are addressed in \textsection\ref{sec:opt}.  \textsection\ref{sec:logic} describes a temporal logic, and a compositional proof principle for proving safety properties.  \textsection\ref{sec:examples}.develops more illustrative examples.  We address related work in \textsection\ref{sec:ldrf} and conclude after.  An appendix contains details of proofs and further examples.
 
-We give an informal introduction to the model in \textsection\ref{sec:model:intro} before presenting the precise formalities in \textsection\ref{sec:model}.
-\textsection\ref{sec:sc} proves the DRF theorem, whereas \textsection\ref{sec:arm} provides a compilation into \armeight\ and \tso.  Single threaded optimizations, and the associated completeness theorems are addressed in \textsection\ref{sec:opt}.  \textsection\ref{sec:logic} describes a temporal logic, and a compositional proof principle for proving safety properties.
-We %present additional examples in \textsection\ref{sec:examples} and
-end with
-a discussion of related work in \textsection\ref{sec:ldrf}.
+% We give an informal introduction to the model in \textsection\ref{sec:model:intro} before presenting the precise formalities in \textsection\ref{sec:model}.
+% \textsection\ref{sec:sc} proves the DRF theorem, whereas \textsection\ref{sec:arm} provides a compilation into \armeight\ and \tso.  Single threaded optimizations, and the associated completeness theorems are addressed in \textsection\ref{sec:opt}.  \textsection\ref{sec:logic} describes a temporal logic, and a compositional proof principle for proving safety properties.
+% We %present additional examples in \textsection\ref{sec:examples} and
+% end with
+% a discussion of related work in \textsection\ref{sec:ldrf}.
 % An appendix
 % contains details of proofs and further examples.
+
+In the main paper, we present the model, examples, the results concerning
+compositional reasoning and optimization, and a discussion of
+related work.  The \drfsc\ and \armeight/\tso-compilation results may be found in the appendix.
 
 
 \endinput
