@@ -427,7 +427,7 @@ prefixing.  Reading $1$ for $x$, for example, we arrive at:
     r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
     \\
     \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{1<0\mid\DW{y}{1}}{}
+        \event{wy1}{x<0\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
         \po{rx1}{wy1}
       \end{tikzinline}}
@@ -436,6 +436,31 @@ prefixing.  Reading $1$ for $x$, for example, we arrive at:
   \begin{gathered}
     r\GETS x\SEMI y\GETS r
     \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{x=1\mid\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+The read event allows us to weaken the precondition of events that follow in
+pomset order.  Effectively, we have moved the requirement from the
+single-threaded realm of Hoare logic to the multithreaded world of concurrent
+memory.
+\begin{align*}
+  \begin{gathered}
+    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    % \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{1<0\mid\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    % r\GETS x\SEMI y\GETS r
+    % \\
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{wy1}{1=1\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
@@ -446,8 +471,8 @@ prefixing.  Reading $1$ for $x$, for example, we arrive at:
 We drop preconditions on tautological events and cross out unsatisfiable ones:
 \begin{align*}
   \begin{gathered}
-    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
-    \\
+    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    % \\
     \hbox{\begin{tikzinline}[node distance=1em]
         \nonevent{wy1}{\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
@@ -456,8 +481,8 @@ We drop preconditions on tautological events and cross out unsatisfiable ones:
   \end{gathered}
   &&
   \begin{gathered}
-    r\GETS x\SEMI y\GETS r
-    \\
+    % r\GETS x\SEMI y\GETS r
+    % \\
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{wy1}{\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
