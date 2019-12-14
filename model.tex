@@ -391,16 +391,8 @@ Although we use multiple arrows, we emphasize that they are all part
 of the same $\le$ relation.
 
 The logical formulae associated with events are \emph{preconditions}.
-Thus, each of the following programs gives rise to the pomset below:
+The following programs gives rise to the pomset below them, capture data and control dependencies, respectively.
 \begin{align*}
-  \begin{gathered}
-    \IF{r<0}\THEN y\GETS1 \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{r<0\mid\DW{y}{1}}{}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
   \begin{gathered}
     y\GETS r
     \\
@@ -408,78 +400,74 @@ Thus, each of the following programs gives rise to the pomset below:
         \event{wy1}{r=1\mid\DW{y}{1}}{}
       \end{tikzinline}}
   \end{gathered}
-\end{align*}
-These capture control and data dependencies, respectively.
-
-In \textsection\ref{sec:opt} we show that pomsets preconditions are closely
-tied to Hoare logic.  For example, the right pomset above can be seen as an
-expression of the Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
-The Hoare triple $\hoare{x =1}{\aReg\GETS x\SEMI y\GETS \aReg}{y =1}$ expresses the effect of prefixing an assignment to $\aReg$.
-The assignment to $\aReg$ causes a substitution in
-the precondition, changing the label to $(x=1\mid \DW{y}{1})$.
-
-% At top level, we expect preconditions to be either tautological or
-% unsatisfiable---true or false.
-In our semantics, substitution into preconditions arises via
-prefixing.  Reading $1$ for $x$, for example, we arrive at:
-\begin{align*}
+  &&
   \begin{gathered}
-    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    \IF{r<0}\THEN y\GETS1 \FI
     \\
     \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{x<0\mid\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
+        \event{wy1}{r<0\mid\DW{y}{1}}{}
       \end{tikzinline}}
   \end{gathered}
-  &&
+\end{align*}
+
+In \textsection\ref{sec:opt} we show that pomsets preconditions are closely
+tied to Hoare logic.  For example, the pomset above left is equivalent to the
+Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
+
+Prepending an assignment to $\aReg$, the rules of Hoare logic derive the
+triple $\hoare{x =1}{\aReg\GETS x\SEMI y\GETS \aReg}{y =1}$.  In our
+semantics, the assignment to $\aReg$ causes a substitution in the
+precondition: %, changing the label to $(x=1\mid \DW{y}{1})$.
+% At top level, we expect preconditions to be either tautological or
+% unsatisfiable---true or false.
+\begin{align*}
   \begin{gathered}
     r\GETS x\SEMI y\GETS r
     \\
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{wy1}{x=1\mid\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align*}
-The read event allows us to weaken the precondition of events that follow in
-pomset order.  Effectively, we have moved the requirement from the
-single-threaded realm of Hoare logic to the multithreaded world of concurrent
-memory.
-\begin{align*}
-  \begin{gathered}
-    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
-    % \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{1<0\mid\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
+        % \event{rx1}{\DR{x}{1}}{left=of wy1}
+        % \po{rx1}{wy1}
       \end{tikzinline}}
   \end{gathered}
   &&
   \begin{gathered}
-    % r\GETS x\SEMI y\GETS r
-    % \\
+    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{x<0\mid\DW{y}{1}}{}
+        % \event{rx1}{\DR{x}{1}}{left=of wy1}
+        % \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+Our semantics may optionally prepend a read event.  By committing to a specific
+value, the read event allows us to weaken the precondition of events that
+follow in pomset order:
+\begin{align*}
+  \begin{gathered}
+    r\GETS x\SEMI y\GETS r
+    \\
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{wy1}{1=1\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
         \po{rx1}{wy1}
       \end{tikzinline}}
   \end{gathered}
-\end{align*}
-We drop preconditions on tautological events and cross out unsatisfiable ones:
-\begin{align*}
+  &&
   \begin{gathered}
-    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
-    % \\
+    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    \\
     \hbox{\begin{tikzinline}[node distance=1em]
-        \nonevent{wy1}{\DW{y}{1}}{}
+        \event{wy1}{1<0\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
         \po{rx1}{wy1}
       \end{tikzinline}}
   \end{gathered}
-  &&
+\end{align*}
+We drop preconditions on tautological events and cross out unsatisfiable
+ones (which may are ignored):
+\begin{align*}
   \begin{gathered}
     % r\GETS x\SEMI y\GETS r
     % \\
@@ -489,8 +477,21 @@ We drop preconditions on tautological events and cross out unsatisfiable ones:
         \po{rx1}{wy1}
       \end{tikzinline}}
   \end{gathered}
+  &&
+  \begin{gathered}
+    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    % \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \nonevent{wy1}{\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
 \end{align*}
-
+By prefixing a read event, the precondition $x=1$ has moved from the sequential realm of
+Hoare logic to the concurrent memory model.  Rather than a precondition that
+must be satisfied, the resulting pomset has a read event that must be
+\emph{fulfilled} by a matching write, as described below.
 
 \paragraph{Semantics of the Example Language.}
 In the remainder of this section, we explain the semantics of our example
@@ -539,7 +540,7 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \end{align*}
 \end{definition}
 
-\paragraph{Location Binding and Fulfillment.}
+\paragraph{Fulfillment and Location Binding.}
 At the point a location is bound, every read must be \emph{fulfilled} by a
 matching write.
 
@@ -600,7 +601,11 @@ top-level execution:
   \wk{rx2a}{wx4}
 \end{tikzdisplay}
 
-\textcolor{red}{Comment on eco?}
+The restriction of pomset order to conflicting events is called the
+\emph{extended coherence order}, $\reco$.  This relation can always be
+extended to totally order all conflicting events, as is common in hardware
+memory models.
+
 
 \paragraph{Composition, Concurrency and Conditional.}
 
@@ -693,33 +698,59 @@ whenever there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
   % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
 \end{align*}
 \end{definition}
+Thus, the semantics of
+ $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ 
+includes:
+\begin{tikzdisplay}[node distance=1em]
+  \event{wy1}{\aReg\lor\lnot\aReg\mid \DW{y}{1}}{}
+\end{tikzdisplay}
+This weakening of the precondition of an event that occurs on both sides of a
+conditional can be seen in the inference:
+\[
+  \frac{
+    \hoare{\aExp}{\aCmd}{\bForm}
+    \quad
+    \hoare{\lnot\aExp}{\bCmd}{\bForm}
+  }{
+    \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
+  }
+\]
 
-\textcolor{red}{Add hoare logic comment}
 
-\paragraph{SC Prefixing.}
+\paragraph{SC Prefixing without Dependencies.}
+Because the definition of prefixing is somewhat complex, we start with very
+restrictive assumptions and then generalize.
 
-For programs without data or control dependencies, the simplest candidate
-definitions of read and write result in top-level executions being
-sequentially consistent:
-\begin{align*}
+For programs without data or control dependencies, the
+simplest\footnote{Anticipating Definition \ref{def:prefix}, we include
+  preconditions and substitutions.} candidate definitions of read and write
+result in top-level executions being sequentially consistent:
+\begin{align}
+  \tag{$\dagger$}\label{sc-read}
   \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
   \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aLoc/\aReg] 
   \\
+  \tag{$\ddagger$}\label{sc-write}
   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aExp/\aLoc]
-\end{align*}
+  \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefixsc \sem{\aCmd}%[\aExp/\aLoc]
+\end{align}
 where for any $\aPS\in\aPSS$, the operator
 $(\aForm \mid \aAct) \prefixsc \aPSS$ adds a new event that precedes all of the
-``old'' events in $\aPS$ in pomset order.
-%
-For example consider the candidate execution for the \emph{store buffering}
-litmus test:
+``old'' events in $\aPS$. % in pomset order.
+We explain the substitutions in the subsections below.
+
+The definition ensures that program order is included in the pomset
+order.  Due to the requirements of fulfillment, we also have that $\reco$ is
+included in pomset order.  As a result, all executions are sequentially consistent.
+ 
+For a negative example, consider the following candidate execution for the
+\emph{store buffering} litmus test:
 \begin{displaymath}  
   x\GETS0\SEMI x\GETS1\SEMI\aReg\GETS y
   \PAR
   y\GETS0\SEMI y\GETS1\SEMI \aReg\GETS x
 \end{displaymath}
-\begin{tikzdisplaylabeltag}[node distance=1em]{SB}
+\begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{below=of wx0}
   \event{wx}{\DW{x}{1}}{right=of wx0}
@@ -735,11 +766,33 @@ litmus test:
   \wk{ry}{wy}
   \wk{rx}{wx}
   %\po{rx}{wy}
-\end{tikzdisplaylabeltag}
-\textcolor{red}{Comment on this: This version of prefixing includes all of
-  program order in pomset order; with eco you get SC.}
+\end{tikzdisplay}
+The order from the reads of 0 to the writes of 1 is required by the
+definition of fulfillment.  This candidate execution is not a pomset 
+due to the resulting cycle, and thus disallowed.
 
-For programs with dependencies, the definition is subtler.
+\paragraph{SC Prefixing with Dependencies.}
+For SC executions with dependencies, we must allow preconditions to weaken in
+some cases, and require them to strengthen in others.  Consider the following
+example.  From \eqref{sc-write}, $\sem{y\GETS r}$ contains
+$(r\EQ1\mid\DW{y}{1})$.  When prefixing a read event in
+$\sem{r\GETS x\SEMI y\GETS r}$, the precondition can weaken when $1$ is read
+and must strengthen when $0$ is read:
+\begin{displaymath}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wy1}{1=1\mid\DW{y}{1}}{}
+      \event{rx1}{\DR{x}{1}}{left=of wy1}
+      \po{rx1}{wy1}
+    \end{tikzinline}}
+  \qquad \qquad
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \nonevent{wy1}{0=1\mid\DW{y}{1}}{}
+      \event{rx}{\DR{x}{0}}{left=of wy1}
+      \po{rx}{wy1}
+    \end{tikzinline}}
+\end{displaymath}
+
+We arrive at the following definition.
 \begin{definition}
   \label{def:pre-sc}
 Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
@@ -757,16 +810,28 @@ there is $\aPS\in\aPSS$ such that:
 \item[5.] $\cEv \lt' \aEv$, 
 \end{enumerate}
 \end{definition}
+Item 1 introduces the new event\footnote{Anticipating Definition
+  \ref{def:prefix}, the new event may overlap with an old one.}.  Item 5
+(which we refine next) ensures that program order is included in pomset
+order.  Item 2 ensures that no order is removed.  Item 3 describes the label
+of the new event $\cEv$.  Item 4 describes the label of old events $\aEv$.
 
-Item 3 describes the label of the new event $\cEv$.
-Item 4 describes the label of old events $\aEv$.
+We can now explain the substitution in the semantics of read
+\eqref{sc-read}.
+% (The substitution in the semantics of write \eqref{sc-write} is not used here; we explain
+% it after introducing \emph{internal reads}, below.)
+Returning to our example, to compute
+$\sem{r\GETS x\SEMI y\GETS r}$, we first compute
+$(r\EQ1\mid\DW{y}{1})[x/r]$, then perform prefixing.  By 4b, reading $1$
+performs the further substitution of $[1/x]$, allowing the precondition to
+weaken.  Likewise, reading $0$ performs $[0/x]$, requiring the precondition
+to strengthen.
 
-\textcolor{red}{Examples of how dependencies can weaken and how bad futures
-  get rmeoved}
+\paragraph{General Prefixing.}
 
-Full definition 
-
-
+In order to allow relaxed executions, such as the non-SC store-buffering
+example given previously, we relax item 5 of Definition \ref{def:pre-sc} to
+include only \emph{preserved} program order:
 \begin{definition}
   \label{def:prefix}
 Two actions \emph{conflict} if one writes a location and the other
@@ -787,34 +852,95 @@ Definition \ref{def:pre-sc} such that:
   is location independent.
 \end{enumerate}
 \end{definition}
-Note that condition 5a is implied by item 4c when $\cEv$ is not a read.
+Item 5a captures read to write dependency\footnote{When $\cEv$ is not a read,
+  4c trivially implies 5a.}; it only requires order when the precondition of
+the write is weakened by prefixing.  Item 5b captures the coherence
+requirement on actions that touch the same location.  Item 5c imposes the
+order required by acquire and release actions.  Item 5d imposes the
+additional order required by SC actions\footnote{Recall that SC reads are
+  acquires and SC writes are releases.}.  (Item 6 is not used here; we explain
+it after introducing \emph{internal reads}, below.)
 
-Condition 6 is not needed here.  We will explain this when narrating internal actions.
+Program order is not imposed between reads or between writes to different
+locations.  From read to write, program order is only imposed in the case
+that a precondition of the write is discharged.  Thus we have:
+\begin{displaymath}
+  \aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{wy1}{\DW{y}{1}}{}
+  \event{rx1}{\DR{x}{1}}{left=of wy1}
+\end{tikzdisplay}
+Since no order is imposed, the two actions can be reordered.
 
-\paragraph{Write Actions.}
+Item 5c ensures access ensure correct publication.  For
+example, the following candidate execution is disallowed.
+\begin{displaymath}
+  x\GETS0\SEMI %y\GETS0\SEMI
+  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ; s\GETS x
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em, baseline={([yshift=-1.5ex]current bounding box.west)}]
+  \event{wx0}{\DW{x}{0}}{}
+  %\event{wy0}{\DW{y}{0}}{below=of wx0}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy1}{\DWRel{y}{1}}{below=of wx1}
+  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+  \event{rx0}{\DR{x}{0}}{above=of ry1}
+  \po{wx0}{wy1}
+  %\po{wy0}{wy1}
+  \po{wx1}{wy1}
+  \po{ry1}{rx0}
+  \rf{wy1}{ry1}
+  \rf[out=20,in=160]{wx0}{rx0}
+  \wk{wx0}{wx1}
+\end{tikzdisplay}
+Since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, this pomset does not satisfy the
+requirements to fulfill the read.
+
+Similarly, items 5c and 5d ensure that every pomset can be extended to totally
+order SC accesses.
+
+
+\paragraph{Internal reads and writes.}
 
 \begin{definition}
-  Let $(\relfilt{\modeRLX}{\aLoc} \aPSS)$ be
-  the subset of $\aPSS$ such that
+  Let $(\relfilt{\modeRLX}{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that
   $\aPS\in\aPSS$ whenever every release $\aEv$ has a preceding $\bEv\le\aEv$
-  that \externally writes $\aLoc$.
-  Let $(\relfilt {\amode}{\aLoc} \aPSS)$ be the empty set if
-  $\amode\neq\modeRLX$.
+  that \externally writes $\aLoc$.  For $\amode\neq\modeRLX$, let
+  $(\relfilt {\amode}{\aLoc} \aPSS)$ be the empty set.
   \begin{align*}
-    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-    (\iDWmode{\aLoc}{}) \prefix \relfilt{\amode}{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
+    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+    \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
     \\ & \mkern2mu\cup
+    (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+    \\
+    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
     \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+    \\ & \mkern2mu\cup
+    (\iDWmode{\aLoc}{}) \prefix \relfilt{\amode}{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
   \end{align*}
 \end{definition}
+
+
+We can now explain the substitution in the semantics of write
+\eqref{sc-write}.  This substitution allows local writes to discharge
+preconditions without introducing dependency.
+For example, we have:
+\begin{displaymath}  
+  x\GETS1\SEMI r\GETS x\SEMI y\GETS r
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{wx}{\DW{x}{1}}{}
+  \event{wy}{\DW{y}{1}}{right=of wx}
+  %\po{rx}{wy}
+\end{tikzdisplay}
+
+
+
 
 \paragraph{Read Actions.}
 Sadly, this does not validate case analysis:
 \begin{align*}
-  \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-  (\iDRmode{\aLoc}{}) \prefix \sem{\aCmd}[\aLoc/\aReg]
-  \\ & \mkern2mu\cup
-  \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
 \end{align*}
 
 \begin{definition}
@@ -1113,69 +1239,7 @@ The restriction of $\geN$ to conflicting events on a single location is called t
 \paragraph{Synchronization.}
 The model ensures that events are ordered before a release and after an
 acquire.  This is a strong order which is visualized as a solid arrow, like
-order derived from dependency.  As an example, consider the program:
-\begin{displaymath}
-  x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ; s\GETS x
-\end{displaymath}
-\text{which allows:}  \hfill
-\begin{tikzinline}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  %\event{wy0}{\DW{y}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy1}{\DWRel{y}{1}}{below=of wx1}
-  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-  \event{rx1}{\DR{x}{1}}{above=of ry1}
-  \po{wx0}{wy1}
-  %\po{wy0}{wy1}
-  \po{wx1}{wy1}
-  \po{ry1}{rx1}
-  \rf{wy1}{ry1}
-  \rf{wx1}{rx1}
-  \wk{wx0}{wx1}
-\end{tikzinline}
-\hfill\text{but \emph{not}:}\hfill
-\begin{tikzinline}[node distance=1em, baseline={([yshift=-1.5ex]current bounding box.west)}]
-  \event{wx0}{\DW{x}{0}}{}
-  %\event{wy0}{\DW{y}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy1}{\DWRel{y}{1}}{below=of wx1}
-  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-  \event{rx0}{\DR{x}{0}}{above=of ry1}
-  \po{wx0}{wy1}
-  %\po{wy0}{wy1}
-  \po{wx1}{wy1}
-  \po{ry1}{rx1}
-  \rf{wy1}{ry1}
-  \rf[out=20,in=160]{wx0}{rx0}
-  \wk{wx0}{wx1}
-\end{tikzinline}
-\hfill\hbox{}
-
-\smallskip
-\noindent
-Since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, this pomset does not satisfy the
-requirements to fulfill the read.
-If we replace the release
-with a plain write, then the outcome $(\DRAcq y1)$ and $(\DR x0)$ is possible:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  %\event{wy0}{\DW{y}{0}}{below=of wx0}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy1}{\DW{y}{1}}{below=of wx1}
-  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-  \event{rx0}{\DR{x}{0}}{above=of ry1}
-  %\wk{wy0}{wy1}
-  \po{ry1}{rx0}
-  \rf{wy1}{ry1}
-  \rf[out=20,in=160]{wx0}{rx0}
-  \wk{wx0}{wx1}
-  \wk{rx0}{wx1}
-\end{tikzdisplay}
-since no order is required between $(\DW x1)$ and $(\DW y1)$.  
-Symmetrically, if we replace the acquire of the original program
-with a plain read, then the outcome $(\DR y1)$ and $(\DR x0)$ is possible.
-
+order derived from dependency.  
 \paragraph{Impact of internal reads.}
 The ability to remove of the program order from a write to a read of the same thread as discussed earlier causes great expressivity in terms of permitted executions.  To see this, consider the example 3.6 from
 \cite{DBLP:journals/pacmpl/PodkopaevLV19}:

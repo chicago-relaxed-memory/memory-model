@@ -45,14 +45,17 @@ Models that validate ``ease-of-use'' include Sequential Consistency (SC)~\citep{
 
 
 % Whereas the JMM was designed with these two aims,
-The JMM and  related models \citep{DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17,Chakraborty:2019} invalidate compositional reasoning, as demonstrated by variants of \citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example.  Thus, they fail to support either type safety or realistic memory allocation.
+Java and  related models \citep{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17,Chakraborty:2019} invalidate compositional reasoning, as demonstrated by variants of \citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example.  Thus, they fail to support either type safety or realistic memory allocation.
 
 
 Our approach has two key ingredients.  
 
 First, we focus on multi-copy atomicity (\mca), which holds that when a write becomes visible to one threads it must become visible to all threads \nofootnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).} \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in chapter 3.3 of~\citet{AlglaveThesis},  this permits us to address cross-thread dependencies simply by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}, with the acylicity of the pomset providing a global notion of time.  
 
-As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  We believe it has the same appeal at the language-level.  
+Just as \mca{} in hardware dramatically simplifies the programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18},
+the  acyclicity of the pomset provides a very simple global notion of time in our software
+memory model.
+% As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  We believe it has the same appeal at the language-level.  
 
 Second, we weaken the program-order within a thread to capture only essential dependencies.
 Previous language models have used syntactic notions of dependency \cite{Batty:2011:MCC:1926385.1926394}.
