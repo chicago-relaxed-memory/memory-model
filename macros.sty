@@ -29,8 +29,8 @@
 \newcommand{\IDW}{\ID{\mathsf{W}}}
 
 
-\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
-%\newcommand{\eqdef}{=}
+%\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
+\newcommand{\eqdef}{=}
 \newcommand{\rel}{{\tt rel}}
 
 
@@ -267,10 +267,10 @@
 \newcommand{\partialfun}{\mathbin\rightharpoonup}
 \newcommand{\fun}{\mathbin\rightarrow}
 \newcommand{\prefix}{\mathbin\Rightarrow}
-\newcommand{\prefixsc}{\mathbin{\xRightarrow{\mathsf{sc}}}}
+\newcommand{\prefixsc}{\mathbin{\smash{\xRightarrow{\mathsf{sc}}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
-\newcommand{\relfilt}[2]{#1\,#2\guard}
+\newcommand{\relfilt}[1]{\textsf{cover}\,#1\guard}
 \newcommand{\st}{\mathbin.}
 
 \newcommand{\aPS}{P}
@@ -408,9 +408,11 @@
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
 
 \tikzstyle{graypo} = [->,color=gray,]
-\newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
 \tikzstyle{graywk} = [->,dashed,color=gray]
-\newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
+% \newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
+% \newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
+\newcommand{\graypo}[3][]{}
+\newcommand{\graywk}[3][]{}
 
 \tikzstyle{po} = [->,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}

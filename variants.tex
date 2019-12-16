@@ -1,15 +1,74 @@
 \section{Additional Features}
+\label{sec:variants}
 
-\subsection{Explicit Internal Actions}
+\paragraph{Explicit Internal Actions}
 
-Add condition to simplify compilation result (and DRF??)
+The explicit use of internal actions facilitate the translation to \armeight\
+(\textsection\ref{sec:arm}) and the definitions required in the proof of
+\drfsc\ (\textsection\ref{sec:sc}).
+
+Add condition to validate DRF.
 \begin{itemize}
 \item[5e.] if $\cEv$ internally reads from $\aLoc$, $\labelingForm(\aEv)$ is
   not independent of $\aLoc$, and $\aEv$ writes, then $\cEv\lt'\aEv$.
 \end{itemize}
 
+In defining \emph{data races} (and thus in the proof of \drfsc) it is
+important to position internal actions relative to synchronization actions.
+For example, the following execution is consider data-race free.
+\begin{displaymath}
+  x\GETS1\SEMI
+  \aReg\GETS x \SEMI
+  y\REL\GETS 1 \SEMI
+  \PAR
+  \bReg\GETS y\ACQ \SEMI
+  x\GETS 2
+\end{displaymath}
+\begin{tikzdisplay}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \internal{a2}{\DR{x}{}}{right=of a1}
+  %\graypo{a1}{a2}
+  \event{a3}{\DWRel{y}{1}}{right=of a2}
+  \graypo{a2}{a3}
+  \po[bend left]{a1}{a3}
+  \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
+  \rf{a3}{b1}
+  \event{b2}{\DW{x}{2}}{right=of b1}
+  \po{b1}{b2}
+\end{tikzdisplay}
+However, if we commute the read of $x$ and the release of $y$, the resulting
+program has a data race.
+% \begin{displaymath}
+%   x\GETS0\SEMI
+%   x\GETS1\SEMI
+%   \aReg\GETS x \SEMI
+%   y\REL\GETS 1 \SEMI
+%   z\GETS\aReg
+%   \PAR
+%   \bReg\GETS z\ACQ \SEMI
+%   \cReg\GETS x
+% \end{displaymath}
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{a0}{\DW{x}{0}}{left=of a1}
+%   \wk{a0}{a1}
+%   \internal{a2}{\DR{x}{1}}{right=of a1}
+%   \graypo{a1}{a2}
+%    \event{a3}{\DWRel{y}{1}}{right=of a2}
+%   \graypo{a2}{a3}
+%   \po[bend left]{a1}{a3}
+%   \event{a4}{\DW{z}{1}}{right=of a3}
+%   \graypo[bend left]{a2}{a4}
+%   \event{b1}{\DRAcq{z}{1}}{below=of a4}
+%   \rf{a4}{b1}
+%   \event{b2}{\DR{x}{0}}{left=8em of b1}
+%   \po{b1}{b2}
+%   \wk{b2}{a1}
+%   \wk{a0}{b2}
+% \end{tikzdisplay}
 
-\subsection{Address Calculation}
+
+\paragraph{Address Calculation}
 
 Definition of data model:
 \begin{itemize}
@@ -34,7 +93,7 @@ Definition of data model:
   \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDWmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
 \end{align*}
 
-\subsection{Fences}
+\paragraph{Fences}
 
 All fence actions are internal, do not read or write.
 \begin{align*}
@@ -50,7 +109,7 @@ All fence actions are internal, do not read or write.
   (\DF{}) \prefix \sem{\aCmd}
 \end{align*}
 
-\subsection{Read-Modify-Write}
+\paragraph{Read-Modify-Write}
 
 % \section{Variations}
 
