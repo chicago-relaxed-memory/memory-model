@@ -1,6 +1,88 @@
 \section{Invariant Reasoning in Temporal Logic}
 \label{sec:logic}
 
+\paragraph{Load buffering and thin air.}
+The program
+\begin{math}
+  %x\GETS0\SEMI y\GETS0\SEMI
+  (y\GETS x \PAR \bReg\GETS y\SEMI x\GETS1)
+\end{math}
+has top level executions that result in the final outcome $x = y = 1$, such as:
+\begin{tikzdisplay}[node distance=1em]
+  % \event{wx0}{\DW{x}{0}}{}
+  % \event{wy0}{\DW{y}{0}}{below=wx0}
+  \event{rx}{\DR{x}{1}}{}
+  \event{wy}{\DW{y}{1}}{right=of rx}
+  \po{rx}{wy}
+  \event{ry}{\DR{y}{1}}{right=3em of wy}
+  \event{wx}{\DW{x}{1}}{right=of ry}
+  \rf{wy}{ry}
+  \rf[out=170,in=10]{wx}{rx}
+  %\po{rx}{wy}
+\end{tikzdisplay}
+In \textsection\ref{sec:logic} we provide machinery to prove that this
+outcome is impossible if there is order from read to write in both
+threads.  This order can be achieved by replacing the second thread
+\begin{math}
+  (\bReg\GETS y\SEMI x\GETS1)
+\end{math}
+with 
+\begin{math}
+  (\bReg\GETS y\ACQ\SEMI x\GETS1)
+\end{math}
+or
+\begin{math}
+  (\IF{y}\THEN x\GETS 1\FI)
+\end{math}
+or
+\begin{math}
+  (x\GETS y).
+\end{math}
+
+A more interesting example is the following variant of \eqref{types}:
+\begin{displaymath}
+  %\label{alan}
+  % x\GETS0\SEMI
+  %y\GETS0\SEMI   
+  (
+    y\GETS x
+  \PAR
+    \IF{z}\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+  \PAR
+    z\GETS0\SEMI z\GETS1
+  )
+\end{displaymath}
+This program is allowed to write $1$ to $a$ under many speculative
+memory models
+\cite{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17},
+even though the read of $1$ from $y$ in the else branch of the second
+thread arises out of thin air.   \citet{DBLP:journals/toplas/Lochbihler13}
+argues that such executions compromise type safety unless object allocation
+partitions memory by type.
+In our model, the attempted execution is:
+\begin{tikzdisplay}[node distance=1em]
+  \event{rx}{\DR{x}{1}}{}
+  \event{wy}{\DW{y}{1}}{below=of rx}
+  \po{rx}{wy}
+  \event{ry}{\DR{y}{1}}{right=of rx}
+  \event{wx}{\DW{x}{1}}{below=of ry}
+  \po{ry}{wx}
+  \rf{wy}{ry}
+  \rf{wx}{rx}
+  \event{rz}{\DR{z}{0}}{right=of ry}
+  \event{wz0}{\DW{z}{0}}{right=of rz}
+  \rf{wz0}{rz}
+  \event{wz1}{\DW{z}{1}}{right=of wz0}
+  \wk{wz0}{wz1}
+  \event{ry1}{\DR{y}{1}}{below=of rz}
+  \rf[bend right]{wy}{ry1}
+  \event{wa}{\DW{a}{1}}{right=of ry1}
+  \po{ry1}{wa}
+  \po{rz}{wa}
+\end{tikzdisplay}
+This is forbidden by the evident cycle.
+
+
 In this section, we develop sufficient logical infrastructure to prove that
 our semantics disallows thin air executions.  In particular, we provide a
 proof that thin air execution \eqref{alan} from
