@@ -866,7 +866,7 @@ Definition \ref{def:pre-sc} and:
   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
   $\cEv\lt'\aEv$,
 \item[5b.] if $\cEv$ and $\aEv$ are \external actions in conflict,
-    then $\cEv \gtN' \aEv$,
+    then $\cEv\lt'\aEv$, %$\cEv \gtN' \aEv$,
 \item[5c.] if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
 \item[5d.] if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, and
 \item[6.] if $\cEv$ is an acquire then $\labelingForm(\aEv)$
@@ -882,8 +882,7 @@ the write is weakened by prefixing.  Item 5b captures the coherence
 requirement on actions that touch the same location.  Item 5c imposes the
 order required by acquire and release actions.  Item 5d imposes the
 additional order required by SC actions\footnote{Recall that SC reads are
-  acquires and SC writes are releases.}.  (Item 6 is not used here; we explain
-it after introducing \emph{internal reads}, below.)
+  acquires and SC writes are releases.}.  (We explain item 6 in the next subsection.)
 
 Item 5c ensures access ensure correct publication.  For
 example, the following candidate execution is disallowed.
@@ -1194,7 +1193,7 @@ To see this, consider that the execution above is impossible for
 We now address the two peculiarities in the definition.
 
 First, the use of \textsf{cover} in Definition~\ref{def:rw:local} prevents
-the local write rule from applying immediately preceding a release.  This
+the local write rule from applying immediately before a release.  This
 prevents bad executions such as:
 \begin{gather*}
   x\GETS 1\SEMI
@@ -1216,6 +1215,37 @@ prevents bad executions such as:
   \rf[out=10,in=170]{a1}{b2}
     \end{tikzinline}}
 \end{gather*}
+Symmetrically, item 6 in Definition~\ref{def:prefix} ensures that local
+reads are not matched to local writes when there is an intervening acquire.
+This prevents bad executions such as:
+\begin{gather*}
+  x\GETS1 \SEMI
+  a\REL\GETS1 \SEMI
+  \IF{b\ACQ}\THEN  y\GETS x \FI
+  \PAR
+  \IF{a\ACQ}\THEN  x\GETS 2\SEMI b\REL\GETS1 \FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{a2}{\DWRel{a}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{b3}{\DRAcq{a}{1}}{below=of a2}
+  \rf{a2}{b3}
+  \event{b4}{\DW{x}{2}}{right=of b3}
+  \po{b3}{b4}
+  \event{b5}{\DWRel{b}{1}}{right=of b4}
+  \po{b4}{b5}
+  \event{a6}{\DRAcq{b}{1}}{above=of b5}
+  \rf{b5}{a6}
+  \internal{a7}{\DR{x}{1}}{right=of a6}
+  \graypo{a6}{a7}
+  \event{a8}{\DW{y}{1}}{right=of a7}
+  \graypo{a7}{a8}
+  %\po[out=20,in=160]{a6}{a8}
+    \end{tikzinline}}
+\end{gather*}
+% In item~\ref{pre-acquire}, we do not require that $\bForm'$ is independent of
+% every $\bLoc$; were we to require this, the definition would not be augment closed.
 
 Second, the use of $\PAR$ to combine pomsets ensures that the semantics
 validates the disjunctive rule in Hoare logic:
@@ -1228,8 +1258,11 @@ validates the disjunctive rule in Hoare logic:
     \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm^1\lor\bForm^2}
   }
 \end{displaymath}
+Recall that Definition~\ref{def:prefix}
 We give a motivating example in \textsection\ref{sec:variants}, after
 introducing address calculation.
+
+
 
 % \paragraph{Par-closure and Case Analysis.}
 % Par closure.
