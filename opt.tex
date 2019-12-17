@@ -74,6 +74,11 @@ A program fragment $\aCmd$ can be validly transformed into $\bCmd$ if  $\freadsa
 \subsection{Relationship to Hoare logic}
 In this theorem, we consider Hoare triples over formulas as per as per \textsection\ref{sec:data}.  We follow the treatment of Hoare logic as laid out in~\citet{gordonHoare}.  
 
+In this discussion we use the term value expansion to stand for the equation 
+$\fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} =
+  \fsat\sem{\aCmd}$ satisfied by the semantics.  Value-expansion is used to introduce case analysis on the possible values, eg. expanding $\aCmd$ to 
+$\IF{\aReg ==0}\THEN\aCmd\ELSE IF{\aReg ==1}\THEN\aCmd\ELSE \aCmd\FI\FI$.  
+
 In the hypothesis of this theorem, we consider valid state assignments $\vec{\bLoc} =\vec{\aVal}$, to rule out conflicting assignments to the same location.  
 \begin{theorem}\label{hoareGen}
 Let $\aCmd$ be a command without either synchronization or parallelism.   For all $i=1, \ldots m$, let $\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^i_n$ be a valid state. 
@@ -102,9 +107,9 @@ The proof that the structural rule of disjunction:
 holds  follows from the invariant that  $\sem{\aCmd}$ is closed under value-expansion.    The proof that the structural rule of conjunction:
 \[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
 \]
-holds follows from the determinacy of pomsets.  
+holds follows from the fact that pomsets have only concurrency and no conflict.  
 
-The remaining cases that use the rules for deducing Hoare triples by structural induction on the command follow straightforwardly from the semantics.    The only subtlety is to note that the write prefixing rule permits all non-maximum writes to be made internal.   
+The remaining cases that use the rules for deducing Hoare triples by structural induction on the command follow straightforwardly from the semantics.    The only subtleties are about the write rule.  First, the write prefixing rule permits all non-maximum writes to be made internal, so as to fit the format of the statement of the theorem.  Secondly, the semantics of write prefixing has to perform  an explicit closure under value-expansion to restore that invariant.  
 \end{proof}
 \end{theorem}
 
@@ -273,7 +278,7 @@ Certain transformations involving conditionals or adjacent operations on the sam
   \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}
 \end{align*}
 \begin{proof}
-  Value expansion is an invariant maintained by the semantics.  The definition for prefixing enforces the invariant by expansion, whereas the other combinators maintain it.
+  Value expansion is an invariant maintained by the semantics.  The definition for write prefixing enforces the invariant by expansion, whereas the other combinators maintain it.
 
   For dead code elimination, the result is immediate from the semantics.
   
@@ -295,8 +300,7 @@ Certain transformations involving conditionals or adjacent operations on the sam
   % Similarly, store forwarding is proved by considering the implicit read subset of $\sem{\bReg \GETS \REF{\dExp} \SEMI \aCmd}$.
 \end{proof}
 \end{lemma}
-Value-expansion is used to introduce case analysis on the possible values, eg. expanding $\aCmd$ to 
-$\IF{\aReg ==0}\THEN\aCmd\ELSE IF{\aReg ==1}\THEN\aCmd\ELSE \aCmd\FI\FI$.  
+
   
 %\paragraph*{Reorderings of independent statements}
 Certain reorderings involving adjacent operations on the distinct locations
