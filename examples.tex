@@ -266,164 +266,164 @@ the order from $(\DR{b}{1})$ to $(\DW{a}{1})$, since $b=1$ does not follow
 from the initialization of $b$.
 
 
-\subsection{Thread inlining}
+% \subsection{Thread inlining}
 
-One property one could ask of a model of shared memory is thread
-inlining: any execution of $\sem{P\SEMI Q}$ is an execution of $\sem{P
-  \PAR Q}$. This is \emph{not} a goal of our model, and indeed is not
-satisfied, due to the different semantics of concurrent and sequential
-memory accesses. We demonstrate this by considering an example from
-the Java Memory Model~\cite{Manson:2005:JMM:1047659.1040336}, which shows that Java does not
-satisfy thread inlining either.
+% One property one could ask of a model of shared memory is thread
+% inlining: any execution of $\sem{P\SEMI Q}$ is an execution of $\sem{P
+%   \PAR Q}$. This is \emph{not} a goal of our model, and indeed is not
+% satisfied, due to the different semantics of concurrent and sequential
+% memory accesses. We demonstrate this by considering an example from
+% the Java Memory Model~\cite{Manson:2005:JMM:1047659.1040336}, which shows that Java does not
+% satisfy thread inlining either.
 
-The lack of thread inlining is related to the different dependency
-relations introduced by sequential and concurrent access.
-The program
-\begin{math}
-  (x\GETS 0\SEMI y\GETS x+1)
-\end{math}
-%\verb`(x := 0; y := x+1;)`
-has execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy1}{\DW{y}{1}}{right=of wx0}
-\end{tikzdisplay}
-but
-\begin{math}
-  (x\GETS 1\PAR y\GETS x+1)
-\end{math}
-%\verb`(x := 1; || y := x+1;)`
-has:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{\DW{x}{1}}{}
-  \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
-  \event{wy2}{\DW{y}{2}}{right=of rx1}
-  \rf{wx1}{rx1}
-  \po{rx1}{wy2}
-\end{tikzdisplay}
-That is, in the sequential case there is no dependency from the
-write of $x$ to the write of $y$, but in the concurrent case there
-is such a dependency.
+% The lack of thread inlining is related to the different dependency
+% relations introduced by sequential and concurrent access.
+% The program
+% \begin{math}
+%   (x\GETS 0\SEMI y\GETS x+1)
+% \end{math}
+% %\verb`(x := 0; y := x+1;)`
+% has execution:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wy1}{\DW{y}{1}}{right=of wx0}
+% \end{tikzdisplay}
+% but
+% \begin{math}
+%   (x\GETS 1\PAR y\GETS x+1)
+% \end{math}
+% %\verb`(x := 1; || y := x+1;)`
+% has:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{\DW{x}{1}}{}
+%   \event{rx1}{\DR{x}{1}}{right=2.5em of wx1}
+%   \event{wy2}{\DW{y}{2}}{right=of rx1}
+%   \rf{wx1}{rx1}
+%   \po{rx1}{wy2}
+% \end{tikzdisplay}
+% That is, in the sequential case there is no dependency from the
+% write of $x$ to the write of $y$, but in the concurrent case there
+% is such a dependency.
 
-This can be used to construct a counter-example to thread inlining, based on~\cite[Ex~11]{Manson:2005:JMM:1047659.1040336}:
-\begin{displaymath}
-  (x \GETS 0\SEMI \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI) \PAR (y \GETS x) \PAR (x \GETS y)
-\end{displaymath}
-% \begin{verbatim}
-%   x := 0; if (x == 1) { z := 1; } else { x := 1; } || y := x; || x := y;
-% \end{verbatim}
-This has no execution containing $(\DW z1)$. Any attempt to build such an execution
-results in a cycle:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{right=of rx1a}
- % \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
-  \event{rx1b}{\DR{x}{1}}{below=of wz1}%{right=2.5em of wx1a}
-  \event{wy1}{\DW{y}{1}}{right=of rx1b}
-  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-  \event{wx1b}{\DW{x}{1}}{right=of ry1}
-  \po{rx1a}{wz1}
- % \po[out=25, in=150]{rx1a}{wx1a}
-  \po{rx1b}{wy1}
-  \po{ry1}{wx1b}
-  \rf{wy1}{ry1}
-  \rf[out=160, in=30]{wx1b}{rx1a}
-  \rf[out=160, in=30]{wx1b}{rx1b}
-\end{tikzdisplay}
-Inlining the thread \verb|(y := x)| gives~\cite[Ex~12]{Manson:2005:JMM:1047659.1040336}:
-\begin{displaymath}
-  (x \GETS 0\SEMI \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI \SEMI y \GETS x) \PAR (x \GETS y)
-\end{displaymath}
-% \begin{verbatim}
-%   x := 0; if (x == 1) { z := 1; } else { x := 1; } y := x; || x := y;
-% \end{verbatim}
-with execution:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{right=of rx1a}
- % \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of rx1a}
-  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-  \event{wx1b}{\DW{x}{1}}{right=of ry1}
-  \po{rx1a}{wz1}
- % \po[out=25, in=150]{rx1a}{wx1a}
-  \po{ry1}{wx1b}
-  \rf{wy1}{ry1}
-  \rf[out=160, in=30]{wx1b}{rx1a}
-\end{tikzdisplay}
-To see why this execution exists, consider the program fragment:
-\begin{displaymath}
-  \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI \SEMI y \GETS x
-\end{displaymath}
-% \begin{verbatim}
-%   if (x == 1) { z := 1; } else { x := 1; } y := x;
-% \end{verbatim}
-% Removing the syntax sugar, this is:
-% \begin{verbatim}
-%   r1 := x; if (r1 == 1) {
-%     z := 1; r2 := x; y := r2; skip
-%   } else {
-%     x := 1; r3 := x; y := r3; skip
-%   }
-% \end{verbatim}
-Desugaring, we have:
-\begin{displaymath}
-  r_1 \GETS x\SEMI \IF{r_1} \THEN
-    z \GETS 1\SEMI r_2 \GETS x\SEMI y \GETS r_2
-  \ELSE
-    x \GETS 1\SEMI r_3 \GETS x\SEMI y \GETS r_3
-  \FI
-\end{displaymath}
-Now, $\sem{z := 1\SEMI r_2 := x\SEMI y := r_2}$
-includes pomset:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
-  \event{wy1}{r_1=x=1 \mid \DW{y}{1}}{right=of wz1}
-\end{tikzdisplay}
-and $\sem{x := 1\SEMI r_3 := x\SEMI y := r_3}$
-includes pomset:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
-  \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
-\end{tikzdisplay}
-so  $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2 \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3 \FI}$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
-  \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
-\end{tikzdisplay}
-which means $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2 \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3 \FI}[x/r_1]$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{x=1 \mid \DW{z}{1}}{}
-  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{(x=x=1) \lor (x\neq1)) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}%{right=of wx1a}
-\end{tikzdisplay}
-Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wz1}{x=1 \mid \DW{z}{1}}{}
-  \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wx1a}
-\end{tikzdisplay}
-and so $\sem{r_1 \GETS x\SEMI \IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2 \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3 \FI}$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
-  \event{wx1a}{1\neq1 \mid \DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wx1a}
-  \po{rx1a}{wz1}
-  \po[out=25, in=150]{rx1a}{wx1a}
-\end{tikzdisplay}
-which simplifies to:
-\begin{tikzdisplay}[node distance=1em]
-  \event{rx1a}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{right=of rx1a}
- % \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
-  \event{wy1}{\DW{y}{1}}{right=of wz1}
-  \po{rx1a}{wz1}
- % \po[out=25, in=150]{rx1a}{wx1a}
-\end{tikzdisplay}
-as required. The rest of the example is straightforward, and shows that our semantics
-agrees with the JMM in not supporting thread inlining.
+% This can be used to construct a counter-example to thread inlining, based on~\cite[Ex~11]{Manson:2005:JMM:1047659.1040336}:
+% \begin{displaymath}
+%   (x \GETS 0\SEMI \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI) \PAR (y \GETS x) \PAR (x \GETS y)
+% \end{displaymath}
+% % \begin{verbatim}
+% %   x := 0; if (x == 1) { z := 1; } else { x := 1; } || y := x; || x := y;
+% % \end{verbatim}
+% This has no execution containing $(\DW z1)$. Any attempt to build such an execution
+% results in a cycle:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{rx1a}{\DR{x}{1}}{}
+%   \event{wz1}{\DW{z}{1}}{right=of rx1a}
+%  % \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+%   \event{rx1b}{\DR{x}{1}}{below=of wz1}%{right=2.5em of wx1a}
+%   \event{wy1}{\DW{y}{1}}{right=of rx1b}
+%   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+%   \event{wx1b}{\DW{x}{1}}{right=of ry1}
+%   \po{rx1a}{wz1}
+%  % \po[out=25, in=150]{rx1a}{wx1a}
+%   \po{rx1b}{wy1}
+%   \po{ry1}{wx1b}
+%   \rf{wy1}{ry1}
+%   \rf[out=160, in=30]{wx1b}{rx1a}
+%   \rf[out=160, in=30]{wx1b}{rx1b}
+% \end{tikzdisplay}
+% Inlining the thread \verb|(y := x)| gives~\cite[Ex~12]{Manson:2005:JMM:1047659.1040336}:
+% \begin{displaymath}
+%   (x \GETS 0\SEMI \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI \SEMI y \GETS x) \PAR (x \GETS y)
+% \end{displaymath}
+% % \begin{verbatim}
+% %   x := 0; if (x == 1) { z := 1; } else { x := 1; } y := x; || x := y;
+% % \end{verbatim}
+% with execution:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{rx1a}{\DR{x}{1}}{}
+%   \event{wz1}{\DW{z}{1}}{right=of rx1a}
+%  % \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+%   \event{wy1}{\DW{y}{1}}{right=of rx1a}
+%   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+%   \event{wx1b}{\DW{x}{1}}{right=of ry1}
+%   \po{rx1a}{wz1}
+%  % \po[out=25, in=150]{rx1a}{wx1a}
+%   \po{ry1}{wx1b}
+%   \rf{wy1}{ry1}
+%   \rf[out=160, in=30]{wx1b}{rx1a}
+% \end{tikzdisplay}
+% To see why this execution exists, consider the program fragment:
+% \begin{displaymath}
+%   \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI \SEMI y \GETS x
+% \end{displaymath}
+% % \begin{verbatim}
+% %   if (x == 1) { z := 1; } else { x := 1; } y := x;
+% % \end{verbatim}
+% % Removing the syntax sugar, this is:
+% % \begin{verbatim}
+% %   r1 := x; if (r1 == 1) {
+% %     z := 1; r2 := x; y := r2; skip
+% %   } else {
+% %     x := 1; r3 := x; y := r3; skip
+% %   }
+% % \end{verbatim}
+% Desugaring, we have:
+% \begin{displaymath}
+%   r_1 \GETS x\SEMI \IF{r_1} \THEN
+%     z \GETS 1\SEMI r_2 \GETS x\SEMI y \GETS r_2
+%   \ELSE
+%     x \GETS 1\SEMI r_3 \GETS x\SEMI y \GETS r_3
+%   \FI
+% \end{displaymath}
+% Now, $\sem{z := 1\SEMI r_2 := x\SEMI y := r_2}$
+% includes pomset:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
+%   \event{wy1}{r_1=x=1 \mid \DW{y}{1}}{right=of wz1}
+% \end{tikzdisplay}
+% and $\sem{x := 1\SEMI r_3 := x\SEMI y := r_3}$
+% includes pomset:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1a}{r_1\neq 1 \mid \DW{x}{1}}{}
+%   \event{wy1}{r_1\neq 1 \mid \DW{y}{1}}{right=of wx1a}
+% \end{tikzdisplay}
+% so  $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2 \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3 \FI}$ includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wz1}{r_1=1 \mid \DW{z}{1}}{}
+%   \event{wx1a}{r_1\neq1 \mid \DW{x}{1}}{right=of wz1}
+%   \event{wy1}{(r_1=x=1) \lor (r_1\neq1) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}
+% \end{tikzdisplay}
+% which means $\sem{\IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2 \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3 \FI}[x/r_1]$ includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wz1}{x=1 \mid \DW{z}{1}}{}
+%   \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
+%   \event{wy1}{(x=x=1) \lor (x\neq1)) \mid \DW{y}{1}}{below=3ex of $(wz1)!0.5!(wx1a)$}%{right=of wx1a}
+% \end{tikzdisplay}
+% Now $(x=x=1) \lor (x\neq1)$ is a tautology, so this is just:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wz1}{x=1 \mid \DW{z}{1}}{}
+%   \event{wx1a}{x\neq1 \mid \DW{x}{1}}{right=of wz1}
+%   \event{wy1}{\DW{y}{1}}{right=of wx1a}
+% \end{tikzdisplay}
+% and so $\sem{r_1 \GETS x\SEMI \IF{r_1 = 1} \THEN z := 1\SEMI r_2 := x\SEMI y := r_2 \ELSE x := 1\SEMI r_3 := x\SEMI y := r_3 \FI}$ includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{rx1a}{\DR{x}{1}}{}
+%   \event{wz1}{1=1 \mid \DW{z}{1}}{right=of rx1a}
+%   \event{wx1a}{1\neq1 \mid \DW{x}{1}}{right=of wz1}
+%   \event{wy1}{\DW{y}{1}}{right=of wx1a}
+%   \po{rx1a}{wz1}
+%   \po[out=25, in=150]{rx1a}{wx1a}
+% \end{tikzdisplay}
+% which simplifies to:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{rx1a}{\DR{x}{1}}{}
+%   \event{wz1}{\DW{z}{1}}{right=of rx1a}
+%  % \nonevent{wx1a}{\DW{x}{1}}{right=of wz1}
+%   \event{wy1}{\DW{y}{1}}{right=of wz1}
+%   \po{rx1a}{wz1}
+%  % \po[out=25, in=150]{rx1a}{wx1a}
+% \end{tikzdisplay}
+% as required. The rest of the example is straightforward, and shows that our semantics
+% agrees with the JMM in not supporting thread inlining.
 
 % \subsection{RFUB}
 % \url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1217r0.html}

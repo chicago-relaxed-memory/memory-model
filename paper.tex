@@ -1,11 +1,13 @@
 % at most 12 pages, % excluding references. 
-%% For double-blind review submission
-%\documentclass[sigplan,10pt,anonymous]{acmart}
-\documentclass[sigplan,10pt,review,anonymous]{acmart}
+\documentclass[sigplan,10pt,
+review,anonymous,
+]{acmart}
+\makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
 \settopmatter{printfolios=true}
 \AtEndPreamble{%
   \theoremstyle{acmdefinition}
   \newtheorem{remark}[theorem]{Remark}
+  \newtheorem{candidate}[theorem]{Candidate}
 }
 %% For single-blind review submission
 
@@ -104,7 +106,7 @@
 
 %% Title information
 \title{Let go of that which does not serve you}
-\subtitle{Semantic Independence in a Model of Relaxed Memory}
+\subtitle{Multi-Copy Atomicity and Semantic Independence in a Model of Relaxed Memory}
 %\title[Let go of that which does not serve you]{Let go of that which does not serve you: Semantic~Independence in a Model of Relaxed Memory}
 % \title{Semantic Dependency as a Model of Relaxed Memory}
 % \title[Short Title]{Full Title}         %% [Short Title] is optional;
@@ -133,36 +135,36 @@
 
 \author{Radha Jagadeesan}
 \affiliation{
-  \department{School of Computing}
+  %\department{School of Computing}
   \institution{DePaul University}
-  \country{USA}
+  %\country{USA}
 }
-\email{rjagadeesan@cs.depaul.edu}
+%\email{rjagadeesan@cs.depaul.edu}
 
 \author{Alan Jeffrey}
 \orcid{0000-0001-6342-0318}
 \affiliation{
   \institution{Mozilla Research}
-  \country{USA}
+  %\country{USA}
 }
-\email{ajeffrey@mozilla.com}
+%\email{ajeffrey@mozilla.com}
 
 \author{James Riely}
 \orcid{0000-0002-8731-1463}
 \affiliation{
-  \department{School of Computing}
+  %\department{School of Computing}
   \institution{DePaul University}
-  \country{USA}
+  %\country{USA}
 }
-\email{jriely@cs.depaul.edu}
+%\email{jriely@cs.depaul.edu}
 
 
 %% Paper note
+\thanks{Radha Jagadeesan and James Riely were supported in part by NSF CCR}
 %% The \thanks command may be used to createame a "paper note" ---
 %% similar to a title note or an author note, but not explicitly
 %% associated with a particular element.  It will appear immediately
 %% above the permission/copyright statement.
-% \thanks{Radha Jagadeesan and James Riely were supported in part by NSF CCR }                %% \thanks is optional
 %                                         %% can be repeated if necesary
 %                                         %% contents suppressed with 'anonymous'
 
@@ -264,24 +266,19 @@
 
 \input{intro}
 \input{model}
-\input{opt}
-\input{logic}
 \input{variants}
-\input{outro}
+% \input{arm}
+% \input{sc}
+% \input{opt}
+% \input{logic}
+% \input{outro}
 \begin{small}
 \bibliography{bib}
 \end{small}
 \newpage
 \appendix
-\input{arm}
-\input{sc}
-\input{appendix}
-\input{examples}
-\input{comments}
+%\input{appendix}
 
-%\input{variants}
-%\input{jamesintro}
-%\input{semicolon}
 \end{document}
 
 % Local Variables:

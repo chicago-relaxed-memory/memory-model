@@ -29,8 +29,8 @@
 \newcommand{\IDW}{\ID{\mathsf{W}}}
 
 
-\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
-%\newcommand{\eqdef}{=}
+%\newcommand{\eqdef}{\mathrel{\smash{\overset{\scriptscriptstyle\vartriangle}{=}}}}
+\newcommand{\eqdef}{=}
 \newcommand{\rel}{{\tt rel}}
 
 
@@ -89,10 +89,11 @@
 \newenvironment{displaymathsmall}{\bgroup\small\begin{displaymath}\ignorespaces}{\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{equationsmall}{\bgroup\small\begin{equation}\ignorespaces}{\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{scope}{\bgroup\ignorespaces}{\egroup\ignorespacesafterend}
-\newenvironment{tikzinline}[1][]{\bgroup\small\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
-\newenvironment{tikzdisplaylabel}[2][]{\bgroup\small\begin{equation}\label{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
-\newenvironment{tikzdisplaylabeltag}[2][]{\bgroup\small\begin{equation}\label{#2}\tag{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
-\newenvironment{tikzdisplay}[1][]{\bgroup\small\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
+\newenvironment{tikzinline}[1][]{\bgroup\footnotesize\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
+\newenvironment{tikzdisplaylabel}[2][]{\bgroup\footnotesize\begin{equation}\label{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
+\newenvironment{tikzdisplaylabeltag}[2][]{\bgroup\footnotesize\begin{equation}\label{#2}\tag{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
+\newenvironment{tikzdisplay}[1][]{\bgroup\footnotesize\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
+\newenvironment{tikzdisplaysmall}[1][]{\bgroup\tiny\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{tikzcenter}[1][]{\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}}
 \newcommand{\fdom}{\mathsf{domain}}
 \newcommand{\fcodom}{\mathsf{codomain}}
@@ -267,10 +268,10 @@
 \newcommand{\partialfun}{\mathbin\rightharpoonup}
 \newcommand{\fun}{\mathbin\rightarrow}
 \newcommand{\prefix}{\mathbin\Rightarrow}
-\newcommand{\prefixsc}{\mathbin{\xRightarrow{\mathsf{sc}}}}
+\newcommand{\prefixsc}{\mathbin{\smash{\xRightarrow{\mathsf{sc}}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
-\newcommand{\relfilt}[2]{#1\,#2\guard}
+\newcommand{\relfilt}[1]{\textsf{cover}\,#1\guard}
 \newcommand{\st}{\mathbin.}
 
 \newcommand{\aPS}{P}
@@ -408,9 +409,11 @@
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
 
 \tikzstyle{graypo} = [->,color=gray,]
-\newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
 \tikzstyle{graywk} = [->,dashed,color=gray]
-\newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
+% \newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
+% \newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
+\newcommand{\graypo}[3][]{}
+\newcommand{\graywk}[3][]{}
 
 \tikzstyle{po} = [->,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
