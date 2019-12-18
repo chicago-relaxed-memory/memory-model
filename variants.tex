@@ -1,7 +1,22 @@
-\section{Examples and Extensions}
+\section{Test Cases and Additional Features}
 \label{sec:variants}
 
-Analysis of examples follows from a few simple principles.  
+In this section, we discuss test cases, then extend the model to include
+additional features: address calculation, fences, and read-modify-write
+(\RMW).  The proofs given later in the paper extend to all of these features,
+with one exception: we believe the \armeight/\tso-compilation strategy is
+correct for \RMW---it is borrowed from
+\citet{DBLP:journals/pacmpl/PodkopaevLV19}---but we have not proved it.
+
+\paragraph{Test Cases.}
+Our model gives the desired results for the test cases of \citet{PughWebsite},
+\citet[\textsection 5.3]{SevcikThesis}, and \citet[\textsection
+4]{DBLP:conf/esop/BattyMNPS15}.  It also agrees with the ``surprising and
+controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}.
+
+We present two examples that are hallmarks of \mca{} architectures.
+The analysis follows from a few simple principles.  
 % \begin{gather*}
 %   \renewcommand{\arraycolsep}{1pt}
 %   \hbox{\small
@@ -97,7 +112,8 @@ Given the evident cycle, the candidate execution is invalid.
 % \begin{math}
 %   (\DW{x}{1}) \gtN  (\DW{y}{1});
 % \end{math}
-It is also impossible for all threads to read $1$ in the following program, due to
+
+It is also impossible for all threads to read $1$ in the following, due to
 \emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
 \begin{gather*}
   \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
@@ -128,138 +144,78 @@ It is also impossible for all threads to read $1$ in the following program, due 
   \rf[out=173,in=7]{c3}{a1}  
     \end{tikzinlinesmall}}
 \end{gather*}
-These examples are hallmarks of \mca{} architectures.  In either case, the
-executions are allowed if the cycle is broken---for example, by changing
-$x\ACQ$ to $x\RLX$ in the \iriw\ example.
+
+In either example, the execution is allowed if the cycle is broken---for
+example, by changing $x\ACQ$ to $x\RLX$ in \iriw.
 
 
-The deep connection between our semantics and Hoare logic also facilitates analysis.
-Consider \rfub1~\cite{BoehmOOTA}:
-\begin{displaymath}
-  %\label{rfub}
-  y\GETS x
-  \PAR
-  r\GETS y\SEMI
-  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\SEMI x\GETS r \ELSE x\GETS r \FI
-\end{displaymath}
-In \textsection\ref{sec:logic}As we prove in If the second thread is replaced with
-\begin{math}
-  r\GETS y\SEMI
-  x\GETS r,
-\end{math}
-then it is impossible to write $1$.
-
-\citeauthor{BoehmOOTA}'s concern arises from the similarity of this program
-with the \oota\ litmus test that replaces the second thread with
-Should register state from an unexecuted conditional be able to effect the
-outcome of an execution \cite{BoehmOOTA}.  We answer ``yes.''
-%, such as \rfub1: as \rfub (Read From Unexecuted Branch).
-%\citeauthor{BoehmOOTA}'s \rfub1 example can be written in our language as:
-
-The program writes $1$ to $x$ in both branches of the conditional.  Further,
-the writes to $z$ and $x$ in the then-branch of the conditional are
-independent.  Therefore, it is sensible for a compiler to hoist the write to
-$x$ out of the conditional.  In our semantics, there is no dependency from
-the read of $y$ to the write to $x$
-The execution in question is:
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{right=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Bigm\|
-  (\DR{y}{1})
-  \prefix
-  \left(
-    \begin{tikzcenter}[node distance=.5em]
-      \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{right=of b1}
-    \end{tikzcenter}
-    % \begin{tikzcenter}[node distance=.5em]
-    %   \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
-    %   \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{right=of b1}
-    % \end{tikzcenter}
-    % \biggm\|
-    % \begin{tikzcenter}[node distance=1em]
-    %   \event{c1}{r\EQ1\mid\DW{x}{1}}{}
-    % \end{tikzcenter}
-  \right)
-\end{displaymathsmall}
-With an internal read of $y$, we have:
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{right=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Bigm\|
-    \begin{tikzcenter}[node distance=1em]
-      \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{right=of b1}
-    \end{tikzcenter}
-\end{displaymathsmall}
-but the precondition $y\NOTEQ1$ cannot be satisfied locally.
-With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
-case, the predicate becomes $1\NOTEQ 1$. 
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{right=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Bigm\|  
-    \begin{tikzcenter}[node distance=1em]
-      \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{right=of b1}
-      \event{b0}{\DR{y}{1}}{left=of b1}
-      \po{b0}{b1}
-    \end{tikzcenter}
-\end{displaymathsmall}
-
-
-\citet{PughWebsite} developed a set of twenty {causality test cases} in the
-process of revising the Java Memory Model (JMM)
-\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
-confirmed that our model gives the desired result for all twenty cases,
-unrolling loops as necessary.
-% confirmed that our model gives the desired result these test cases, with the
-% following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
-% of TC1 and TC8 are only allowed in our model if the inferred range of
-% variables is included as a global assumption in the logic. 
-Our model also gives the desired results for
-all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
-\citet[\textsection 5.3]{SevcikThesis}.  Our model agrees with the JMM on the
-``surprising and controversial behaviors'' of \citet[\textsection
-8]{Manson:2005:JMM:1047659.1040336}. \textsection\ref{sec:examples} develops some of these examples.
+% \citet{PughWebsite} developed a set of twenty {causality test cases} in the
+% process of revising the Java Memory Model (JMM)
+% \cite{Manson:2005:JMM:1047659.1040336}.
+% %Using hand calculation, we have confirmed that
+% Our model gives the desired result for all twenty cases,
+% unrolling loops as necessary.
+% % confirmed that our model gives the desired result these test cases, with the
+% % following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
+% % of TC1 and TC8 are only allowed in our model if the inferred range of
+% % variables is included as a global assumption in the logic. 
+% Our model also gives the desired results for the examples of
+% \citet{PughWebsite}, \citet[\textsection 5.3]{SevcikThesis},
+% \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15}.  Our model agrees with
+% ``surprising and controversial behaviors'' of
+% \citet[\textsection 8]{Manson:2005:JMM:1047659.1040336}.  We elide the
+% details.
+% \textsection\ref{sec:examples} develops some of these examples.
 
 
 
 
 \paragraph{Address Calculation.}
-
-Definition of data model:
-\begin{itemize}
-\item memory locations have the form $\REF{\aVal}$,
-\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
-\end{itemize}
-
+Update syntax as follows:
 \begin{align*}
-\aCmd,\,\bCmd
-\BNFDEF& \cdots
-\BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
-\BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
+  \aLoc\BNFDEF\REF{\cVal}
+  \qquad
+  \aCmd
+  \BNFDEF \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
+  \BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
+  \BNFSEP \cdots 
 \end{align*}
-
+Memory locations are numbers.  To avoid syntactic collisions between values
+and locations, we use a syntactic trick, defining locations---$\aLoc$,
+$\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
 \begin{align*}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDR{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
-  \\
+  \textstyle\bigcup_{\cVal,\aVal}\; ({\cExp}=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
+  \\[-.5ex] & \mkern2mu\cup
+  \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+  \sem{\aCmd}[\REF{\cVal}/\aReg]
+  \\[-1ex]
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDW{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
+  \\[-1ex]
+  &\mkern-55mu\hbox to 0pt{$\begin{aligned}
+    &\textstyle\PAR_{\cVal,\aVal}\;({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+    \\[-.5ex] & \mkern2mu\cup
+    \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+    (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
+  \end{aligned}$}
 \end{align*}
+
+% THE FULL RULES, with internal actions:
+% \begin{align*}
+%   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+%   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\;\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+%   \\[-.5ex] & \mkern2mu\cup
+%   \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+%   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDR{\aLoc}{})\prefix
+%   \sem{\aCmd}[\aLoc/\aReg]
+%   \\
+%   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =  
+%   \textstyle\PAR_{\aLoc=\REF{\cVal}}\; \PAR_{\!\!\aVal}\;({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+%   \\[-.5ex] & \mkern2mu\cup
+%   \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+%   \textstyle\PAR_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDW{\aLoc}{}) \prefix 
+%   (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
+% \end{align*}
 
 
 Our language allows address calculations.  To model this, we allow locations
@@ -368,8 +324,8 @@ All fence actions are internal, do not read or write.
   \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
   &
   \aCmd %,\,\bCmd
-  \BNFDEF& \cdots
-  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
+  \BNFDEF& \FENCE^{\fmode} \SEMI \aCmd
+  \BNFSEP \cdots 
   % \\
   % \aCmd,\,\bCmd
   % \BNFDEF& \cdots

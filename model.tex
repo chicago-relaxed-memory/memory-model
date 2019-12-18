@@ -773,7 +773,7 @@ For example, consider the following candidate execution for the
   \PAR
   y\GETS0\SEMI y\GETS1\SEMI \aReg\GETS x
   \\
-  \tag{SB}\label{SB}
+  \tag{\textsc{sb}}\label{SB}
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wy0}{\DW{y}{0}}{below=of wx0}
@@ -1309,7 +1309,7 @@ validates left disjunction:
   }
 \end{displaymath}
 
-The us of $\PAR$ is neither necessary nor desirable for reads: the read rule
+The use of $\PAR$ is neither necessary nor desirable for reads: the read rule
 does not introduce read preconditions, and item 5a of Definition
 \ref{def:prefix} ignores them.  Whereas a write action introduces a
 precondition---satisfied sequentially---on the value to be written; a read

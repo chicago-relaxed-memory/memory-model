@@ -76,13 +76,14 @@ We show the following.
 \item The model accounts for all the concurrency features of the C11 memory model, including relaxed, release-acquire and SC atomics, fences, and RMW
   (\textsection\ref{sec:variants}).
 
-\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}).
-
-\item The model satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}).
-
 \item The model validates single-threaded compiler optimizations, as discussed below (\textsection\ref{sec:opt}).
 
 \item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  
+
+\item The model satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}).
+
+\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}).
+
 \end{itemize}
 
 We discuss compiler optimizations both concretely and abstractly.
