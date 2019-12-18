@@ -82,7 +82,7 @@ We require that data models satisfy the following:
 \item there is a relation $\vDash$ between formulae.
 \end{itemize}
 
-We use expressions as formulas, coercing $\aExp$ to $\aExp\neq0$.
+We use expressions as formulas, coercing $\aExp$ to $\aExp\NOTEQ0$.
 
 For the actions of a data model, we require that
 % \begin{itemize}
@@ -845,10 +845,10 @@ We can now explain the substitution in the semantics of read in Candidate~\ref{d
 % it after introducing \emph{internal reads}, below.)
 Returning to our example, to compute
 $\sem{r\GETS x\SEMI y\GETS r}$, we first compute
-$(r\EQ1\mid\DW{y}{1})[x/r]$, then perform prefixing.  By 4b, reading $1$
+$(r\EQ1\mid\DW{y}{1})[x/r]$, then perform prefixing on the resulting $(x\EQ1\mid\DW{y}{1})$.  By 4b, reading $1$
 performs the further substitution of $[1/x]$, allowing the precondition to
-weaken.  Likewise, reading $0$ performs $[0/x]$, requiring the precondition
-to strengthen.
+weaken to $(1\EQ1)$.  Likewise, reading $0$ performs $[0/x]$, requiring the precondition
+to strengthen to $(0\EQ1)$.
 
 \paragraph{General Prefixing.}
 
@@ -1260,23 +1260,23 @@ $0$ otherwise.  Note that
 includes both of the following pomsets:
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r{=}0\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r{=}0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+      \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
     \end{tikzinline}}%\;\;\cdots
   \qquad
   %\\[-1.5ex]\intertext{and:}\\[-5ex]
   \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r{=}1\mathbin{\mid}\DW{a[1]}{0}}{}
-      \event{b}{r{=}1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
+      \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
+      \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
     \end{tikzinline}}%\;\;\cdots
 \end{align*}
 By using $\PAR$ rather than $\cup$, it also includes the following (where,
 contrary to convention, we show disjoint events):
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=.5em]
-      \event{a}{r{=}0\lor r{=}1\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r{=}0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
-      \event{c}{r{=}1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
+      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+      \event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
 \end{gather*}
 Using $\cup$, the semantics would exclude this pomset, and thus fail to
@@ -1286,7 +1286,7 @@ validate \emph{case analysis}---for example, refining this program,
 \end{math}
 to
 \begin{math}
-  \IF{r{=}1}\THEN \aCmd\ELSE \aCmd\FI.
+  \IF{r\EQ1}\THEN \aCmd\ELSE \aCmd\FI.
 \end{math}
 
 
