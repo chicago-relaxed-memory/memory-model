@@ -90,6 +90,7 @@
 \newenvironment{equationsmall}{\bgroup\small\begin{equation}\ignorespaces}{\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{scope}{\bgroup\ignorespaces}{\egroup\ignorespacesafterend}
 \newenvironment{tikzinline}[1][]{\bgroup\footnotesize\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
+\newenvironment{tikzinlinesmall}[1][]{\bgroup\scriptsize\begin{math}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{math}\egroup}
 \newenvironment{tikzdisplaylabel}[2][]{\bgroup\footnotesize\begin{equation}\label{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{tikzdisplaylabeltag}[2][]{\bgroup\footnotesize\begin{equation}\label{#2}\tag{#2}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{equation}\egroup\ignorespacesafterend}
 \newenvironment{tikzdisplay}[1][]{\bgroup\footnotesize\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
@@ -216,15 +217,17 @@
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#3}{\mkern1mu#3}}}
-\newcommand{\DF}[1][\mathsf{acqrel}]{\mathsf{F}^{#1}}
-\newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
-\newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
-\newcommand{\iDRmode}[2]{\mathsf{R^{\amode}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
-\newcommand{\iDWmode}[2]{\mathsf{W^{\amode}}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
-\newcommand{\iDRAcq}[2]{\mathsf{R\ACQ}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
-\newcommand{\iDWRel}[2]{\mathsf{W\REL}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
-\newcommand{\iDR}[2]{\mathsf{R}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
-\newcommand{\iDW}[2]{\mathsf{W}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+\newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
+\newcommand{\iDR}[3][]{\tau\DR[#1]{#2}{#3}}
+\newcommand{\iDW}[3][]{\tau\DW[#1]{#2}{#3}}
+% \newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+% \newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+% \newcommand{\iDRmode}[2]{\mathsf{R^{\amode}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+% \newcommand{\iDWmode}[2]{\mathsf{W^{\amode}}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+% \newcommand{\iDRAcq}[2]{\mathsf{R\ACQ}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+% \newcommand{\iDWRel}[2]{\mathsf{W\REL}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+% \newcommand{\iDR}[2]{\mathsf{R}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+% \newcommand{\iDW}[2]{\mathsf{W}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
 %% \newcommand{\iDRAcq}[2]{\mathsf{\tau R^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 %% \newcommand{\iDWRel}[2]{\mathsf{\tau W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 %% \newcommand{\iDR}[2]{\mathsf{\tau R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
@@ -330,6 +333,7 @@
 \newcommand{\CLANG}{\texttt{clang}}
 
 %\usepackage[defblank]{paralist}
+\usepackage{settobox}
 \usepackage{xparse}
 \usepackage[T1]{fontenc}
 \usepackage{alltt}

@@ -1,81 +1,67 @@
 \section{Examples and Extensions}
 \label{sec:variants}
-\citet{PughWebsite} developed a set of twenty {causality test cases} in the
-process of revising the Java Memory Model (JMM)
-\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
-confirmed that our model gives the desired result for all twenty cases,
-unrolling loops as necessary.
-% confirmed that our model gives the desired result these test cases, with the
-% following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
-% of TC1 and TC8 are only allowed in our model if the inferred range of
-% variables is included as a global assumption in the logic. 
-Our model also gives the desired results for
-all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
-\citet[\textsection 5.3]{SevcikThesis}.  Our model agrees with the JMM on the
-``surprising and controversial behaviors'' of \citet[\textsection
-8]{Manson:2005:JMM:1047659.1040336}. \textsection\ref{sec:examples} develops some of these examples.
 
-
-
-\paragraph{Multi-copy atomicity.}
-In the parlance of chapter 3.3 of~\citet{AlglaveThesis}, $\le$ is a ``global
-happens-before'' relation.  The restriction of $\lt$ to conflicting writes is
-called the coherence order, $\rco$.  
-
-Many of the standard litmus tests for \mca\ are
-variants of \iriw\ (Independent Reads of Independent Writes), such as \iriw\
-with control dependencies between the reads:
-\begin{displaymatharray}{rl}
-  &x\GETS0\SEMI x\GETS 1
-  \PAR
-  \IF{x}\THEN r\GETS y \FI
- \\{}
-  \PAR&
-  y\GETS0\SEMI y\GETS 1
-  \PAR
-  \IF{y}\THEN s\GETS x \FI
-\end{displaymatharray}
-\begin{tikzdisplay}[node distance=.5em and 1em]
+Analysis of examples follows from a few simple principles.  
+% \begin{gather*}
+%   \renewcommand{\arraycolsep}{1pt}
+%   \hbox{\small
+%     $\begin{array}{ccccc}
+%     &x\GETS0\SEMI x\GETS 1
+%     &\PAR&
+%     r\GETS x \SEMI s\GETS y
+%     %\IF{x}\THEN r\GETS y \FI
+%     \\
+%     \PAR
+%     &y\GETS0\SEMI y\GETS 1
+%     &\PAR&
+%     r\GETS y \SEMI s\GETS x
+%     %\IF{y}\THEN s\GETS x \FI
+%   \end{array}$}
+%   \quad
+%   \hbox{\begin{tikzinlinesmall}[node distance=.5em and 1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wx1}{\DW{x}{1}}{right=of wx0}
+%   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
+%   \event{wy1}{\DW{y}{1}}{right=of wy0}
+%   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+%   \event{rx0}{\DR{x}{0}}{right=of ry1}
+%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+%   \event{ry0}{\DR{y}{0}}{right=of rx1}
+%   \wk{wx0}{wx1}
+%   \wk{wy0}{wy1}
+%   \rf{wx1}{rx1}
+%   \rf[bend left]{wy0}{ry0}
+%   \rf{wy1}{ry1}
+%   \rf[bend right]{wx0}{rx0}
+%   \wk{rx0}{wx1}
+%   \wk{ry0}{wy1}
+%     \end{tikzinlinesmall}}
+% \end{gather*}
+\begin{gather*}
+  \\[-2.5ex]
+  \renewcommand{\arraycolsep}{1pt}
+  \hbox{\small
+    $\begin{array}{ccccc}
+    &x\GETS0\SEMI x\GETS 1
+    &\PAR&
+    r\GETS x\ACQ \SEMI s\GETS y
+    %\IF{x}\THEN r\GETS y \FI
+    \\
+    \PAR
+    &y\GETS0\SEMI y\GETS 1
+    &\PAR&
+    r\GETS y\ACQ \SEMI s\GETS x
+    %\IF{y}\THEN s\GETS x \FI
+  \end{array}$}
+  \quad
+  \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
   \event{wy1}{\DW{y}{1}}{right=of wy0}
-  \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
   \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
-  \event{ry0}{\DR{y}{0}}{right=of rx1}
-  \wk{wx0}{wx1}
-  \wk{wy0}{wy1}
-  \rf{wx1}{rx1}
-  \rf[bend left]{wy0}{ry0}
-  \rf{wy1}{ry1}
-  \rf[bend right]{wx0}{rx0}
-  \wk{rx0}{wx1}
-  \wk{ry0}{wy1}
-  %\po{rx1}{ry0}
-  %\po{ry1}{rx0}
-\end{tikzdisplay}
-Since our semantics does not enforce control dependencies between reads, 
-this execution is acyclic and is allowed.  If the first read in each thread is acquiring, there is order between the reads.
-\begin{displaymatharray}{rl}
-  &x\GETS0\SEMI x\GETS 1
-  \PAR
-  r\GETS x\ACQ \SEMI s\GETS y
- \\{}
-  \PAR&
-  y\GETS0\SEMI y\GETS 1
-  \PAR
-  r\GETS y\ACQ \SEMI s\GETS x
-\end{displaymatharray}
-The resulting execution is disallowed due to the  cycle.
-\begin{tikzdisplay}[node distance=.5em and 1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
-  \event{wy1}{\DW{y}{1}}{right=of wy0}
-  \event{ry1}{\DR{y\ACQ}{1}}{right=2.5em of wy1}
-  \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \event{rx1}{\DR{x\ACQ}{1}}{right=2.5 em of wx1}
+  \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
   \event{ry0}{\DR{y}{0}}{right=of rx1}
   \wk{wx0}{wx1}
   \wk{wy0}{wy1}
@@ -87,8 +73,13 @@ The resulting execution is disallowed due to the  cycle.
   \wk{ry0}{wy1}
   \po{rx1}{ry0}
   \po{ry1}{rx0}
-\end{tikzdisplay}
-
+    \end{tikzinlinesmall}}}
+  \\[-1ex]
+\end{gather*}
+In this variant of \iriw\ (Independent Reads of Independent Writes), order 
+is imposed by \emph{coherence} (between the writes), \emph{fulfillment}
+(between read and write), and \emph{fencing} (from acquiring read to relaxed read).
+Given the evident cycle, the candidate execution is invalid.
 % Note that if you enforce the dependency between the reads, then the execution
 % is disallowed, because the is a cycle on weak edges restricted to $x$:
 % \begin{math}
@@ -106,16 +97,17 @@ The resulting execution is disallowed due to the  cycle.
 % \begin{math}
 %   (\DW{x}{1}) \gtN  (\DW{y}{1});
 % \end{math}
-
-Another class of non-\mca\ behavior is characterized by the following litmus test.
-\begin{displaymathsmall}
-  \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
-  \PAR
+It is also impossible for all threads to read $1$ in the following program, due to
+\emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
+\begin{gather*}
+  \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+  {\PAR}
   \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
-  \PAR
+  {\PAR}
   \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
-\end{displaymathsmall}
-\begin{tikzdisplaysmall}[node distance=1em]
+  $}
+  \\[-.5ex]
+  \hbox{\begin{tikzinlinesmall}[node distance=1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DW{y}{0}}{right=of a1}
   \po{a1}{a2}
@@ -133,37 +125,231 @@ Another class of non-\mca\ behavior is characterized by the following litmus tes
   \wk{c2}{c3}
   \rf{a3}{b1}
   \rf{b3}{c1}
-  \rf[out=170,in=10]{c3}{a1}  
-\end{tikzdisplaysmall}
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{a1}{\DR{x}{1}}{}
-%   \event{a2}{\DW{y}{0}}{right=of a1}
-%   \po{a1}{a2}
-%   \event{a3}{\DW{y}{1}}{right=of a2}
-%   \wk{a2}{a3}
-%   \event{b1}{\DR{x}{1}}{below=of a1}
-%   \event{b2}{\DW{y}{0}}{right=of b1}
-%   \po{b1}{b2}
-%   \event{b3}{\DW{y}{1}}{right=of b2}
-%   \wk{b2}{b3}
-%   \event{c1}{\DR{x}{1}}{below=of b1}
-%   \event{c2}{\DW{y}{0}}{right=of c1}
-%   \po{c1}{c2}
-%   \event{c3}{\DW{y}{1}}{right=of c2}
-%   \wk{c2}{c3}
-%   \rf{a3}{b1}
-%   \rf{b3}{c1}
-%   \rf[out=210,in=210]{c3}{a1}  
-% \end{tikzdisplay}
-This execution is disallowed due to the evident cycle.
-%in weak order. 
+  \rf[out=173,in=7]{c3}{a1}  
+    \end{tikzinlinesmall}}
+\end{gather*}
+These examples are hallmarks of \mca{} architectures.  In either case, the
+executions are allowed if the cycle is broken---for example, by changing
+$x\ACQ$ to $x\RLX$ in the \iriw\ example.
 
-% This execution is allowed by 3-valued pomsets with coherence 
-%\citep{2019-sp}. Interestingly, the two thread/two variable variant of this 
-%example is disallowed by 3-valued pomsets, due to the requirements of
-%\citeauthor{DBLP:journals/dc/Lamport86}'s axiom A3, which requires that
-%$\cEv \gtN \aEv$ if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv%$. If one were to shift from 3-valued logic to an interval logic, then it %would make sense to include \citeauthor{DBLP:journals/dc/Lamport86}'s %axiom A4,which requires that $\bEv \lt \aEv$ if $\bEv \lt \bEv' \geN \aEv' %\lt \aEv$.In the semantics of programs, requiring A4 for 3-valued pomsets %withcoherence is equivalent to the assumption that $\gtN$ is a partial %order, as in the memory model pomsets used here.  Thus, the two %thread/two variable variant is also disallowed.
 
+Our semantics provides a fresh perspective on contraversies.  For example,
+consider \rfub1~\cite{BoehmOOTA}:
+\begin{displaymath}
+  %\label{rfub}
+  y\GETS x
+  \PAR
+  r\GETS y\SEMI
+  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\SEMI x\GETS r \ELSE x\GETS r \FI
+\end{displaymath}
+In \textsection\ref{sec:logic}As we prove in If the second thread is replaced with
+\begin{math}
+  r\GETS y\SEMI
+  x\GETS r,
+\end{math}
+then it is impossible to write $1$.
+
+\citeauthor{BoehmOOTA}'s concern arises from the similarity of this program
+with the \oota\ litmus test that replaces the second thread with
+Should register state from an unexecuted conditional be able to effect the
+outcome of an execution \cite{BoehmOOTA}.  We answer ``yes.''
+%, such as \rfub1: as \rfub (Read From Unexecuted Branch).
+%\citeauthor{BoehmOOTA}'s \rfub1 example can be written in our language as:
+
+The program writes $1$ to $x$ in both branches of the conditional.  Further,
+the writes to $z$ and $x$ in the then-branch of the conditional are
+independent.  Therefore, it is sensible for a compiler to hoist the write to
+$x$ out of the conditional.  In our semantics, there is no dependency from
+the read of $y$ to the write to $x$
+The execution in question is:
+\begin{displaymathsmall}
+  \begin{tikzcenter}[node distance=1em]
+    \event{a1}{\DR{x}{1}}{}
+    \event{a2}{\DW{y}{1}}{right=of a1}
+    \po{a1}{a2}
+  \end{tikzcenter}
+  \Bigm\|
+  (\DR{y}{1})
+  \prefix
+  \left(
+    \begin{tikzcenter}[node distance=.5em]
+      \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
+      \event{b2}{\DW{x}{1}}{right=of b1}
+    \end{tikzcenter}
+    % \begin{tikzcenter}[node distance=.5em]
+    %   \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
+    %   \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{right=of b1}
+    % \end{tikzcenter}
+    % \biggm\|
+    % \begin{tikzcenter}[node distance=1em]
+    %   \event{c1}{r\EQ1\mid\DW{x}{1}}{}
+    % \end{tikzcenter}
+  \right)
+\end{displaymathsmall}
+With an internal read of $y$, we have:
+\begin{displaymathsmall}
+  \begin{tikzcenter}[node distance=1em]
+    \event{a1}{\DR{x}{1}}{}
+    \event{a2}{\DW{y}{1}}{right=of a1}
+    \po{a1}{a2}
+  \end{tikzcenter}
+  \Bigm\|
+    \begin{tikzcenter}[node distance=1em]
+      \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
+      \event{b2}{\DW{x}{1}}{right=of b1}
+    \end{tikzcenter}
+\end{displaymathsmall}
+but the precondition $y\NOTEQ1$ cannot be satisfied locally.
+With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
+case, the predicate becomes $1\NOTEQ 1$. 
+\begin{displaymathsmall}
+  \begin{tikzcenter}[node distance=1em]
+    \event{a1}{\DR{x}{1}}{}
+    \event{a2}{\DW{y}{1}}{right=of a1}
+    \po{a1}{a2}
+  \end{tikzcenter}
+  \Bigm\|  
+    \begin{tikzcenter}[node distance=1em]
+      \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
+      \event{b2}{\DW{x}{1}}{right=of b1}
+      \event{b0}{\DR{y}{1}}{left=of b1}
+      \po{b0}{b1}
+    \end{tikzcenter}
+\end{displaymathsmall}
+
+
+\citet{PughWebsite} developed a set of twenty {causality test cases} in the
+process of revising the Java Memory Model (JMM)
+\cite{Manson:2005:JMM:1047659.1040336}.  Using hand calculation, we have
+confirmed that our model gives the desired result for all twenty cases,
+unrolling loops as necessary.
+% confirmed that our model gives the desired result these test cases, with the
+% following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
+% of TC1 and TC8 are only allowed in our model if the inferred range of
+% variables is included as a global assumption in the logic. 
+Our model also gives the desired results for
+all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
+\citet[\textsection 5.3]{SevcikThesis}.  Our model agrees with the JMM on the
+``surprising and controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}. \textsection\ref{sec:examples} develops some of these examples.
+
+
+
+
+\paragraph{Silent Actions and Fences}
+
+All fence actions are internal, do not read or write.
+\begin{align*}
+  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
+  &
+  \aCmd %,\,\bCmd
+  \BNFDEF& \cdots
+  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
+  % \\
+  % \aCmd,\,\bCmd
+  % \BNFDEF& \cdots
+  % \BNFSEP \FENCE^{\modeREL} \SEMI \aCmd  
+  % \BNFSEP \FENCE^{\modeACQ} \SEMI \aCmd  
+  % \BNFSEP \FENCE^{\modeSC} \SEMI \aCmd  
+\end{align*}
+
+\begin{align*}
+  \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
+  (\DF[\fmode]) \prefix \sem{\aCmd}
+\end{align*}
+
+ The explicit use of internal actions facilitate the translation to \armeight\
+(\textsection\ref{sec:arm}) and the definitions required in the proof of
+\drfsc\ (\textsection\ref{sec:sc}).
+
+In the following, we leave out the initial writes of $0$.
+\citep[Fig 5]{DBLP:conf/pldi/LahavVKHD17}:
+\begin{gather*}
+    y\GETS1
+    \PAR
+    r\GETS x\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DW{y}{1}}{}
+  \event{a0}{\DW{y}{0}}{left=of a1}
+  \wk{a0}{a1}
+  \event{a2}{\DWRel{x}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DR{x}{1}}{right=3em of a2}
+  \rf{a2}{a3}
+  \event{b1}{\DRAcq{x}{1}}{right=of a3}
+  \rf[out=10,in=170]{a2}{b1}
+  \event{b2}{\DR{y}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{z}{0}}{right=of b2}
+  \po{b2}{b3}
+    \end{tikzinline}}
+\end{gather*}
+
+\citep[Fig 6]{DBLP:conf/pldi/LahavVKHD17}:
+
+
+
+In our semantics, we have not included rules for silent synchronizations.
+\begin{gather}
+  \label{read-before-acquire}
+  %y\GETS0\SEMI
+    y\GETS1\SEMI
+    x\REL\GETS1
+    \PAR
+    r\GETS x\SEMI
+    \IF{x\ACQ}\THEN z\GETS y\FI
+    \\[-.1ex]
+    \nonumber
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{y}{1}}{}
+  % \event{a0}{\DW{y}{0}}{left=of a1}
+  % \wk{a0}{a1}
+  \event{a2}{\DWRel{x}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DR{x}{1}}{right=3em of a2}
+  \rf{a2}{a3}
+  \event{b1}{\DRAcq{x}{1}}{right=of a3}
+  \rf[out=10,in=170]{a2}{b1}
+  \event{b2}{\DR{y}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{z}{0}}{right=of b2}
+  \po{b2}{b3}
+  \wk[out=-170,in=-10]{b2}{a1}
+    \end{tikzinline}}
+\end{gather}
+
+
+\paragraph{Address Calculation}
+
+Definition of data model:
+\begin{itemize}
+\item memory locations have the form $\REF{\aVal}$,
+\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
+\end{itemize}
+
+\begin{align*}
+\aCmd,\,\bCmd
+\BNFDEF& \cdots
+\BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
+\BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
+\end{align*}
+
+\begin{align*}
+  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDR{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \\
+  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDW{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
+\end{align*}
 
 \paragraph{Pointers.}
 Our language allows address calculations.  To model this, we allow locations
@@ -266,211 +452,6 @@ allows this to be weakened to $2=2$.
 % Ie, it does publication by antidependency...
 
 
-
-\paragraph{Read from unexecuted branch (\rfub).}
-\begin{comment}
-RFUB Example 1
-Thread 1:	                        
-r1 = x.load(memory_order_relaxed);
-y.store(r1, memory_order_relaxed);	
-
-Thread 2:
-bool assigned_42(false);
-r1 = y.load(memory_order_relaxed);
-if (r1 != 42) {
-    assigned_42 = true;
-    r1 = 42;
-}
-x.store(r1, memory_order_relaxed);
-assert_not(assigned_42);
-\end{comment}
-
-\citet{BoehmOOTA} analyzes programs in which register state from an
-unexecuted branch can effect the outcome of an execution.  
-\citeauthor{BoehmOOTA}'s \rfub1 example can be written in our language as:
-\begin{displaymath}
-  %\label{rfub}
-  y\GETS x
-  \PAR
-  r\GETS y\SEMI
-  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\SEMI x\GETS r \ELSE x\GETS r \FI
-\end{displaymath}
-\citeauthor{BoehmOOTA}'s concern arises from the similarity of this program
-with the \oota\ litmus test that replaces the second thread with
-\begin{math}
-  r\GETS y\SEMI
-  x\GETS r.
-\end{math}
-Should an unexecuted conditional be allowed to change the outcome of the
-program?  In our semantics the answer is ``yes''.  First note that the
-program writes $1$ to $x$ in both branches of the conditional.  Further, the
-writes to $z$ and $x$ in the then-branch of the conditional are independent.
-Therefore, it is sensible for a compiler to hoist the write to $x$ out of the
-conditional.
-
-To analyze the example formally, we use combinators on pomsets that are
-defined in the next section.  These are prefixing $(\prefix)$ and composition
-$(\parallel)$.  We also include events with unsatisfiable conditions in our
-drawings; we indicate unsatisfiability by crossing out the event.  The
-execution in question is:
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{below=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Biggm\|
-  \DR{y}{1}
-  \prefix
-  \left(
-    \begin{tikzcenter}[node distance=1em]
-      \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{below=of b1}
-    \end{tikzcenter}
-    \biggm\|
-    \begin{tikzcenter}[node distance=1em]
-      \event{c1}{r\EQ1\mid\DW{x}{1}}{}
-    \end{tikzcenter}
-  \right)
-\end{displaymathsmall}
-With an internal read of $y$, we have:
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{below=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Biggm\|
-    \begin{tikzcenter}[node distance=1em]
-      \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{below=of b1}
-    \end{tikzcenter}
-\end{displaymathsmall}
-but the precondition $y\NOTEQ1$ cannot be satisfied locally.
-With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
-case, the predicate becomes $1\NOTEQ 1$. 
-\begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
-    \event{a1}{\DR{x}{1}}{}
-    \event{a2}{\DW{y}{1}}{below=of a1}
-    \po{a1}{a2}
-  \end{tikzcenter}
-  \Bigm\|  
-    \begin{tikzcenter}[node distance=1em]
-      \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
-      \event{b2}{\DW{x}{1}}{below=of b1}
-      \event{b0}{\DR{y}{1}}{left=of b1}
-      \po{b0}{b1}
-    \end{tikzcenter}
-\end{displaymathsmall}
-
-
-
-\paragraph{Silent Actions and Fences}
-
-All fence actions are internal, do not read or write.
-\begin{align*}
-  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
-  \\
-  \aCmd,\,\bCmd
-  \BNFDEF& \cdots
-  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
-\end{align*}
-
-\begin{align*}
-  \sem{\FENCE\SEMI \aCmd} & =
-  (\DF{}) \prefix \sem{\aCmd}
-\end{align*}
-
- The explicit use of internal actions facilitate the translation to \armeight\
-(\textsection\ref{sec:arm}) and the definitions required in the proof of
-\drfsc\ (\textsection\ref{sec:sc}).
-
-Add condition to validate DRF.
-\begin{itemize}
-\item[5e.] if $\cEv$ internally reads from $\aLoc$, $\labelingForm(\aEv)$ is
-  not independent of $\aLoc$, and $\aEv$ writes, then $\cEv\lt'\aEv$.
-\end{itemize}
-
-In defining \emph{data races} (and thus in the proof of \drfsc) it is
-important to position internal actions relative to synchronization actions.
-For example, the following execution is consider data-race free.
-\begin{displaymath}
-  x\GETS1\SEMI
-  \aReg\GETS x \SEMI
-  y\REL\GETS 1 \SEMI
-  \PAR
-  \bReg\GETS y\ACQ \SEMI
-  x\GETS 2
-\end{displaymath}
-\begin{tikzdisplay}[node distance=1em]
-  \event{a1}{\DW{x}{1}}{}
-  \internal{a2}{\DR{x}{}}{right=of a1}
-  %\graypo{a1}{a2}
-  \event{a3}{\DWRel{y}{1}}{right=of a2}
-  \graypo{a2}{a3}
-  \po[bend left]{a1}{a3}
-  \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
-  \rf{a3}{b1}
-  \event{b2}{\DW{x}{2}}{right=of b1}
-  \po{b1}{b2}
-\end{tikzdisplay}
-However, if we commute the read of $x$ and the release of $y$, the resulting
-program has a data race.
-% \begin{displaymath}
-%   x\GETS0\SEMI
-%   x\GETS1\SEMI
-%   \aReg\GETS x \SEMI
-%   y\REL\GETS 1 \SEMI
-%   z\GETS\aReg
-%   \PAR
-%   \bReg\GETS z\ACQ \SEMI
-%   \cReg\GETS x
-% \end{displaymath}
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{a1}{\DW{x}{1}}{}
-%   \event{a0}{\DW{x}{0}}{left=of a1}
-%   \wk{a0}{a1}
-%   \internal{a2}{\DR{x}{1}}{right=of a1}
-%   \graypo{a1}{a2}
-%    \event{a3}{\DWRel{y}{1}}{right=of a2}
-%   \graypo{a2}{a3}
-%   \po[bend left]{a1}{a3}
-%   \event{a4}{\DW{z}{1}}{right=of a3}
-%   \graypo[bend left]{a2}{a4}
-%   \event{b1}{\DRAcq{z}{1}}{below=of a4}
-%   \rf{a4}{b1}
-%   \event{b2}{\DR{x}{0}}{left=8em of b1}
-%   \po{b1}{b2}
-%   \wk{b2}{a1}
-%   \wk{a0}{b2}
-% \end{tikzdisplay}
-
-
-\paragraph{Address Calculation}
-
-Definition of data model:
-\begin{itemize}
-\item memory locations have the form $\REF{\aVal}$,
-\item expressions do \emph{not} include memory locations or the operator $\REF{\aExp}$,
-\end{itemize}
-
-\begin{align*}
-\aCmd,\,\bCmd
-\BNFDEF& \cdots
-\BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
-\BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
-\end{align*}
-
-\begin{align*}
-  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] 
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDRmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aLoc/\aReg]
-  \\
-  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-  \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDWmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
-\end{align*}
 
 \paragraph{Read-Modify-Write}
 

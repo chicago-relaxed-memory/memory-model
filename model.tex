@@ -1081,8 +1081,9 @@ by a matching write action, and that the order between them must therefore be
 part of the global pomset order.  This is overly restrictive for reads that
 are fulfilled locally.  Consider Example 3.6 from
 \citet{DBLP:journals/pacmpl/PodkopaevLV19}:
-\begin{gather*}
-  \tag{$\dagger$}\label{exlocal3.6}
+\begin{gather}
+  %\tag{$\dagger$}
+  \label{exlocal3.6}
   \aReg\GETS x\SEMI
   y\REL\GETS 1\SEMI
   \bReg\GETS y\SEMI
@@ -1091,6 +1092,7 @@ are fulfilled locally.  Consider Example 3.6 from
   \PAR
   x\GETS z
   \\
+  \nonumber
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
@@ -1106,7 +1108,7 @@ are fulfilled locally.  Consider Example 3.6 from
   \rf{a4}{b1}
   \rf{b2}{a1}
     \end{tikzinline}}
-\end{gather*}
+\end{gather}
 This behavior is allowed by \armeight, but disallowed in the model presented
 thus far, due to the evident cycle.
 
@@ -1306,6 +1308,7 @@ validates left disjunction:
     \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm}
   }
 \end{displaymath}
+
 No similar change is needed for read actions: the read rule does not
 introduce read preconditions, and item 5a of Definition \ref{def:prefix} ignores
 them.  Whereas a write action introduces a precondition on the value to be
