@@ -1309,13 +1309,13 @@ validates left disjunction:
   }
 \end{displaymath}
 
-No similar change is needed for read actions: the read rule does not
-introduce read preconditions, and item 5a of Definition \ref{def:prefix} ignores
-them.  Whereas a write action introduces a precondition on the value to be
-written, a read action introduces a fulfillment requirement on the value to
-be read.  In other words, write actions are satisfied sequentially by Hoare
-logic; read actions are fulfilled concurrently by matching writes.
-
+The us of $\PAR$ is neither necessary nor desirable for reads: the read rule
+does not introduce read preconditions, and item 5a of Definition
+\ref{def:prefix} ignores them.  Whereas a write action introduces a
+precondition---satisfied sequentially---on the value to be written; a read
+introduces a pomset requirement---fulfilled concurrently---on the value to be
+read.  In the concurrent world, writes are capabilities; reads are
+obligations.  Thus, a read should introduce at most one event per pomset.
 
 
 

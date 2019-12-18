@@ -133,8 +133,8 @@ executions are allowed if the cycle is broken---for example, by changing
 $x\ACQ$ to $x\RLX$ in the \iriw\ example.
 
 
-Our semantics provides a fresh perspective on contraversies.  For example,
-consider \rfub1~\cite{BoehmOOTA}:
+The deep connection between our semantics and Hoare logic also facilitates analysis.
+Consider \rfub1~\cite{BoehmOOTA}:
 \begin{displaymath}
   %\label{rfub}
   y\GETS x
@@ -236,97 +236,7 @@ all of the examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
 
 
 
-\paragraph{Silent Actions and Fences}
-
-All fence actions are internal, do not read or write.
-\begin{align*}
-  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
-  &
-  \aCmd %,\,\bCmd
-  \BNFDEF& \cdots
-  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
-  % \\
-  % \aCmd,\,\bCmd
-  % \BNFDEF& \cdots
-  % \BNFSEP \FENCE^{\modeREL} \SEMI \aCmd  
-  % \BNFSEP \FENCE^{\modeACQ} \SEMI \aCmd  
-  % \BNFSEP \FENCE^{\modeSC} \SEMI \aCmd  
-\end{align*}
-
-\begin{align*}
-  \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
-  (\DF[\fmode]) \prefix \sem{\aCmd}
-\end{align*}
-
- The explicit use of internal actions facilitate the translation to \armeight\
-(\textsection\ref{sec:arm}) and the definitions required in the proof of
-\drfsc\ (\textsection\ref{sec:sc}).
-
-In the following, we leave out the initial writes of $0$.
-\citep[Fig 5]{DBLP:conf/pldi/LahavVKHD17}:
-\begin{gather*}
-    y\GETS1
-    \PAR
-    r\GETS x\SEMI   
-    \FENCE^{\modeSC}\SEMI
-    r\GETS y  
-    \PAR
-    y\GETS 1 \SEMI
-    \FENCE^{\modeSC}\SEMI
-    r\GETS x  
-    \\[-.1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{a1}{\DW{y}{1}}{}
-  \event{a0}{\DW{y}{0}}{left=of a1}
-  \wk{a0}{a1}
-  \event{a2}{\DWRel{x}{1}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DR{x}{1}}{right=3em of a2}
-  \rf{a2}{a3}
-  \event{b1}{\DRAcq{x}{1}}{right=of a3}
-  \rf[out=10,in=170]{a2}{b1}
-  \event{b2}{\DR{y}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{z}{0}}{right=of b2}
-  \po{b2}{b3}
-    \end{tikzinline}}
-\end{gather*}
-
-\citep[Fig 6]{DBLP:conf/pldi/LahavVKHD17}:
-
-
-
-In our semantics, we have not included rules for silent synchronizations.
-\begin{gather}
-  \label{read-before-acquire}
-  %y\GETS0\SEMI
-    y\GETS1\SEMI
-    x\REL\GETS1
-    \PAR
-    r\GETS x\SEMI
-    \IF{x\ACQ}\THEN z\GETS y\FI
-    \\[-.1ex]
-    \nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a1}{\DW{y}{1}}{}
-  % \event{a0}{\DW{y}{0}}{left=of a1}
-  % \wk{a0}{a1}
-  \event{a2}{\DWRel{x}{1}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DR{x}{1}}{right=3em of a2}
-  \rf{a2}{a3}
-  \event{b1}{\DRAcq{x}{1}}{right=of a3}
-  \rf[out=10,in=170]{a2}{b1}
-  \event{b2}{\DR{y}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{z}{0}}{right=of b2}
-  \po{b2}{b3}
-  \wk[out=-170,in=-10]{b2}{a1}
-    \end{tikzinline}}
-\end{gather}
-
-
-\paragraph{Address Calculation}
+\paragraph{Address Calculation.}
 
 Definition of data model:
 \begin{itemize}
@@ -351,7 +261,7 @@ Definition of data model:
   \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDW{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
 \end{align*}
 
-\paragraph{Pointers.}
+
 Our language allows address calculations.  To model this, we allow locations
 to have the form $\REF{n}$, where $n$ is a natural number.  Because we do not
 enforce order between reads, there is some danger that address calculations
@@ -450,6 +360,96 @@ allows this to be weakened to $2=2$.
 %   \wk{b3}{a2}
 % \end{tikzdisplay}
 % Ie, it does publication by antidependency...
+
+\paragraph{Silent Actions and Fences}
+
+All fence actions are internal, do not read or write.
+\begin{align*}
+  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
+  &
+  \aCmd %,\,\bCmd
+  \BNFDEF& \cdots
+  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
+  % \\
+  % \aCmd,\,\bCmd
+  % \BNFDEF& \cdots
+  % \BNFSEP \FENCE^{\modeREL} \SEMI \aCmd  
+  % \BNFSEP \FENCE^{\modeACQ} \SEMI \aCmd  
+  % \BNFSEP \FENCE^{\modeSC} \SEMI \aCmd  
+\end{align*}
+
+\begin{align*}
+  \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
+  (\DF[\fmode]) \prefix \sem{\aCmd}
+\end{align*}
+
+ The explicit use of internal actions facilitate the translation to \armeight\
+(\textsection\ref{sec:arm}) and the definitions required in the proof of
+\drfsc\ (\textsection\ref{sec:sc}).
+
+In the following, we leave out the initial writes of $0$.
+\citep[Fig 5]{DBLP:conf/pldi/LahavVKHD17}:
+\begin{gather*}
+    y\GETS1
+    \PAR
+    r\GETS x\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DW{y}{1}}{}
+  \event{a0}{\DW{y}{0}}{left=of a1}
+  \wk{a0}{a1}
+  \event{a2}{\DWRel{x}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DR{x}{1}}{right=3em of a2}
+  \rf{a2}{a3}
+  \event{b1}{\DRAcq{x}{1}}{right=of a3}
+  \rf[out=10,in=170]{a2}{b1}
+  \event{b2}{\DR{y}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{z}{0}}{right=of b2}
+  \po{b2}{b3}
+    \end{tikzinline}}
+\end{gather*}
+
+\citep[Fig 6]{DBLP:conf/pldi/LahavVKHD17}:
+
+
+
+In our semantics, we have not included rules for silent synchronizations.
+\begin{gather}
+  \label{read-before-acquire}
+  %y\GETS0\SEMI
+    y\GETS1\SEMI
+    x\REL\GETS1
+    \PAR
+    r\GETS x\SEMI
+    \IF{x\ACQ}\THEN z\GETS y\FI
+    \\[-.1ex]
+    \nonumber
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{y}{1}}{}
+  % \event{a0}{\DW{y}{0}}{left=of a1}
+  % \wk{a0}{a1}
+  \event{a2}{\DWRel{x}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DR{x}{1}}{right=3em of a2}
+  \rf{a2}{a3}
+  \event{b1}{\DRAcq{x}{1}}{right=of a3}
+  \rf[out=10,in=170]{a2}{b1}
+  \event{b2}{\DR{y}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{z}{0}}{right=of b2}
+  \po{b2}{b3}
+  \wk[out=-170,in=-10]{b2}{a1}
+    \end{tikzinline}}
+\end{gather}
+
 
 
 
