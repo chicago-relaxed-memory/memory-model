@@ -208,23 +208,23 @@
 \newcommand{\bAct}{b}
 \newcommand{\cAct}{c}
 \newcommand{\dAct}{d}
-\newcommand{\DRSC}[2]{\smash{\mathsf{R^{sc}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
-\newcommand{\DWSC}[2]{\smash{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}}
-\newcommand{\DRAcq}[2]{\smash{\mathsf{R\ACQ}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DWRel}[2]{\smash{\mathsf{W\REL}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
-\newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\,#2\ifnotempty{#3}{\,#3}}}
-\newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\,#2\ifnotempty{#3}{\,#3}}}
+\newcommand{\DRSC}[2]{\smash{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}}
+\newcommand{\DWSC}[2]{\smash{\mathsf{W^{sc}}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}}
+\newcommand{\DRAcq}[2]{\smash{\mathsf{R\ACQ}}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\newcommand{\DWRel}[2]{\smash{\mathsf{W\REL}}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3}}}
+\newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\mathsf{F}^{#1}}
-\newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDRmode}[2]{\mathsf{R^{\amode}}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDWmode}[2]{\mathsf{W^{\amode}}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDRAcq}[2]{\mathsf{R\ACQ}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDWRel}[2]{\mathsf{W\REL}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDR}[2]{\mathsf{R}\ifnotempty{#1}{\,#1\,\bot}}
-\newcommand{\iDW}[2]{\mathsf{W}\ifnotempty{#1}{\,#1\,\bot}}
+\newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+\newcommand{\iDWSC}[2]{\mathsf{W^{sc}}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+\newcommand{\iDRmode}[2]{\mathsf{R^{\amode}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+\newcommand{\iDWmode}[2]{\mathsf{W^{\amode}}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+\newcommand{\iDRAcq}[2]{\mathsf{R\ACQ}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+\newcommand{\iDWRel}[2]{\mathsf{W\REL}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
+\newcommand{\iDR}[2]{\mathsf{R}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
+\newcommand{\iDW}[2]{\mathsf{W}\ifnotempty{#1}{\mkern0mu#1\mkern1mu\bot}}
 %% \newcommand{\iDRAcq}[2]{\mathsf{\tau R^{acq}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 %% \newcommand{\iDWRel}[2]{\mathsf{\tau W^{rel}}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
 %% \newcommand{\iDR}[2]{\mathsf{\tau R}\ifnotempty{#1}{\,#1\ifnotempty{#2}{\,#2}}}
@@ -295,6 +295,7 @@
 \newcommand{\RECOVERYVAL}{\texttt{onabort}\,\aVal\texttt{\{}}
 \newcommand{\END}{\texttt{end}}
 \newcommand{\SKIP}{\texttt{skip}}
+\newcommand{\BANG}{\texttt{!}\mkern-1mu}
 \newcommand{\GETS}{\texttt{:}\mkern-1mu\texttt{=}\,}
 \newcommand{\SEQ}{\texttt{;}\,\allowbreak}
 \newcommand{\SEMI}{\texttt{;}\,\allowbreak}

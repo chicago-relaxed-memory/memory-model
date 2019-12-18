@@ -366,9 +366,23 @@ case, the predicate becomes $1\NOTEQ 1$.
 
 
 
-\paragraph{Explicit Internal Actions}
+\paragraph{Silent Actions and Fences}
 
-The explicit use of internal actions facilitate the translation to \armeight\
+All fence actions are internal, do not read or write.
+\begin{align*}
+  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
+  \\
+  \aCmd,\,\bCmd
+  \BNFDEF& \cdots
+  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
+\end{align*}
+
+\begin{align*}
+  \sem{\FENCE\SEMI \aCmd} & =
+  (\DF{}) \prefix \sem{\aCmd}
+\end{align*}
+
+ The explicit use of internal actions facilitate the translation to \armeight\
 (\textsection\ref{sec:arm}) and the definitions required in the proof of
 \drfsc\ (\textsection\ref{sec:sc}).
 
@@ -456,22 +470,6 @@ Definition of data model:
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; \textstyle\bigcup_\aVal\; ({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
   \\ & \mkern2mu\cup \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid \iDWmode{\aLoc}{\aVal}) \prefix \sem{\aCmd}[\aExp/\aLoc]  
-\end{align*}
-
-\paragraph{Fences}
-
-All fence actions are internal, do not read or write.
-\begin{align*}
-  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
-  \\
-  \aCmd,\,\bCmd
-  \BNFDEF& \cdots
-  \BNFSEP \FENCE^{\fmode} \SEMI \aCmd  
-\end{align*}
-
-\begin{align*}
-  \sem{\FENCE\SEMI \aCmd} & =
-  (\DF{}) \prefix \sem{\aCmd}
 \end{align*}
 
 \paragraph{Read-Modify-Write}

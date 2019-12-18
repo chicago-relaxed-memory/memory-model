@@ -362,11 +362,14 @@ unsatisfiable events are ignored, thus providing a kind of prefix closure.
 % semantics, and work through a series of illustrative examples.  We present
 % precise details of the semantics in \textsection\ref{sec:model}.
 
-We visualize a pomset as a directed graph where the nodes are drawn from
-$\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is
-drawn as an edge.  We elide events with unsatisfiable preconditions.  In
-examples, we draw pomsets that are augmentation-minimal and
-implication-minimal.  For example, the semantics of
+We visualize pomsets as directed graphs.
+%where the nodes are drawn from $\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is drawn as an edge.
+We often elide events with disjoint
+preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
+$\aForm \land \bForm$ is unsatisfiable.  For example, we typically drop
+unsatisfiable events.  In examples,
+we draw pomsets that are
+augmentation-minimal and implication-minimal.  For example, the semantics of
 \begin{math}
   \VAR\aLoc\SEMI(
   x\GETS 0\SEMI
@@ -471,8 +474,8 @@ follow in pomset order:
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
-We drop preconditions on tautological events and cross out unsatisfiable
-ones (which may are ignored):
+We often drop preconditions on tautological events and sometimes cross out
+unsatisfiable ones (which may are ignored):
 \begin{align*}
   \begin{gathered}
     % r\GETS x\SEMI y\GETS r
@@ -717,11 +720,9 @@ when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
   % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
 \end{align*}
 \end{definition}
-Thus, the semantics of
- $\IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI$ 
-includes:
+Thus, $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
 \begin{tikzdisplay}[node distance=1em]
-  \event{wy1}{\aReg\lor\lnot\aReg\mid \DW{y}{1}}{}
+  \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
 \end{tikzdisplay}
 This weakening of the precondition of an event that occurs on both sides of a
 conditional can be seen in the inference:
@@ -876,7 +877,7 @@ Definition \ref{def:pre-sc} and:
 \begin{candidate}
   Replace $\prefixsc$ in Candidate~\ref{def:rw:sc1} by $\prefix$.
 \end{candidate}
-Item 5a captures read to write dependency\footnote{When $\cEv$ is not a read,
+Item 5a captures \emph{read to write} dependency\footnote{When $\cEv$ is not a read,
   4c trivially implies 5a.}; it only requires order when the precondition of
 the write is weakened by prefixing.  Item 5b captures the coherence
 requirement on actions that touch the same location.  Item 5c imposes the
@@ -1247,20 +1248,69 @@ This prevents bad executions such as:
 % In item~\ref{pre-acquire}, we do not require that $\bForm'$ is independent of
 % every $\bLoc$; were we to require this, the definition would not be augment closed.
 
-Second, the use of $\PAR$ to combine pomsets ensures that the semantics
-validates the disjunctive rule in Hoare logic:
+Second, the use of $\PAR$ to combine pomsets formed by write prefixing
+ensures that the semantics is ``disjunctive'' in a certain sense.
+The following example uses address calculation, defined formally in
+\textsection\ref{sec:variants}.  It also use the operator ``$\BANG \aExp$,''
+which evaluates to $1$ when $\aExp$ is $0$, and
+$0$ otherwise.  Note that 
+\begin{math}
+  \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
+\end{math}
+includes both of the following pomsets:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r{=}0\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r{=}0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+  \qquad
+  %\\[-1.5ex]\intertext{and:}\\[-5ex]
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r{=}1\mathbin{\mid}\DW{a[1]}{0}}{}
+      \event{b}{r{=}1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+\end{align*}
+By using $\PAR$ rather than $\cup$, it also includes the following (where,
+contrary to convention, we show disjoint events):
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{r{=}0\lor r{=}1\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r{=}0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+      \event{c}{r{=}1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
+    \end{tikzinline}}%\;\;\cdots
+\end{gather*}
+Using $\cup$, the semantics would exclude this pomset, and thus fail to
+validate \emph{case analysis}---for example, refining this program,
+\begin{math}
+  \aCmd = (a[r] \GETS 0\SEMI a[0]\GETS \BANG r),
+\end{math}
+to
+\begin{math}
+  \IF{r{=}1}\THEN \aCmd\ELSE \aCmd\FI.
+\end{math}
+
+
+
+In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
+$\bForm$ represents a set of write actions, and $\aForm$ represents their
+preconditions.  The use of $\PAR$ %in the write rule is necessary to validate
+validates left disjunction:
 \begin{displaymath}
   \frac{
-    \hoare{\aForm^1}{\aCmd}{\bForm^1}
+    \hoare{\aForm^1}{\aCmd}{\bForm}
     \quad
-    \hoare{\aForm^2}{\aCmd}{\bForm^2}
+    \hoare{\aForm^2}{\aCmd}{\bForm}
   }{
-    \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm^1\lor\bForm^2}
+    \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm}
   }
 \end{displaymath}
-Recall that Definition~\ref{def:prefix}
-We give a motivating example in \textsection\ref{sec:variants}, after
-introducing address calculation.
+No similar change is needed for read actions: the read rule does not
+introduce preconditions, and item 5a of Definition \ref{def:prefix} ignores
+them.  Whereas a write action introduces a precondition on the value to be
+written, a read action introduces a fulfillment requirement on the value to
+be read.  In other words, write actions are satisfied sequentially by Hoare
+logic; read actions are fulfilled concurrently by matching writes.
+
 
 
 
