@@ -35,7 +35,7 @@ with control dependencies between the reads:
   \PAR
   \IF{y}\THEN s\GETS x \FI
 \end{displaymatharray}
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzdisplay}[node distance=.5em and 1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
@@ -68,7 +68,7 @@ this execution is acyclic and is allowed.  If the first read in each thread is a
   r\GETS y\ACQ \SEMI s\GETS x
 \end{displaymatharray}
 The resulting execution is disallowed due to the  cycle.
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzdisplay}[node distance=.5em and 1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}

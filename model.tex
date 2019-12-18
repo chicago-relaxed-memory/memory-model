@@ -241,10 +241,10 @@ The syntax of statements is as follows.
 \BNFDEF& \SKIP
 \BNFSEP \aReg\GETS\aExp\SEMI \aCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
-\\
+\\[-.5ex]
 \BNFSEP&\aCmd \PAR \bCmd
 \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-\\
+\\[-.5ex]
 \BNFSEP& \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
 \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \end{align*}
@@ -580,7 +580,7 @@ matching write.
 Fulfillment imposes order between any two writes that are read, but not
 necessarily between unread writes.  Consider the following program and
 top-level execution:
-\begin{displaymath}
+\begin{gather*}
   x\GETS 3
   \PAR
   x\GETS 4
@@ -590,8 +590,8 @@ top-level execution:
   x\GETS 1
   \PAR
   x\GETS2
-\end{displaymath}
-\begin{tikzdisplay}[node distance=1em]
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
   \event{wx1}{\DW{x}{1}}{}
   \event{wx2}{\DW{x}{2}}{below=of wx1}
   \event{rx1a}{\DR{x}{1}}{left=of wx1}
@@ -608,7 +608,8 @@ top-level execution:
   \wk{rx2a}{wx3}
   %\wk{rx1a}{wx4}
   \wk{rx2a}{wx4}
-\end{tikzdisplay}
+    \end{tikzinline}}
+\end{gather*}
 
 The restriction of pomset order to conflicting events is called the
 \emph{extended coherence order}, $\reco$.  This relation can always be
@@ -634,15 +635,16 @@ allocators.
 Composition is roughly union:
 $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
 $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  Thus we have:
-\begin{displaymath}
+\begin{gather*}
   \IF{r<0}\THEN y\GETS1\FI
   \PAR
   \IF{r\geq0}\THEN y\GETS1\FI
-\end{displaymath}
-\begin{tikzdisplay}[node distance=1em]
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx1}{r<0\mid\DW{x}{1}}{}
   \event{wx2}{r\geq0\mid\DW{x}{1}}{right=of wx1}
-\end{tikzdisplay}
+    \end{tikzinline}}
+\end{gather*}
 In addition, however, we allow that events with the same label may collapse,
 taking the disjunction of their preconditions.  Thus, the semantics of this
 program also includes:
@@ -1089,7 +1091,7 @@ are fulfilled locally.  Consider Example 3.6 from
   \PAR
   x\GETS z
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
   \po{a1}{a2}
@@ -1160,7 +1162,7 @@ allowed:
   % \PAR
   % x\GETS z
   % \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
   \po{a1}{a2}
@@ -1226,7 +1228,7 @@ This prevents bad executions such as:
   \PAR
   \IF{a\ACQ}\THEN  x\GETS 2\SEMI b\REL\GETS1 \FI
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}
   \event{a2}{\DWRel{a}{1}}{right=of a1}
   \po{a1}{a2}
