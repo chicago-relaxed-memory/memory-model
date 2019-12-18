@@ -66,7 +66,7 @@ Consider the following sequential program fragments:
 & \aCmd_3: \aLoc \GETS 1 \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI \\[-1ex]
 &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
-These fragments satisfy the same Hoare triples---in particular, $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$.  In each case, the write of $y$ is independent of
+All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each case, the write of $y$ is independent of
 any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it.\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
 DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
 
