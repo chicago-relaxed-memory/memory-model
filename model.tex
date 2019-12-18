@@ -622,8 +622,8 @@ $\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}=\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$,
 when $\bCmd$ does not mention~$\aLoc$.  However, they do not validate
 renaming of locations: if $\bLoc\neq\aLoc$ then
 $\sem{\VAR\aLoc\SEMI\aCmd)}\neq\sem{(\VAR\bLoc\SEMI\aCmd[\bLoc/\aLoc])}$,
-even if $\bLoc$ does not appear in $\aCmd$.  This is consistent with our
-support of address calculation, which is required by realistic memory
+even if $\bLoc$ does not appear in $\aCmd$.  This is consistent with
+support for address calculation, which is required by realistic memory
 allocators.
 %$\nu\aLoc\st\aPSS\neq \nu\bLoc\st\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
 % $\nu\aLoc\st(\aPSS\parallel\nu\aLoc\st\bPSS)$ is generally
@@ -761,7 +761,7 @@ result in top-level executions being sequentially consistent.
     \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aExp/\aLoc]
   \end{align*}
 \end{candidate}
-For now, ignore the substitutions, which we explain in the subsections below.
+For now, ignore the preconditions and substitutions. We explain them in the subsections below.
 
 The definition ensures that program order is included in the pomset
 order.  Due to the requirements of fulfillment, we also have that $\reco$ is
