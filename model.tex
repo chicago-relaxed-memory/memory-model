@@ -1150,7 +1150,7 @@ $(\bReg=1\mid \DW{z}{1})$.  Applying the local read rule of
 Definition~\ref{def:rw:local}, we have that
 $\sem{\bReg\GETS y \SEMI z\GETS \bReg}$ includes $(y=1\mid \DW{z}{1})$.
 Crucially, there is no explicit read event.  Further prepending
-$\DWRel{y}{1}$, performs the substitution $(y=1\mid \DW{z}{1})[1/y]$
+$(\DWRel{y}{1})$ performs the substitution $(y=1\mid \DW{z}{1})[1/y]$
 resulting in a tautology.  By removing the read event, the execution is
 allowed:
 \begin{gather*}
@@ -1305,7 +1305,7 @@ validates left disjunction:
   }
 \end{displaymath}
 No similar change is needed for read actions: the read rule does not
-introduce preconditions, and item 5a of Definition \ref{def:prefix} ignores
+introduce read preconditions, and item 5a of Definition \ref{def:prefix} ignores
 them.  Whereas a write action introduces a precondition on the value to be
 written, a read action introduces a fulfillment requirement on the value to
 be read.  In other words, write actions are satisfied sequentially by Hoare
