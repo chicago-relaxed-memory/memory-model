@@ -69,7 +69,8 @@ We require that data models satisfy the following:
 \item expressions include at least registers and values,
 %\item memory locations have the form $\REF{\aVal}$,
 \item expressions do \emph{not} include memory locations, % or the operator $\REF{\aExp}$,
-\item formulae include at least $\TRUE$, $\FALSE$, and equalities of the form
+\item formulae include at least %$\TRUE$, $\FALSE$, and
+  equalities %of the form
   $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
   substitution\footnote{Since formulae are closed under substitutions of the
@@ -82,7 +83,7 @@ We require that data models satisfy the following:
 \item there is a relation $\vDash$ between formulae.
 \end{itemize}
 
-We use expressions as formulas, coercing $\aExp$ to $\aExp\NOTEQ0$.
+We use expressions as formulas, coercing $\aExp$ to $\aExp\neq 0$.
 
 For the actions of a data model, we require that
 % \begin{itemize}
@@ -126,11 +127,13 @@ is a \emph{release} if $\aAct\in\Rel$, and that $\aAct$ is \emph{SC} if $\aAct\i
 
 
 Logical formulae include equations over locations and registers, such
-$(\aLoc=1)$ and $(\aReg=\bReg+1)$.  Formulae are \emph{open}, in that
+$(\aLoc{=}1)$ and $(\aReg{=}\bReg{+}1)$.  Formulae are \emph{open}, in that
 occurrences of register names and memory locations are subject to
-substitutions of the form $\aForm[\aLoc/\aReg]$ and $\aForm[\bExp/\aLoc]$,
-where $\aLoc$ is a memory location, $\aReg$ is a register and $\bExp$ is an
-memory-location-free expression.  Actions are not subject to substitution.
+substitutions of the form $\aForm[\aLoc/\aReg]$ and $\aForm[\bExp/\aLoc]$.
+% where %$\aLoc$ is a memory location, $\aReg$ is a register and
+% $\bExp$ is an
+% memory-location-free expression.
+Actions are not subject to substitution.
 
 
 % % We require that $\finternalize$ satisfy the following:
@@ -197,12 +200,11 @@ $\aLoc$.
 The \emph{mode} $\amode \BNFDEF \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC$ is
 either \emph{relaxed}, \emph{release-acquire}, or
 \emph{sequentially-consistent}.
-As expected, $\modeRA$ and $\modeSC$ reads are acquires; $\modeRA$ and
+$\modeRA$ and $\modeSC$ reads are acquires; $\modeRA$ and
 $\modeSC$ writes are releases.
-%We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
 
 We elide the $\modeRLX$-mode annotation in examples.
-
+% We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
 \begin{comment}
 \footnote{We only consider executions where register state is empty in
   forked threads.  Given item~\ref{pre-acquire} of
@@ -231,9 +233,7 @@ We elide the $\modeRLX$-mode annotation in examples.
 % \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
 % \end{align*}
-
-
-The syntax of statements is as follows.
+%The syntax of statements is as follows.
 \begin{align*}
   % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
   % \\
@@ -251,12 +251,13 @@ The syntax of statements is as follows.
 
 
 
-We use common syntax sugar, such as \emph{extended expressions}, which include
-memory locations.  For example, if the extended expression $\aEExp$ includes
-a single occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is
-shorthand for $\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.
-Each occurrence of $\aLoc$ in an extended expression corresponds to an
-independent read.
+
+We use common syntax sugar, such as \emph{extended expressions}, $\aEExp$,
+which include memory locations.  For example, if $\aEExp$ includes a single
+occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is shorthand for
+$\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.  Each
+occurrence of $\aLoc$ in an extended expression corresponds to an separate
+read.
 
 We write
 $\IF{\aExp} \THEN \aCmd \FI$ as shorthand for
@@ -275,7 +276,7 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
   \label{def:mmpomset}
   A \emph{(memory model) pomset} is a tuple
   $(\Event, {\le}, %{\gtN},
-  \labeling)$, such that
+  \labeling)$: %, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
@@ -289,50 +290,25 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
     $\labelingForm(\bEv)$.
   \end{itemize}
 \end{definition}
-We refer to ``memory model pomsets'' as ``{pomsets}''.
-We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$.  We elide
+We refer to ``memory model pomsets'' as \emph{pomsets} or \emph{executions}.
+We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$, eliding
 $\aForm$ when it is a tautology.
-%
-We lift terminology from logical formulae and actions to events. For example,
-we say that $\aEv$ is unsatisfiable when $\labelingForm(\aEv)$ is unsatisfiable,
-and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
+
+We lift terminology from logical formulae and actions to events, saying, for example,
+that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
+% and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
+We often elide explicit universal quantifiers in phrases such as
+``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
+
+For complete programs, we can restrict attention to events that are either
+tautological or satisfiable---true or false.  Richer formulae are needed for
+intermediate program fragments.  By the last condition in the definition, if
+$\bEv$ is false and $\bEv\le\aEv$, then $\aEv$ must also be false.
 
 % In this paper, we are not investigating microarchitecture.  So we make the
 % global assumption formulae can only get stronger in dependent actions:
 
-We give the semantics of programs as sets of pomsets.  
-%
-We expect sets of pomsets given by the semantics to be closed with
-respect to \emph{isomorphism}, \emph{augmentation} and \emph{implication}.
-\begin{definition}
-  $\aPS'$ is an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
-  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
-
-  $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
-  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
-
-  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
-  %${\gtN'}={\gtN}$,
-  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
-  implies $\labelingForm(\aEv)$ for all $\aEv\in\Event$.
-\end{definition}
-Each pomset $\aPS\in\sem{\aCmd}$ is a \emph{completed} execution of $\aCmd$;
-we sometimes refer to pomsets as \emph{executions}.  Because they are
-completed executions, we do not expect $\sem{\aCmd}$ to be prefixed closed.
-However, implication closure in a memory-model pomset does give something
-similar: any event $\aEv$ can be given an unsatisfiable precondition, which
-means that every event ordered after $\aEv$ must also be unsatisfiable, as
-per Definition~\ref{def:mmpomset}.  In many applications of the model,
-unsatisfiable events are ignored, thus providing a kind of prefix closure.
-% \begin{definition}
-%   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
-%   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
-%   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
-%   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
-%   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
-% \end{definition}
 
 % Restriction also filters a set of pomsets; we have
 % $(\nu\aLoc\DOT\aPSS)\subseteq\aPSS$.
@@ -362,7 +338,45 @@ unsatisfiable events are ignored, thus providing a kind of prefix closure.
 % semantics, and work through a series of illustrative examples.  We present
 % precise details of the semantics in \textsection\ref{sec:model}.
 
-We visualize pomsets as directed graphs.
+The semantics of programs is given as sets of pomsets, with each pomset
+representing a completed execution.
+%
+We expect sets of pomsets given by the semantics to be closed with
+respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
+\begin{definition}
+  Let
+  $\aPS'$ be an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
+  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
+  %
+  Let
+  $\aPS'$ \emph{imply} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  %${\gtN'}={\gtN}$,
+  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$. % for all $\aEv$. %\in\Event$.
+  %
+  Let
+  $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
+  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
+  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
+\end{definition}
+
+
+% Each pomset $\aPS\in\sem{\aCmd}$ is a \emph{completed} execution of $\aCmd$;
+% we sometimes refer to pomsets as \emph{executions}.  Because they are
+% completed executions, we do not expect $\sem{\aCmd}$ to be prefixed closed.
+% However, implication closure in a memory-model pomset does give something
+% similar: any event $\aEv$ can be given an unsatisfiable precondition, which
+% means that every event ordered after $\aEv$ must also be unsatisfiable, as
+% per Definition~\ref{def:mmpomset}.  In many applications of the model,
+% unsatisfiable events are ignored, thus providing a kind of prefix closure.
+% % \begin{definition}
+% %   $\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$, ${\labeling'}={\labeling}$,
+% %   ${\le}\subseteq{\le'}$, %$\aEv\le\bEv$ implies $\aEv\le'\bEv$,
+% %   and ${\gtN}\subseteq{\gtN'}$. %$\aEv\gtN\bEv$ implies $\aEv\gtN'\bEv$,
+% %   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+% %   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
+% % \end{definition}
+ We visualize pomsets as directed graphs.
 %where the nodes are drawn from $\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is drawn as an edge.
 We often elide events with disjoint
 preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
@@ -400,8 +414,10 @@ Although we use multiple arrows, we emphasize that they are all part
 of the same $\le$ relation.
 
 The logical formulae associated with events are \emph{preconditions}.
-The following programs gives rise to the pomset below them, capture data and control dependencies, respectively.
-\begin{align*}
+The following commands gives rise to the pomset below them, capturing data
+and control dependencies. %, respectively.
+\begin{align}
+  \label{ex-1}
   \begin{gathered}
     y\GETS r
     \\
@@ -417,90 +433,15 @@ The following programs gives rise to the pomset below them, capture data and con
         \event{wy1}{r<0\mid\DW{y}{1}}{}
       \end{tikzinline}}
   \end{gathered}
-\end{align*}
+\end{align}
+In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
+$\bForm$ represents a set of write actions, and $\aForm$ represents their
+preconditions.  
+% Each write in a pomset corresponds to a Hoare triple, where the formulae
+% gives the precondition, and the write action gives the postcondition.  
+For example, interpreting the pomset on the left above yields
+$\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
-In \textsection\ref{sec:opt} we show that pomsets preconditions are closely
-tied to Hoare logic.  For example, the pomset above left is equivalent to the
-Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
-
-Prepending an assignment to $\aReg$, the rules of Hoare logic derive the
-triple $\hoare{x =1}{\aReg\GETS x\SEMI y\GETS \aReg}{y =1}$.  In our
-semantics, the assignment to $\aReg$ causes a substitution in the
-precondition: %, changing the label to $(x=1\mid \DW{y}{1})$.
-% At top level, we expect preconditions to be either tautological or
-% unsatisfiable---true or false.
-\begin{align*}
-  \begin{gathered}
-    r\GETS x\SEMI y\GETS r
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{x=1\mid\DW{y}{1}}{}
-        % \event{rx1}{\DR{x}{1}}{left=of wy1}
-        % \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{x<0\mid\DW{y}{1}}{}
-        % \event{rx1}{\DR{x}{1}}{left=of wy1}
-        % \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align*}
-Our semantics may optionally prepend a read event.  By committing to a specific
-value, the read event allows us to weaken the precondition of events that
-follow in pomset order:
-\begin{align*}
-  \begin{gathered}
-    r\GETS x\SEMI y\GETS r
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{1=1\mid\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{1<0\mid\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align*}
-We often drop preconditions on tautological events and sometimes cross out
-unsatisfiable ones (which may are ignored):
-\begin{align*}
-  \begin{gathered}
-    % r\GETS x\SEMI y\GETS r
-    % \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
-    % \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \nonevent{wy1}{\DW{y}{1}}{}
-        \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align*}
-By prefixing a read event, the precondition $x=1$ has moved from the sequential realm of
-Hoare logic to the concurrent memory model.  Rather than a precondition that
-must be satisfied, the resulting pomset has a read event that must be
-\emph{fulfilled} by a matching write, as described below.
 
 \paragraph{Semantics of the Example Language.}
 In the remainder of this section, we explain the semantics of our example
@@ -531,9 +472,9 @@ the other operators.
 % for example:
 
 
-The semantics of $\SKIP$ and register assignment are simple.
+The semantics of $\SKIP$ and register assignment are simple:
 \begin{definition}
-Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
+Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \Event$,
 ${\le'} = {\le}$, 
@@ -549,9 +490,9 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \end{align*}
 \end{definition}
 
-\paragraph{Fulfillment and Location Binding.}
+%\paragraph{Fulfillment and Location Binding.}
 At the point a location is bound, every read must be \emph{fulfilled} by a
-matching write.
+matching write:
 
 \begin{definition}
   \label{def:rf}
@@ -564,22 +505,19 @@ matching write.
     if $\cEv$ \externally writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
   \end{itemize}
 
-  A pomset is $\aLoc$-closed if every \external read on $\aLoc$ is fulfilled,
+  A pomset is \emph{$\aLoc$-closed} if every \external read on $\aLoc$ is fulfilled,
   and every event is independent of $\aLoc$.
-
+  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location $\aLoc$.
   Let $(\nu\aLoc\DOT\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$
-  when and $\aPS$ is $\aLoc$-closed.
+  when $\aPS$ is $\aLoc$-closed.
 \begin{align*}
   \sem{\VAR\aLoc\SEMI \aCmd} & \eqdef
   \nu \aLoc \DOT \sem{\aCmd}  
 \end{align*}
-
-  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location $\aLoc$.
 \end{definition}
 
-Fulfillment imposes order between any two writes that are read, but not
-necessarily between unread writes.  Consider the following program and
-top-level execution:
+At top-level, fulfillment imposes a total order on conflicting writes that
+are read, but need not order unread writes:
 \begin{gather*}
   x\GETS 3
   \PAR
@@ -610,60 +548,61 @@ top-level execution:
   \wk{rx2a}{wx4}
     \end{tikzinline}}
 \end{gather*}
-
 The restriction of pomset order to conflicting events is called the
 \emph{extended coherence order}, $\reco$.  This relation can always be
 extended to totally order all conflicting events, as is common in hardware
 memory models.
 
-The definition of fulfillment and restriction are chosen to validate
-\emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
-$\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}=\sem{(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$,
-when $\bCmd$ does not mention~$\aLoc$.  However, they do not validate
-renaming of locations: if $\bLoc\neq\aLoc$ then
-$\sem{\VAR\aLoc\SEMI\aCmd)}\neq\sem{(\VAR\bLoc\SEMI\aCmd[\bLoc/\aLoc])}$,
-even if $\bLoc$ does not appear in $\aCmd$.  This is consistent with
-support for address calculation, which is required by realistic memory
-allocators.
+The definition of location binding validates \emph{scope q
+  extrusion}~\cite{Milner:1999:CMS:329902}: if $\aCmd$ does not
+mention~$\aLoc$ then
+$\sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd}=\sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$.
+However, the definition does not validate renaming of locations: if
+$\aLoc\neq\bLoc$ then
+$\sem{\VAR\bLoc\SEMI\aCmd}\neq\sem{\VAR\aLoc\SEMI\aCmd[\aLoc/\bLoc]}$,
+even if $\aCmd$ does not mention~$\aLoc$.  This is consistent with support
+for address calculation, which is required by realistic memory allocators.
 %$\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
 % $\nu\aLoc\DOT(\aPSS\parallel\nu\aLoc\DOT\bPSS)$ is generally
 % not the same as
 % $\nu\aLoc\DOT(\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.
 
-\paragraph{Composition, Concurrency and Conditional.}
+%\paragraph{Composition, Concurrency and Conditional.}
 
-Composition is roughly union:
-$(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
-$\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  Thus we have:
+Conditional execution and concurrency are defined using filtering, which
+selects pomsets satisfying a formula, and composition.  Composition is
+roughly union: $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+$\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  For example, we have the
+following execution, which unions the two sides:
 \begin{gather*}
   \IF{r<0}\THEN y\GETS1\FI
   \PAR
   \IF{r\geq0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx1}{r<0\mid\DW{x}{1}}{}
-  \event{wx2}{r\geq0\mid\DW{x}{1}}{right=of wx1}
+  \event{wx1}{r<0\mid\DW{y}{1}}{}
+  \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
     \end{tikzinline}}
 \end{gather*}
-In addition, however, we allow that events with the same label may collapse,
-taking the disjunction of their preconditions.  Thus, the semantics of this
-program also includes:
+In addition to this execution, we allow that events with the same label to
+coalesce, taking the disjunction of their preconditions.  Thus, the semantics
+of this program also includes:
 % \begin{displaymath}
 %   \IF{r<0}\THEN y\GETS1\FI
 %   \PAR
 %   \IF{r\geq0}\THEN y\GETS1\FI
 % \end{displaymath}
 \begin{tikzdisplay}[node distance=1em]
-  \event{wx1}{r<0\lor r\geq0\mid\DW{x}{1}}{}
+  \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
 \end{tikzdisplay}
-Collapsed events inherit order from both sides of the composition.
+Coalesced events inherit order from both sides of the composition.
 Thus, if
 $\aPSS^1$ and $\aPSS^2$ contain:
 \begin{tikzdisplay}[node distance=1em]
   \event{a}{\aForm \mid \aAct}{}
   \event{b}{\bForm^1 \mid \bAct}{right=of a}
   \po{a}{b}
-  \event{b2}{\bForm^2 \mid \bAct}{right=3em of b}
+  \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
   \event{c2}{\cForm \mid \cAct}{right=of b2}
   \po{b2}{c2}
 \end{tikzdisplay}
@@ -676,15 +615,12 @@ then $\aPSS^1 \parallel \aPSS^2$ contains:
   \po{b}{c}
 \end{tikzdisplay}
 
-Concurrency and conditional execution are defined using composition,
-validating the equation:
-\begin{displaymath}
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-  =
-  \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
-\end{displaymath}
 \begin{definition}
-Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+  Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
+  $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
+  $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
+
+  Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
 when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
 % \begin{itemize}
 % \item
@@ -695,14 +631,12 @@ when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
 %\item ${\gtN'}\supseteq{\gtN^1}\cup{\gtN^2}$, and %if $\aEv \gtN^1 \bEv$ or $\aEv \gtN^2 \bEv$ then $\aEv \gtN' \bEv$,
 %\item
   either
-  \begin{align*}
+  \begin{gather*}
+  \begin{aligned}
     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
-  \end{align*}
-  Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
-  $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
-  $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
+  \end{aligned}
   % \begin{itemize}
   % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv)
   %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)$,
@@ -712,22 +646,26 @@ when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
   %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
   % \end{itemize}
 %\end{itemize}
-\begin{align*}
-  \sem{\aCmd \PAR \bCmd} & \eqdef
-  %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
-  \sem{\aCmd} \parallel \sem{\bCmd} 
   \\
+\begin{aligned}
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
   \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
   % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
-\end{align*}
+  \\
+  \sem{\aCmd \PAR \bCmd} & \eqdef
+  %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
+  \sem{\aCmd} \parallel \sem{\bCmd} 
+\end{aligned}
+\end{gather*}
 \end{definition}
-Thus, $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
+
+For an example using the first clause in the definition of composition,
+ $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
 \begin{tikzdisplay}[node distance=1em]
   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
 \end{tikzdisplay}
-This weakening of the precondition of an event that occurs on both sides of a
-conditional can be seen in the inference:
+
+The design of the semantics is driven by Hoare rule for conditionals:
 \begin{displaymath}
   \frac{
     \hoare{\aExp}{\aCmd}{\bForm}
@@ -738,14 +676,21 @@ conditional can be seen in the inference:
   }
 \end{displaymath}
 
+As a result of the definition, the operators commute:
+\begin{displaymath}
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+  =
+  \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
+\end{displaymath}
 
-\paragraph{Trivial Prefixing.}
-Because the definition of prefixing is somewhat complex, we start with very
-restrictive assumptions and then generalize.
 
-For programs with only trivial expressions, the simplest candidate
-definitions of read and write result in top-level executions being
-sequentially consistent.
+\paragraph{Program Order Prefixing.} % for Trivial Expressions.}
+We present several candidate definitions for prefixing before giving the
+final definition.  We begin by considering programs with trivial expressions.
+
+% For programs with only trivial expressions, the simplest candidate
+% definitions of read and write result in top-level executions being
+% sequentially consistent.
 \begin{candidate}
   \label{def:rw:sc1}
   Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set $\aPSS'$ where
@@ -754,21 +699,20 @@ sequentially consistent.
   \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-    \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsimp \sem{\aCmd} %[\aLoc/\aReg] 
+    \smash{\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsimp \sem{\aCmd}}
     \\
     % \tag{$\ddagger$}\label{sc-write}
     \sem{\aLoc^\amode\GETS\aVal\SEMI \aCmd} & =
     %\textstyle\bigcup_\aVal\; (\bVal=\aVal \mid
-    \DWmode\aLoc\aVal \prefixsimp \sem{\aCmd}%[\aExp/\aLoc]
+    \smash{\DWmode\aLoc\aVal \prefixsimp \sem{\aCmd}}
   \end{align*}
 \end{candidate}
 %For now, ignore the preconditions and substitutions. We explain them in the subsections below.
 
-The definition ensures that program order is included in the pomset
-order.  Due to the requirements of fulfillment, we also have that $\reco$ is
-included in pomset order.  As a result, all executions are sequentially consistent. 
-For example, consider the following candidate execution for the
-\emph{store buffering} litmus test:
+The definition ensures that program order is included in the pomset order.
+Due to the requirements of fulfillment, we also have that $\reco$ is included
+in pomset order.  As a result, all executions are sequentially consistent.
+For example, consider the \emph{store buffering} litmus test:
 \begin{gather*}
   x\GETS0\SEMI x\GETS1\SEMI\aReg\GETS y
   \PAR
@@ -793,32 +737,15 @@ For example, consider the following candidate execution for the
       % \po{rx}{wy}
     \end{tikzinline}}
 \end{gather*}
-The order from the reads of 0 to the writes of 1 is required by the
-definition of fulfillment.  This candidate execution is \emph{not} a pomset 
-due to the resulting cycle, and thus disallowed.
+The read to write order is required by the definition of fulfillment.
+This candidate execution is \emph{not} a pomset due to the resulting cycle;
+thus it is disallowed by Candidate~\ref{def:rw:sc1}.
 
-\paragraph{Sequentially Consistent Prefixing.}
-For SC executions with dependencies, we must allow preconditions to weaken in
-some cases, and require them to strengthen in others.  Consider the following
-example.  From Candidate~\ref{def:rw:sc1}, $\sem{y\GETS r}$ contains
-$(r\EQ1\mid\DW{y}{1})$.  When prefixing a read event in
-$\sem{r\GETS x\SEMI y\GETS r}$, the precondition can weaken when $1$ is read
-and must strengthen when $0$ is read:
-\begin{displaymath}
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wy1}{1=1\mid\DW{y}{1}}{}
-      \event{rx1}{\DR{x}{1}}{left=of wy1}
-      \po{rx1}{wy1}
-    \end{tikzinline}}
-  \qquad \qquad
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \nonevent{wy1}{0=1\mid\DW{y}{1}}{}
-      \event{rx}{\DR{x}{0}}{left=of wy1}
-      \po{rx}{wy1}
-    \end{tikzinline}}
-\end{displaymath}
+To allow this outcome, we will drop program order between ``independent''
+actions.  Before doing that, we consider non-trivial expressions, writing the
+definition of prefixing more carefully this time.  We highlight the changes:
 
-We arrive at the following definition.
+%\paragraph{Program Order Prefixing.}
 \begin{candidate}
   \label{def:pre-sc}
 Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
@@ -846,68 +773,27 @@ there is $\aPS\in\aPSS$ such that:
     \smash{\mathhl{\textstyle\PAR_\aVal\; (\aExp=\aVal} \mid \DWmode\aLoc\aVal) \mathhl{\prefixsc}\; \sem{\aCmd}}
   \end{align*}
 \end{candidate}
-Item 1 introduces the new event\nofootnote{Item 5 ensures that
+
+% In the definition of prefixing,
+Item 1 introduces a new event\nofootnote{Item 5 ensures that
   $\cEv\notin\Event$.  We relax item 5 in Definition \ref{def:prefix},
-  allowing $\cEv\in\Event$.}.  Item 5 ensures that program order is included in
-pomset order.  Item 2 ensures that no order is removed.  Item 3 describes the
-label of the new event $\cEv$.  Item 4 describes the label of old events
-$\aEv$.
+  allowing $\cEv\in\Event$.}.  Item 2 ensures that no order is removed from old
+events. Item 3 describes the label of the new event, which must imply
+$\aForm$. Item 4 describes the labels of old events, as discussed below.
+Item 5 ensures that program order is included for the new event.
 
-We can now explain the substitution in the semantics of read in Candidate~\ref{def:rw:sc1}.
-% (The substitution in the semantics of write \eqref{sc-write} is not used here; we explain
-% it after introducing \emph{internal reads}, below.)
-Returning to our example, to compute
-$\sem{r\GETS x\SEMI y\GETS r}$, we first compute
-$(r\EQ1\mid\DW{y}{1})[x/r]$, then perform prefixing on the resulting $(x\EQ1\mid\DW{y}{1})$.  By 4b, reading $1$
-performs the further substitution of $[1/x]$, allowing the precondition to
-weaken to $(1\EQ1)$.  Likewise, reading $0$ performs $[0/x]$, requiring the precondition
-to strengthen to $(0\EQ1)$.
+We first discuss writes, then reads.
 
-Second, the use of $\PAR$ to combine pomsets formed by write prefixing
-ensures that the semantics is ``disjunctive'' in a certain sense.
-The following example uses address calculation, defined formally in
-\textsection\ref{sec:variants}.  It also use the operator ``$\BANG \aExp$,''
-which evaluates to $1$ when $\aExp$ is $0$, and
-$0$ otherwise.  Note that 
-\begin{math}
-  \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
-\end{math}
-includes both of the following pomsets:
-\begin{align*}
-  \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
-    \end{tikzinline}}%\;\;\cdots
-  \qquad
-  %\\[-1.5ex]\intertext{and:}\\[-5ex]
-  \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
-      \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
-    \end{tikzinline}}%\;\;\cdots
-\end{align*}
-By using $\PAR$ rather than $\cup$, it also includes the following (where,
-contrary to convention, we show disjoint events):
-\begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=.5em]
-      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
-      \event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
-    \end{tikzinline}}%\;\;\cdots
-\end{gather*}
-Using $\cup$, the semantics would exclude this pomset, and thus fail to
-validate \emph{case analysis}---for example, refining this program,
-\begin{math}
-  \aCmd = (a[r] \GETS 0\SEMI a[0]\GETS \BANG r),
-\end{math}
-to
-\begin{math}
-  \IF{r\EQ1}\THEN \aCmd\ELSE \aCmd\FI.
-\end{math}
+For writes, item 4 is simple: For old events, the new precondition in $\aPS'$
+must imply old the precondition in $\aPS$.  (This is very similar to the
+treatment of the new event in item 3.)
 
-In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
-$\bForm$ represents a set of write actions, and $\aForm$ represents their
-preconditions.  The use of $\PAR$ %in the write rule is necessary to validate
-validates left disjunction:
+The semantics of write introduces a write action for each possible value of
+the expression $\aExp$.  To ensure that at most one write is enabled, these
+are given disjoint preconditions.
+
+The semantics is again driven by the rules of
+Hoare logic---for write, the rule is left disjunction:
 \begin{displaymath}
   \frac{
     \hoare{\aForm^1}{\aCmd}{\bForm}
@@ -917,19 +803,204 @@ validates left disjunction:
     \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm}
   }
 \end{displaymath}
+Note that
+\begin{math}
+  \sem{x \GETS 1{+}r{*}r{-}r}
+\end{math}
+includes both of the pomsets:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r\EQ0\mathbin{\mid}\DW{x}{1}}{}
+    \end{tikzinline}}%\;\;\cdots
+  \qquad
+  %\\[-1.5ex]\intertext{and:}\\[-5ex]
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r\EQ1\mathbin{\mid}\DW{x}{1}}{}
+    \end{tikzinline}}%\;\;\cdots
+\end{align*}
+By using \!$\PAR$\! in the definition of write, it also includes:
+% (where,
+% contrary to convention, we show disjoint events):
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{x}{1}}{}
+    \end{tikzinline}}%\;\;\cdots
+\end{gather*}
+An alternate definition using $\cup$ would exclude this pomset.
 
-The use of $\PAR$ is neither necessary nor desirable for reads: the read rule
-does not introduce read preconditions, and item 5a of Definition
-\ref{def:prefix} ignores them.  Whereas a write action introduces a
-precondition---satisfied sequentially---on the value to be written; a read
-introduces a pomset requirement---fulfilled concurrently---on the value to be
-read.  In the concurrent world, writes are capabilities; reads are
-obligations.  Thus, a read should introduce at most one event per pomset.
+Given that the conditional is defined using \!$\PAR$\!, the use of
+\!$\PAR$\! in the definition of write is necessary to validate \emph{case
+  analysis}:
+\begin{math}
+  \sem{\aCmd}
+  =
+  \sem{\IF{\aExp}\THEN \aCmd\ELSE \aCmd\FI}.
+\end{math}
+
+
+The use of \!$\PAR$\! is neither necessary nor desirable for reads.
+% : the read rule does not introduce read preconditions, and item 5a of
+% Definition \ref{def:prefix} ignores them.
+Whereas a write action introduces a precondition---satisfied
+sequentially---on the value to be written; a read introduces a pomset
+requirement---fulfilled concurrently---on the value to be read.  In the
+concurrent world, writes are capabilities; reads are obligations.  Thus, a
+read should introduce at most one event per pomset.
+
+
+In the semantics of read, item 4b %(Candidate \ref{def:pre-sc})
+allows some preconditions to weaken and requires others to strength\-en.
+Recall \eqref{ex-1} from the beginning of this section:
+\begin{align*}
+  \begin{gathered}
+    y\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{r=1\mid\DW{y}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    \IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{r<0\mid\DW{y}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+Prepending $\aReg\GETS\aLoc$ first causes the substitution $[x/r]$:
+\begin{align*}
+  \begin{gathered}
+    r\GETS x\SEMI y\GETS r
+    \\    
+    \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{x=1\mid\DW{y}{1}}{}
+        % \event{rx1}{\DR{x}{1}}{left=of wy1}
+        % \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{x<0\mid\DW{y}{1}}{}
+        % \event{rx1}{\DR{x}{1}}{left=of wy1}
+        % \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+Item 4b then the substitutes the chosen value $[1/x]$:
+\begin{align}
+  \label{ex-2}
+  \begin{gathered}
+    % r\GETS x\SEMI y\GETS r
+    % \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{1=1\mid\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    % \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{1<0\mid\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align}
+Using our conventions for drawing pomsets, these are:
+% We often drop preconditions on tautological events and sometimes cross out
+% unsatisfiable ones (which may are ignored):
+\begin{align*}
+  \begin{gathered}
+    % r\GETS x\SEMI y\GETS r
+    % \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
+    % \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \nonevent{wy1}{\DW{y}{1}}{}
+        \event{rx1}{\DR{x}{1}}{left=of wy1}
+        \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+On the right, the write has become impossible.  On the left, it has become
+causally dependent on the read.  By prefixing a read event, the precondition
+$x=1$ has moved from the sequential realm of Hoare logic to the concurrent
+memory model.  Rather than a precondition that must be \emph{satisfied}, the
+resulting pomset has a read event that must be \emph{fulfilled}.
+
+% We can now explain the substitution in the semantics of read in Candidate~\ref{def:rw:sc1}.
+% % (The substitution in the semantics of write \eqref{sc-write} is not used here; we explain
+% % it after introducing \emph{internal reads}, below.)
+% Returning to our example, to compute
+% $\sem{r\GETS x\SEMI y\GETS r}$, we first compute
+% $(r\EQ1\mid\DW{y}{1})[x/r]$, then perform prefixing on the resulting $(x\EQ1\mid\DW{y}{1})$.  By 4b, reading $1$
+% performs the further substitution of $[1/x]$, allowing the precondition to
+% weaken to $(1\EQ1)$.  Likewise, reading $0$ performs $[0/x]$, requiring the precondition
+% to strengthen to $(0\EQ1)$.
+
+% Second, the use of $\PAR$ to combine pomsets formed by write prefixing
+% ensures that the semantics is ``disjunctive'' in a certain sense.
+% The following example uses address calculation, defined formally in
+% \textsection\ref{sec:variants}.  It also use the operator ``$\BANG \aExp$,''
+% which evaluates to $1$ when $\aExp$ is $0$, and
+% $0$ otherwise.  Note that 
+% \begin{math}
+%   \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
+% \end{math}
+% includes both of the following pomsets:
+% \begin{align*}
+%   \hbox{\begin{tikzinline}[node distance=.2em]
+%       \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
+%       \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+%     \end{tikzinline}}%\;\;\cdots
+%   \qquad
+%   %\\[-1.5ex]\intertext{and:}\\[-5ex]
+%   \hbox{\begin{tikzinline}[node distance=.2em]
+%       \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
+%       \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
+%     \end{tikzinline}}%\;\;\cdots
+% \end{align*}
+% By using $\PAR$ rather than $\cup$, it also includes the following (where,
+% contrary to convention, we show disjoint events):
+% \begin{gather*}
+%   \hbox{\begin{tikzinline}[node distance=.5em]
+%       \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
+%       \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+%       \event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
+%     \end{tikzinline}}%\;\;\cdots
+% \end{gather*}
+% Using $\cup$, the semantics would exclude this pomset, and thus fail to
+% validate \emph{case analysis}---for example, refining this program,
+% \begin{math}
+%   \aCmd = (a[r] \GETS 0\SEMI a[0]\GETS \BANG r),
+% \end{math}
+% to
+% \begin{math}
+%   \IF{r\EQ1}\THEN \aCmd\ELSE \aCmd\FI.
+% \end{math}
 
 \paragraph{General Prefixing.}
 
-In order to allow executions such as \eqref{SB}, we relax item 5 of
-Definition \ref{def:pre-sc} so that only some program order is {preserved}:
+We now relax item 5 of Candidate \ref{def:pre-sc} so that only some program
+order is {preserved} in the pomset.  We arrive at our final definition of
+prefixing and our last failed candidate semantics.
 \begin{candidate}
   \label{def:prefix}
 Two actions \emph{conflict} if one writes a location and the other
@@ -1059,23 +1130,23 @@ Unordered actions can be scheduled freely.
 % $\hoare{\TRUE}{\aCmd}{y=1}$.
 
 Item 5a imposes order from read to write when weakening the
-precondition of the write via 4b:
+precondition of the write via 4b, as on the left hand side of
+\eqref{ex-2}.
+% \begin{gather*}
+%   r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{wy1}{1\geq0\mid\DW{y}{1}}{}
+%       \event{rx1}{\DR{x}{1}}{left=of wy1}
+%       \po{rx1}{wy1}
+%     \end{tikzinline}}
+% \end{gather*}
+Item 4b \emph{allows} a precondition to weaken, but does not \emph{require} it.
+Item 5a only requires order when the precondition weakens.
+Thus, no order is required in the following execution:
 \begin{gather*}
   r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wy1}{1\geq0\mid\DW{y}{1}}{}
-      \event{rx1}{\DR{x}{1}}{left=of wy1}
-      \po{rx1}{wy1}
-    \end{tikzinline}}
-\end{gather*}
-
-
-Item 4b \emph{allows} a precondition to weaken, but does not \emph{require} it.
-No order is required in the following execution:
-\begin{gather*}
-  % r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
-  % \\
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wy1}{x\geq0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=of wy1}
@@ -1088,8 +1159,8 @@ action.  Nonetheless, item 4b requires that the value of the read action must
 be compatible with subsequent formulae.  In this example, the write
 precondition must be unsatisfiable if a negative number is read:
 \begin{gather*}
-  % r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
-  % \\
+  r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+  \\
   \hbox{\begin{tikzinline}[node distance=1em]
       \nonevent{wy1}{{-2}\geq0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{{-2}}}{left=of wy1}
@@ -1097,7 +1168,7 @@ precondition must be unsatisfiable if a negative number is read:
     \end{tikzinline}}
 \end{gather*}
 
-The substitution in the semantics of write (Candidate~\ref{def:rw:sc1}) allows
+The substitution in the semantics of write allows
 preconditions to be satisfied without imposing order:
 \begin{gather*}
   x \GETS 0\SEMI r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
@@ -1197,17 +1268,10 @@ are fulfilled locally.  Consider Example 3.6 from
 This behavior is allowed by \armeight, but disallowed in the model presented
 thus far, due to the evident cycle.
 
-Thus, in the final definition, we drop the requirement for an explicit read
-action when a relaxed read is matched by a local write.  Symmetrically, we
-drop the requirement for an explicit write action when a relaxed write is
-only used to match local reads.
-
-There are two peculiarities in the definition of write which we explain at
-the end of this subsection: First, we use the \emph{covering} operator
-$(\relfilt{\aLoc} \aPSS)$ to limit the applicability of the internal write
-rule.  Second, we use $\PAR$ rather than $\cup$ to combine pomsets created by
-explicit write prefixing.
-
+Thus we do not require an explicit read action when a relaxed read is matched
+by a local write.  Symmetrically, we do not require an explicit write action
+when a relaxed write is only used to match local reads.  We first give the
+final semantics of read.
 \begin{definition}
   \label{def:rw:local}
   \begin{align*}
@@ -1230,8 +1294,8 @@ Definition~\ref{def:rw:local}, we have that
 $\sem{\bReg\GETS y \SEMI z\GETS \bReg}$ includes $(y=1\mid \DW{z}{1})$.
 Crucially, there is no explicit read event.  Further prepending
 $(\DWRel{y}{1})$ performs the substitution $(y=1\mid \DW{z}{1})[1/y]$
-resulting in a tautology.  By removing the read event, the execution is
-allowed:
+resulting in a tautology.  By removing the read event, this outcome is
+allowed by our semantics, enabling efficient compilation to \armeight.
 \begin{gather*}
   % \aReg\GETS x\SEMI
   % y\REL\GETS 1\SEMI
@@ -1270,6 +1334,7 @@ To see this, consider that the execution above is impossible for
   x\GETS z.
 \end{math}
 
+
 \begin{definition}
   Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that
   $\aPS\in\aPSS$
@@ -1290,11 +1355,9 @@ To see this, consider that the execution above is impossible for
   \end{align*}
 \end{definition}
 
-We now address the two peculiarities in the definition.
-
-First, the use of \textsf{cover} in Definition~\ref{def:rw:local} prevents
-the local write rule from applying immediately before a release.  This
-prevents bad executions such as:
+The use of \textsf{cover} in Definition~\ref{def:rw:local} prevents the local
+write rule from applying immediately before a release.  This prevents bad
+executions such as:
 \begin{gather*}
   x\GETS 1\SEMI
   x\GETS 2\SEMI
@@ -1315,9 +1378,10 @@ prevents bad executions such as:
   \rf[out=10,in=170]{a1}{b2}
     \end{tikzinline}}
 \end{gather*}
-Symmetrically, item 6 in Definition~\ref{def:prefix} ensures that local
-reads are not matched to local writes when there is an intervening acquire.
-This prevents bad executions such as:
+Symmetrically, item 6 in the definition of prefixing
+(Candidate~\ref{def:prefix}) ensures that local reads are not matched to
+local writes when there is an intervening acquire.  This prevents bad
+executions such as:
 \begin{gather*}
   x\GETS1 \SEMI
   a\REL\GETS1 \SEMI

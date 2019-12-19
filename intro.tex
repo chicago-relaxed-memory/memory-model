@@ -61,28 +61,31 @@ Hoare logic~\citep{Hoare:1969:ABC:363235.363259, gordonHoare} to compute depende
 
 Consider the following sequential program fragments:
 \begin{align*}
-& \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1 \\[-1ex]
-& \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI \\[-1ex]
-& \aCmd_3: \aLoc \GETS 1 \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI \\[-1ex]
-&\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
+  & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
+  \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
+  \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
+  %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
 All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each case, the write of $y$ is independent of
-any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it.\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
+any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
 DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
 
 
-We show the following.
+We show that model:
 \begin{itemize}
-\item The model accounts for all the concurrency features of the C11 memory model, including relaxed, release-acquire and SC atomics, fences, and RMW
-  (\textsection\ref{sec:variants}).
+\item captures all C11 concurrency features  %, including relaxed, release-acquire and SC atomics, fences, and RMW
+  (\textsection\ref{sec:variants}),
 
-\item The model validates single-threaded compiler optimizations, as discussed below (\textsection\ref{sec:opt}).
+\item  validates single-threaded
+  compiler optimizations % , as discussed below
+  (\textsection\ref{sec:opt}),
 
-\item The model validates compositional reasoning on safety properties (\textsection\ref{sec:logic}).  
+\item validates compositional reasoning for safety %properties
+  (\textsection\ref{sec:logic}),
 
-\item The model satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}).
+\item  satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}), and
 
-\item The model compiles to \armeight\ and \tso\ {\em without} extra synchronization for raw variables\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}).
+\item compiles to \armeight\ and \tso\ {\em without} extra synchronization for relaxed-atomic access\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}).
 
 \end{itemize}
 
