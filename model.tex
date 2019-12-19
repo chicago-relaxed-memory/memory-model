@@ -335,7 +335,7 @@ unsatisfiable events are ignored, thus providing a kind of prefix closure.
 % \end{definition}
 
 % Restriction also filters a set of pomsets; we have
-% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% $(\nu\aLoc\DOT\aPSS)\subseteq\aPSS$.
 % The definition requires that we define
 % when a read is possible.
 
@@ -567,11 +567,11 @@ matching write.
   A pomset is $\aLoc$-closed if every \external read on $\aLoc$ is fulfilled,
   and every event is independent of $\aLoc$.
 
-  Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$
+  Let $(\nu\aLoc\DOT\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$
   when and $\aPS$ is $\aLoc$-closed.
 \begin{align*}
   \sem{\VAR\aLoc\SEMI \aCmd} & \eqdef
-  \nu \aLoc \st \sem{\aCmd}  
+  \nu \aLoc \DOT \sem{\aCmd}  
 \end{align*}
 
   A pomset is \emph{top-level} if it is $\aLoc$-closed for every location $\aLoc$.
@@ -625,10 +625,10 @@ $\sem{\VAR\aLoc\SEMI\aCmd)}\neq\sem{(\VAR\bLoc\SEMI\aCmd[\bLoc/\aLoc])}$,
 even if $\bLoc$ does not appear in $\aCmd$.  This is consistent with
 support for address calculation, which is required by realistic memory
 allocators.
-%$\nu\aLoc\st\aPSS\neq \nu\bLoc\st\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
-% $\nu\aLoc\st(\aPSS\parallel\nu\aLoc\st\bPSS)$ is generally
+%$\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
+% $\nu\aLoc\DOT(\aPSS\parallel\nu\aLoc\DOT\bPSS)$ is generally
 % not the same as
-% $\nu\aLoc\st(\aPSS\parallel(\nu\bLoc\st\bPSS[\bLoc/\aLoc]))$.
+% $\nu\aLoc\DOT(\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.
 
 \paragraph{Composition, Concurrency and Conditional.}
 
@@ -739,29 +739,30 @@ conditional can be seen in the inference:
 \end{displaymath}
 
 
-\paragraph{SC Prefixing without Dependencies.}
+\paragraph{Trivial Prefixing.}
 Because the definition of prefixing is somewhat complex, we start with very
 restrictive assumptions and then generalize.
 
-For programs without data or control dependencies, the
-simplest candidate definitions of read and write
-result in top-level executions being sequentially consistent.
+For programs with only trivial expressions, the simplest candidate
+definitions of read and write result in top-level executions being
+sequentially consistent.
 \begin{candidate}
   \label{def:rw:sc1}
-  Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where
+  Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set $\aPSS'$ where
   $\aPS'\in\aPSS'$ when there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
   new event with the given label that precedes all of the events in $\aPS$.
   \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-    \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aLoc/\aReg] 
+    \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsimp \sem{\aCmd} %[\aLoc/\aReg] 
     \\
     % \tag{$\ddagger$}\label{sc-write}
-    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefixsc \sem{\aCmd}[\aExp/\aLoc]
+    \sem{\aLoc^\amode\GETS\aVal\SEMI \aCmd} & =
+    %\textstyle\bigcup_\aVal\; (\bVal=\aVal \mid
+    \DWmode\aLoc\aVal \prefixsimp \sem{\aCmd}%[\aExp/\aLoc]
   \end{align*}
 \end{candidate}
-For now, ignore the preconditions and substitutions. We explain them in the subsections below.
+%For now, ignore the preconditions and substitutions. We explain them in the subsections below.
 
 The definition ensures that program order is included in the pomset
 order.  Due to the requirements of fulfillment, we also have that $\reco$ is
@@ -796,7 +797,7 @@ The order from the reads of 0 to the writes of 1 is required by the
 definition of fulfillment.  This candidate execution is \emph{not} a pomset 
 due to the resulting cycle, and thus disallowed.
 
-\paragraph{SC Prefixing with Dependencies.}
+\paragraph{Sequentially Consistent Prefixing.}
 For SC executions with dependencies, we must allow preconditions to weaken in
 some cases, and require them to strengthen in others.  Consider the following
 example.  From Candidate~\ref{def:rw:sc1}, $\sem{y\GETS r}$ contains
@@ -818,7 +819,7 @@ and must strengthen when $0$ is read:
 \end{displaymath}
 
 We arrive at the following definition.
-\begin{definition}
+\begin{candidate}
   \label{def:pre-sc}
 Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
@@ -834,7 +835,17 @@ there is $\aPS\in\aPSS$ such that:
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
 \item[5.] $\cEv \lt' \aEv$, 
 \end{enumerate}
-\end{definition}
+\vspace{-1ex}
+    \begin{align*}
+    % \tag{$\dagger$}\label{sc-read}
+    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+    \smash{\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \mathhl{\prefixsc}\; \sem{\aCmd}\mkern3.5mu \mathhl{[\aLoc/\aReg] }}
+    \\
+    % \tag{$\ddagger$}\label{sc-write}
+    \sem{\aLoc^\amode\GETS\mathhl{\aExp}\SEMI \aCmd} & =
+    \smash{\mathhl{\textstyle\PAR_\aVal\; (\aExp=\aVal} \mid \DWmode\aLoc\aVal) \mathhl{\prefixsc}\; \sem{\aCmd}}
+  \end{align*}
+\end{candidate}
 Item 1 introduces the new event\nofootnote{Item 5 ensures that
   $\cEv\notin\Event$.  We relax item 5 in Definition \ref{def:prefix},
   allowing $\cEv\in\Event$.}.  Item 5 ensures that program order is included in
@@ -852,11 +863,74 @@ performs the further substitution of $[1/x]$, allowing the precondition to
 weaken to $(1\EQ1)$.  Likewise, reading $0$ performs $[0/x]$, requiring the precondition
 to strengthen to $(0\EQ1)$.
 
+Second, the use of $\PAR$ to combine pomsets formed by write prefixing
+ensures that the semantics is ``disjunctive'' in a certain sense.
+The following example uses address calculation, defined formally in
+\textsection\ref{sec:variants}.  It also use the operator ``$\BANG \aExp$,''
+which evaluates to $1$ when $\aExp$ is $0$, and
+$0$ otherwise.  Note that 
+\begin{math}
+  \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
+\end{math}
+includes both of the following pomsets:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+  \qquad
+  %\\[-1.5ex]\intertext{and:}\\[-5ex]
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
+      \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+\end{align*}
+By using $\PAR$ rather than $\cup$, it also includes the following (where,
+contrary to convention, we show disjoint events):
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+      \event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
+    \end{tikzinline}}%\;\;\cdots
+\end{gather*}
+Using $\cup$, the semantics would exclude this pomset, and thus fail to
+validate \emph{case analysis}---for example, refining this program,
+\begin{math}
+  \aCmd = (a[r] \GETS 0\SEMI a[0]\GETS \BANG r),
+\end{math}
+to
+\begin{math}
+  \IF{r\EQ1}\THEN \aCmd\ELSE \aCmd\FI.
+\end{math}
+
+In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
+$\bForm$ represents a set of write actions, and $\aForm$ represents their
+preconditions.  The use of $\PAR$ %in the write rule is necessary to validate
+validates left disjunction:
+\begin{displaymath}
+  \frac{
+    \hoare{\aForm^1}{\aCmd}{\bForm}
+    \quad
+    \hoare{\aForm^2}{\aCmd}{\bForm}
+  }{
+    \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm}
+  }
+\end{displaymath}
+
+The use of $\PAR$ is neither necessary nor desirable for reads: the read rule
+does not introduce read preconditions, and item 5a of Definition
+\ref{def:prefix} ignores them.  Whereas a write action introduces a
+precondition---satisfied sequentially---on the value to be written; a read
+introduces a pomset requirement---fulfilled concurrently---on the value to be
+read.  In the concurrent world, writes are capabilities; reads are
+obligations.  Thus, a read should introduce at most one event per pomset.
+
 \paragraph{General Prefixing.}
 
 In order to allow executions such as \eqref{SB}, we relax item 5 of
 Definition \ref{def:pre-sc} so that only some program order is {preserved}:
-\begin{definition}
+\begin{candidate}
   \label{def:prefix}
 Two actions \emph{conflict} if one writes a location and the other
 either reads or writes the same location.
@@ -875,10 +949,21 @@ Definition \ref{def:pre-sc} and:
 \item[6.] if $\cEv$ is an acquire then $\labelingForm(\aEv)$
   is location independent.
 \end{enumerate}
-\end{definition}
-\begin{candidate}
-  Replace $\prefixsc$ in Candidate~\ref{def:rw:sc1} by $\prefix$.
+\vspace{-1ex}
+    \begin{align*}
+    % \tag{$\dagger$}\label{sc-read}
+    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+    \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \mathhl{\prefix}\; \sem{\aCmd} [\aLoc/\aReg] 
+    \\
+    % \tag{$\ddagger$}\label{sc-write}
+    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+    \textstyle\PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \mathhl{\prefix}\; \sem{\aCmd}\mkern3.5mu\mathhl{[\aExp/\aLoc]}
+  \end{align*}
 \end{candidate}
+% \end{definition}
+% \begin{candidate}
+%   Replace $\prefixsc$ in Candidate~\ref{def:rw:sc1} by $\prefix$.
+% \end{candidate}
 Item 5a captures \emph{read to write} dependency\footnote{When $\cEv$ is not a read,
   4c trivially implies 5a.}; it only requires order when the precondition of
 the write is weakened by prefixing.  Item 5b captures the coherence
@@ -1125,27 +1210,17 @@ explicit write prefixing.
 
 \begin{definition}
   \label{def:rw:local}
-  Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that
-  $\aPS\in\aPSS$
-  when for every release $\aEv$ there is some $\bEv\le\aEv$
-  such that $\bEv$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLX$, let
-  % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
     \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
-    \\[-.5ex] & \mkern2mu\cup
-    %(\iDRmode{\aLoc}{}) \prefix
-    \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
-    \sem{\aCmd}[\aLoc/\aReg]
-    %\text{ else $\emptyset$}
-    \\
-    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-    \textstyle\PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-    \\[-.5ex] & \mkern2mu\cup
-    %(\iDWmode{\aLoc}{}) \prefix
-    \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
-    (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
-    %\text{ else $\emptyset$}
+    \\[-.5ex] &
+    % \mkern2mu\cup
+    \;\mathhl{\cup\;
+      % (\iDRmode{\aLoc}{}) \prefix
+      \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+      \sem{\aCmd}[\aLoc/\aReg]
+      % \text{ else $\emptyset$}
+    }
   \end{align*}
 \end{definition}
 
@@ -1194,6 +1269,26 @@ To see this, consider that the execution above is impossible for
   \PAR
   x\GETS z.
 \end{math}
+
+\begin{definition}
+  Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that
+  $\aPS\in\aPSS$
+  when for every release $\aEv$ there is some $\bEv\le\aEv$
+  such that $\bEv$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLX$, let
+  % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
+  \begin{align*}
+    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+    \textstyle\PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+    \\[-.5ex] &
+    %\mkern2mu\cup
+    \;\mathhl{\cup\;
+      % (\iDWmode{\aLoc}{}) \prefix
+      \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+      (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
+      % \text{ else $\emptyset$}
+    }
+  \end{align*}
+\end{definition}
 
 We now address the two peculiarities in the definition.
 
@@ -1252,70 +1347,9 @@ This prevents bad executions such as:
 % In item~\ref{pre-acquire}, we do not require that $\bForm'$ is independent of
 % every $\bLoc$; were we to require this, the definition would not be augment closed.
 
-Second, the use of $\PAR$ to combine pomsets formed by write prefixing
-ensures that the semantics is ``disjunctive'' in a certain sense.
-The following example uses address calculation, defined formally in
-\textsection\ref{sec:variants}.  It also use the operator ``$\BANG \aExp$,''
-which evaluates to $1$ when $\aExp$ is $0$, and
-$0$ otherwise.  Note that 
-\begin{math}
-  \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
-\end{math}
-includes both of the following pomsets:
-\begin{align*}
-  \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
-    \end{tikzinline}}%\;\;\cdots
-  \qquad
-  %\\[-1.5ex]\intertext{and:}\\[-5ex]
-  \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
-      \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
-    \end{tikzinline}}%\;\;\cdots
-\end{align*}
-By using $\PAR$ rather than $\cup$, it also includes the following (where,
-contrary to convention, we show disjoint events):
-\begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=.5em]
-      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
-      \event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
-    \end{tikzinline}}%\;\;\cdots
-\end{gather*}
-Using $\cup$, the semantics would exclude this pomset, and thus fail to
-validate \emph{case analysis}---for example, refining this program,
-\begin{math}
-  \aCmd = (a[r] \GETS 0\SEMI a[0]\GETS \BANG r),
-\end{math}
-to
-\begin{math}
-  \IF{r\EQ1}\THEN \aCmd\ELSE \aCmd\FI.
-\end{math}
 
 
 
-In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
-$\bForm$ represents a set of write actions, and $\aForm$ represents their
-preconditions.  The use of $\PAR$ %in the write rule is necessary to validate
-validates left disjunction:
-\begin{displaymath}
-  \frac{
-    \hoare{\aForm^1}{\aCmd}{\bForm}
-    \quad
-    \hoare{\aForm^2}{\aCmd}{\bForm}
-  }{
-    \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm}
-  }
-\end{displaymath}
-
-The use of $\PAR$ is neither necessary nor desirable for reads: the read rule
-does not introduce read preconditions, and item 5a of Definition
-\ref{def:prefix} ignores them.  Whereas a write action introduces a
-precondition---satisfied sequentially---on the value to be written; a read
-introduces a pomset requirement---fulfilled concurrently---on the value to be
-read.  In the concurrent world, writes are capabilities; reads are
-obligations.  Thus, a read should introduce at most one event per pomset.
 
 
 

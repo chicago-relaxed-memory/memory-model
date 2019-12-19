@@ -5,6 +5,12 @@ review,anonymous,
 \makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
 \settopmatter{printfolios=true}
 \AtEndPreamble{%
+  % \theoremstyle{acmdefinition}
+  % \theoremstyle{plain}
+  % \newtheorem{theorem}{Theorem}[section]
+  % \newtheorem{proposition}[theorem]{Proposition}
+  % \theoremstyle{acmdefinition}
+  % \newtheorem{definition}[theorem]{Definition}
   \theoremstyle{acmdefinition}
   \newtheorem{remark}[theorem]{Remark}
   \newtheorem{candidate}[theorem]{Candidate}

@@ -1477,7 +1477,7 @@ provides a kind of prefix closure.
 % \end{definition}
 
 % Restriction also filters a set of pomsets; we have
-% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% $(\nu\aLoc\DOT\aPSS)\subseteq\aPSS$.
 % The definition requires that we define
 % when a read is possible.
 
@@ -1500,7 +1500,7 @@ These operations are similar to those from models of concurrency such
 as~\cite{Brookes:1984:TCS:828.833}.
 Using $\aPSS$ to range over sets of pomsets, these are:
 \begin{itemize}
-\item \emph{restriction} $\nu\aLoc\st\aPSS$, which keeps 
+\item \emph{restriction} $\nu\aLoc\DOT\aPSS$, which keeps 
   $\aLoc$-closed pomsets,
 \item \emph{guarding} $\aForm\guard\aPSS$, which
   keeps pomsets where all preconditions imply $\aForm$, 
@@ -1508,7 +1508,7 @@ Using $\aPSS$ to range over sets of pomsets, these are:
   every release is preceded by \anexternal write to $\aLoc$,
 \item \emph{substitution} $\aPSS\aSub$, which applies the substitution to
   every precondition,
-% \item \emph{restriction} $\nu\aLoc\st\aPSS$, which internalizes $\aLoc$ for
+% \item \emph{restriction} $\nu\aLoc\DOT\aPSS$, which internalizes $\aLoc$ for
 %   pomsets that are $\aLoc$-closed,
 % \item \emph{guarding} $\aForm\guard\aPSS$, which filters $\aPSS$,
 %   keeping pomsets where all events imply $\aForm$,
@@ -1525,7 +1525,7 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 % \begin{itemize}
 % \item \emph{guarding} $\aForm\guard\aPSS$, which
 %   keeps pomsets where all preconditions imply $\aForm$, and
-% \item \emph{restriction} $\nu\aLoc\st\aPSS$, which keeps 
+% \item \emph{restriction} $\nu\aLoc\DOT\aPSS$, which keeps 
 %   pomsets that are $\aLoc$-closed.
 % \item \emph{independency filtering} $\Loc\guard\aPSS$, which keeps pomsets
 %   where all preconditions are location independent.
@@ -1552,18 +1552,18 @@ Using $\aPSS$ to range over sets of pomsets, these are:
 
 % Guarding and restriction filter a set of pomsets; we have
 % $(\aForm\guard\aPSS)\subseteq\aPSS$ and
-% $(\nu\aLoc\st\aPSS)\subseteq\aPSS$.
+% $(\nu\aLoc\DOT\aPSS)\subseteq\aPSS$.
 \noindent
 The first few definitions %guarding and write filtering
 are straightforward\footnote{We have chosen the definition of restriction for
   its simplicity.  It is worth noting, however, that our definition does not
   support renaming of variables.  In particular
-  $(\nu\aLoc\st\aPSS\parallel(\nu\aLoc\st\bPSS))$ is generally not the same
-  as $(\nu\aLoc\st\aPSS\parallel(\nu\bLoc\st\bPSS[\bLoc/\aLoc]))$.  To
-  support renaming, $(\nu\aLoc\st\aPSS)$ would need to either remove or
+  $(\nu\aLoc\DOT\aPSS\parallel(\nu\aLoc\DOT\bPSS))$ is generally not the same
+  as $(\nu\aLoc\DOT\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.  To
+  support renaming, $(\nu\aLoc\DOT\aPSS)$ would need to either remove or
   relabel events that mention $\aLoc$.}:
 \begin{definition}
-Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+Let $(\nu\aLoc\DOT\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
 and $\aPS$ is %$\aLoc$-coherent and
 $\aLoc$-closed.
 
@@ -1587,7 +1587,7 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 % \item if $\labeling(\aEv) = (\bForm \mid \aSub)$ then $\labeling'(\aEv) = (\bForm\bSub \mid \aSub\bSub)$.
 %\end{itemize}
 
-% Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+% Let $(\nu\aLoc\DOT\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
 % there is $\aPS\in\aPSS$ such that $\aPS$ is $\aLoc$-closed and:
 % $\Event' = \Event$,
 % ${\le'} = {\le}$, 
@@ -1622,12 +1622,12 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 %  ${\gtN'} = {\gtN}\restrict{\Event'}$.
 
 % \begin{definition}
-%   Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+%   Let $(\nu\aLoc\DOT\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
 %   and $\aPS$ is $\aLoc$-coherent and $\aLoc$-closed.
-%   % Let $(\nu\aLoc\st\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+%   % Let $(\nu\aLoc\DOT\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
 %   % whenever there is $\aPS\in\aPSS$ such that $\aPS' = \aPS\restrict{\Event'}$
 %   % and $\aPS'$ is $\aLoc$-coherent and $\aLoc$-closed.
-%   % Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+%   % Let $(\nu\aLoc\DOT\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
 %   % \begin{itemize}
 %   % \item $\aEv$ is independent of $\aLoc$, and
 %   % \item if $\aEv$ reads $\aLoc$, then there is some $\bEv$ such that $\aEv$ can read $\aLoc$ from $\bEv$.
@@ -1961,7 +1961,7 @@ The following lemma is immediate from the definitions.
 %   $\aPSS_2'\supseteq\aPSS_2$.  Then we have the following.
 % \begin{itemize}
 % \item $\aPSS'\aSub \supseteq \aPSS\aSub$,
-% \item $\nu\aLoc\st\aPSS' \supseteq \nu\aLoc\st\aPSS$,
+% \item $\nu\aLoc\DOT\aPSS' \supseteq \nu\aLoc\DOT\aPSS$,
 % \item $\aForm\guard\aPSS' \supseteq \aForm\guard\aPSS$,
 % \item $\Loc \guard\aPSS' \supseteq \Loc \guard\aPSS$,
 % \item $\DW{\aLoc}{}\guard\aPSS' \supseteq \DW{\aLoc}{}\guard\aPSS$,
@@ -2054,7 +2054,7 @@ The semantics of programs is as follows: % \footnote{Fork parallelism is easily 
   \sem{\aCmd} \parallel \sem{\bCmd} 
   \\
   \sem{\VAR\aLoc\SEMI \aCmd} & =
-  \nu \aLoc \st \sem{\aCmd}
+  \nu \aLoc \DOT \sem{\aCmd}
   \\  
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & =
   \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 

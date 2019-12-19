@@ -22,7 +22,7 @@
   & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
   \\
   \sem{\VAR\aLoc\SEMI \aCmd}
-  & = & \nu \aLoc \st \sem{\aCmd}
+  & = & \nu \aLoc \DOT \sem{\aCmd}
 \end{eqnarray*}
 \caption{Semantics of a concurrent shared-memory language}
 \label{fig:semi:programs}

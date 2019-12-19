@@ -272,11 +272,12 @@
 \newcommand{\partialfun}{\mathbin\rightharpoonup}
 \newcommand{\fun}{\mathbin\rightarrow}
 \newcommand{\prefix}{\mathbin\Rightarrow}
-\newcommand{\prefixsc}{\mathbin{\smash{\xRightarrow{\mathsf{sc}}}}}
+\newcommand{\prefixsc}{\mathbin{{\xRightarrow{{\mathsf{sc}}}}}}
+\newcommand{\prefixsimp}{\mathbin{{\xRightarrow{{\mathsf{triv}}}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
 \newcommand{\relfilt}[1]{\textsf{cover}\,#1\guard}
-\newcommand{\st}{\mathbin.}
+\newcommand{\DOT}{\mathbin.}
 
 \newcommand{\aPS}{P}
 \newcommand{\aPSS}{\mathcal{P}}
@@ -346,12 +347,11 @@
 \usepackage{stmaryrd}
 \usepackage{verbatim}
 
-\theoremstyle{acmdefinition}
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{proposition}[theorem]{Proposition}
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
+\usepackage{xcolor}
+\newcommand{\mathhl}[1]{\!\!\smash{\colorbox{gray!20!white}{$\displaystyle \mathstrut\smash{#1}$}}\!\!}
+%\usepackage{soul}
+%\newcommand{\hlfancy}[2]{\sethlcolor{#1}\hl{#2}}
+
 \usepackage{tikz}
 \usetikzlibrary{shapes}
 \usetikzlibrary{shapes.misc}

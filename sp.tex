@@ -986,7 +986,7 @@ In the remainder of the paper, we drop the prefix ``3-valued'', referring to
   \sem{\aReg\GETS\aLoc\SEMI \aCmd} & = & \sem{\aCmd}[\aLoc/\aReg] \cup \textstyle\bigcup_\aVal\; (\DR\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg] \\
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) \\
   \sem{\aCmd \PAR \bCmd} & = & \sem{\aCmd} \parallel \sem{\bCmd} \\
-  \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \st \sem{\aCmd}
+  \sem{\VAR\aLoc\SEMI \aCmd} & = & \nu \aLoc \DOT \sem{\aCmd}
 \end{eqnarray*}
 \caption{Semantics of a concurrent shared-memory language}
 \label{fig:programs}
@@ -1014,7 +1014,7 @@ We give the semantics using combinators over sets of pomsets, defined in
 \refapp{sets-of-pomsets}.  Using $\aPSS$ to range over sets of pomsets, these
 are:
 \begin{itemize}
-\item \emph{restriction} $\nu\aLoc\st\aPSS$, which filters $\aPSS$ to include
+\item \emph{restriction} $\nu\aLoc\DOT\aPSS$, which filters $\aPSS$ to include
   only pomsets where every event $\aEv$ that reads from $\aLoc$ \emph{can read} from some
   $\bEv$, following Definition~\ref{def:rf},
   and where no precondition can depend on $\aLoc$,
@@ -1034,7 +1034,7 @@ as~\cite{Brookes:1984:TCS:828.833}, but adapted here to the setting of
 speculative evaluation.
 
 Restriction and guarding filter the set of pomsets; we have
-$(\nu\aLoc\st\aPSS)\subseteq\aPSS$ and $(\aForm\guard\aPSS)\subseteq\aPSS$.
+$(\nu\aLoc\DOT\aPSS)\subseteq\aPSS$ and $(\aForm\guard\aPSS)\subseteq\aPSS$.
 Substitution updates the preconditions in a pomset, thus we expect the number
 of pomsets to be unchanged; in addition, the number of events in each of the
 pomsets is unchanged.
@@ -3146,7 +3146,7 @@ $\gtN$ to be a per-location total order.
 \end{definition}
 
 \begin{definition}
-Let $(\nu\aLoc\st\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
+Let $(\nu\aLoc\DOT\aPSS)$ be the subset of $\aPSS$ such that $\aPS\in\aPSS$ whenever
 $\aPS$ is $\aLoc$-closed and partially $\aLoc$-coherent.
 \end{definition}
 
@@ -4195,7 +4195,7 @@ following rule is sound:
     \qquad
     \aPS \models \closed(\aLoc) \Rightarrow \afo
   }{
-    \nu \aLoc \st \aPS \models \afo
+    \nu \aLoc \DOT \aPS \models \afo
   }
 \end{displaymath}
 
