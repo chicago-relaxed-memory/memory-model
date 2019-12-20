@@ -299,23 +299,39 @@ In our example language, we update the syntax of commands:
   \\
 \begin{aligned}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-  \textstyle\bigcup_{\cVal,\aVal}\; (\cExp=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
+  \textstyle\bigcup_{\cVal,\aVal}\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
   \\[-.5ex] & \mkern2mu\cup
-  \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFR{\amode}) \prefix
+  \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
   \sem{\aCmd}[\REF{\cVal}/\aReg]
   \\
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
   \\[-1ex]
   &\mkern-65mu\hbox to 0pt{$\begin{aligned}
-    &\textstyle\PAR_{\cVal,\aVal}\;(\cExp=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+    &\textstyle\PAR_{\cVal,\aVal}\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
     \\[-.5ex]  \cup\!&
-    \textstyle\PAR_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFW{\amode}) \prefix
+    \textstyle\PAR_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFW{\amode}) \prefix
     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
   \end{aligned}$}
   % \\[-9.5ex]
   % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
   % \\[6ex]
 \end{aligned}
+% \begin{aligned}
+%   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+%   \textstyle\bigcup_{\cVal,\aVal}\; (\cExp=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
+%   \\[-.5ex] & \mkern2mu\cup
+%   \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFR{\amode}) \prefix
+%   \sem{\aCmd}[\REF{\cVal}/\aReg]
+%   \\
+%   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+%   \\[-1ex]
+%   &\mkern-65mu\hbox to 0pt{$\begin{aligned}
+%     &\textstyle\PAR_{\cVal,\aVal}\;(\cExp=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+%     \\[-.5ex]  \cup\!&
+%     \textstyle\PAR_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFW{\amode}) \prefix
+%     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
+%   \end{aligned}$}
+% \end{aligned}
 \end{gather*}
 Because we do not enforce order between reads, there is some danger that
 address calculations could allow thin air behavior.  To see how our model

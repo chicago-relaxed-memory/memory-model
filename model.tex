@@ -742,7 +742,7 @@ thus it is disallowed by Candidate~\ref{def:rw:sc1}.
 
 To allow this outcome, we will drop program order between ``independent''
 actions.  Before doing that, we consider non-trivial expressions, writing the
-definition of prefixing more carefully this time.  We highlight the changes:
+definition of prefixing more carefully this time.  We highlight some of the changes:
 
 %\paragraph{Program Order Prefixing.}
 \begin{candidate}
@@ -765,11 +765,11 @@ there is $\aPS\in\aPSS$ such that:
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-    \smash{\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \mathhl{\prefixsc}\; \sem{\aCmd}\mkern3.5mu \mathhl{[\aLoc/\aReg] }}
+    \smash{\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsc \sem{\aCmd}\mkern3.5mu \mathhl{[\aLoc/\aReg] }}
     \\
     % \tag{$\ddagger$}\label{sc-write}
-    \sem{\aLoc^\amode\GETS\mathhl{\aExp}\SEMI \aCmd} & =
-    \smash{\mathhl{\textstyle\PAR_\aVal\; (\aExp=\aVal} \mid \DWmode\aLoc\aVal) \mathhl{\prefixsc}\; \sem{\aCmd}}
+    \sem{\aLoc^\amode\GETS{\aExp}\SEMI \aCmd} & =
+    \smash{\mathhl{\textstyle\PAR_\aVal\; (\aExp=\aVal} \mid \DWmode\aLoc\aVal) \prefixsc\; \sem{\aCmd}}
   \end{align*}
 \end{candidate}
 
