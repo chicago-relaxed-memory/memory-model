@@ -282,9 +282,10 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
     from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
     % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ when
     % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
+  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
   % \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
   % \item ${\le} \subseteq {\gtN}$ is a partial order, and
+  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
     $\labelingForm(\bEv)$.
   \end{itemize}
@@ -471,7 +472,7 @@ the other operators.
 % for example:
 
 
-The semantics of $\SKIP$ and register assignment are simple:
+%The semantics of $\SKIP$ and register assignment are simple:
 \begin{definition}
 Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
@@ -567,7 +568,111 @@ for address calculation, which is required by realistic memory allocators.
 % $\nu\aLoc\DOT(\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.
 
 %\paragraph{Composition, Concurrency and Conditional.}
+% Conditional execution is defined using pomset union and filtering, which
+% selects pomsets satisfying a formula.
 
+% \begin{definition}
+%   Let $\aPS' = (\aPS^1 \cup \aPS^2)$ when $\Event' = \Event^1 \cup \Event^2$,
+%   ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
+%   ${\labeling'}\supseteq{\labeling^1}\cup{\labeling^2}$.
+
+%   Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
+%   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
+%   $\aEv\in\Event$. 
+
+%   Let $\aPS'\in \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}$  when
+%   $\aPS\cup\aPS^1\in\sem{\aCmd}$,
+%   $\aPS\cup\aPS^2\in\sem{\bCmd}$,
+%   and ether\bigl(\aExp
+%   \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard
+%   \sem{\bCmd}\bigr)
+% \end{definition}
+
+% Composition is roughly union:
+% $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  For example, we have the
+% following execution, which unions the two sides:
+% \begin{gather*}
+%   \IF{r<0}\THEN y\GETS1\FI
+%   \PAR
+%   \IF{r\geq0}\THEN y\GETS1\FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{wx1}{r<0\mid\DW{y}{1}}{}
+%   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
+%     \end{tikzinline}}
+% \end{gather*}
+% In addition to this execution, we allow that events with the same label to
+% coalesce, taking the disjunction of their preconditions.  Thus, the semantics
+% of this program also includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
+% \end{tikzdisplay}
+% Coalesced events inherit order from both sides of the composition.
+% Thus, if
+% $\aPSS^1$ and $\aPSS^2$ contain:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \mid \bAct}{right=of a}
+%   \po{a}{b}
+%   \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
+%   \event{c2}{\cForm \mid \cAct}{right=of b2}
+%   \po{b2}{c2}
+% \end{tikzdisplay}
+% then $\aPSS^1 \parallel \aPSS^2$ contains:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{a}{b}
+%   \po{b}{c}
+% \end{tikzdisplay}
+
+% \begin{definition}
+%   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+% when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
+% $\Event' = \Event^1 \cup \Event^2$,
+% ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
+% either
+% \begin{gather*}
+%   \begin{aligned}
+%     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+%     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+%     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+%   \end{aligned}
+%   \\
+% \begin{aligned}
+%   \sem{\aCmd \PAR \bCmd} & \eqdef
+%   \sem{\aCmd} \parallel \sem{\bCmd} 
+% \end{aligned}
+% \end{gather*}
+% \end{definition}
+
+% For an example using the first clause in the definition of composition,
+%  $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
+% \end{tikzdisplay}
+
+% The design of the semantics is driven by Hoare rule for conditionals:
+% \begin{displaymath}
+%   \frac{
+%     \hoare{\aExp}{\aCmd}{\bForm}
+%     \quad
+%     \hoare{\lnot\aExp}{\bCmd}{\bForm}
+%   }{
+%     \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
+%   }
+% \end{displaymath}
+
+% As a result of the definition, the operators commute:
+% \begin{displaymath}
+%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+%   =
+%   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
+% \end{displaymath}
+
+%\paragraph{Composition, Concurrency and Conditional.}
 Conditional execution and concurrency are defined using filtering, which
 selects pomsets satisfying a formula, and composition.  Composition is
 roughly union: $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
@@ -586,11 +691,6 @@ following execution, which unions the two sides:
 In addition to this execution, we allow that events with the same label to
 coalesce, taking the disjunction of their preconditions.  Thus, the semantics
 of this program also includes:
-% \begin{displaymath}
-%   \IF{r<0}\THEN y\GETS1\FI
-%   \PAR
-%   \IF{r\geq0}\THEN y\GETS1\FI
-% \end{displaymath}
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
 \end{tikzdisplay}
@@ -617,42 +717,40 @@ then $\aPSS^1 \parallel \aPSS^2$ contains:
 \begin{definition}
   Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
-  $\aEv\in\Event$. % if $\labelingAct(\aEv)$ writes.
+  $\aEv\in\Event$. 
+
+  % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
+  % $\Event' \subseteq \Event^1 \cup \Event^2$,
+  % $\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is satisfiable, and for
+  % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
+  % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
+  % unsatisfiable.
 
   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
 when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
-% \begin{itemize}
-% \item
-  $\Event' = \Event^1 \cup \Event^2$,
-%\item
-  ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
-% if $\aEv \le^1 \bEv$ or $\aEv \le^2 \bEv$ then $\aEv \le' \bEv$,
-%\item ${\gtN'}\supseteq{\gtN^1}\cup{\gtN^2}$, and %if $\aEv \gtN^1 \bEv$ or $\aEv \gtN^2 \bEv$ then $\aEv \gtN' \bEv$,
-%\item
-  either
-  \begin{gather*}
+%$\Event' \subseteq \COMPAT(\aPS^1,\,\aPS^2)$,
+$\Event' \subseteq \Event^1 \cup \Event^2$,
+$\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid
+\exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
+${\le'}\supseteq{\le^1}\cup{\le^2}$, and
+either
+\begin{gather*}
   \begin{aligned}
     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
   \end{aligned}
-  % \begin{itemize}
-  % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv)
-  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)$,
-  % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv),\;\; \aEv \not\in \Event^2\,
-  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor$
-  % \item $\labelingAct'(\aEv) = \labelingAct^2(\aEv),\;\; \aEv \not\in \Event^1\,
-  %   \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
-  % \end{itemize}
-%\end{itemize}
   \\
+%\end{gather*}
+% if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
+% $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
+% \labelingForm^2(\aEv)$ is unsatisfiable.
+%\begin{gather*}
 \begin{aligned}
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
   \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
-  % \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr) 
   \\
   \sem{\aCmd \PAR \bCmd} & \eqdef
-  %\Loc\guard \sem{\aCmd} \parallel \Loc\guard \sem{\bCmd} 
   \sem{\aCmd} \parallel \sem{\bCmd} 
 \end{aligned}
 \end{gather*}
@@ -675,12 +773,12 @@ The design of the semantics is driven by Hoare rule for conditionals:
   }
 \end{displaymath}
 
-As a result of the definition, the operators commute:
-\begin{displaymath}
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-  =
-  \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
-\end{displaymath}
+% As a result of the definition, the operators commute:
+% \begin{displaymath}
+%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+%   =
+%   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
+% \end{displaymath}
 
 
 \paragraph{Program Order Prefixing.} % for Trivial Expressions.}
@@ -750,16 +848,16 @@ definition of prefixing more carefully this time.  We highlight some of the chan
 Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
 \begin{enumerate}
-\item\label{pre-E} $\Event' = \Event \uplus \{\cEv\}$,
+\item\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
 \item\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-\item[3a.] $\labelingAct'(\cEv) = \aAct$,
-\item[3b.] $\labelingForm'(\cEv)$ implies $\aForm$,
+\item[3a.] $\labelingAct'(\bEv) = \aAct$,
+\item[3b.] $\labelingForm'(\bEv)$ implies $\aForm$,
 \item[4a.] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-\item[4b.] if $\cEv$ \externally reads $\aVal$ from $\aLoc$ then
+\item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item[4c.] if $\cEv$ does not \externally read then
+\item[4c.] if $\bEv$ does not \externally read then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
-\item[5.] $\cEv \lt' \aEv$, 
+\item[5.] $\bEv \lt' \aEv$, 
 \end{enumerate}
 \vspace{-1ex}
     \begin{align*}
@@ -1007,14 +1105,14 @@ Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS
 there is $\aPS\in\aPSS$ that satisfies the items 1-4 of
 Candidate \ref{def:pre-sc} and:
 \begin{enumerate}
-\item[5a.] if %$\cEv$ \externally reads and
+\item[5a.] if %$\bEv$ \externally reads and
   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
-  $\cEv\lt'\aEv$,
-\item[5b.] if $\cEv$ and $\aEv$ are \external actions in conflict,
-    then $\cEv\lt'\aEv$, %$\cEv \gtN' \aEv$,
-\item[5c.] if $\cEv$ is an acquire or $\aEv$ is a release, then $\cEv \lt' \aEv$, 
-\item[5d.] if $\cEv$ is an SC write and $\aEv$ is an SC read, then $\cEv \lt' \aEv$, and
-\item[6.] if $\cEv$ is an acquire then $\labelingForm(\aEv)$
+  $\bEv\lt'\aEv$,
+\item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict,
+    then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
+\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
+\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
+\item[6.] if $\bEv$ is an acquire then $\labelingForm(\aEv)$
   is location independent.
 \end{enumerate}
 \end{definition}
@@ -1034,7 +1132,7 @@ Candidate \ref{def:pre-sc} and:
 % \begin{candidate}
 %   Replace $\prefixsc$ in Candidate~\ref{def:rw:sc1} by $\prefix$.
 % \end{candidate}
-Item 5a captures \emph{read to write} dependency\footnote{When $\cEv$ is not a read,
+Item 5a captures \emph{read to write} dependency\footnote{When $\bEv$ is not a read,
   4c trivially implies 5a.}; it only requires order when the precondition of
 the write is weakened by prefixing.  Item 5b captures the coherence
 requirement on actions that touch the same location.  Item 5c imposes the
@@ -1272,7 +1370,7 @@ when a read is matched by a local write---and, symmetrically, for an explicit
 write action when a write is only used to match local reads.  We treat
 relaxed access in this section, extending to $\modeRA$/$\modeSC$-access after
 introducing fences in \textsection\ref{sec:variants}.
-We first give the final semantics of read.
+We first give the semantics of read.
 \begin{definition}
   \label{def:rw:local}
   \begin{align*}
