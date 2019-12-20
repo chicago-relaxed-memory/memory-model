@@ -369,6 +369,121 @@ In Definition \ref{def:rf}, require that when $\bEv$ \emph{fulfills $\aEv$ on
 \item there is no pair $(r,w)\in{\rrmw}$ such that $r\gtN\bEv\gtN w$.
 \end{itemize}
 
+\paragraph{Sequential Composition.}
+
+A \emph{data model} consists of:
+\begin{itemize}
+\item a set of \emph{substitutions} $\Sub$, ranged over by
+  $\aSub$ and $\bSub$,
+\end{itemize}
+% Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
+% $\aLR$.  Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions},
+% ranged over by $\aSub$ and $\bSub$.
+Let $\aActSub$ and $\bActSub$ range over $(\Act\cup\Sub)$.
+% The empty substitution is written as $[\,]$.
+
+We require that data models satisfy the following:
+\begin{itemize}
+\item substitutions include at least $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$,
+\item substitutions are closed under composition,
+\end{itemize}
+% By composition, it follows that substitutions must include $[\aExp/\aReg]$
+% which is equal to $[\aLoc/\aReg][\aExp/\aLoc]$.
+
+We fix the alphabet $\Alphabet=(\Formulae\times(\Act\cup\Sub))$.  With this
+alphabet, the labeling of a pomset determines two disjoint sets of events.
+We refer to those that map to actions $\Sub$ as \emph{final}, and those that
+map to substitutions $\Act$ as \emph{nonfinal}.
+When we need to distinguish these, we let the set of events
+$\Event=\EAct\uplus\ESub$, where $\EAct$ denotes the nonfinal events 
+and $\ESub$ denotes the final events.
+
+We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aActSub)$.
+
+\begin{eqnarray*}
+  \sem{\SKIP}
+  & = & \TIKZ{\final{f}{}{}} 
+  \\
+  \sem{\aLoc\GETS\aExp}
+  & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
+  \\
+  \sem{\aReg\GETS\aLoc}
+  & = &
+  \TIKZ{\final{f}{\aLoc/\aReg}{}}
+  \cup
+  \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
+  \\
+  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+  & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
+  \\
+  \sem{\aCmd \SEQ \bCmd}
+  & = & \sem{\aCmd} \sequence \sem{\bCmd}
+  \\
+  \sem{\aCmd \PAR \bCmd}
+  & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
+  \\
+  \sem{\VAR\aLoc\SEMI \aCmd}
+  & = & \nu \aLoc \DOT \sem{\aCmd}
+\end{eqnarray*}
+
+We give the semantics using combinators over sets of pomsets, defined below.
+Using $\aPSS$ to range over sets of pomsets, these are:
+\begin{itemize}
+\item \emph{forking} $\aPSS\fork$, which removes final states from
+  $\aPSS$, 
+\item \emph{sequencing} $\aPSS_1\sequence\aPSS_2$, which prepends
+  $\aPSS_1$ to $\aPSS_2$, calculating dependencies between the two.
+\end{itemize}
+
+Forking is %and substitution each perform
+a simple transformation on each pomset
+in a set of pomsets.
+
+\begin{definition}
+Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+$\Event' = \EAct$,
+$\labeling'\subseteq\labeling$,
+$\aEv\le'\bEv$ whenever $\aEv\le\bEv$, and
+$\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
+\end{definition}
+
+\begin{definition}
+  \label{def:semi:seq}
+  Let $\aPS' \in (\aPSS_1 \sequence \aPSS_2)$ whenever there are
+  $\aPS_1 \in \aPSS_1$ and $\aPS_{\cEv}\in\aPSS_2$, for every
+  $\cEv\in\ESub_1$, such that:
+\begin{itemize}
+\item $\Event' = \EAct_1 \cup \bigcup_{\cEv}\Event_{\cEv}$,
+\item if $\bEv \le_1 \aEv$ or $\bEv\le_{\cEv} \aEv$ then $\bEv \le' \aEv$,
+\item if $\bEv \gtN_1 \aEv$ or $\bEv\gtN_{\cEv} \aEv$ then $\bEv \gtN' \aEv$,
+\item if $\bEv\in\EAct_1$ then $\labeling'(\bEv) = \labeling_1(\bEv)$, and
+\item if $\labeling_1(\bEv) = (\dontcare \mid \aAct)$ and
+  $\labeling_{\cEv}(\aEv) = (\bForm \mid \bAct)$ then:
+  \begin{itemize}
+  \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv \lt' \aEv$,
+  \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
+  \item either $\aAct$ and $\bAct$ are provably separable, or both are reads, or
+    $\bEv \gtN' \aEv$, and
+  \item if $\aAct$ and $\bAct$ conflict
+    then $\bEv \gtN' \aEv$, and
+  \end{itemize}
+\item 
+  if
+  $\labeling_1(\cEv) = (\dontcare \mid \aSub)$, and
+  $\labeling_{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
+  $\labeling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
+  \begin{itemize}
+  \item $\bForm'$ implies
+    $\lor\{\aForm\mid\bEv\in\ESub_1 \land \aEv\in\aPS\!_{\bEv}
+    \land \labeling_1(\bEv)=(\aForm{\mid}\dontcare)\}$,
+  \item $\bForm'$ implies $\bForm\aSub$, and
+  \item either $\bForm'$ implies $\bForm$ or $\bEv\lt_1\cEv$ implies $\bEv\lt'\aEv$.
+    %$\bEv\in\EAct_1$ such that.
+  \end{itemize}
+\end{itemize}
+\end{definition}
+
 
 % \section{Variations}
 
