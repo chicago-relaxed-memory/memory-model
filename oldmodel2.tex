@@ -282,9 +282,10 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
     from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
     % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ when
     % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
+  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
   % \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
   % \item ${\le} \subseteq {\gtN}$ is a partial order, and
+  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
     $\labelingForm(\bEv)$.
   \end{itemize}
@@ -300,10 +301,12 @@ that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
 We often elide explicit universal quantifiers in phrases such as
 ``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 
-For complete programs, we can restrict attention to events that are either
-tautological or satisfiable---true or false.  Richer formulae are needed for
-intermediate program fragments.  By the last condition in the definition, if
-$\bEv$ is false and $\bEv\le\aEv$, then $\aEv$ must also be false.
+For complete programs, we can restrict attention to events that are 
+tautological.  Richer formulae are needed for
+intermediate program fragments.
+By the last condition in the definition,
+conditions can only strengthen via $\le$.
+%if $\bEv$ is false and $\bEv\le\aEv$, then $\aEv$ must also be false.
 
 % In this paper, we are not investigating microarchitecture.  So we make the
 % global assumption formulae can only get stronger in dependent actions:
@@ -377,12 +380,12 @@ respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
 % % \end{definition}
  We visualize pomsets as directed graphs.
 %where the nodes are drawn from $\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is drawn as an edge.
-We often elide events with disjoint
-preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
-$\aForm \land \bForm$ is unsatisfiable.  For example, we typically drop
-unsatisfiable events.  In examples,
-we draw pomsets that are
-augmentation-minimal and implication-minimal.  For example, the semantics of
+% We often elide events with disjoint
+% preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
+% $\aForm \land \bForm$ is unsatisfiable.  For example, we typically drop
+% unsatisfiable events.
+ In examples, we draw pomsets that are augmentation-minimal and
+ implication\hyp{}minimal.  For example, the semantics of
 \begin{math}
   \VAR\aLoc\SEMI(
   x\GETS 0\SEMI
@@ -471,7 +474,7 @@ the other operators.
 % for example:
 
 
-The semantics of $\SKIP$ and register assignment are simple:
+%The semantics of $\SKIP$ and register assignment are simple:
 \begin{definition}
 Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
@@ -674,22 +677,29 @@ for address calculation, which is required by realistic memory allocators.
 %\paragraph{Composition, Concurrency and Conditional.}
 Conditional execution and concurrency are defined using filtering, which
 selects pomsets satisfying a formula, and composition.  Composition is
-roughly union: $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
-$\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  For example, we have the
-following execution, which unions the two sides:
-\begin{gather*}
+roughly union, ensuring that the combined events are compatible.
+% : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
+For example, consider:
+\begin{align*}
+\begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
-  \PAR
-  \IF{r\geq0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx1}{r<0\mid\DW{y}{1}}{}
+    \end{tikzinline}}
+\end{gathered}
+&&
+\begin{gathered}
+  \IF{r\geq0}\THEN y\GETS1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
     \end{tikzinline}}
-\end{gather*}
-In addition to this execution, we allow that events with the same label to
-coalesce, taking the disjunction of their preconditions.  Thus, the semantics
-of this program also includes:
+\end{gathered}
+\end{align*}
+Putting these in parallel, we allow events with the same label to coalesce,
+taking the disjunction of their preconditions.  Thus, the semantics includes:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
 \end{tikzdisplay}
@@ -718,18 +728,33 @@ then $\aPSS^1 \parallel \aPSS^2$ contains:
   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
   $\aEv\in\Event$. 
 
+  % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
+  % $\Event' \subseteq \Event^1 \cup \Event^2$,
+  % $\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is satisfiable, and for
+  % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
+  % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
+  % unsatisfiable.
+
   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
 when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
-$\Event' = \Event^1 \cup \Event^2$,
-${\le'}\supseteq{\le^1}\cup{\le^2}$, 
-either
+%$\Event' \subseteq \COMPAT(\aPS^1,\,\aPS^2)$,
+$\Event' \subseteq \Event^1 \cup \Event^2$,
+$\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid
+\exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
+${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
+either:
 \begin{gather*}
   \begin{aligned}
     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
-    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv), and
+    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
   \end{aligned}
   \\
+%\end{gather*}
+% if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
+% $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
+% \labelingForm^2(\aEv)$ is unsatisfiable.
+%\begin{gather*}
 \begin{aligned}
   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
   \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
@@ -757,12 +782,12 @@ The design of the semantics is driven by Hoare rule for conditionals:
   }
 \end{displaymath}
 
-These operators validate the equation:
-\begin{displaymath}
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-  =
-  \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
-\end{displaymath}
+% As a result of the definition, the operators commute:
+% \begin{displaymath}
+%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+%   =
+%   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
+% \end{displaymath}
 
 
 \paragraph{Program Order Prefixing.} % for Trivial Expressions.}
@@ -994,7 +1019,7 @@ Item 4b then the substitutes the chosen value $[1/x]$:
       \end{tikzinline}}
   \end{gathered}
 \end{align}
-By drawing convention, these are:
+We can write these more succinctly as:
 % We often drop preconditions on tautological events and sometimes cross out
 % unsatisfiable ones (which may are ignored):
 \begin{align*}
