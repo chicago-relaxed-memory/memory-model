@@ -384,8 +384,8 @@ In Definition \ref{def:mmpomset}, require that a \emph{(memory model) pomset}
 be a tuple $(\Event, {\le}, \labeling, \xrmw)$, where ${\xrmw}\subseteq{\le}$
 relates the two events of a successful \RMW.  Additionally, require that:
 \begin{itemize}
-\item if $c\gtN e$ and $d \xrmw e$ then  $c\gtN d$, and
-\item if $d\gtN c$ and $d \xrmw e$ then  $e\gtN c$.
+\item if $c$ is a write that conflicts with $e$, $c\gtN e$ and $d \xrmw e$ then  $c\gtN d$, and
+\item if $c$ is a write that conflicts with $e$, $d\gtN c$ and $d \xrmw e$ then  $e\gtN c$.
 \end{itemize}
 We elide the obvious and tedious semantic rules.
 
@@ -424,7 +424,7 @@ This definition ensures atomicity, disallowing executions such as
 \end{gather*}
 
 By using two actions rather than one, we allow examples such as the
-following, which is allowed by \armeight{} 
+following, which is wed by \armeight{} 
 \cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
   r \GETS y\SEMI
@@ -458,40 +458,20 @@ be a set of \emph{substitutions}, ranged over by $\aSub$ and $\bSub$.  We
 require that substitutions are closed under composition, and include at least
 $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$.
 
-Substitution actions represent a final state of the pomset.  To give a
-sensible definition for concurrency, we must break the asymmetry of $\PAR$.
-Arbitrarily, we choose to keep the state of the thread on the right.
+Substitution actions represent a final state of registers.  To give a
+sensible definition for concurrency, we must break the asymmetry of \!$\PAR$\!.
+Arbitrarily, we choose to keep the state of the thread on the left.
 \begin{definition}
-Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+Let $\killS(\aPSS$) be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
-$\Event' = \EAct$,
-$\labeling'\subseteq\labeling$, 
-$\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$,
-and 
-$\aEv\xrmw\bEv$ whenever $\aEv\xrmw\bEv$,
+$\Event' = \{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}$ and the
+relations of $\aPS'$ are derived from $\aPS$ by restricting to $\Event'$.
 \begin{gather*}
   \sem{\aCmd \LPAR \bCmd}
-   = \sem{\aCmd}\fork \parallel \sem{\bCmd}
+   = \sem{\aCmd} \parallel \killS\sem{\bCmd}
 \end{gather*}
 \end{definition}
 
-We give the semantics using combinators over sets of pomsets, defined below.
-Using $\aPSS$ to range over sets of pomsets, these are:
-\begin{itemize}
-\item \emph{forking} $\aPSS\fork$, which removes final states from
-  $\aPSS$, 
-\item \emph{sequencing} $\aPSS_1\sequence\aPSS_2$, which prepends
-  $\aPSS_1$ to $\aPSS_2$, calculating dependencies between the two.
-\end{itemize}
-
-Forking is %and substitution each perform
-a simple transformation on each pomset
-in a set of pomsets.
-
-\begin{eqnarray*}
-  \sem{\aCmd \SEQ \bCmd}
-  & = & \sem{\aCmd} \sequence \sem{\bCmd}
-\end{eqnarray*}
 
 \begin{definition}
   \label{def:semi:seq}
@@ -527,6 +507,10 @@ in a set of pomsets.
     %$\bEv\in\EAct_1$ such that.
   \end{itemize}
 \end{itemize}
+\begin{gather*}
+  \sem{\aCmd \SEQ \bCmd}
+  =  \sem{\aCmd} \sequence \sem{\bCmd}
+\end{gather*}
 \end{definition}
 
 
