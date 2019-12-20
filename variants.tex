@@ -187,7 +187,7 @@ Because the semantics of syntactic fences is subtly different from the
 fencing behavior of $\modeRA$/$\modeSC$-accesses, our example language
 includes separate internal actions for syntactic fences: $\DFS{\fmode}$.  The
 \emph{syntactic fence mode}
-$\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC$ is either
+$(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$ is either
 \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
 $\DFS{\modeREL}$ is a release. $\DFS{\modeACQ}$ is an acquire.
 $\DFS{\modeSC}$ is both a release and an acquire.
@@ -282,19 +282,18 @@ In our semantics, we have not included rules for silent synchronizations.
 
 
 \paragraph{Address Calculation.}
-Update syntax as follows:
-\begin{align*}
-  \aLoc\BNFDEF\REF{\cVal}
-  \qquad
+In the definition of a data model, remove the location set $\Loc$ and require
+that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$
+is a value.  Expressions may include neither memory locations nor the
+operator $\REF{\cExp}^{\amode}$.
+In our example language, we update the syntax of commands:
+\begin{gather*}
   \aCmd
-  \BNFDEF \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
+  \BNFDEF \cdots
+  \BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
   \BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
-  \BNFSEP \cdots 
-\end{align*}
-Memory locations are numbers.  To avoid syntactic collisions between values
-and locations, we use a syntactic trick, defining locations---$\aLoc$,
-$\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
-\begin{align*}
+  \\
+\begin{aligned}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
   \textstyle\bigcup_{\cVal,\aVal}\; (\cExp=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
   \\[-.5ex] & \mkern2mu\cup
@@ -312,59 +311,19 @@ $\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
   % \\[-9.5ex]
   % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
   % \\[6ex]
-\end{align*}
-
-% THE FULL RULES, with internal actions:
-% \begin{align*}
-%   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-%   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\;\bigcup_\aVal\; ({\cExp}=\cVal \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
-%   \\[-.5ex] & \mkern2mu\cup
-%   \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
-%   \textstyle\bigcup_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDR{\aLoc}{})\prefix
-%   \sem{\aCmd}[\aLoc/\aReg]
-%   \\
-%   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =  
-%   \textstyle\PAR_{\aLoc=\REF{\cVal}}\; \PAR_{\!\!\aVal}\;({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-%   \\[-.5ex] & \mkern2mu\cup
-%   \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
-%   \textstyle\PAR_{\aLoc=\REF{\cVal}}\; ({\cExp}=\cVal \mid\iDW{\aLoc}{}) \prefix 
-%   (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
-% \end{align*}
-
-
-% Our language allows address calculations.  To model this, we allow locations
-% to have the form $\REF{n}$, where $n$ is a natural number.  
-Because we do not
-enforce order between reads, there is some danger that address calculations
-could allow thin air behavior.   To see how our model addresses this, assume
-that we have the following locations and initial values:
-\begin{align*}
-  \REF{0}&=0  &
-  \REF{1}&=2  &
-  \REF{2}&=1  &
-  x &=0 &
-  y &=0 
-\end{align*}
-Consider the program
-\begin{math}
-  (x\GETS\REF{y} \PAR y\GETS\REF{x})
-\end{math}
-with attempted execution:
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{a1}{\DR{y}{2}}{}
-%   \event{a2}{\DR{\REF{2}}{1}}{below=of a1}
-%   \event{a3}{\DW{x}{1}}{below=of a2}
-%   \po{a2}{a3}
-%   \po[out=210,in=150]{a1}{a3}
-%   \event{b1}{\DR{x}{1}}{right=3em of a1}
-%   \event{b2}{\DR{\REF{1}}{2}}{below=of b1}
-%   \event{b3}{\DW{y}{2}}{below=of b2}
-%   \po{b2}{b3}
-%   \po[out=-30,in=30]{b1}{b3}
-%   \rf{b3}{a1}
-%   \rf{a3}{b1}
-% \end{tikzdisplay}
-\begin{tikzdisplay}[node distance=1em]
+\end{aligned}
+\end{gather*}
+Because we do not enforce order between reads, there is some danger that
+address calculations could allow thin air behavior.  To see how our model
+addresses consider the following attempted execution, where all memory
+addresses are initialized to $0$, except that $\REF{1}=2$ and $\REF{2}=1$
+\begin{gather*}
+  \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
+  \PAR
+  \aReg\GETS x\SEMI \bReg\GETS \REF{\aReg}\SEMI y\GETS \bReg
+  %x\GETS\REF{y} \PAR y\GETS\REF{x}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
   \event{a1}{\DR{y}{2}}{}
   \event{a2}{\DR{\REF{2}}{1}}{right=of a1}
   \event{a3}{\DW{x}{1}}{right=of a2}
@@ -377,62 +336,39 @@ with attempted execution:
   \po[out=10,in=170]{b1}{b3}
   \rf[out=-170,in=-10]{b3}{a1}
   \rf{a3}{b1}
-\end{tikzdisplay}
+    \end{tikzinline}}
+\end{gather*}
 Although there is no order enforced between the reads, the read-to-write
 order induced by the semantics is sufficient to prohibit this thin-air
-behavior.
-
-The dependency calculation in this example is interesting.  Desugaring, the
-first thread is $\aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$.
-In isolation, the write action is $(\bReg=1\mid\DW{x}{1})$.  Prepending
-$(\bReg\GETS \REF{\aReg})$ causes substitution $(\REF{\aReg}=1)$ then with
-$(\aReg=2\mid\DR{\REF{2}}{1})$, this can be weakened to $1=1$ by the
-substitution of $1$ for $\REF{2}$, as long as there is order between the
-events.  But the precondition is also constrained by the last clause of the
+behavior.  Note the intermediate state:
+\begin{gather*}
+  \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
+  \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
+  \po{a2}{a3}
+    \end{tikzinline}}
+\end{gather*}
+The precondition on the write is required by the last clause of
 Definition~\ref{def:mmpomset}: if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
 implies $\labelingForm(\bEv)$.
-%
-Thus the we arrive at the label $(\aReg=2\mid\DW{x}{1})$.  Subsequently,
-$\aReg\GETS y$ transforms the precondition to $y=2$ and prefixing $\DR{y}{2}$
-allows this to be weakened to $2=2$.
 
-% if $\bEv\lt\bEv'\geN\aEv'\lt\aEv$ then $\bEv\lt\aEv$.
-%   \begin{displaymath}
-%     y\GETS 1
-%     \PAR
-%     x\GETS 1\SEMI
-%     x\GETS 2\SEMI
-%     \FENCE\SEMI
-%     \aReg\GETS y
-%     \PAR
-%     y\GETS 2\SEMI
-%     \FENCE\SEMI
-%     \bReg\GETS x
-%   \end{displaymath}
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{a1}{\DW{x}{1}}{}
-%   \event{a2}{\DW{x}{2}}{right=of a1}
-%   \po{a1}{a2}
-%   %\event{a3}{\DF{}}{right=of a2}
-%   %\po{a2}{a3}
-%   \event{a4}{\DR{y}{1}}{right=of a2}
-%   \po{a2}{a4}
-%   %
-%   \event{b1}{\DW{y}{2}}{below=of a4}
-%   %\event{b2}{\DF{}}{left=of b1}
-%   %\po{b1}{b2}
-%   \event{b3}{\DR{x}{1}}{left=of b1}
-%   \po{b1}{b3}
-%   \wk{a4}{b1}
-%   %
-%   \event{c1}{\DW{y}{1}}{above=of a4}
-%   \po{c1}{a4}
-%   \rf{a1}{b3}
-%   \wk{b3}{a2}
-% \end{tikzdisplay}
-% Ie, it does publication by antidependency...
+\paragraph{Read-Modify-Write.} These operations can be modeled using read/write
+actions or using an additional relation between events.  The second approach
+is more general and less obvious, therefore we explain it here.
 
-\paragraph{Read-Modify-Write}
+In Definition \ref{def:mmpomset}, require that a \emph{(memory model) pomset} be a
+tuple $(\Event, {\le}, \labeling, \rrmw)$, with the additional relation
+${\rrmw}\subseteq\Event\times\Event$, which relates the two events of a
+successful \RMW.  We elide the obvious and tedious semantic rules.
+
+In Definition \ref{def:rf}, require that when $\bEv$ \emph{fulfills $\aEv$ on
+  $\aLoc$}:
+\begin{itemize}
+\item there is no pair $(r,w)\in{\rrmw}$ such that $r\gtN\bEv\gtN w$.
+\end{itemize}
+
 
 % \section{Variations}
 

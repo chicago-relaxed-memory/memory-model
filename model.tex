@@ -197,11 +197,10 @@ $\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
 $\aLoc$.
 % The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
 % \emph{release-acquire} ($\modeRA$) or \emph{sequentially-consistent} ($\modeSC$).
-The \emph{mode} $\amode \BNFDEF \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC$ is
+The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \modeRLX \!\BNFSEP\! \modeRA \!\BNFSEP\! \modeSC)$ is
 either \emph{relaxed}, \emph{release-acquire}, or
 \emph{sequentially-consistent}.
-$\modeRA$ and $\modeSC$ reads are acquires; $\modeRA$ and
-$\modeSC$ writes are releases.
+$\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are releases.
 
 We elide the $\modeRLX$-mode annotation in examples.
 % We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
