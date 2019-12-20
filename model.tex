@@ -1001,7 +1001,7 @@ resulting pomset has a read event that must be \emph{fulfilled}.
 We now relax item 5 of Candidate \ref{def:pre-sc} so that only some program
 order is {preserved} in the pomset.  We arrive at our final definition of
 prefixing and our last failed candidate semantics.
-\begin{candidate}
+\begin{definition}
   \label{def:prefix}
 Two actions \emph{conflict} if one writes a location and the other
 either reads or writes the same location.
@@ -1020,7 +1020,9 @@ Definition \ref{def:pre-sc} and:
 \item[6.] if $\cEv$ is an acquire then $\labelingForm(\aEv)$
   is location independent.
 \end{enumerate}
-\vspace{-1ex}
+\end{definition}
+\begin{candidate}
+  %\vspace{-1ex}
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
@@ -1382,8 +1384,8 @@ executions such as:
   \rf[out=10,in=170]{a1}{b2}
     \end{tikzinline}}
 \end{gather*}
-Symmetrically, item 6 in the definition of prefixing
-(Candidate~\ref{def:prefix}) ensures that local reads are not matched to
+Symmetrically, item 6 of Definition \ref{def:prefix}
+ensures that local reads are not matched to
 local writes when there is an intervening acquire.  This prevents bad
 executions such as:
 \begin{gather*}

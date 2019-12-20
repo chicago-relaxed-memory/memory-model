@@ -178,10 +178,10 @@ $\Int\cap\fdom(\rreads)=\Int\cap\fdom(\rwrites)=\emptyset$.  We say $\aAct$
 is \emph{silent} if $\aAct\in\Int$.  By definition, silent actions neither
 read nor write.
 
-To model local reads and writes, our example language includes internal
-actions of the form $\DFR{\amode}$ and $\DFW{\amode}$.  $\DFR{\amode}$ is an
-acquire if $\amode\neq\modeRLX$.  $\DFW{\amode}$ is a release if
-$\amode\neq\modeRLX$.
+To model the fencing behavior of local reads and writes, our example language
+includes internal actions of the form $\DFR{\amode}$ and $\DFW{\amode}$.
+$\DFR{\amode}$ is an acquire if $\amode\neq\modeRLX$.  $\DFW{\amode}$ is a
+release if $\amode\neq\modeRLX$.
 
 Because the semantics of syntactic fences is subtly different from the
 fencing behavior of $\modeRA$/$\modeSC$-accesses, our example language
@@ -195,20 +195,20 @@ $\DFS{\modeSC}$ is both a release and an acquire.
 As concrete syntax for commands, we write ``$\FENCE^{\fmode} \SEMI \aCmd$.''
 \begin{align*}
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
-  (\DFS[\fmode]) \prefix \sem{\aCmd}
+  (\DFS{\fmode}) \prefix \sem{\aCmd}
   \\
   \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
   \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
   \\[-.5ex] &
   \mkern2mu\cup
-  \,\mathhl{(\iDR[\amode]{\aLoc}{}) \;\prefix}\,\;
+  \,\mathhl{(\DFR{\amode}) \;\prefix}\,\;
   \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
   \textstyle\PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
   \\[-.5ex] &
   \mkern2mu\cup
-  \,\mathhl{(\iDW[\amode]{\aLoc}{}) \;\prefix}\,\;
+  \,\mathhl{(\DFW{\amode}) \;\prefix}\,\;
   (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
 \end{align*}
 
