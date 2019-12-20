@@ -1237,9 +1237,9 @@ by a matching write action, and that the order between them must therefore be
 part of the global pomset order.  This is overly restrictive for reads that
 are fulfilled locally.  Consider Example 3.6 from
 \citet{DBLP:journals/pacmpl/PodkopaevLV19}:
-\begin{gather}
+\begin{gather*}
   %\tag{$\dagger$}
-  \label{exlocal3.6}
+  %\label{exlocal3.6}
   \aReg\GETS x\SEMI
   y\REL\GETS 1\SEMI
   \bReg\GETS y\SEMI
@@ -1264,14 +1264,16 @@ are fulfilled locally.  Consider Example 3.6 from
   \rf{a4}{b1}
   \rf{b2}{a1}
     \end{tikzinline}}
-\end{gather}
+\end{gather*}
 This behavior is allowed by \armeight, but disallowed in the model presented
 thus far, due to the evident cycle.
 
-Thus we do not require an explicit read action when a relaxed read is matched
-by a local write.  Symmetrically, we do not require an explicit write action
-when a relaxed write is only used to match local reads.  We first give the
-final semantics of read.
+To allow this outcome, we remove the requirement for an explicit read action
+when a read is matched by a local write---and, symmetrically, for an explicit
+write action when a write is only used to match local reads.  We treat
+relaxed access in this section, extending to $\modeRA$/$\modeSC$-access after
+introducing fences in \textsection\ref{sec:variants}.
+We first give the final semantics of read.
 \begin{definition}
   \label{def:rw:local}
   \begin{align*}
@@ -1288,14 +1290,17 @@ final semantics of read.
   \end{align*}
 \end{definition}
 
-Revisiting \eqref{exlocal3.6}, note that $\sem{z\GETS \bReg}$ includes
-$(\bReg=1\mid \DW{z}{1})$.  Applying the local read rule of
-Definition~\ref{def:rw:local}, we have that
-$\sem{\bReg\GETS y \SEMI z\GETS \bReg}$ includes $(y=1\mid \DW{z}{1})$.
+Revisiting the example, %\eqref{exlocal3.6},
+note that $\sem{z\GETS \bReg}$ includes $(\bReg{=}1\mid \DW{z}{1})$.
+Therefore, applying the local read rule,
+% of Definition~\ref{def:rw:local},
+$\sem{\bReg\GETS y \SEMI z\GETS \bReg}$ includes $(y{=}1\mid \DW{z}{1})$.
 Crucially, there is no explicit read event.  Further prepending
-$(\DWRel{y}{1})$ performs the substitution $(y=1\mid \DW{z}{1})[1/y]$
-resulting in a tautology.  By removing the read event, this outcome is
-allowed by our semantics, enabling efficient compilation to \armeight.
+$(\DWRel{y}{1})$ results in $(1{=}1\mid \DW{z}{1})$.
+% performs the substitution $(y=1\mid \DW{z}{1})[1/y]$ resulting in a
+% tautology.
+By removing the read event, the outcome is
+allowed by our semantics, enabling efficient compilation to \armeight:
 \begin{gather*}
   % \aReg\GETS x\SEMI
   % y\REL\GETS 1\SEMI
@@ -1320,8 +1325,7 @@ allowed by our semantics, enabling efficient compilation to \armeight.
     \end{tikzinline}}
 \end{gather*}
 In drawings, we include a ``non-event''---dashed border---to mark each use of
-a local rule.  In order to state \drfsc\ (\textsection\ref{sec:sc}), we make
-such non-events explicit in \textsection\ref{sec:variants}.
+a local rule.  
 
 Local reads invalidate \emph{thread inlining}, which is invalid in most relaxed models.
 To see this, consider that the execution above is impossible for 
