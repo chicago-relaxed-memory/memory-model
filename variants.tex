@@ -179,9 +179,10 @@ is \emph{silent} if $\aAct\in\Int$.  By definition, silent actions neither
 read nor write.
 
 To model the fencing behavior of local reads and writes, our example language
-includes internal actions of the form $\DFR{\amode}$ and $\DFW{\amode}$.
-$\DFR{\amode}$ is an acquire if $\amode\neq\modeRLX$.  $\DFW{\amode}$ is a
-release if $\amode\neq\modeRLX$.
+includes internal actions of the form $\DFR{\amode}$ and $\DFW{\amode}$.  For
+$\amode\in\{\modeRA,\,\modeSC\}$, $\DFR{\amode}$ is an acquire, and
+$\DFW{\amode}$ is a release.  The fences with access mode $\modeRLX$ do
+nothing; we include them only to remove case analysis from the definitions.
 
 Because the semantics of syntactic fences is subtly different from the
 fencing behavior of $\modeRA$/$\modeSC$-accesses, our example language
@@ -191,6 +192,14 @@ $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$ is 
 \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
 $\DFS{\modeREL}$ is a release. $\DFS{\modeACQ}$ is an acquire.
 $\DFS{\modeSC}$ is both a release and an acquire.
+
+To Definition \ref{def:prefix} of prefixing, add:
+\begin{enumerate}
+\item[5e.] if $\cEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
+  $\aEv \lt' \cEv$,
+\item[5f.] if $\labelingAct(\cEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
+  $\cEv \lt' \aEv$,
+\end{enumerate}
 
 As concrete syntax for commands, we write ``$\FENCE^{\fmode} \SEMI \aCmd$.''
 \begin{align*}
@@ -212,10 +221,11 @@ As concrete syntax for commands, we write ``$\FENCE^{\fmode} \SEMI \aCmd$.''
   (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
 \end{align*}
 
-In the following, we leave out the initial writes of $0$.
-\citep[Fig 5]{DBLP:conf/pldi/LahavVKHD17}:
+Our semantics does not suffer the weaknesses of C11 fences, noted by
+\citet[Figs 5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$-initialization
+in these examples:
 \begin{gather*}
-    y\GETS1
+    x\GETS1
     \PAR
     r\GETS x\SEMI   
     \FENCE^{\modeSC}\SEMI
@@ -226,60 +236,54 @@ In the following, we leave out the initial writes of $0$.
     r\GETS x  
     \\[-.1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
-  \event{a1}{\DW{y}{1}}{}
-  \event{a0}{\DW{y}{0}}{left=of a1}
-  \wk{a0}{a1}
-  \event{a2}{\DWRel{x}{1}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DR{x}{1}}{right=3em of a2}
-  \rf{a2}{a3}
-  \event{b1}{\DRAcq{x}{1}}{right=of a3}
-  \rf[out=10,in=170]{a2}{b1}
-  \event{b2}{\DR{y}{0}}{right=of b1}
+  \event{a1}{\DW{x}{1}}{}
+  \event{b1}{\DR{x}{1}}{right=3em of a1}
+  \event{b2}{\DFS{\modeSC}}{right=of b1}
   \po{b1}{b2}
-  \event{b3}{\DW{z}{0}}{right=of b2}
+  \event{b3}{\DR{y}{0}}{right=of b2}
   \po{b2}{b3}
+  \event{c1}{\DW{y}{1}}{right=3em of b3}
+  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DR{x}{0}}{right=of c2}
+  \po{c2}{c3}
+  \wk{b3}{c1}
+  \rf{a1}{b1}
+  \wk[out=-170,in=-10]{c3}{a1}
+    \end{tikzinline}}
+  \\
+    x\GETS1\SEMI   
+    z\REL\GETS1\SEMI   
+    \PAR
+    r\ACQ\GETS z\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=.7em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{a2}{\DWRel{z}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
+  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DR{y}{0}}{right=of b2}
+  \po{b2}{b3}
+  \event{c1}{\DW{y}{1}}{right=2em of b3}
+  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DR{x}{0}}{right=of c2}
+  \po{c2}{c3}
+  \wk{b3}{c1}
+  \rf{a2}{b1}
+  \wk[out=-170,in=-10]{c3}{a1}
     \end{tikzinline}}
 \end{gather*}
-
-\citep[Fig 6]{DBLP:conf/pldi/LahavVKHD17}:
-
-
-
-In our semantics, we have not included rules for silent synchronizations.
-\begin{gather}
-  \label{read-before-acquire}
-  %y\GETS0\SEMI
-    y\GETS1\SEMI
-    x\REL\GETS1
-    \PAR
-    r\GETS x\SEMI
-    \IF{x\ACQ}\THEN z\GETS y\FI
-    \\[-.1ex]
-    \nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a1}{\DW{y}{1}}{}
-  % \event{a0}{\DW{y}{0}}{left=of a1}
-  % \wk{a0}{a1}
-  \event{a2}{\DWRel{x}{1}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DR{x}{1}}{right=3em of a2}
-  \rf{a2}{a3}
-  \event{b1}{\DRAcq{x}{1}}{right=of a3}
-  \rf[out=10,in=170]{a2}{b1}
-  \event{b2}{\DR{y}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{z}{0}}{right=of b2}
-  \po{b2}{b3}
-  \wk[out=-170,in=-10]{b2}{a1}
-    \end{tikzinline}}
-\end{gather}
-
-
-
-
-
-
+The executions are disallowed, due to cycles.  Is it is testament to the
+complexity of C11 that it allows these executions.
 
 \paragraph{Address Calculation.}
 In the definition of a data model, remove the location set $\Loc$ and require
@@ -399,31 +403,12 @@ $\Event=\EAct\uplus\ESub$, where $\EAct$ denotes the nonfinal events
 and $\ESub$ denotes the final events.
 
 We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aActSub)$.
-
 \begin{eqnarray*}
-  \sem{\SKIP}
-  & = & \TIKZ{\final{f}{}{}} 
-  \\
-  \sem{\aLoc\GETS\aExp}
-  & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
-  \\
-  \sem{\aReg\GETS\aLoc}
-  & = &
-  \TIKZ{\final{f}{\aLoc/\aReg}{}}
-  \cup
-  \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
-  \\
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-  & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
-  \\
   \sem{\aCmd \SEQ \bCmd}
   & = & \sem{\aCmd} \sequence \sem{\bCmd}
   \\
   \sem{\aCmd \PAR \bCmd}
   & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
-  \\
-  \sem{\VAR\aLoc\SEMI \aCmd}
-  & = & \nu \aLoc \DOT \sem{\aCmd}
 \end{eqnarray*}
 
 We give the semantics using combinators over sets of pomsets, defined below.
