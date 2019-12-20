@@ -184,16 +184,16 @@ Memory locations are numbers.  To avoid syntactic collisions between values
 and locations, we use a syntactic trick, defining locations---$\aLoc$,
 $\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
 \begin{align*}
-  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-  \textstyle\bigcup_{\cVal,\aVal}\; ({\cExp}=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
+  \sem{\aReg\GETS{\REF{\cExp}^\amode}\SEMI \aCmd} & =
+  \textstyle\bigcup_{{\cVal,\aVal}}\; {({\cExp}=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
   \\[-.5ex] & \mkern2mu\cup
   \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
   \sem{\aCmd}[\REF{\cVal}/\aReg]
   \\[-1ex]
-  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+  \sem{{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
   \\[-1ex]
   &\mkern-55mu\hbox to 0pt{$\begin{aligned}
-    &\textstyle\PAR_{\cVal,\aVal}\;({\cExp}=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+    &\textstyle\PAR_{{\cVal,\aVal}}\;{({\cExp}=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
     \\[-.5ex] & \mkern2mu\cup
     \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
@@ -218,8 +218,9 @@ $\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
 % \end{align*}
 
 
-Our language allows address calculations.  To model this, we allow locations
-to have the form $\REF{n}$, where $n$ is a natural number.  Because we do not
+% Our language allows address calculations.  To model this, we allow locations
+% to have the form $\REF{n}$, where $n$ is a natural number.  
+Because we do not
 enforce order between reads, there is some danger that address calculations
 could allow thin air behavior.   To see how our model addresses this, assume
 that we have the following locations and initial values:
@@ -269,13 +270,13 @@ behavior.
 
 The dependency calculation in this example is interesting.  Desugaring, the
 first thread is $\aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$.
-In isolation, the write action is $(\bReg=1\mid\DW{x}{1})$.  Following the
-discussion of execution \eqref{m1}, $\bReg\GETS \REF{\aReg}$ causes the
-precondition to become $\REF{\aReg}=1$; subsequently prefixing with
+In isolation, the write action is $(\bReg=1\mid\DW{x}{1})$.  Prepending
+$(\bReg\GETS \REF{\aReg})$ causes substitution $(\REF{\aReg}=1)$ then with
 $(\aReg=2\mid\DR{\REF{2}}{1})$, this can be weakened to $1=1$ by the
-substitution of $1$ for $\REF{2}$, as long as there is order between the events.  But the precondition is also constrained
-by the last clause of the Definition~\ref{def:mmpomset}:
- if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$.
+substitution of $1$ for $\REF{2}$, as long as there is order between the
+events.  But the precondition is also constrained by the last clause of the
+Definition~\ref{def:mmpomset}: if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
+implies $\labelingForm(\bEv)$.
 %
 Thus the we arrive at the label $(\aReg=2\mid\DW{x}{1})$.  Subsequently,
 $\aReg\GETS y$ transforms the precondition to $y=2$ and prefixing $\DR{y}{2}$
