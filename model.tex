@@ -301,10 +301,12 @@ that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
 We often elide explicit universal quantifiers in phrases such as
 ``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 
-For complete programs, we can restrict attention to events that are either
-tautological or satisfiable---true or false.  Richer formulae are needed for
-intermediate program fragments.  By the last condition in the definition, if
-$\bEv$ is false and $\bEv\le\aEv$, then $\aEv$ must also be false.
+For complete programs, we can restrict attention to events that are 
+tautological.  Richer formulae are needed for
+intermediate program fragments.
+By the last condition in the definition,
+conditions can only strengthen via $\le$.
+%if $\bEv$ is false and $\bEv\le\aEv$, then $\aEv$ must also be false.
 
 % In this paper, we are not investigating microarchitecture.  So we make the
 % global assumption formulae can only get stronger in dependent actions:
@@ -378,12 +380,12 @@ respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
 % % \end{definition}
  We visualize pomsets as directed graphs.
 %where the nodes are drawn from $\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is drawn as an edge.
-We often elide events with disjoint
-preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
-$\aForm \land \bForm$ is unsatisfiable.  For example, we typically drop
-unsatisfiable events.  In examples,
-we draw pomsets that are
-augmentation-minimal and implication-minimal.  For example, the semantics of
+% We often elide events with disjoint
+% preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
+% $\aForm \land \bForm$ is unsatisfiable.  For example, we typically drop
+% unsatisfiable events.
+ In examples, we draw pomsets that are augmentation-minimal and
+ implication\hyp{}minimal.  For example, the semantics of
 \begin{math}
   \VAR\aLoc\SEMI(
   x\GETS 0\SEMI
@@ -675,22 +677,29 @@ for address calculation, which is required by realistic memory allocators.
 %\paragraph{Composition, Concurrency and Conditional.}
 Conditional execution and concurrency are defined using filtering, which
 selects pomsets satisfying a formula, and composition.  Composition is
-roughly union: $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
-$\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  For example, we have the
-following execution, which unions the two sides:
-\begin{gather*}
+roughly union, ensuring that the combined events are compatible.
+% : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
+For example, consider:
+\begin{align*}
+\begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
-  \PAR
-  \IF{r\geq0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx1}{r<0\mid\DW{y}{1}}{}
+    \end{tikzinline}}
+\end{gathered}
+&&
+\begin{gathered}
+  \IF{r\geq0}\THEN y\GETS1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
     \end{tikzinline}}
-\end{gather*}
-In addition to this execution, we allow that events with the same label to
-coalesce, taking the disjunction of their preconditions.  Thus, the semantics
-of this program also includes:
+\end{gathered}
+\end{align*}
+Putting these in parallel, we allow events with the same label to coalesce,
+taking the disjunction of their preconditions.  Thus, the semantics includes:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
 \end{tikzdisplay}
@@ -732,8 +741,8 @@ when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
 $\Event' \subseteq \Event^1 \cup \Event^2$,
 $\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid
 \exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
-${\le'}\supseteq{\le^1}\cup{\le^2}$, and
-either
+${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
+either:
 \begin{gather*}
   \begin{aligned}
     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
@@ -1010,7 +1019,7 @@ Item 4b then the substitutes the chosen value $[1/x]$:
       \end{tikzinline}}
   \end{gathered}
 \end{align}
-Using our conventions for drawing pomsets, these are:
+We can write these more succinctly as:
 % We often drop preconditions on tautological events and sometimes cross out
 % unsatisfiable ones (which may are ignored):
 \begin{align*}
