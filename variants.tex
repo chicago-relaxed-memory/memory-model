@@ -381,9 +381,8 @@ actions or using an additional relation between events.  The second approach
 is more general and less obvious, therefore we explain it here.
 
 In Definition \ref{def:mmpomset}, require that a \emph{(memory model) pomset}
-be a tuple $(\Event, {\le}, \labeling, \rrmw)$, with the additional relation
-${\xrmw}\subseteq{\le}$ that relates the two events of a successful \RMW.
-Additionally, require that:
+be a tuple $(\Event, {\le}, \labeling, \xrmw)$, where ${\xrmw}\subseteq{\le}$
+relates the two events of a successful \RMW.  Additionally, require that:
 \begin{itemize}
 \item if $c\gtN e$ and $d \xrmw e$ then  $c\gtN d$, and
 \item if $d\gtN c$ and $d \xrmw e$ then  $e\gtN c$.
@@ -426,7 +425,7 @@ This definition ensures atomicity, disallowing executions such as
 
 By using two actions rather than one, we allow examples such as the
 following, which is allowed by \armeight{} 
-\cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}.
+\cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
   r \GETS y\SEMI
   z \GETS r
@@ -454,43 +453,27 @@ following, which is allowed by \armeight{}
     \end{tikzinline}}
 \end{gather*}
 
-\paragraph{Sequential Composition.}
+\paragraph{Sequential Composition.}  In a data model, let $\Sub\subseteq\Int$
+be a set of \emph{substitutions}, ranged over by $\aSub$ and $\bSub$.  We
+require that substitutions are closed under composition, and include at least
+$[\aLoc/\aReg]$ and $[\aExp/\aLoc]$.
 
-A \emph{data model} consists of:
-\begin{itemize}
-\item a set of \emph{substitutions} $\Sub$, ranged over by
-  $\aSub$ and $\bSub$,
-\end{itemize}
-% Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
-% $\aLR$.  Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions},
-% ranged over by $\aSub$ and $\bSub$.
-Let $\aActSub$ and $\bActSub$ range over $(\Act\cup\Sub)$.
-% The empty substitution is written as $[\,]$.
-
-We require that data models satisfy the following:
-\begin{itemize}
-\item substitutions include at least $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$,
-\item substitutions are closed under composition,
-\end{itemize}
-% By composition, it follows that substitutions must include $[\aExp/\aReg]$
-% which is equal to $[\aLoc/\aReg][\aExp/\aLoc]$.
-
-We fix the alphabet $\Alphabet=(\Formulae\times(\Act\cup\Sub))$.  With this
-alphabet, the labeling of a pomset determines two disjoint sets of events.
-We refer to those that map to actions $\Sub$ as \emph{final}, and those that
-map to substitutions $\Act$ as \emph{nonfinal}.
-When we need to distinguish these, we let the set of events
-$\Event=\EAct\uplus\ESub$, where $\EAct$ denotes the nonfinal events 
-and $\ESub$ denotes the final events.
-
-We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aActSub)$.
-\begin{eqnarray*}
-  \sem{\aCmd \SEQ \bCmd}
-  & = & \sem{\aCmd} \sequence \sem{\bCmd}
-  \\
-  \sem{\aCmd \PAR \bCmd}
-  & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
-\end{eqnarray*}
+Substitution actions represent a final state of the pomset.  To give a
+sensible definition for concurrency, we must break the asymmetry of $\PAR$.
+Arbitrarily, we choose to keep the state of the thread on the right.
+\begin{definition}
+Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+$\Event' = \EAct$,
+$\labeling'\subseteq\labeling$, 
+$\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$,
+and 
+$\aEv\xrmw\bEv$ whenever $\aEv\xrmw\bEv$,
+\begin{gather*}
+  \sem{\aCmd \LPAR \bCmd}
+   = \sem{\aCmd}\fork \parallel \sem{\bCmd}
+\end{gather*}
+\end{definition}
 
 We give the semantics using combinators over sets of pomsets, defined below.
 Using $\aPSS$ to range over sets of pomsets, these are:
@@ -505,14 +488,10 @@ Forking is %and substitution each perform
 a simple transformation on each pomset
 in a set of pomsets.
 
-\begin{definition}
-Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-there is $\aPS\in\aPSS$ such that:
-$\Event' = \EAct$,
-$\labeling'\subseteq\labeling$,
-$\aEv\le'\bEv$ whenever $\aEv\le\bEv$, and
-$\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
-\end{definition}
+\begin{eqnarray*}
+  \sem{\aCmd \SEQ \bCmd}
+  & = & \sem{\aCmd} \sequence \sem{\bCmd}
+\end{eqnarray*}
 
 \begin{definition}
   \label{def:semi:seq}

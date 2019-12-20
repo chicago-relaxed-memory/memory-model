@@ -89,7 +89,7 @@ For the actions of a data model, we require that
 % \begin{itemize}
 % \item
   there are partial functions $\rreads$ and
-  $\rwrites: \Act \fun (\Loc \times \Val_\bot)$, and
+  $\rwrites: \Act \fun (\Loc \times \Val)$, and
 %\item
   there are sets $\Acq$ and $\Rel$ and $\SC \subseteq\Act$ such that
   $\SC\cap\rreads\subseteq\Acq$ and
@@ -97,13 +97,9 @@ For the actions of a data model, we require that
 % \item there is a function $\finternalize: \Act \fun \Act$ that
 %   satisfies the restrictions given below.
 %\end{itemize}
-%
-We say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$ when
-$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes} $\aVal$
-\emph{to} $\aLoc$ when $\rwrites(\aAct) = (\aLoc,\aVal)$.
-We say that $\aAct$ \emph{reads from} $\aLoc$ when
-$\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes to}
-$\aLoc$ when $\rwrites(\aAct) = (\aLoc,\aVal)$, for some $\aVal$. % (possibly $\bot$).
+
+% $\rreads(\aAct) = (\aLoc,\aVal)$, and that $\aAct$ \emph{writes to}
+% $\aLoc$ when $\rwrites(\aAct) = (\aLoc,\aVal)$, for some $\aVal$. % (possibly $\bot$).
 %
 % Actions that read or write values are \emph{external},
 % actions that read or write $\bot$ are \emph{internal}.
@@ -111,10 +107,14 @@ $\aLoc$ when $\rwrites(\aAct) = (\aLoc,\aVal)$, for some $\aVal$. % (possibly $\
 % % $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
 % % in $\Int=\Act\setminus\Ext$ are \emph{internal}.
 %
-We say that $\aAct$ is an \emph{acquire} if $\aAct\in\Acq$, that $\aAct$
-is a \emph{release} if $\aAct\in\Rel$, and that $\aAct$ is \emph{SC} if $\aAct\in\SC$.  
+  We say that $\aAct$ is a \emph{read} if $\aAct\in\fdom(\rreads)$, a
+  \emph{write} if $\aAct\in\fdom(\rwrites)$, an \emph{acquire} if
+  $\aAct\in\Acq$, is a \emph{release} if $\aAct\in\Rel$, and \emph{SC} if
+  $\aAct\in\SC$.  Note that these are \emph{not} disjoint.
 % % We say that $\aAct$ is a
 % % \emph{synchronization} if it is either a release or an acquire.
+When $\rreads(\aAct) = (\aLoc,\aVal)$, we say that $\aAct$ \emph{reads}
+$\aVal$ \emph{from} $\aLoc$, and similarly for writes.
 
 % The actions listed above are \emph{external}.  Each external action has a
 % corresponding \emph{internal} action, denoted by prefixing $\tau$.  Internal
