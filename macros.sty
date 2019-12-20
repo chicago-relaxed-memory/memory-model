@@ -97,8 +97,8 @@
 \newenvironment{tikzdisplay}[1][]{\bgroup\footnotesize\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{tikzdisplaysmall}[1][]{\bgroup\tiny\begin{displaymath}\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}\end{displaymath}\egroup\ignorespacesafterend}
 \newenvironment{tikzcenter}[1][]{\begin{tikzpicture}[baselinecenter,#1]\ignorespaces}{\end{tikzpicture}}
-\newcommand{\fdom}{\mathsf{domain}}
-\newcommand{\fcodom}{\mathsf{codomain}}
+\newcommand{\fdom}{\mathsf{dom}}
+\newcommand{\fcodom}{\mathsf{codom}}
 \newcommand{\semClosed}[1]{\closed\sem{#1}}
 \newcommand{\closed}{\textsf{closed}}
 \newcommand{\addRead}{\textsf{addRead}}
@@ -198,8 +198,8 @@
 \newcommand{\TRUE}{\mathsf{true}}
 \newcommand{\FALSE}{\mathsf{false}}
 
-\newcommand{\Int}{\mathsf{Internal}}
-\newcommand{\Ext}{\mathsf{External}}
+\newcommand{\Int}{\mathsf{Sil}}
+\newcommand{\Ext}{\mathsf{Ext}}
 \newcommand{\Rel}{\mathsf{Rel}}
 \newcommand{\Acq}{\mathsf{Acq}}
 \newcommand{\Act}{\mathcal{A}}
@@ -219,6 +219,9 @@
 \newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
+\newcommand{\DFS}[1]{\smash{\mathsf{F}_{\mathsf{S}}^{#1}}}
+\newcommand{\DFR}[1]{\smash{\mathsf{F}_{\mathsf{R}}^{#1}}}
+\newcommand{\DFW}[1]{\smash{\mathsf{F}_{\mathsf{W}}^{#1}}}
 \newcommand{\iDR}[3][]{\tau\DR[#1]{#2}{#3}}
 \newcommand{\iDW}[3][]{\tau\DW[#1]{#2}{#3}}
 % \newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}

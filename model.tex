@@ -1342,7 +1342,7 @@ To see this, consider that the execution above is impossible for
 \begin{definition}
   Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that
   $\aPS\in\aPSS$
-  when for every release $\aEv$ there is some $\bEv\le\aEv$
+  when for every release $\aEv$ that does not write $\aLoc$, there is some $\bEv\le\aEv$
   such that $\bEv$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLX$, let
   % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}

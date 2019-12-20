@@ -1,12 +1,15 @@
 \section{Test Cases and Additional Features}
 \label{sec:variants}
 
-In this section, we discuss test cases, then extend the model to include
-additional features: address calculation, fences, and read-modify-write
-(\RMW).  The proofs given later in the paper extend to all of these features,
-with one exception: we believe the \armeight/\tso-compilation strategy is
-correct for \RMW---it is borrowed from
-\citet{DBLP:journals/pacmpl/PodkopaevLV19}---but we have not proved it.
+After discussing a few test cases, we extend the model to include additional
+features: fences, address calculation, and read-modify-write
+(\RMW)\footnote{The proofs given later in the paper extend to all of these
+  features, with one exception: we believe the \armeight/\tso-compilation
+  strategy is correct for \RMW---it is borrowed from
+  \citet{DBLP:journals/pacmpl/PodkopaevLV19}---but have not proved it.}.  We
+then provide an alternative semantics that supports full sequential
+composition, building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and
+$\sem{\bCmd}$.
 
 \paragraph{Test Cases.}
 Our model gives the desired results for the test cases of \citet{PughWebsite},
@@ -167,31 +170,47 @@ example, by changing $x\ACQ$ to $x\RLX$ in \iriw.
 % details.
 % \textsection\ref{sec:examples} develops some of these examples.
 
-\paragraph{Silent Actions and Fences}
+\paragraph{Silent Actions and Fences.}
 
-All fence actions are internal, do not read or write.
-\begin{align*}
-  \fmode \BNFDEF& \modeREL \BNFSEP \modeACQ \BNFSEP \modeSC
-  &
-  \aCmd %,\,\bCmd
-  \BNFDEF& \FENCE^{\fmode} \SEMI \aCmd
-  \BNFSEP \cdots 
-  % \\
-  % \aCmd,\,\bCmd
-  % \BNFDEF& \cdots
-  % \BNFSEP \FENCE^{\modeREL} \SEMI \aCmd  
-  % \BNFSEP \FENCE^{\modeACQ} \SEMI \aCmd  
-  % \BNFSEP \FENCE^{\modeSC} \SEMI \aCmd  
-\end{align*}
+For the actions of a data model, we require that there is a set
+$\Int\subseteq\Act$ such that
+$\Int\cap\fdom(\rreads)=\Int\cap\fdom(\rwrites)=\emptyset$.  We say $\aAct$
+is \emph{silent} if $\aAct\in\Int$.  By definition, silent actions neither
+read nor write.
 
+To model local reads and writes, our example language includes internal
+actions of the form $\DFR{\amode}$ and $\DFW{\amode}$.  $\DFR{\amode}$ is an
+acquire if $\amode\neq\modeRLX$.  $\DFW{\amode}$ is a release if
+$\amode\neq\modeRLX$.
+
+Because the semantics of syntactic fences is subtly different from the
+fencing behavior of $\modeRA$/$\modeSC$-accesses, our example language
+includes separate internal actions for syntactic fences: $\DFS{\fmode}$.  The
+\emph{syntactic fence mode}
+$\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC$ is either
+\emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
+$\DFS{\modeREL}$ is a release. $\DFS{\modeACQ}$ is an acquire.
+$\DFS{\modeSC}$ is both a release and an acquire.
+
+As concrete syntax for commands, we write ``$\FENCE^{\fmode} \SEMI \aCmd$.''
 \begin{align*}
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
-  (\DF[\fmode]) \prefix \sem{\aCmd}
+  (\DFS[\fmode]) \prefix \sem{\aCmd}
+  \\
+  \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+  \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+  \\[-.5ex] &
+  \mkern2mu\cup
+  \,\mathhl{(\iDR[\amode]{\aLoc}{}) \;\prefix}\,\;
+  \sem{\aCmd}[\aLoc/\aReg]
+  \\
+  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+  \textstyle\PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \\[-.5ex] &
+  \mkern2mu\cup
+  \,\mathhl{(\iDW[\amode]{\aLoc}{}) \;\prefix}\,\;
+  (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
 \end{align*}
-
- The explicit use of internal actions facilitate the translation to \armeight\
-(\textsection\ref{sec:arm}) and the definitions required in the proof of
-\drfsc\ (\textsection\ref{sec:sc}).
 
 In the following, we leave out the initial writes of $0$.
 \citep[Fig 5]{DBLP:conf/pldi/LahavVKHD17}:
@@ -279,7 +298,8 @@ $\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
   \sem{\aReg\GETS{\REF{\cExp}^\amode}\SEMI \aCmd} & =
   \textstyle\bigcup_{{\cVal,\aVal}}\; {({\cExp}=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
   \\[-.5ex] & \mkern2mu\cup
-  \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+  %\text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+  (\iDR[\amode]{\aLoc}{}) \prefix
   \sem{\aCmd}[\REF{\cVal}/\aReg]
   \\[-1ex]
   \sem{{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
@@ -287,7 +307,8 @@ $\bLoc$, $\cLoc$---to range over $\REF{\cVal}$, where $\cVal$ is a value.
   &\mkern-55mu\hbox to 0pt{$\begin{aligned}
     &\textstyle\PAR_{{\cVal,\aVal}}\;{({\cExp}=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
     \\[-.5ex] & \mkern2mu\cup
-    \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+    %\text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+    (\iDW[\amode]{\aLoc}{}) \prefix
     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
   \end{aligned}$}
 \end{align*}
