@@ -334,7 +334,7 @@ In our example language, we update the syntax of commands:
 % \end{aligned}
 \end{gather*}
 
-Let us revisit the discussion of the us of \!$\PAR$\!
+Let us revisit the discussion of the use of \!$\PAR$\!
 in Candidate~\ref{def:pre-sc}.
 Note that 
 \begin{math}
@@ -367,9 +367,9 @@ in the syntax.
 
 
 Because we do not enforce order between reads, there is some danger that
-address calculations could allow thin air behavior.  To see how our model
-addresses consider the following attempted execution, where all memory
-addresses are initialized to $0$, except that $\REF{1}=2$ and $\REF{2}=1$
+address calculations could allow thin air behavior.  Consider the following
+attempted execution, where all memory addresses are initialized to $0$,
+except that $\REF{2}$ is $1$ and $\REF{1}$ is $2$:
 \begin{gather*}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
