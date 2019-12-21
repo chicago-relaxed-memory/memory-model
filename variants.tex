@@ -561,8 +561,8 @@ Here's the def for prefixing:
   $\aEv \lt' \bEv$,
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
   $\bEv \lt' \aEv$, and
-\item[6.] if $\bEv$ is an acquire then $\labelingForm(\aEv)$ is location
-  independent.
+\item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+  is location independent.
 \end{enumerate}
 
 
@@ -605,8 +605,8 @@ Here's the def for prefixing:
   $\aEv \ORDER \bEv$,
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
   $\bEv \ORDER \aEv$, and
-\item[6.] \textcolor{red}{if $\bEv$ is an acquire then $\labelingForm(\aEv)$ is location
-  independent.}
+\item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+  is location independent.
 % \item 
 %   if
 %   $\labeling^1(\cEv) = (\dontcare \mid \aSub)$, and
