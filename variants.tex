@@ -333,6 +333,38 @@ In our example language, we update the syntax of commands:
 %   \end{aligned}$}
 % \end{aligned}
 \end{gather*}
+
+Let us revisit the discussion of the us of \!$\PAR$\!
+in Candidate~\ref{def:pre-sc}.
+Note that 
+\begin{math}
+  \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
+\end{math}
+includes both of the following pomsets:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+  \qquad
+  %\\[-1.5ex]\intertext{and:}\\[-5ex]
+  \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
+      \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+\end{align*}
+By using \!$\PAR$\!, it also includes:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+      %\event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
+    \end{tikzinline}}%\;\;\cdots
+\end{gather*}
+In this example, the events that coalesce correspond to different statements
+in the syntax.
+
+
 Because we do not enforce order between reads, there is some danger that
 address calculations could allow thin air behavior.  To see how our model
 addresses consider the following attempted execution, where all memory
