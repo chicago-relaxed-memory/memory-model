@@ -278,18 +278,19 @@ Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{
   \labeling)$: %, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
+  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-    from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
     % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ when
     % $\labelingForm(\aEv)=(\aForm\mid\aAct)$,
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
   % \item ${\gtN} \subseteq (\Event\times\Event)$ is a partial order,
   % \item ${\le} \subseteq {\gtN}$ is a partial order, and
-  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$.
+    $\labelingForm(\bEv)$, and
+  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
   \end{itemize}
 \end{definition}
+From $\labeling$, we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$.
+
 We refer to ``memory model pomsets'' as \emph{pomsets} or \emph{executions}.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$, eliding
 $\aForm$ when it is a tautology.
@@ -301,44 +302,44 @@ that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
 We often elide explicit universal quantifiers in phrases such as
 ``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 
-For complete programs, we can restrict attention to events that are 
-tautological.  Richer formulae are needed for
-intermediate program fragments.
-By the last condition in the definition,
-conditions can only strengthen via $\le$.
-%if $\bEv$ is false and $\bEv\le\aEv$, then $\aEv$ must also be false.
+The ordering relation, $\le$, represents \emph{causality}.
 
-% In this paper, we are not investigating microarchitecture.  So we make the
-% global assumption formulae can only get stronger in dependent actions:
+The formula associated with an event is a \emph{precondition}.
+The following commands gives rise to the pomset below them, capturing data
+and control dependencies. %, respectively.
+\begin{align}
+  \label{ex-1}
+  \begin{gathered}
+    y\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{r=1\mid\DW{y}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    \IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{r<0\mid\DW{y}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align}
+In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
+$\bForm$ represents a set of write actions, and $\aForm$ represents their
+preconditions.  
+% Each write in a pomset corresponds to a Hoare triple, where the formulae
+% gives the precondition, and the write action gives the postcondition.  
+For example, interpreting the pomset on the left above yields
+$\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
+The fourth requirement ensures \emph{causal strengthening:} formulae do not
+weaken over time, as measured by $\le$.  
 
-% Restriction also filters a set of pomsets; we have
-% $(\nu\aLoc\DOT\aPSS)\subseteq\aPSS$.
-% The definition requires that we define
-% when a read is possible.
-
-% \begin{definition}\label{def:rf}
-%   In a pomset, $\aEv$ \emph{can read $\aLoc$ from} $\bEv$ when: 
-%   \begin{itemize}
-%   \item $\bEv \lt \aEv$,  
-%   \item $\aEv$ implies $\bEv$,
-%   \item $\bEv$ writes $\aVal$ to $\aLoc$,
-%     and $\aEv$ reads $\aVal$ from $\aLoc$, and
-%   \item if $\cEv$ writes to $\aLoc$
-%     then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-%   \end{itemize}
-% \end{definition}
-
-% \citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
-% security flaws that arise from speculative evaluation in computer
-% microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
-% We build on their work to define a model of relaxed memory
-% \emph{architecture}.  Interestingly, the model naturally captures multi-copy
-% atomicity (\mca).
-
-% In this section, we define the model, provide some intuitions about the
-% semantics, and work through a series of illustrative examples.  We present
-% precise details of the semantics in \textsection\ref{sec:model}.
+The last requirement ensures \emph{compatibility:} formulae are not mutually
+contradictory.  For complete programs, we can restrict attention to events
+that are tautological.  Richer formulae are needed for intermediate program
+fragments.
 
 The semantics of programs is given as sets of pomsets, with each pomset
 representing a completed execution.
@@ -415,34 +416,6 @@ depends on the read of $x$.
 Although we use multiple arrows, we emphasize that they are all part
 of the same $\le$ relation.
 
-The logical formulae associated with events are \emph{preconditions}.
-The following commands gives rise to the pomset below them, capturing data
-and control dependencies. %, respectively.
-\begin{align}
-  \label{ex-1}
-  \begin{gathered}
-    y\GETS r
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{r=1\mid\DW{y}{1}}{}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-    \IF{r<0}\THEN y\GETS1 \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{r<0\mid\DW{y}{1}}{}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align}
-In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
-$\bForm$ represents a set of write actions, and $\aForm$ represents their
-preconditions.  
-% Each write in a pomset corresponds to a Hoare triple, where the formulae
-% gives the precondition, and the write action gives the postcondition.  
-For example, interpreting the pomset on the left above yields
-$\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
 
 \paragraph{Semantics of the Example Language.}
@@ -492,9 +465,6 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \end{align*}
 \end{definition}
 
-%\paragraph{Fulfillment and Location Binding.}
-At the point a location is bound, every read must be \emph{fulfilled} by a
-matching write:
 
 \begin{definition}
   \label{def:rf}
@@ -518,8 +488,10 @@ matching write:
 \end{align*}
 \end{definition}
 
-At top-level, fulfillment imposes a total order on conflicting writes that
-are read, but need not order unread writes:
+%\paragraph{Fulfillment and Location Binding.}
+At the point a location is bound, every read must be \emph{fulfilled} by a
+matching write.  At top-level, fulfillment imposes a total order on
+conflicting writes that are read, but need not order unread writes:
 \begin{gather*}
   x\GETS 3
   \PAR
@@ -675,12 +647,46 @@ for address calculation, which is required by realistic memory allocators.
 % \end{displaymath}
 
 %\paragraph{Composition, Concurrency and Conditional.}
-Conditional execution and concurrency are defined using filtering, which
-selects pomsets satisfying a formula, and composition.  Composition is
-roughly union, ensuring that the combined events are compatible.
+\begin{definition}
+  % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
+  % $\Event' \subseteq \Event^1 \cup \Event^2$,
+  % $\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is satisfiable, and for
+  % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
+  % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
+  % unsatisfiable.
+  Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
+%$\Event' \subseteq \COMPAT(\aPS^1,\,\aPS^2)$,
+$\Event' \subseteq \Event^1 \cup \Event^2$,
+%$\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid \exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
+$\Event' \supseteq \{ \bEv \in \Event^i \mid \exists\aEv\in\Event'.\; \bEv\le^i\aEv\}$,
+${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
+either:
+\begin{gather*}
+  \begin{aligned}
+    \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+    &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+  \end{aligned}
+  \\
+%\end{gather*}
+% if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
+% $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
+% \labelingForm^2(\aEv)$ is unsatisfiable.
+%\begin{gather*}
+\begin{aligned}
+  \sem{\aCmd \PAR \bCmd} & \eqdef
+  \sem{\aCmd} \parallel \sem{\bCmd} 
+\end{aligned}
+\end{gather*}
+\end{definition}
+
+Concurrent composition is roughly union.  Because of the compatibility
+requirement in Definition~\ref{def:mmpomset}, we must not include events with
+contradictory preconditions.
 % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
 % $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
-For example, consider:
+Consider:
 \begin{align*}
 \begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
@@ -698,80 +704,55 @@ For example, consider:
     \end{tikzinline}}
 \end{gathered}
 \end{align*}
-Putting these in parallel, we allow events with the same label to coalesce,
-taking the disjunction of their preconditions.  Thus, the semantics includes:
-\begin{tikzdisplay}[node distance=1em]
+Putting these in parallel, we may include one of the two events, but not
+both.  We also allow events with the same label to coalesce, taking the
+disjunction of their preconditions.  Thus, the semantics of the combined
+program also includes:
+\begin{gather*}
+  % \IF{r<0}\THEN y\GETS1\FI
+  % \PAR
+  % \IF{r\geq0}\THEN y\GETS1\FI
+  % \\
+  \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
-\end{tikzdisplay}
-Coalesced events inherit order from both sides of the composition.
-Thus, if
-$\aPSS^1$ and $\aPSS^2$ contain:
-\begin{tikzdisplay}[node distance=1em]
-  \event{a}{\aForm \mid \aAct}{}
-  \event{b}{\bForm^1 \mid \bAct}{right=of a}
-  \po{a}{b}
-  \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
-  \event{c2}{\cForm \mid \cAct}{right=of b2}
-  \po{b2}{c2}
-\end{tikzdisplay}
-then $\aPSS^1 \parallel \aPSS^2$ contains:
-\begin{tikzdisplay}[node distance=1em]
-  \event{a}{\aForm \mid \aAct}{}
-  \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
-  \event{c}{\cForm \mid \cAct}{right=of b}
-  \po{a}{b}
-  \po{b}{c}
-\end{tikzdisplay}
+    \end{tikzinline}}
+\end{gather*}
+Coalesced events inherit order from both sides.
+
+The definition ensures $\Event'$ is downclosed w.r.t.~each $\Event^i$.
+% Thus, if
+% $\aPSS^1$ and $\aPSS^2$ contain:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \mid \bAct}{right=of a}
+%   \po{a}{b}
+%   \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
+%   \event{c2}{\cForm \mid \cAct}{right=of b2}
+%   \po{b2}{c2}
+% \end{tikzdisplay}
+% then $\aPSS^1 \parallel \aPSS^2$ contains:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{a}{b}
+%   \po{b}{c}
+% \end{tikzdisplay}
+
 
 \begin{definition}
   Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
   $\aEv\in\Event$. 
-
-  % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
-  % $\Event' \subseteq \Event^1 \cup \Event^2$,
-  % $\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is satisfiable, and for
-  % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
-  % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
-  % unsatisfiable.
-
-  Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
-when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
-%$\Event' \subseteq \COMPAT(\aPS^1,\,\aPS^2)$,
-$\Event' \subseteq \Event^1 \cup \Event^2$,
-$\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid
-\exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
-${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
-either:
-\begin{gather*}
-  \begin{aligned}
-    \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
-    &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
-    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
-  \end{aligned}
-  \\
-%\end{gather*}
-% if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
-% $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
-% \labelingForm^2(\aEv)$ is unsatisfiable.
-%\begin{gather*}
-\begin{aligned}
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
+  \begin{align*}
+    \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
   \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
-  \\
-  \sem{\aCmd \PAR \bCmd} & \eqdef
-  \sem{\aCmd} \parallel \sem{\bCmd} 
-\end{aligned}
-\end{gather*}
+\end{align*}
 \end{definition}
-
-For an example using the first clause in the definition of composition,
- $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
-\begin{tikzdisplay}[node distance=1em]
-  \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
-\end{tikzdisplay}
-
-The design of the semantics is driven by Hoare rule for conditionals:
+Conditional execution is defined using \emph{filtering}, which selects the
+subset of pomsets that imply a formula, and composition, which allows
+coalescing using disjunction, as discussed above.  This reflects the Hoare
+rule for conditionals:
 \begin{displaymath}
   \frac{
     \hoare{\aExp}{\aCmd}{\bForm}
@@ -781,6 +762,119 @@ The design of the semantics is driven by Hoare rule for conditionals:
     \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
   }
 \end{displaymath}
+%  For an example
+% using the first clause in the definition of composition,
+% $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
+% \end{tikzdisplay}
+
+% Conditional execution and concurrency are defined using filtering, which
+% selects pomsets satisfying a formula, and composition.  Composition is
+% roughly union, ensuring that the combined events are compatible.
+% % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+% % $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
+% For example, consider:
+% \begin{align*}
+% \begin{gathered}
+%   \IF{r<0}\THEN y\GETS1\FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{wx1}{r<0\mid\DW{y}{1}}{}
+%     \end{tikzinline}}
+% \end{gathered}
+% &&
+% \begin{gathered}
+%   \IF{r\geq0}\THEN y\GETS1\FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
+%     \end{tikzinline}}
+% \end{gathered}
+% \end{align*}
+% Putting these in parallel, we allow events with the same label to coalesce,
+% taking the disjunction of their preconditions.  Thus, the semantics includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
+% \end{tikzdisplay}
+% Coalesced events inherit order from both sides of the composition.
+% Thus, if
+% $\aPSS^1$ and $\aPSS^2$ contain:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \mid \bAct}{right=of a}
+%   \po{a}{b}
+%   \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
+%   \event{c2}{\cForm \mid \cAct}{right=of b2}
+%   \po{b2}{c2}
+% \end{tikzdisplay}
+% then $\aPSS^1 \parallel \aPSS^2$ contains:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{a}{b}
+%   \po{b}{c}
+% \end{tikzdisplay}
+
+% \begin{definition}
+%   Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
+%   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
+%   $\aEv\in\Event$. 
+
+%   % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
+%   % $\Event' \subseteq \Event^1 \cup \Event^2$,
+%   % $\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is satisfiable, and for
+%   % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
+%   % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
+%   % unsatisfiable.
+
+%   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+% when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
+% %$\Event' \subseteq \COMPAT(\aPS^1,\,\aPS^2)$,
+% $\Event' \subseteq \Event^1 \cup \Event^2$,
+% $\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid
+% \exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
+% ${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
+% either:
+% \begin{gather*}
+%   \begin{aligned}
+%     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+%     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+%     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+%   \end{aligned}
+%   \\
+% %\end{gather*}
+% % if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
+% % $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
+% % \labelingForm^2(\aEv)$ is unsatisfiable.
+% %\begin{gather*}
+% \begin{aligned}
+%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
+%   \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
+%   \\
+%   \sem{\aCmd \PAR \bCmd} & \eqdef
+%   \sem{\aCmd} \parallel \sem{\bCmd} 
+% \end{aligned}
+% \end{gather*}
+% \end{definition}
+
+% For an example using the first clause in the definition of composition,
+%  $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
+% \end{tikzdisplay}
+
+% The design of the semantics is driven by Hoare rule for conditionals:
+% \begin{displaymath}
+%   \frac{
+%     \hoare{\aExp}{\aCmd}{\bForm}
+%     \quad
+%     \hoare{\lnot\aExp}{\bCmd}{\bForm}
+%   }{
+%     \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
+%   }
+% \end{displaymath}
 
 % As a result of the definition, the operators commute:
 % \begin{displaymath}
@@ -852,7 +946,7 @@ actions.  Before doing that, we consider non-trivial expressions, writing the
 definition of prefixing more carefully this time.  We highlight some of the changes:
 
 %\paragraph{Program Order Prefixing.}
-\begin{candidate}
+\begin{definition}
   \label{def:pre-sc}
 Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
@@ -868,7 +962,9 @@ there is $\aPS\in\aPSS$ such that:
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
 \item[5.] $\bEv \lt' \aEv$, 
 \end{enumerate}
-\vspace{-1ex}
+\end{definition}
+\vspace{-2ex}
+\begin{candidate}\ \vspace{-1ex}
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
@@ -932,9 +1028,8 @@ By using \!$\PAR$\! in the definition of write, it also includes:
 \end{gather*}
 An alternate definition using $\cup$ would exclude this pomset.
 
-Given that the conditional is defined using \!$\PAR$\!, the use of
-\!$\PAR$\! in the definition of write is necessary to validate \emph{case
-  analysis}:
+Given that the conditional is defined using \!$\PAR$\!, the use of \!$\PAR$\!
+in the definition of write is necessary to validate \emph{case analysis}:
 \begin{math}
   \sem{\aCmd}
   =
@@ -1102,7 +1197,7 @@ resulting pomset has a read event that must be \emph{fulfilled}.
 
 \paragraph{General Prefixing.}
 
-We now relax item 5 of Candidate \ref{def:pre-sc} so that only some program
+We now relax item 5 of Definition \ref{def:pre-sc} so that only some program
 order is {preserved} in the pomset, arriving at the final definition of
 the prefix operator: % and our last failed candidate semantics.
 \begin{definition}
@@ -1112,7 +1207,7 @@ either reads or writes the same location.
 
 Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ that satisfies the items 1-4 of
-Candidate \ref{def:pre-sc} and:
+Definition \ref{def:pre-sc} and:
 \begin{enumerate}
 \item[5a.] if %$\bEv$ \externally reads and
   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
@@ -1125,8 +1220,8 @@ Candidate \ref{def:pre-sc} and:
   is location independent.
 \end{enumerate}
 \end{definition}
-\begin{candidate}
-  %\vspace{-1ex}
+\vspace{-2ex}
+\begin{candidate}\ \vspace{-1ex}
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
@@ -1264,15 +1359,17 @@ by the triple $\hoare{x=1}{\aCmd}{y=1}$, rather than by the value of the read
 action.  Nonetheless, item 4b requires that the value of the read action must
 be compatible with subsequent formulae.  In this example, the write
 precondition must be unsatisfiable if a negative number is read:
-\begin{gather*}
+\begin{gather}
+  \ref{ex555}
   r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
   \\
+  \nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
       \nonevent{wy1}{{-2}\geq0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{{-2}}}{left=of wy1}
       % \po{rx1}{wy1}
     \end{tikzinline}}
-\end{gather*}
+\end{gather}
 
 The substitution in the semantics of write allows
 preconditions to be satisfied without imposing order:
@@ -1380,7 +1477,7 @@ write action when a write is only used to match local reads.  We treat
 relaxed access in this section, extending to $\modeRA$/$\modeSC$-access after
 introducing fences in \textsection\ref{sec:variants}.
 We first give the semantics of read.
-\begin{definition}
+\begin{definition} \ \vspace{-1ex}
   \label{def:rw:local}
   \begin{align*}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
@@ -1443,6 +1540,49 @@ To see this, consider that the execution above is impossible for
   \PAR
   x\GETS z.
 \end{math}
+
+As in \eqref{ex555}, Item 4b (Definition \ref{def:pre-sc}) ensures that
+intervening writes are not ignored:
+\begin{math}
+  x\GETS 0\SEMI x\GETS 1\SEMI y\GETS x
+\end{math}
+cannot write 0.
+% NEED TO MAKE THIS POINT:
+% So consider the single threaded program
+
+% x=4; x=5; y=x;
+
+% Clearly, this should not be able to give us Wy1.
+% Here is why that is not possible:
+
+% [[ y=1 ]] contains (Wy1)
+
+% [[ if(r==4){y=1} ]] contains (r==4|Wy1)
+
+% [[ r=x; if(r==4){y=1} ]] contains (Rx5)  (x==4|Wy1) // with no order
+
+% [[ x=5; r=x; if(r==4){y=1} ]] contains (Wx5)-->(Rx5)  (5==4|Wy1) // 5 is forced.
+
+
+% Consider the program variant:
+
+% x=0; r=x; if(r<2){y=1} || x=5
+
+% [[ y=1 ]] contains (Wy1)
+
+% [[ if(r<2){y=1} ]] contains (r<2|Wy1)
+
+% [[ r=x; if(r<2){y=1} ]] contains (Rx5)  (x<2|Wy1)  //with no order
+
+% [[ x=0; r=x; if(r<2){y=1} ]] contains (Wx0)  (Rx5)  (x<2|Wy1) //does not work, since violates (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥].
+
+
+% 6. if 𝑎 externally reads 𝑣 from 𝑥 then both 
+% (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥], and 
+% (6b) if 𝑒 is a write then either 𝑐 <′ 𝑒 or 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)
+
+
+
 
 
 \begin{definition}
