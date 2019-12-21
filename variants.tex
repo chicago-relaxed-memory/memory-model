@@ -340,7 +340,8 @@ Note that
 \begin{math}
   \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
 \end{math}
-includes both of the following pomsets:
+includes both of the following pomsets (``$\BANG \aExp$'' evaluates to $1$ if
+$\aExp$ is $0$, and $0$ otherwise):
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=.2em]
       \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
@@ -565,7 +566,6 @@ Here's the def for prefixing:
   is location independent.
 \end{enumerate}
 
-
 \begin{definition}
   \label{def:semi:seq}
   Let $\aPS' \in (\aPSS^1 \sequence \aPSS^2)$ whenever there are
@@ -627,7 +627,16 @@ Here's the def for prefixing:
 \end{definition}
 
 
-NOTE: in defining equivalence, we drop incompatible worlds.
+\begin{verbatim}
+Plan: 
+  a.  Define pom1; pom2  for pomsets
+  b.  [| C1 ; C2 |] = cup { pom1; pom2 | pom1 in C1, pom2 in C2}
+
+Def:
+   pom1; pom2
+             cup_L  L prefix pom2 
+             where L is a  linearization of pom1
+\end{verbatim}
 
 % \section{Variations}
 
