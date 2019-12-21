@@ -458,9 +458,12 @@ be a set of \emph{substitutions}, ranged over by $\aSub$ and $\bSub$.  We
 require that substitutions are closed under composition, and include at least
 $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$.
 
-Substitutions track dependencies.  To give a sensible definition for
-concurrency, we must break the asymmetry of \!$\PAR$\!.  Arbitrarily, we keep
-the state of the thread on the left.
+Substitutions track dependencies.  A pomset should have at most one
+substitution.
+
+To give a sensible definition for concurrency, we must
+break the asymmetry of \!$\PAR$\!.  Arbitrarily, we keep the state of the
+thread on the left.
 
   Let $\killS(\aPS)=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}$.
 
@@ -478,8 +481,10 @@ the state of the thread on the left.
 Relative to the previous definitions, the base cases are handled as follows:
 \begin{itemize}
 \item $\sem{\SKIP}$ introduces an empty substitution.
-\item $\sem{\aReg\GETS\aLoc}$ introduces the substitution $[\aLoc/\aReg]$,
-  ordered after any new read action (but not a silent action).
+\item $\sem{\aReg\GETS\aLoc}$ introduces the substitution $[\aVal/\aReg]$,
+  ordered after the new read action $(\DR{\aLoc}{\aVal})$, 
+\item $\sem{\aReg\GETS\aLoc}$ introduces the substitution $[\aLoc/\aReg]$
+  when including a silent action, without order.
 \item $\sem{\aLoc\GETS\aExp}$ introduces $[\aExp/\aLoc]$,
   without order.
 \end{itemize}
@@ -532,26 +537,32 @@ Here's the def for prefixing:
 \begin{definition}
   \label{def:semi:seq}
   Let $\aPS' \in (\aPSS^1 \sequence \aPSS^2)$ whenever there are
-  $\aPS^1 \in \aPSS^1$ and
-  $\{\aPS^{\cEv}\in\aPSS^2 \mid \cEv\in\Event^1\cap\Sub\}$, such that the
-  following hold.  We use several conventions:
-  Let $\aSub_{\cEv}=\labelingAct^1(\cEv)$.
-  Let $\bEv\in\killS(\aPS^1)$.
-  Let $\aEv\in\biguplus_{\cEv}\Event^{\cEv}$.
-  Let $\bEv\ORDER\aEv$ if either $\bEv \lt' \aEv$ or $\aEv\in\Event^{\cEv}$
-  and $\bEv\not\le^1\cEv$. %, for some $\cEv$.
+  $\aPS^1 \in \aPSS^1$,
+  $\cEv\in\Event^1\cap\Sub$, and
+  $\aPS^2\in\aPSS^2$, such that the
+  following hold.
+  %We use several conventions:
+  %Let $\aSub_{\cEv}=\labelingAct^1(\cEv)$.
+  Let $\bEv$ range over $\Event^1\setminus\cEv$, and
+   $\aEv$ range over $\biguplus_{\cEv}\Event^2$.
+  % Let $\bEv\ORDER\aEv$ if either $\bEv \lt' \aEv$ or $\aEv\in\Event^{\cEv}$
+  % and $\bEv\not\le^1\cEv$. %, for some $\cEv$.
 \begin{enumerate}
-\item[1.] $\Event' = \killS(\aPS^1) \uplus \biguplus_{\cEv}\Event^{\cEv}$,
-\item[2.] ${\le'}\supseteq{\le^1}\cup\bigcup_{\cEv}{\le^{\cEv}}$, 
+\item[1.] $\Event' = \Event^1\setminus\cEv \uplus \Event^2$,
+\item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
-\item[4a.] $\labelingAct'(\aEv) = \labelingAct^{\cEv}(\aEv)$,
-\item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-  $\labelingForm'(\aEv)$ implies $\labelingForm^{\cEv}(\aEv)[\aVal/\aLoc]$,
-\item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
-  implies $\labelingForm^{\cEv}(\aEv)$,
-\item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm^{\cEv}(\aEv)$ and
-  $\aEv$ writes, then $\bEv\ORDER\aEv$,
+\item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
+\item[4a2.] $\labelingAct'(\aEv) = \labelingAct^1(\aEv)
+  \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, ($\aSub$-composition)
+\item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)\aSub$, where
+  $\aSub=\labelingAct^1(\cEv)$,
+% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
+% \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
+%   implies $\labelingForm^2(\aEv)$,
+\item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm^2(\aEv)$ and
+  $\aEv$ writes, then $\cEv\ORDER\aEv$,
 \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
   $\bEv\ORDER\aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then
@@ -562,21 +573,20 @@ Here's the def for prefixing:
   $\aEv \ORDER \bEv$,
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
   $\bEv \ORDER \aEv$, and
-\item[6.] if $\bEv$ is an acquire then $\labelingForm(\aEv)$ is location
-  independent.
-\item[7.] 
-\item 
-  if
-  $\labeling^1(\cEv) = (\dontcare \mid \aSub)$, and
-  $\labeling^{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
-  $\labeling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
-  \begin{itemize}
-  \item $\bForm'$ implies
-    $\lor\{\labelingForm^1(\dEv)\mid \dEv\in\ESub^1 \land \aEv\in\aPS^{\dEv} \}$,
-  \item $\bForm'$ implies $\bForm\aSub$, and
-  \item either $\bForm'$ implies $\bForm$ or $\bEv\lt^1\cEv$ implies $\bEv\lt'\aEv$.
-    %$\bEv\in\EAct^1$ such that.
-  \end{itemize}
+\item[6.] \textcolor{red}{if $\bEv$ is an acquire then $\labelingForm(\aEv)$ is location
+  independent.}
+% \item 
+%   if
+%   $\labeling^1(\cEv) = (\dontcare \mid \aSub)$, and
+%   $\labeling^2(\aEv) = (\bForm \mid \bActSub)$ then
+%   $\labeling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
+%   \begin{itemize}
+%   \item $\bForm'$ implies
+%     $\lor\{\labelingForm^1(\dEv)\mid \dEv\in\ESub^1 \land \aEv\in\aPS^{\dEv} \}$,
+%   \item $\bForm'$ implies $\bForm\aSub$, and
+%   \item either $\bForm'$ implies $\bForm$ or $\bEv\lt^1\cEv$ implies $\bEv\lt'\aEv$.
+%     %$\bEv\in\EAct^1$ such that.
+%   \end{itemize}
 \end{enumerate}
 \begin{gather*}
   \sem{\aCmd \SEQ \bCmd}
