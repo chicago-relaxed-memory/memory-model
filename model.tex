@@ -1103,8 +1103,8 @@ resulting pomset has a read event that must be \emph{fulfilled}.
 \paragraph{General Prefixing.}
 
 We now relax item 5 of Candidate \ref{def:pre-sc} so that only some program
-order is {preserved} in the pomset.  We arrive at our final definition of
-prefixing and our last failed candidate semantics.
+order is {preserved} in the pomset, arriving at the final definition of
+the prefix operator: % and our last failed candidate semantics.
 \begin{definition}
   \label{def:prefix}
 Two actions \emph{conflict} if one writes a location and the other
@@ -1121,7 +1121,7 @@ Candidate \ref{def:pre-sc} and:
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
 \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
-\item[6.] if $\bEv$ is an acquire then $\labelingForm(\aEv)$
+\item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
   is location independent.
 \end{enumerate}
 \end{definition}
@@ -1488,10 +1488,9 @@ executions such as:
   \rf[out=10,in=170]{a1}{b2}
     \end{tikzinline}}
 \end{gather*}
-Symmetrically, item 6 of Definition \ref{def:prefix}
-ensures that local reads are not matched to
-local writes when there is an intervening acquire.  This prevents bad
-executions such as:
+Symmetrically, item 6 of Definition \ref{def:prefix} ensures that local reads
+are not matched to local writes that could be blocked by another thread.
+This prevents bad executions such as:
 \begin{gather*}
   x\GETS1 \SEMI
   a\REL\GETS1 \SEMI
