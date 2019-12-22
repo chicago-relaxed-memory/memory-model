@@ -368,6 +368,9 @@ are closed with respect to \emph{augmentation}, \emph{implication}, and
   ${\le'}={\le}\restrict{\Event'}$, and
   ${\labeling'}={\labeling}\restrict{\Event'}$.
   % 
+  Let $\aPS'\in\PRE(\aPSS)$ if  $\aPS'$ is a
+  prefix of  $\aPS \in \aPSS$.
+  %
   % Let
   % $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
   % $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
@@ -664,11 +667,8 @@ for address calculation, which is required by realistic memory allocators.
   % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
   % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
   % unsatisfiable.
-  Let $\aPS'\in\PRE(\aPSS)$ if  $\aPS'$ is a
-  prefix of  $\aPS \in \aPSS$.
-
   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
-  when there are $\aPS^i \in \PRE(\aPSS^i)$ %and $\aPS^2 \in \PRE(\aPSS^2)$
+  when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$
   such that
 $\Event' = \Event^1 \cup \Event^2$,
 ${\le'}\supseteq{\le^1}\cup{\le^2}$, and for all $\aEv\in\Event'$,
