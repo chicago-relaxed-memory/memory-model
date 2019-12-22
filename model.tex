@@ -295,7 +295,7 @@ We refer to ``memory model pomsets'' as \emph{pomsets} or \emph{executions}.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$, eliding
 $\aForm$ when it is a tautology.
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
-We identify pomsets up to isomorphism. We write the empty pomset as $\emptypomset$.
+We identify pomsets up to isomorphism. %We write the empty pomset as $\emptypomset$.
 
 We lift terminology from logical formulae and actions to events, saying, for example,
 that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
@@ -910,8 +910,8 @@ final definition.  We begin by considering programs with trivial expressions.
 % sequentially consistent.
 \begin{candidate}
   \label{def:rw:sc1}
-  Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set $\aPSS'$ where
-  $\aPS'\in\aPSS'$ when $\aPS'=\emptypomset$ or there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
+  Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set $\PRE(\aPSS')$ where
+  $\aPS'\in\aPSS'$ when there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
   new event %with the given label
   that precedes all of the events in $\aPS$.
   \begin{align*}
@@ -966,8 +966,8 @@ definition of prefixing more carefully this time.  We highlight some of the chan
 %\paragraph{Program Order Prefixing.}
 \begin{definition}
   \label{def:pre-sc}
-Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where
-$\aPS'\in\aPSS'$ when $\aPS'=\emptypomset$ or
+Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\PRE(\aPSS')$ where
+$\aPS'\in\aPSS'$ when 
 there is $\aPS\in\aPSS$ such that:
 \begin{enumerate}
 \item\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
@@ -1225,12 +1225,10 @@ the prefix operator: % and our last failed candidate semantics.
 Two actions \emph{conflict} if one writes a location and the other
 either reads or writes the same location.
 
-Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where
+Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE(\aPSS')$ where
 $\aPS'\in\aPSS'$ when
-$\aPS'=\emptypomset$ or
-there is $\aPS\in\aPSS$ such
-that satisfies items 1-4 of
-Definition \ref{def:pre-sc} and:
+there is $\aPS\in\aPSS$ that satisfies items 1-4 of
+Definition \ref{def:pre-sc} such that:
 \begin{enumerate}
 \item[5a.] if %$\bEv$ \externally reads and
   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
