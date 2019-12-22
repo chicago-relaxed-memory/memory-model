@@ -486,39 +486,68 @@ following, which is allowed by \armeight{}
     \end{tikzinline}}
 \end{gather*}
 
-\paragraph{Sequential Composition.}  In a data model, let $\Sub\subseteq\Int$
-be a set of \emph{substitutions}, ranged over by $\aSub$ and $\bSub$.  We
-require that substitutions are closed under composition, and include at least
-$[\aLoc/\aReg]$ and $[\aExp/\aLoc]$.
+\paragraph{Sequential Composition.}
+For clarity, we do not include address calculation in this subsection.
+The extension is obvious.
 
-Pomsets have at most one substitution. Substitutions track dependencies for
-the follower.  There may not be any events following a substitution.
+We introduce explicit substitutions,
+following the conventions of \citet{DBLP:conf/icalp/RitterP97}: 
+\begin{align*}
+  \aLocReg\!\!\BNFDEF\!\! \aLoc \!\BNFSEP\! \aReg
+  &&
+  \aSub,\,\bSub\!\!\BNFDEF\!\! \SUBEMP \!\BNFSEP\! \SUBPAR{\aSub}{\aExp/\aLocReg}
+  \!\BNFSEP\! \aSub\SUBSEQ\bSub
+\end{align*}
+We write application as $\aForm\SUBAPP\aSub$ and write
+$\SUBPAR{\SUBEMP}{\aExp/\aLocReg}$ as $\SUB{\aExp/\aLocReg}$.  The definition
+of application is not complicated our lack of support for renaming locations:
+We only apply substitutions to formulae, which have no binders.
 
-To give a sensible definition for concurrency, we must
-break the asymmetry of \!$\PAR$\!.  Arbitrarily, we keep the state of the
-thread on the left.
+% Goal:
+% \begin{math}
+%   (\aForm\aSub)\bSub =
+%   \aForm(\aSub;\bSub)
+% \end{math}
+% Pure substitution: $\fdom(\aSub)$ disjoint $\fcodom(\aSub)$.
+% Pure substitutions are idempotent.
+% $\aSub$ and $\bSub$ are composable if $\fdom(\aSub)$ disjoint $\fcodom(\bSub)$
+% \begin{displaymath}
+%   (\aSub;\bSub)(x) =
+%   \begin{cases}
+%     \aSub(\bSub(x)) & \text{if } x \in \fdom(\bSub)\\
+%     \aSub(x) & \text{otherwise}
+%   \end{cases}
+% \end{displaymath}
 
-  Let $\killS(\aPS)=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}$.
+Let $\Sub$ be the set of all (explicit) substitutions.  In a data model,
+substitutions are silent actions: $\Sub\subseteq\Int$.  Pomsets may contain
+at most one event $\cEv$ with a label in $\Sub$, and that may be no
+$\aEv\gt\cEv$.
 
-  Let $\killS(\aPSS)=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}$.
-  % Let $\killS(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
-  % there is $\aPS\in\aPSS$ such that:
-  % $\Event' = \{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}$ and the
-  % relations of $\aPS'$ are derived from $\aPS$ by restricting to $\Event'$.
-  \begin{gather*}
-    \sem{\aCmd \LPAR \bCmd}
-    = \sem{\aCmd} \parallel \killS\sem{\bCmd}
-  \end{gather*}
+Substitutions track dependencies for the follower.
+
+To express concurrency under these constraints, we must break the asymmetry
+of \!$\PAR$\!.  Arbitrarily, we choose to keep the substitution on the left:
+\begin{gather*}
+  \begin{aligned}
+    \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
+    &
+    \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
+  \end{aligned}
+  \\[-.5ex]
+  \sem{\aCmd \LPAR \bCmd}
+  = \sem{\aCmd} \parallel \killS\sem{\bCmd}
+\end{gather*}
 
 
 Relative to the previous definitions, the base cases are handled as follows:
 \begin{itemize}
-\item $\sem{\SKIP}$ introduces an empty substitution,
-\item $\sem{\aLoc\GETS\aExp}$ introduces $[\aExp/\aLoc]$,
-\item $\sem{\aReg\GETS\aExp}$ introduces $[\aExp/\aReg]$,
-\item $\sem{\aReg\GETS\aLoc}$, local rule, introduces $[\aLoc/\aReg]$,
+\item $\sem{\SKIP}$ introduces the identity substitution,
+\item $\sem{\aLoc\GETS\aExp}$ introduces $\SUB{\aExp/\aLoc}$,
+\item $\sem{\aReg\GETS\aExp}$ introduces $\SUB{\aExp/\aReg}$,
+\item $\sem{\aReg\GETS\aLoc}$, local rule, introduces $\SUB{\aLoc/\aReg}$,
 \item $\sem{\aReg\GETS\aLoc}$, nonlocal rule, introduces
-  $(\DR{\aLoc}{\aVal}) \le [\aVal/\aReg]$.
+  $(\DR{\aLoc}{\aVal}) \lt \SUB{\aVal/\aReg}$.
 \end{itemize}
 % Base cases:
 % \begin{align*}
@@ -537,48 +566,33 @@ Relative to the previous definitions, the base cases are handled as follows:
 %   \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
 % \end{align*}
 
-Goal:
-\begin{math}
-  (\aForm\aSub)\bSub =
-  \aForm(\aSub;\bSub)
-\end{math}
-Pure substitution: $\fdom(\aSub)$ disjoint $\fcodom(\aSub)$.
-Pure substitutions are idempotent.
-$\aSub$ and $\bSub$ are composable if $\fdom(\aSub)$ disjoint $\fcodom(\bSub)$
-\begin{displaymath}
-  (\aSub;\bSub)(x) =
-  \begin{cases}
-    \aSub(\bSub(x)) & \text{if } x \in \fdom(\bSub)\\
-    \aSub(x) & \text{otherwise}
-  \end{cases}
-\end{displaymath}
 
-Here's the def for prefixing:
-\begin{enumerate}
-\item[1.] $\Event' = \Event \uplus \{\bEv\}$,
-\item[2.] ${\le'}\supseteq{\le}$,
-\item[3a.] $\labelingAct'(\bEv) = \aAct$,
-\item[3b.] $\labelingForm'(\bEv)$ implies $\aForm$,
-\item[4a.] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-\item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
-  implies $\labelingForm(\aEv)$, 
-\item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and
-  $\aEv$ writes, then $\bEv\lt'\aEv$,
-\item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
-  $\bEv\lt'\aEv$,
-\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then
-  $\bEv \lt' \aEv$,
-\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
-  $\bEv \lt' \aEv$, 
-\item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
-  $\aEv \lt' \bEv$,
-\item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
-  $\bEv \lt' \aEv$, and
-\item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
-  is location independent.
-\end{enumerate}
+% Here's the def for prefixing:
+% \begin{enumerate}
+% \item[1.] $\Event' = \Event \uplus \{\bEv\}$,
+% \item[2.] ${\le'}\supseteq{\le}$,
+% \item[3a.] $\labelingAct'(\bEv) = \aAct$,
+% \item[3b.] $\labelingForm'(\bEv)$ implies $\aForm$,
+% \item[4a.] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
+% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+% \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
+%   implies $\labelingForm(\aEv)$, 
+% \item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and
+%   $\aEv$ writes, then $\bEv\lt'\aEv$,
+% \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
+%   $\bEv\lt'\aEv$,
+% \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then
+%   $\bEv \lt' \aEv$,
+% \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
+%   $\bEv \lt' \aEv$, 
+% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
+%   $\aEv \lt' \bEv$,
+% \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
+%   $\bEv \lt' \aEv$, and
+% \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+%   is location independent.
+% \end{enumerate}
 
 \begin{definition}
   \label{def:semi:seq}
@@ -594,9 +608,8 @@ Here's the def for prefixing:
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^2(\aEv);\labelingAct^1(\cEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
-\item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)\aSub$, where
-  $\aSub=\labelingAct^1(\cEv)$,
+\item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^2(\aEv)\SUBSEQ\labelingAct^1(\cEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+\item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)\SUBAPP\labelingAct^1(\cEv)$,
 % \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
 %   $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
 % \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
@@ -623,7 +636,7 @@ Here's the def for prefixing:
 \end{definition}
 
 
-\begin{verbatim}
+\begin{comment}
 Plan: 
   a.  Define pom1; pom2  for pomsets
   b.  [| C1 ; C2 |] = cup { pom1; pom2 | pom1 in C1, pom2 in C2}
@@ -632,7 +645,7 @@ Def:
    pom1; pom2
              cup_L  L prefix pom2 
              where L is a  linearization of pom1
-\end{verbatim}
+\end{comment}
 
 % \section{Variations}
 

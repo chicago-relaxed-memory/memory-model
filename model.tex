@@ -75,11 +75,10 @@ We require that data models satisfy the following:
 \item formulae are closed under negation, conjunction, disjunction, and
   substitution\footnote{Since formulae are closed under substitutions of the
     form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
-    $(\aEExp=\aVal)$  where $\aEExp$ is an \emph{extended expression} that includes memory locations.}, and
-   %and $(\REF{\aEExp}=\aLoc)$,
-   % We elide the details.  By composition of the closure
-    % conditions, formulae must also be closed under that substitutions of the
-    % form $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.
+    $(\aEExp=\aVal)$ where $\aEExp$ is an \emph{extended expression} that
+    includes memory locations.  By composition, formulae must also be closed
+    under that substitutions of the form
+    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
 \item there is a relation $\vDash$ between formulae.
 \end{itemize}
 
@@ -369,7 +368,7 @@ are closed with respect to \emph{augmentation}, \emph{implication}, and
   ${\labeling'}={\labeling}\restrict{\Event'}$.
   
   Let $\aPS'\in\PRE(\aPSS)$ if  $\aPS'$ is a
-  prefix of  $\aPS \in \aPSS$.
+  prefix of some $\aPS \in \aPSS$.
   %
   % Let
   % $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
@@ -1227,8 +1226,8 @@ either reads or writes the same location.
 
 Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE(\aPSS')$ where
 $\aPS'\in\aPSS'$ when
-there is $\aPS\in\aPSS$ that satisfies items 1-4 of
-Definition \ref{def:pre-sc} and:
+there is some $\aPS\in\aPSS$ that satisfies items 1-4 of
+Definition \ref{def:pre-sc} such that:
 \begin{enumerate}
 \item[5a.] if %$\bEv$ \externally reads and
   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
