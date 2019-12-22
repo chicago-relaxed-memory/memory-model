@@ -491,8 +491,8 @@ be a set of \emph{substitutions}, ranged over by $\aSub$ and $\bSub$.  We
 require that substitutions are closed under composition, and include at least
 $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$.
 
-Substitutions track dependencies.  A pomset should have at most one
-substitution.
+Pomsets have at most one substitution. Substitutions track dependencies for
+the follower.  There may not be any events following a substitution.
 
 To give a sensible definition for concurrency, we must
 break the asymmetry of \!$\PAR$\!.  Arbitrarily, we keep the state of the
@@ -582,11 +582,12 @@ Here's the def for prefixing:
 
 \begin{definition}
   \label{def:semi:seq}
-  Let $\aPS' \in (\aPSS^1 \sequence \aPSS^2)$ whenever (a)
-  $\aPS' \in \aPSS^1$ and $\disjoint{\Event'}{\Sub}$ or (b) there are
-  $\aPS^1 \in \aPSS^1$, $\cEv\in\Event^1$ and $\aPS^2\in\aPSS^2$ such that
-  the following hold.  Let $\bEv$ range over $\Event^1\setminus\Sub$, and
-  $\aEv$ range over $\Event^2$.
+  Let $\aPS'\in (\aPSS^1 \sequence \aPSS^2)$ %be the set $\PRE(\aPSS')$ where $\aPS'\in\aPSS'$ 
+  when either (a) $\aPS' \in \aPSS^1$ and
+  $\disjoint{\Event'}{\Sub}$, or (b) there are $\aPS^1 \in \aPSS^1$,
+  $\cEv\in\Event^1$ and $\aPS^2\in\aPSS^2$ such that the following hold.  Let
+  $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over
+  $\Event^2$.
 \begin{enumerate}
 \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
 \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
@@ -596,10 +597,10 @@ Here's the def for prefixing:
 \item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^2(\aEv);\labelingAct^1(\cEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 \item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)\aSub$, where
   $\aSub=\labelingAct^1(\cEv)$,
-\item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-  $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
-\item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
-  implies $\labelingForm^2(\aEv)$,
+% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
+% \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
+%   implies $\labelingForm^2(\aEv)$,
 \item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm^2(\aEv)$ and
   $\aEv$ writes, then $\cEv\ORDER\aEv$,
 \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
@@ -613,7 +614,7 @@ Here's the def for prefixing:
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
   $\bEv \ORDER \aEv$, and
 \item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
-  $\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent.
+  $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent.
 \end{enumerate}
 \begin{gather*}
   \sem{\aCmd \SEQ \bCmd}
