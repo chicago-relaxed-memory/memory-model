@@ -75,11 +75,11 @@ We require that data models satisfy the following:
 \item formulae are closed under negation, conjunction, disjunction, and
   substitution\footnote{Since formulae are closed under substitutions of the
     form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
-    $(\aEExp=\aVal)$ and $(\REF{\aEExp}=\aLoc)$, where $\aEExp$ is an
-    \emph{extended expression} that includes memory locations.  We elide the
-    details.  By composition of the closure conditions, formulae must also be
-    closed under that substitutions of the form
-    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
+    $(\aEExp=\aVal)$  where $\aEExp$ is an \emph{extended expression} that includes memory locations.}, and
+   %and $(\REF{\aEExp}=\aLoc)$,
+   % We elide the details.  By composition of the closure
+    % conditions, formulae must also be closed under that substitutions of the
+    % form $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.
 \item there is a relation $\vDash$ between formulae.
 \end{itemize}
 
@@ -109,7 +109,7 @@ For the actions of a data model, we require that
 %
   We say that $\aAct$ is a \emph{read} if $\aAct\in\fdom(\rreads)$, a
   \emph{write} if $\aAct\in\fdom(\rwrites)$, an \emph{acquire} if
-  $\aAct\in\Acq$, is a \emph{release} if $\aAct\in\Rel$, and \emph{SC} if
+  $\aAct\in\Acq$, a \emph{release} if $\aAct\in\Rel$, and \emph{SC} if
   $\aAct\in\SC$.  Note that these are \emph{not} disjoint.
 % % We say that $\aAct$ is a
 % % \emph{synchronization} if it is either a release or an acquire.
@@ -191,8 +191,8 @@ that $\aForm$ is a \emph{tautology} when $\TRUE\vDash\aForm$, and that
 $\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
 
 \paragraph{Example Language.}
-Our example language include actions of the form
-$(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads} value $\aVal$ from location
+Our example language includes actions of the form
+$(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads}  $\aVal$ from
 $\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
 $\aLoc$.
 % The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
@@ -295,6 +295,7 @@ We refer to ``memory model pomsets'' as \emph{pomsets} or \emph{executions}.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$, eliding
 $\aForm$ when it is a tautology.
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
+We identify pomsets up to isomorphism. We write the empty pomset as $\emptypomset$.
 
 We lift terminology from logical formulae and actions to events, saying, for example,
 that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
@@ -341,28 +342,37 @@ contradictory.  For complete programs, we can restrict attention to events
 that are tautological.  Richer formulae are needed for intermediate program
 fragments.
 
-The semantics of programs is given as sets of pomsets, with each pomset
-representing a completed execution.
-%
-We expect sets of pomsets given by the semantics to be closed with
-respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
+% The semantics of programs is given as sets of pomsets, with each pomset
+% representing a completed execution.
+% %
+% We expect sets of pomsets given by the semantics to be closed with
+% respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
+The semantics of programs is given as sets of pomsets.  The sets of pomsets
+are closed with respect to \emph{augmentation}, \emph{implication}, and
+\emph{prefixes}: %, and \emph{isomorphism}:
 \begin{definition}
   Let
   $\aPS'$ be an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
   ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
   %
   Let
-  $\aPS'$ \emph{imply} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
   %${\gtN'}={\gtN}$,
   $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$. % for all $\aEv$. %\in\Event$.
   %
   Let
-  $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
-  $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
-  $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
+  $\aPS'$ be a \emph{prefix} of $\aPS$ if 
+  $\Event' \subseteq \Event$,
+  $\Event' \supseteq \{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \bEv\le\aEv\}$,
+  ${\le'}={\le}\restrict{\Event'}$, and
+  ${\labeling'}={\labeling}\restrict{\Event'}$.
+  % 
+  % Let
+  % $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
+  % $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
+  % $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
 \end{definition}
-
 
 % Each pomset $\aPS\in\sem{\aCmd}$ is a \emph{completed} execution of $\aCmd$;
 % we sometimes refer to pomsets as \emph{executions}.  Because they are
@@ -654,14 +664,21 @@ for address calculation, which is required by realistic memory allocators.
   % every $\bEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, we have that 
   % $\labelingForm(\bEv)\land\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is
   % unsatisfiable.
+  Let $\aPS'\in\PRE(\aPSS)$ if  $\aPS'$ is a
+  prefix of some $\aPS \in \aPSS$.
+
   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
-when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
-%$\Event' \subseteq \COMPAT(\aPS^1,\,\aPS^2)$,
-$\Event' \subseteq \Event^1 \cup \Event^2$,
-%$\Event' \supseteq \{ \bEv \in \Event^1 \cup \Event^2 \mid \exists\aEv\in\Event'.\; \bEv\le^1\aEv \textor \bEv\le^2\aEv\}$,
-$\Event' \supseteq \{ \bEv \in \Event^i \mid \exists\aEv\in\Event'.\; \bEv\le^i\aEv\}$,
-${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
+  when there are $\aPS^i \in \PRE(\aPSS^i)$ %and $\aPS^2 \in \PRE(\aPSS^2)$
+  such that
+$\Event' = \Event^1 \cup \Event^2$,
+${\le'}\supseteq{\le^1}\cup{\le^2}$, and for all $\aEv\in\Event'$,
 either:
+%   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+% when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
+% $\Event' \subseteq \Event^1 \cup \Event^2$,
+% $\Event' \supseteq \{ \bEv \in \Event^i \mid \exists\aEv\in\Event'.\; \bEv\le^i\aEv\}$,
+% ${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
+% either:
 \begin{gather*}
   \begin{aligned}
     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
@@ -719,7 +736,7 @@ program also includes:
 \end{gather*}
 Coalesced events inherit order from both sides.
 
-The definition ensures $\Event'$ is downclosed w.r.t.~each $\Event^i$.
+% The definition ensures $\Event'$ is downclosed w.r.t.~each $\Event^i$.
 % Thus, if
 % $\aPSS^1$ and $\aPSS^2$ contain:
 % \begin{tikzdisplay}[node distance=1em]
@@ -894,8 +911,9 @@ final definition.  We begin by considering programs with trivial expressions.
 \begin{candidate}
   \label{def:rw:sc1}
   Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set $\aPSS'$ where
-  $\aPS'\in\aPSS'$ when there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
-  new event with the given label that precedes all of the events in $\aPS$.
+  $\aPS'\in\aPSS'$ when $\aPS'=\emptypomset$ or there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
+  new event %with the given label
+  that precedes all of the events in $\aPS$.
   \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
@@ -948,7 +966,8 @@ definition of prefixing more carefully this time.  We highlight some of the chan
 %\paragraph{Program Order Prefixing.}
 \begin{definition}
   \label{def:pre-sc}
-Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
+Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set $\aPSS'$ where
+$\aPS'\in\aPSS'$ when $\aPS'=\emptypomset$ or
 there is $\aPS\in\aPSS$ such that:
 \begin{enumerate}
 \item\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
@@ -965,6 +984,7 @@ there is $\aPS\in\aPSS$ such that:
 \end{definition}
 \vspace{-2ex}
 \begin{candidate}\ \vspace{-1ex}
+  \label{cand2.9}
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
@@ -1205,8 +1225,11 @@ the prefix operator: % and our last failed candidate semantics.
 Two actions \emph{conflict} if one writes a location and the other
 either reads or writes the same location.
 
-Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
-there is $\aPS\in\aPSS$ that satisfies the items 1-4 of
+Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\aPSS'$ where
+$\aPS'\in\aPSS'$ when
+$\aPS'=\emptypomset$ or
+there is $\aPS\in\aPSS$ such
+that satisfies items 1-4 of
 Definition \ref{def:pre-sc} and:
 \begin{enumerate}
 \item[5a.] if %$\bEv$ \externally reads and
@@ -1360,7 +1383,7 @@ action.  Nonetheless, item 4b requires that the value of the read action must
 be compatible with subsequent formulae.  In this example, the write
 precondition must be unsatisfiable if a negative number is read:
 \begin{gather}
-  \ref{ex555}
+  \label{ex555}
   r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
   \\
   \nonumber
@@ -1542,11 +1565,11 @@ To see this, consider that the execution above is impossible for
 \end{math}
 
 As in \eqref{ex555}, Item 4b (Definition \ref{def:pre-sc}) ensures that
-intervening writes are not ignored:
+intervening writes are respected:
 \begin{math}
-  x\GETS 0\SEMI x\GETS 1\SEMI y\GETS x
+  \sem{x\GETS 0\SEMI x\GETS 1\SEMI y\GETS x}
 \end{math}
-cannot write 0.
+does not $\DW{y}{0}$.
 % NEED TO MAKE THIS POINT:
 % So consider the single threaded program
 

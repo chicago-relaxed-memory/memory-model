@@ -335,7 +335,7 @@ In our example language, we update the syntax of commands:
 \end{gather*}
 
 Let us revisit the discussion of the use of \!$\PAR$\!
-in Candidate~\ref{def:pre-sc}.
+in Candidate~\ref{cand2.9}.
 Note that 
 \begin{math}
   \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
@@ -457,7 +457,7 @@ This definition ensures atomicity, disallowing executions such as
 \end{gather*}
 
 By using two actions rather than one, we allow examples such as the
-following, which is wed by \armeight{} 
+following, which is allowed by \armeight{} 
 \cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
   r \GETS y\SEMI
@@ -513,13 +513,12 @@ thread on the left.
 
 Relative to the previous definitions, the base cases are handled as follows:
 \begin{itemize}
-\item $\sem{\SKIP}$ introduces an empty substitution.
-\item $\sem{\aReg\GETS\aLoc}$ introduces the substitution $[\aVal/\aReg]$,
-  ordered after the new read action $(\DR{\aLoc}{\aVal})$, 
-\item $\sem{\aReg\GETS\aLoc}$ introduces the substitution $[\aLoc/\aReg]$
-  when including a silent action, without order.
+\item $\sem{\SKIP}$ introduces an empty substitution,
 \item $\sem{\aLoc\GETS\aExp}$ introduces $[\aExp/\aLoc]$,
-  without order.
+\item $\sem{\aReg\GETS\aExp}$ introduces $[\aExp/\aReg]$,
+\item $\sem{\aReg\GETS\aLoc}$, local rule, introduces $[\aLoc/\aReg]$,
+\item $\sem{\aReg\GETS\aLoc}$, nonlocal rule, introduces
+  $(\DR{\aLoc}{\aVal}) \le [\aVal/\aReg]$.
 \end{itemize}
 % Base cases:
 % \begin{align*}
@@ -538,6 +537,21 @@ Relative to the previous definitions, the base cases are handled as follows:
 %   \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
 % \end{align*}
 
+Goal:
+\begin{math}
+  (\aForm\aSub)\bSub =
+  \aForm(\aSub;\bSub)
+\end{math}
+Pure substitution: $\fdom(\aSub)$ disjoint $\fcodom(\aSub)$.
+Pure substitutions are idempotent.
+$\aSub$ and $\bSub$ are composable if $\fdom(\aSub)$ disjoint $\fcodom(\bSub)$
+\begin{displaymath}
+  (\aSub;\bSub)(x) =
+  \begin{cases}
+    \aSub(\bSub(x)) & \text{if } x \in \fdom(\bSub)\\
+    \aSub(x) & \text{otherwise}
+  \end{cases}
+\end{displaymath}
 
 Here's the def for prefixing:
 \begin{enumerate}
@@ -568,31 +582,24 @@ Here's the def for prefixing:
 
 \begin{definition}
   \label{def:semi:seq}
-  Let $\aPS' \in (\aPSS^1 \sequence \aPSS^2)$ whenever there are
-  $\aPS^1 \in \aPSS^1$,
-  $\cEv\in\Event^1\cap\Sub$, and
-  $\aPS^2\in\aPSS^2$, such that the
-  following hold.
-  %We use several conventions:
-  %Let $\aSub_{\cEv}=\labelingAct^1(\cEv)$.
-  Let $\bEv$ range over $\Event^1\setminus\cEv$, and
-   $\aEv$ range over $\biguplus_{\cEv}\Event^2$.
-  % Let $\bEv\ORDER\aEv$ if either $\bEv \lt' \aEv$ or $\aEv\in\Event^{\cEv}$
-  % and $\bEv\not\le^1\cEv$. %, for some $\cEv$.
+  Let $\aPS' \in (\aPSS^1 \sequence \aPSS^2)$ whenever (a)
+  $\aPS' \in \aPSS^1$ and $\disjoint{\Event'}{\Sub}$ or (b) there are
+  $\aPS^1 \in \aPSS^1$, $\cEv\in\Event^1$ and $\aPS^2\in\aPSS^2$ such that
+  the following hold.  Let $\bEv$ range over $\Event^1\setminus\Sub$, and
+  $\aEv$ range over $\Event^2$.
 \begin{enumerate}
-\item[1.] $\Event' = \Event^1\setminus\cEv \uplus \Event^2$,
+\item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
 \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv) = \labelingAct^1(\aEv)
-  \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, ($\aSub$-composition)
+\item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^2(\aEv);\labelingAct^1(\cEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 \item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)\aSub$, where
   $\aSub=\labelingAct^1(\cEv)$,
-% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-%   $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
-% \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
-%   implies $\labelingForm^2(\aEv)$,
+\item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+  $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
+\item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
+  implies $\labelingForm^2(\aEv)$,
 \item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm^2(\aEv)$ and
   $\aEv$ writes, then $\cEv\ORDER\aEv$,
 \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
@@ -605,20 +612,8 @@ Here's the def for prefixing:
   $\aEv \ORDER \bEv$,
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
   $\bEv \ORDER \aEv$, and
-\item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
-  is location independent.
-% \item 
-%   if
-%   $\labeling^1(\cEv) = (\dontcare \mid \aSub)$, and
-%   $\labeling^2(\aEv) = (\bForm \mid \bActSub)$ then
-%   $\labeling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
-%   \begin{itemize}
-%   \item $\bForm'$ implies
-%     $\lor\{\labelingForm^1(\dEv)\mid \dEv\in\ESub^1 \land \aEv\in\aPS^{\dEv} \}$,
-%   \item $\bForm'$ implies $\bForm\aSub$, and
-%   \item either $\bForm'$ implies $\bForm$ or $\bEv\lt^1\cEv$ implies $\bEv\lt'\aEv$.
-%     %$\bEv\in\EAct^1$ such that.
-%   \end{itemize}
+\item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
+  $\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent.
 \end{enumerate}
 \begin{gather*}
   \sem{\aCmd \SEQ \bCmd}
