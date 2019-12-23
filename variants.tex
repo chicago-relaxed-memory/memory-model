@@ -487,8 +487,23 @@ following, which is allowed by \armeight{}
 \end{gather*}
 
 \paragraph{Sequential Composition.}
-For clarity, we do not include address calculation in this subsection.
-The extension is obvious.
+We refactor the syntax:
+\begin{align*}
+  \aCmd,\,\bCmd
+  \BNFDEF& \SKIP
+  \BNFSEP \FENCE^{\fmode}
+  \BNFSEP \aReg\GETS\aExp
+  \BNFSEP \aReg\GETS\aLoc^{\amode} 
+  \BNFSEP \aLoc^{\amode}\GETS\aExp
+  \\[-.5ex]
+  \BNFSEP&\aCmd \PAR \bCmd
+  \BNFSEP\aCmd \SEMI \bCmd
+  \BNFSEP \VAR\aLoc
+  \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+\end{align*}
+For clarity, we do not include address calculation or \RMW{}s in this
+subsection.
+
 
 We introduce explicit substitutions,
 following the conventions of \citet{DBLP:conf/icalp/RitterP97}: 
@@ -534,21 +549,70 @@ of \!$\PAR$\!.  Arbitrarily, we choose to keep the substitution on the left:
     &
     \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
   \end{aligned}
-  \\[-.5ex]
-  \sem{\aCmd \LPAR \bCmd}
-  = \sem{\aCmd} \parallel \killS\sem{\bCmd}
 \end{gather*}
 
+Write fence actions need to indicate which variable was written:
+$\DFW[\aLoc]{\amode}$.  We extend the notion of \emph{conflict} to include
+write fence actions (thus ordering them w.r.t.~reads and writes on the same
+location).
+\begin{align*}
+  \sem{\SKIP} & \eqdef
+  \PREPAR{\TIKZ{\final{f}{\SUBEMP}{}}}
+  \\  
+  \sem{\aReg\GETS\aExp} & \eqdef
+  \PREPAR{\TIKZ{\final{f}{\SUB{\aExp/\aReg}}{}}}
+  \\
+  \sem{\FENCE^{\fmode}} & =
+  \PREPAR{\TIKZ{
+      \event{a}{\DFS{\fmode}}{}
+      \final{f}{\SUBEMP}{right=of a}
+    }} 
+  \\
+  \sem{\aReg\GETS\aLoc^\amode} & =
+  \PREPAR{\textstyle\bigcup_\aVal\;
+    \TIKZ{
+      \event{a}{\DRmode\aLoc\aVal}{}
+      \final{f}{\SUB{\aVal/\aReg}}{right=of a}
+      \po{a}{f}
+    }}
+  \\[-.5ex] &
+  \mkern2mu\cup
+  \PREPAR{\TIKZ{
+      \event{a}{\DFR{\amode}}{}
+      \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
+      \po{a}{f}
+    }}
+  \\
+  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+  \PREPAR{\textstyle\PAR_\aVal\;
+    \TIKZ{
+      \event{a}{\aExp=\aVal \mid \DWmode\aLoc\aVal}{}
+      \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
+    }}
+  \\[-.5ex] &
+  \mkern2mu\cup
+  \PREPAR{\TIKZ{
+      \event{a}{\DFW[\aLoc]{\amode}}{}
+      \final{f}{\SUB{\aExp/\aLoc}}{right=of a}
+    }}
+  \\
+  \sem{\aCmd \PAR \bCmd}
+  =& \sem{\aCmd} \parallel \killS\sem{\bCmd}
+  \\
+  \sem{\aCmd \SEMI \bCmd}
+  =& \sem{\aCmd} \sequence \sem{\bCmd}
+\end{align*}
+The definitions for conditional and location binding are unchanged.
 
-Relative to the previous definitions, the base cases are handled as follows:
-\begin{itemize}
-\item $\sem{\SKIP}$ introduces the identity substitution,
-\item $\sem{\aLoc\GETS\aExp}$ introduces $\SUB{\aExp/\aLoc}$,
-\item $\sem{\aReg\GETS\aExp}$ introduces $\SUB{\aExp/\aReg}$,
-\item $\sem{\aReg\GETS\aLoc}$, local rule, introduces $\SUB{\aLoc/\aReg}$,
-\item $\sem{\aReg\GETS\aLoc}$, nonlocal rule, introduces
-  $(\DR{\aLoc}{\aVal}) \lt \SUB{\aVal/\aReg}$.
-\end{itemize}
+% Relative to the previous definitions, the base cases are handled as follows:
+% \begin{itemize}
+% \item $\sem{\SKIP}$ introduces the identity substitution,
+% \item $\sem{\aLoc\GETS\aExp}$ introduces $\SUB{\aExp/\aLoc}$,
+% \item $\sem{\aReg\GETS\aExp}$ introduces $\SUB{\aExp/\aReg}$,
+% \item $\sem{\aReg\GETS\aLoc}$, local rule, introduces $\SUB{\aLoc/\aReg}$,
+% \item $\sem{\aReg\GETS\aLoc}$, nonlocal rule, introduces
+%   $(\DR{\aLoc}{\aVal}) \lt \SUB{\aVal/\aReg}$.
+% \end{itemize}
 % Base cases:
 % \begin{align*}
 %   \sem{\SKIP}
@@ -594,9 +658,20 @@ Relative to the previous definitions, the base cases are handled as follows:
 %   is location independent.
 % \end{enumerate}
 
+
+
 \begin{definition}
   \label{def:semi:seq}
-  Let $\aPS'\in (\aPSS^1 \sequence \aPSS^2)$ %be the set $\PRE(\aPSS')$ where $\aPS'\in\aPSS'$ 
+  $\DISJUNCT(\aPSS)$ be the set $\DISJUNCT(\aPSS')$ where $\aPS'\in\aPSS'$ if
+  there is $\aPS\in\aPSS$ such that
+  $\Event' = \Event$,
+  ${\le'}\supseteq{\le}$,
+  and for every $\aEv\in\Event$ there are $\aPS^i\in\aPSS$ such that the
+  prefix to $\aEv$ is the same in all of them, and $\labelingForm'(\aEv)$
+  implies $\bigvee_i \labelingForm^i(\aEv)$.
+  
+  
+  Let $\aPS'\in (\aPSS^1 \sequence \aPSS^2)$ be the set $\DISJUNCT(\aPSS')$ where $\aPS'\in\aPSS'$ 
   when either (a) $\aPS' \in \aPSS^1$ and
   $\disjoint{\Event'}{\Sub}$, or (b) there are $\aPS^1 \in \aPSS^1$,
   $\cEv\in\Event^1$ and $\aPS^2\in\aPSS^2$ such that the following hold.  Let
@@ -625,14 +700,15 @@ Relative to the previous definitions, the base cases are handled as follows:
 \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
   $\aEv \ORDER \bEv$,
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
-  $\bEv \ORDER \aEv$, and
-\item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
-  $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent.
+  $\bEv \ORDER \aEv$, 
+\item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
+  $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
+\item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\modeREL}$, $\aEv$ is a release
+  that does not write $\aLoc$, and $\bEv\le\aEv$, then there is some
+  $\bEv\le'\dEv\le'\aEv$ such that $\bEv$ (explicitly) writes
+  $\aLoc$.  % For $\amode\neq\modeRLX$, let
 \end{enumerate}
-\begin{gather*}
-  \sem{\aCmd \SEQ \bCmd}
-  =  \sem{\aCmd} \sequence \sem{\bCmd}
-\end{gather*}
+6b ensures the effect of $\relfilt{}$ in the local write rule.
 \end{definition}
 
 

@@ -1,3 +1,4 @@
+\newcommand{\DISJUNCT}{\mathsf{disjunct}}
 \newcommand{\aLocReg}{\alpha}
 \newcommand{\SUBEMP}{\SUB{}}
 \newcommand{\SUB}[1]{\langle#1\rangle}
@@ -8,6 +9,7 @@
 \newcommand{\disjoint}[2]{#1\cap#2=\emptyset}
 \newcommand{\COMPAT}{\mathsf{compat}}
 \newcommand{\PRE}{\mathsf{pre}}
+\newcommand{\PREPAR}[1]{\mathsf{pre}\bigl(#1\bigr)}
 \newcommand{\ORDER}{\lt'}%\lessdot}
 \newcommand{\killS}{\mathsf{kill}}
 \newcommand{\nofootnote}[1]{}
@@ -145,7 +147,7 @@
 
 \newcommand{\fpox}{\mathit{po}}
 \newcommand{\fird}{\mathit{ird}}
-\newcommand{\TIKZ}[2][]{\left\{\,\begin{tikzpicture}[baselinecenter,node distance=1em,#1]#2\end{tikzpicture}\,\right\}}
+\newcommand{\TIKZ}[2][]{\hbox{\footnotesize$\{\,\begin{tikzpicture}[baselinecenter,node distance=1em,#1]#2\end{tikzpicture}\,\}$}}
 \newcommand{\fork}{\setminus_{\mathsf{S}}}
 
 \newcommand{\refapp}[1]{Appendix~\ref{app:#1}}
@@ -233,7 +235,7 @@
 \newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
 \newcommand{\DFS}[1]{\smash{\mathsf{F}_{\mathsf{S}}^{#1}}}
 \newcommand{\DFR}[1]{\smash{\mathsf{F}_{\mathsf{R}}^{#1}}}
-\newcommand{\DFW}[1]{\smash{\mathsf{F}_{\mathsf{W}}^{#1}}}
+\newcommand{\DFW}[2][]{\smash{\mathsf{F}_{\mathsf{W#1}}^{#2}}}
 \newcommand{\iDR}[3][]{\tau\DR[#1]{#2}{#3}}
 \newcommand{\iDW}[3][]{\tau\DW[#1]{#2}{#3}}
 % \newcommand{\iDRSC}[2]{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\mkern1mu\bot}}
@@ -293,7 +295,7 @@
 \newcommand{\prefixsimp}{\mathbin{{\xRightarrow{{\mathsf{triv}}}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
-\newcommand{\relfilt}[1]{\textsf{cover}\,#1\guard}
+\newcommand{\relfilt}[1]{\textsf{cover}\ifnotempty{#1}{\,#1\guard}}
 \newcommand{\DOT}{\mathbin.}
 
 \newcommand{\aPS}{P}

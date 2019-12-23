@@ -238,13 +238,12 @@ We elide the $\modeRLX$-mode annotation in examples.
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
 \BNFSEP \aReg\GETS\aExp\SEMI \aCmd
-\BNFSEP \VAR\aLoc\SEMI \aCmd
+\BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
+\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \\[-.5ex]
 \BNFSEP&\aCmd \PAR \bCmd
+\BNFSEP \VAR\aLoc\SEMI \aCmd
 \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-\\[-.5ex]
-\BNFSEP& \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
-\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \end{align*}
 
 
