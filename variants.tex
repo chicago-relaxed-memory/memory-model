@@ -557,10 +557,10 @@ write fence actions (thus ordering them w.r.t.~reads and writes on the same
 location).
 
 To simplify the definition of the base cases, we use a literal notation for
-pomsets.
-
-Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that
-$\aPS''$ implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.
+pomsets, drawing substitutions as accepting states.  Let
+$\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that $\aPS''$
+implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.
+The definitions for conditional and location binding are unchanged.
 \begin{align*}
   \sem{\SKIP} & \eqdef
   \CLOSE{\TIKZ{\final{f}{\SUBEMP}{}}}
@@ -608,7 +608,6 @@ $\aPS''$ implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.
   \sem{\aCmd \SEMI \bCmd}
   &= \sem{\aCmd} \sequence \sem{\bCmd}
 \end{align*}
-The definitions for conditional and location binding are unchanged.
 
 % Relative to the previous definitions, the base cases are handled as follows:
 % \begin{itemize}
