@@ -726,15 +726,15 @@ states. Item 6b is necessary to ensure the effect of $\relfilt{}$ in the
 local write rule.  Instead, items 4b and 4c collapse into a single item here.
 Item 5 is morally unchanged; we need only adjust the notation in item 5a.
 
-Let $\sem{\aCmd}'$ be the semantics of \textsection\ref{sec:model:intro},
+Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model:intro},
 extended with silent actions and fences.  We expect:
 \begin{align*}
-  \sem{\aCmd}' &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
+  \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\} &= \semold{\aCmd}
   \\
   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
   \\
   \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd} &= 
-  \sem{(\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI)\SEMI\bCmd}
+  \sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE \aCmd_2\SEMI\bCmd\FI}
 \end{align*}
 
 \begin{comment}
