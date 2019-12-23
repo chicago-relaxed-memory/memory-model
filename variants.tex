@@ -2,14 +2,10 @@
 \label{sec:variants}
 
 After discussing a few test cases, we extend the model to include additional
-features: fences, address calculation, and read-modify-write
-(\RMW)\footnote{The proofs given later in the paper extend to all of these
-  features, with one exception: we believe the \armeight/\tso-compilation
-  strategy is correct for \RMW---it is borrowed from
-  \citet{DBLP:journals/pacmpl/PodkopaevLV19}---but have not proved it.}.  We
-then provide an alternative semantics that supports full sequential
-composition, building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and
-$\sem{\bCmd}$.
+features: fences, address calculation, and read-modify-write (\RMW). The
+proofs given later in the paper extend to include these features.  We then
+provide an alternative semantics that supports full sequential composition,
+building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and $\sem{\bCmd}$.
 
 \paragraph{Test Cases.}
 Our model gives the desired results for the test cases of \citet{PughWebsite},
@@ -734,6 +730,8 @@ Let $\sem{\aCmd}'$ be the semantics of \textsection\ref{sec:model:intro},
 extended with silent actions and fences.  We expect:
 \begin{align*}
   \sem{\aCmd}' &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
+  \\
+  \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
   \\
   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
 \end{align*}

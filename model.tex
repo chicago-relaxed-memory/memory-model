@@ -347,7 +347,7 @@ fragments.
 % respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
 The semantics of programs is given as sets of pomsets.  The sets of pomsets
 are closed with respect to \emph{augmentation}, \emph{prefixing},
-\emph{implication} and \emph{disjunction}:
+\emph{implication}, \emph{disjunction} and \emph{prefix weakening}:
 \begin{definition}
   Let
   $\aPS'$ be an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
@@ -363,14 +363,22 @@ are closed with respect to \emph{augmentation}, \emph{prefixing},
   prefix of some $\aPS \in \aPSS$.
   
   Let
-  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  $\aPS'$ \emph{imply} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
   $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
   implies $\labelingForm(\aEv)$. 
   %
-  Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
-  $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
-  $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
-  $\bigvee_i \labelingForm^i(\aEv)$.
+  % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ for $i\in I$ if there is some
+  % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
+  % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
+  % $\bigvee_i \labelingForm^i(\aEv)$.
+  Let $\aPS'$ be a \emph{disjunct} of $\aPS^i$ for $i\in I$ if
+  $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
+  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
+  %
+  Let $\aPS^{2}$ be a \emph{prefix weakening} of $\aPS^1$ by
+  $\aPS^{2}{}'\in\PRE(\aPS^{2})$ if $\aPS^1$ implies $\aPS^{2}$ and there is
+  some $\aPS^{1}{}'\in\PRE(\aPS^{1})$ such that $\aPS^{1}{}'$ implies
+  $\aPS^{2}{}'$,
   % Let
   % $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
   % $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
