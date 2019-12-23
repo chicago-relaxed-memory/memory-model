@@ -402,7 +402,7 @@ behavior.  Note the intermediate state:
   \po{a2}{a3}
     \end{tikzinline}}
 \end{gather*}
-The precondition on the write is required by the last clause of
+The precondition on the write is required by causal strengthening in
 Definition~\ref{def:mmpomset}: if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
 implies $\labelingForm(\bEv)$.
 
@@ -437,7 +437,7 @@ We elide the obvious and tedious semantic rules.
 This definition ensures atomicity, disallowing executions such as
 \cite[Ex.~3.2]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
-  \aLoc\GETS0\SEMI\bReg\GETS \FADD(\aLoc)
+  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
   \PAR
   x\GETS 2\SEMI s\GETS x
   \\
@@ -514,8 +514,9 @@ following the conventions of \citet{DBLP:conf/icalp/RitterP97}:
 \end{align*}
 We write application as $\aForm\SUBAPP\aSub$ and write
 $\SUBPAR{\SUBEMP}{\aExp/\aLocReg}$ as $\SUB{\aExp/\aLocReg}$.  The definition
-of application is not complicated our lack of support for renaming locations:
-We only apply substitutions to formulae, which have no binders.
+of application is not complicated by the lack of support for renaming
+locations in our language: We only apply substitutions to formulae, which
+have no binders.
 
 % Goal:
 % \begin{math}
@@ -604,6 +605,9 @@ definitions for location binding and conditional, which are unchanged from
 \end{gather*}
 To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
 choosing to keep the substitution on the left.
+
+The main work is to define semantic sequencing.  Unfortunately, disjunction
+closure does not come for free.
 % \begin{gather*}
 %   \begin{aligned}
 %     \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
@@ -719,7 +723,12 @@ choosing to keep the substitution on the left.
 \end{enumerate}
 \end{definition}
 
-6b ensures the effect of $\relfilt{}$ in the local write rule.
+The item numbers are chosen to match those of the corresponding clauses in
+\textsection\ref{sec:model:intro}.  Item 4a and item 6 are more complicated
+here: The label of the accepting state is calculated differently from other
+states. Item 6b is necessary to ensure the effect of $\relfilt{}$ in the
+local write rule.  Instead, items 4b and 4c collapse into a single item here.
+Item 5 is morally unchanged; we need only adjust the notation in item 5a.
 
 Let $\sem{\aCmd}'$ be the semantics of \textsection\ref{sec:model:intro},
 extended with silent actions and fences.  We expect:
