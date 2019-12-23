@@ -559,8 +559,8 @@ location).
 To simplify the definition of the base cases, we use a literal notation for
 pomsets.
 
-Let $\aPS'\in\CLOSE{\aPSS}$ if there is $\aPS\in\PRE(\aPSS)$ such that
-$\aPS'$ implies $\aPS$ and $\aPS'$ is an augmentation of $\aPS$.
+Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that
+$\aPS''$ implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.
 \begin{align*}
   \sem{\SKIP} & \eqdef
   \CLOSE{\TIKZ{\final{f}{\SUBEMP}{}}}
@@ -575,8 +575,8 @@ $\aPS'$ implies $\aPS$ and $\aPS'$ is an augmentation of $\aPS$.
     }} 
   \\
   \sem{\aReg\GETS\aLoc^\amode} & =
-  \CLOSE{\textstyle\bigcup_\aVal\;
-    \TIKZ{
+  \textstyle\bigcup_\aVal\;
+  \CLOSE{\TIKZ{
       \event{a}{\DRmode\aLoc\aVal}{}
       \final{f}{\SUB{\aVal/\aReg}}{right=of a}
       \po{a}{f}
@@ -590,8 +590,8 @@ $\aPS'$ implies $\aPS$ and $\aPS'$ is an augmentation of $\aPS$.
     }}
   \\
   \sem{\aLoc^\amode\GETS\aExp} & =
-  \CLOSE{\textstyle\PAR_\aVal\;
-    \TIKZ{
+  \textstyle\PAR_\aVal\;
+  \CLOSE{\TIKZ{
       \event{a}{\aExp=\aVal \mid \DWmode\aLoc\aVal}{}
       \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
     }}
