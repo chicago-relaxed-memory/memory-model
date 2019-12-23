@@ -733,7 +733,8 @@ extended with silent actions and fences.  We expect:
   \\
   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
   \\
-  \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
+  \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd} &= 
+  \sem{(\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI)\SEMI\bCmd}
 \end{align*}
 
 \begin{comment}
