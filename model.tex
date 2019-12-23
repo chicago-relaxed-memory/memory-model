@@ -346,23 +346,12 @@ fragments.
 % We expect sets of pomsets given by the semantics to be closed with
 % respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
 The semantics of programs is given as sets of pomsets.  The sets of pomsets
-are closed with respect to \emph{implication}, \emph{disjunction},
-\emph{augmentation}, and \emph{prefixing}: %, and \emph{isomorphism}:
+are closed with respect to \emph{augmentation}, \emph{prefixing},
+\emph{implication} and \emph{disjunction}:
 \begin{definition}
   Let
-  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
-  %${\gtN'}={\gtN}$,
-  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
-  implies $\labelingForm(\aEv)$. % for all $\aEv$. %\in\Event$.
-  %
-  Let $\aPS'$ be a \emph{disjunct} of $\aPS^i$ if $\Event' =
-  \Event^i$, ${\le'}={\le^i}$,
-  $\labelingAct'=\labelingAct^i$, and
-  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
-
-  Let
   $\aPS'$ be an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
-  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. %, and ${\gtN'}\supseteq{\gtN}$.
+  ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. 
   Let
   $\aPS'$ be a \emph{prefix} of $\aPS$ if 
   $\Event' \subseteq \Event$,
@@ -372,8 +361,16 @@ are closed with respect to \emph{implication}, \emph{disjunction},
 
   Let $\aPS'\in\PRE(\aPSS)$ if  $\aPS'$ is a
   prefix of some $\aPS \in \aPSS$.
-  % 
+  
+  Let
+  $\aPS'$ \emph{implies} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
+  $\labelingAct'=\labelingAct$, and $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$. 
   %
+  Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
+  $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
+  $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
+  $\bigvee_i \labelingForm^i(\aEv)$.
   % Let
   % $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
   % $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and

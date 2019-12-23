@@ -671,11 +671,16 @@ choosing to keep the substitution on the left.
 
 \begin{definition}
   \label{def:semi:seq}
-  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ if there
-  are $\aPS^i\in\aPSS$ such $\Event' = \Event^i$, ${\le'}={\le^i}$,
-  $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
-  $\bigvee_i \labelingForm^i(\aEv)$.
+  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
+  there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
+  $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
+  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
   
+  % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
+  % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
+  % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
+  % $\bigvee_i \labelingForm^i(\aEv)$.
+
   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
   $\{\aPS^1\in\aPSS^1\mid \disjoint{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
