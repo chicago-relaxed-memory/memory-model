@@ -718,9 +718,17 @@ choosing to keep the substitution on the left.
   $\aEv$ is a release that does not write $\aLoc$, then  some
   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
 \end{enumerate}
-6b ensures the effect of $\relfilt{}$ in the local write rule.
 \end{definition}
 
+6b ensures the effect of $\relfilt{}$ in the local write rule.
+
+Let $\sem{\aCmd}'$ be the semantics of \textsection\ref{sec:model:intro},
+extended with silent actions and fences.  We expect:
+\begin{align*}
+  \sem{\aCmd}' &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
+  \\
+  \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
+\end{align*}
 
 \begin{comment}
 Plan: 
