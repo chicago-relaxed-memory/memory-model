@@ -1,6 +1,269 @@
 \section{Invariant Reasoning in Temporal Logic}
 \label{sec:logic}
 
+We develop a logic sufficient to prove that our semantics
+disallows thin air executions, such as ``type unsafety'' (\textsection\ref{sec:intro}).
+
+We adapt past linear temporal logic (\pLTL)
+\cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
+instant operator and adopting strict versions of the temporal operators.
+We ignore synchronization; the atoms of our logic are write and read events.
+% \begin{displaymath}
+%   \afo \QUAD::=\QUAD
+%   \DR{\aLoc}{\aVal}
+%   \mid
+%   \DW\aLoc\aVal
+%   \afo \wedge\bfo
+%   \mid \lnot \afo
+%   \once\afo
+%   \mid \always\afo
+% \end{displaymath}
+%\begin{definition} %[Satisfaction]
+Given a pomset $\aPS$ and event $\aEv$, define\footnote{Let $\FALSE$, $\lor$,
+  $\Rightarrow$ and $\once$ as usual;
+  for example,
+  $\once\afo = \lnot(\always\lnot\afo)$.}:
+  \begin{displaymath}
+    \begin{array}{lrl}
+      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE\mid \DW{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE\mid \DR{\aLoc}{\aVal}) \\
+      \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
+      \aPS,\aEv &\models& \TRUE\\
+      \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
+      %\aPS,\aEv &\models& \once\afo, \text{if } (\exists \bEv \le \aEv, \bEv\not=\aEv)  \aPS,\bEv \models \afo \\
+      \aPS,\aEv &\models& \always\afo, \text{ if } (\forall \bEv \lt \aEv)\; \aPS,\bEv \models \afo
+    \end{array} 
+  \end{displaymath}
+
+  % \begin{definition}
+  Let $\aPS \models \afo$ if
+  $\aPS,\aEv \models\afo$, for all $\aEv \in \Event$.
+
+  Let $\aPSS\models \afo$
+  if $\aPS \models\afo$, for all $\aPS \in \aPSS$.
+  
+Let
+  \begin{math}
+    \afo, \aPSS \models \bfo  \text{ if } \{ \aPSS \mid \aPSS \models \afo \} \parallel \aPSS \models \bfo.
+  \end{math}
+%\end{definition}
+
+  Thus, $\aPS\models \afo \land \always\afo$ whenever $\aPS \models
+  \afo$. This fact relies on the use of universal quantification in the definition.
+
+% We define other connectives as standard:
+% $\once\afo = \lnot(\always\lnot\afo)$,
+% %$\FALSE = \lnot(\TRUE)$
+% $\afo\lor\bfo = \lnot(\lnot(\afo)\land\lnot(\bfo))$, and
+% $\afo\Rightarrow\bfo = \lnot(\afo) \lor\ \bfo$.
+% \begin{displaymath}
+% \begin{array}{lrl}
+% \once\afo &=& \lnot(\always\lnot\afo) \\
+% \FALSE &=& \lnot(\TRUE) \\
+% \afo\lor\bfo &=& \lnot(\lnot(\afo)\land\lnot(\bfo)) \\
+% \afo\Rightarrow\bfo &=& \lnot(\afo) \lor\ \bfo
+% \end{array}
+% \end{displaymath}
+%Let $$ be defined as $$. 
+%In addition, let $\FALSE$, $\lor$ and $$ be defined in the
+%standard way.
+% $\afo\lor\bfo$ for $\lnot(\lnot \afo \land \lnot \bfo)$,
+% and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
+The past operators do not include the current
+instant, and thus they do \emph{not} satisfy the rule
+\begin{math}
+  \always\afo\Rightarrow\once\afo.
+\end{math}
+because the \emph{roots}---the minimal elements of a pomset---always validate $\always\afo$ and always invalidate $\once\afo$.  
+However, they do satisfy:
+% \begin{align*}  
+%   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
+%   &&
+%   \frac{\aPS \models \always\afo \Rightarrow\afo}{\aPS \models \afo}\text{(Induction)}
+% \end{align*}
+% \begin{lemma}
+% Given an pomset $\aPS$.  
+\begin{gather*}
+  \tag{Coinduction}
+  \aPS \models (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+  \\[-1ex]
+  \tag{Induction}
+  \aPS \models (\always\afo \Rightarrow\afo) \Rightarrow\afo
+\end{gather*}
+% \end{lemma}
+% \begin{proof}
+% We prove that any node in a pomset satisfies these formulas.  
+The proof for both rules proceeds by induction on the length of the maximal path from a root to a node. 
+%\end{proof}
+
+% \begin{description}
+% \item[Coinduction.]
+%   \begin{math}
+%     (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+%   \end{math}
+% \item[Induction.] 
+%   \begin{math}
+%     (\always\afo \Rightarrow\afo) \Rightarrow\afo
+%   \end{math}
+% \end{description}
+
+
+%We now present two proof rules for programs. 
+
+\paragraph*{Proof rules for programs}
+We present two proof rules for programs. 
+ The first rule captures the semantics of
+local variables.  Define
+\begin{math}
+  \closed(\aLoc) = (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}).
+\end{math}
+Although this definition does not mention intervening writes, it is
+sufficient for our example.  It is straightforward to establish that
+following rule is sound:
+\begin{displaymath}
+  %\tag{Closing $\aLoc$}
+  \frac{
+    \afo \text{ is independent of } \aLoc
+    \qquad
+    \aPS \models \closed(\aLoc) \Rightarrow \afo
+  }{
+    \nu \aLoc \DOT \aPS \models \afo
+  }
+\end{displaymath}
+
+The second rule describes composition, in the style of~\citet{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
+consider the special case with a single invariant.
+% We view the
+% composition result as capturing key aspects of no-ThinAirRead, as will become
+% clearer in the examples below.
+In order to state the theorem, we generalize the satisfaction relation to
+include environment assumptions.
+
+We say that $\afo$ is prefix closed when
+$\{ \aPSS \mid \aPSS \models \afo \}$ is.
+\begin{proposition}%[Composition]
+  Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
+  augmentation\hyp{}closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
+ %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
+ %   implies $\aEv\gtN'\bEv$, and
+ %   % $\labeling'(\aEv)=\labeling(\aEv)$
+ %   if $\labeling(\aEv) = (\bForm \mid \bAct)$ then
+ %   $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
+ %   $\bForm$.}
+  Then:
+  \begin{displaymath}
+    %\tag{Composition}
+    \frac{
+      \afo, \aPSS_1 \models\afo
+      \qquad
+      \afo, \aPSS_2 \models\afo
+    }{\aPSS_1 \parallel \aPSS_2 \models \afo}
+  \end{displaymath}
+\end{proposition}
+\begin{proof}[Proof sketch]
+  We will show that all prefixes in the prefix closures of
+  $\aPSS_1 \parallel \aPSS_2$ satisfy the required property.  Proof proceeds
+  by induction on prefixes of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
+  %
+  The case for empty prefix  follows from assumption that  $\afo$ is prefix closed.  
+  %
+  For the inductive case, consider %$\aPS$ in the prefix closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
+  $\aPS \in \aPS_1 \parallel \aPS_2$ where
+  $\aPS_i \in \aPSS_i$.  Since $\aPSS_1$ and $\aPSS_2$ are augmentation
+  closed, we can assume that the restriction of $\aPS$ to the events of
+  $\aPS_i$ coincides with $\aPS_i$, for $i=1,2$.
+  %
+  Consider a prefix $\aPS'$ derived by removing a maximal element $\aEv$ from
+  $\aPS$.  Suppose $\aEv$ comes from $\aPS_1$ (the other case is
+  symmetric). Since $\aPS_2$ is a prefix of $\aPS'$ and $\aPS' \models \afo$
+  by induction hypothesis, we deduce that $\aPS_2 \models \afo$.
+  % Thus, $\aPS_2 \in \mods{(\afo)}$.
+  Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
+  deduce that $\aPS \models \afo$.
+\end{proof}
+
+This simple principle is sufficient for ``type unsafety'':
+% A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
+\begin{align*}
+  &\VAR x\SEMI x\GETS0\SEMI \VAR y\SEMI y\GETS0\SEMI \VAR z\SEMI z\GETS0\SEMI 
+  \\[-1ex]
+  &\quad(
+    y\GETS x
+  \PAR
+    \IF{z}\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
+  \PAR
+    z\GETS1
+  )
+\end{align*}
+We prove the formula
+\begin{math}
+  \lnot\once(\DW{a}{1})
+\end{math}
+holds for the models of this program.  We start with the following invariant,
+which holds for each of the three threads, and thus, by composition, for the
+aggregate program:
+\begin{align*}
+  &[\once(\DW{y}{1}) \Rightarrow \once(\DR{x}{1})]
+  \land\\[-.5ex]
+  &[\once(\DW{a}{1}) \Rightarrow (\once(\DR{y}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{y}{1})))]
+\end{align*}
+Closing $y$, we have,
+\begin{math}
+  \once(\DR{y}{1}) \Rightarrow \once(\DW{y}{1}) % \Rightarrow \once(\DR{x}{1})
+\end{math}
+which we substitute into the left conjunct to get:
+\begin{displaymath}
+  \once(\DR{y}{1}) \Rightarrow \once(\DR{x}{1})
+\end{displaymath}
+which in turn we substitute into the right conjunct to get:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DR{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{x}{1})))
+\end{displaymath}
+Closing $x$, we can replace $\once(\DR{x}{1})$ with $\once(\DW{x}{1})$:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DW{x}{1})))
+\end{displaymath}
+Applying coinduction to the right conjunct, we have:
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\lnot \DW{x}{1}))
+\end{displaymath}
+Simplifying, we have, as required:  
+\begin{displaymath}
+  \once(\DW{a}{1}) \Rightarrow \FALSE
+\end{displaymath}
+
+We can also show that the ``random number
+generator''~\cite{DBLP:conf/lics/JeffreyR16,DBLP:conf/esop/SvendsenPDLV18}
+never writes $2$.
+\begin{displaymath}
+  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
+  (
+    y\GETS x+1\SEMI z \GETS y
+  \PAR
+    x\GETS y
+  )
+\end{displaymath}
+The following invariant holds for each of the two threads, and thus, by
+composition, for the aggregate program:
+\begin{scope}
+  \footnotesize
+\begin{gather*}
+  [(\once(\DW{y}{v_1}) \land \once(\DW{y}{v_2})) \Rightarrow ((v_1 = v_2) \vee (v_1 = 0) \vee (v_2 = 0))] \land\\[-.5ex]
+  [\DW{x}{1} \Rightarrow \once(\DR{y}{1})] \land 
+  [\DW{y}{2} \Rightarrow \once(\DR{x}{1})]  \land 
+  [\DW{z}{2} \Rightarrow \once(\DR{y}{2})]
+\end{gather*}
+\end{scope}
+Closing both $x,y$ and substituting, we deduce:
+\[ \DW{z}{2} \Rightarrow (\once(\DW{y}{2})  \land \once(\DW{y}{2})) \]
+Using the first conjunct, we have, as  required:
+\begin{displaymath}
+\DW{z}{2} \Rightarrow \FALSE
+\end{displaymath}
+
+
+\endinput
+
 \paragraph{Load buffering and thin air.}
 The program
 \begin{math}
@@ -82,264 +345,6 @@ In our model, the attempted execution is:
 \end{tikzdisplay}
 This is forbidden by the evident cycle.
 
-
-In this section, we develop sufficient logical infrastructure to prove that
-our semantics disallows thin air executions.  In particular, we provide a
-proof that thin air execution \eqref{alan} from
-\textsection\ref{sec:model:intro} is impossible.
-
-We adapt past linear temporal logic (\pLTL)
-\cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
-instant operator and adopting strict versions of the temporal operators.
-The atoms of our logic are write and read events.
-% \begin{displaymath}
-%   \afo \QUAD::=\QUAD
-%   \DR{\aLoc}{\aVal}
-%   \mid
-%   \DW\aLoc\aVal
-%   \afo \wedge\bfo
-%   \mid \lnot \afo
-%   \once\afo
-%   \mid \always\afo
-% \end{displaymath}
-%\begin{definition} %[Satisfaction]
-  Given a pomset $\aPS$ and event $\aEv$, define:
-  \begin{displaymath}
-    \begin{array}{lrl}
-      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DW{\aLoc}{\aVal}) \\
-      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labeling(\aEv) =  (\TRUE, \DR{\aLoc}{\aVal}) \\
-      \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
-      \aPS,\aEv &\models& \TRUE\\
-      \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
-      %\aPS,\aEv &\models& \once\afo, \text{if } (\exists \bEv \le \aEv, \bEv\not=\aEv)  \aPS,\bEv \models \afo \\
-      \aPS,\aEv &\models& \always\afo, \text{ if } (\forall \bEv \lt \aEv)\; \aPS,\bEv \models \afo
-    \end{array} 
-  \end{displaymath}
-
-\begin{definition}
-  Define $\aPS \models \afo$ if
-  $(\forall \aEv \in \Event) \;\aPS,\aEv \models\afo$ and $\aPSS\models \afo$
-  if $(\forall \aPS \in \aPSS)\; \aPS \models\afo$.
-\end{definition}
-Thus, $\aPS\models \afo \land \always\afo$ whenever $\aPS \models \afo$; a fact that relies crucially on the universal quantification over all events of a pomset in the above definition.
-
-Define the other connectives standardly following DeMorgan laws.
-\begin{displaymath}
-\begin{array}{lrl}
-\once\afo &=& \lnot(\always\lnot\afo) \\
-\FALSE &=& \lnot(\TRUE) \\
-\afo\lor\bfo &=& \lnot(\lnot(\afo)\land\lnot(\bfo)) \\
-\afo\Rightarrow\bfo &=& \lnot(\afo) \lor\ \bfo
-\end{array}
-\end{displaymath}
-%Let $$ be defined as $$. 
-%In addition, let $\FALSE$, $\lor$ and $$ be defined in the
-%standard way.
-% $\afo\lor\bfo$ for $\lnot(\lnot \afo \land \lnot \bfo)$,
-% and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
-The past operators do not include the current instant, and thus 
-they do \emph{not} satisfy the rule
-\begin{math}
-  \always\afo\Rightarrow\once\afo.
-\end{math}
-because the roots --- the minimal elements of a pomset --- always validate $ \always\afo$ and always invalidate $\once\afo$.  
-However, they do satisfy:
-% \begin{align*}  
-%   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
-%   &&
-%   \frac{\aPS \models \always\afo \Rightarrow\afo}{\aPS \models \afo}\text{(Induction)}
-% \end{align*}
-\begin{lemma}
-Given an pomset $\aPS$.  
-\begin{gather*}
-  \tag{Coinduction}
-  \aPS \models (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
-  \\
-  \tag{Induction}
-  \aPS \models (\always\afo \Rightarrow\afo) \Rightarrow\afo
-\end{gather*}
-\end{lemma}
-\begin{proof}
-We prove that any node in a pomset satisfies these formulas.  
-The proof for both rules proceeds by induction on the length of the maximal path from a root to a node. 
-\end{proof}
-
-% \begin{description}
-% \item[Coinduction.]
-%   \begin{math}
-%     (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
-%   \end{math}
-% \item[Induction.] 
-%   \begin{math}
-%     (\always\afo \Rightarrow\afo) \Rightarrow\afo
-%   \end{math}
-% \end{description}
-
-
-We now present two proof rules for programs. 
-
-\paragraph*{Proof rules for programs}
-The first rule captures the semantics of
-local variables.  Define
-\begin{math}
-  \closed(\aLoc) = (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}).
-\end{math}
-Although this definition does not mention intervening writes, it is
-sufficient for our example.  It is straightforward to establish that
-following rule is sound:
-\begin{displaymath}
-  \tag{Closing $\aLoc$}
-  \frac{
-    \afo \text{ is independent of } \aLoc
-    \qquad
-    \aPS \models \closed(\aLoc) \Rightarrow \afo
-  }{
-    \nu \aLoc \DOT \aPS \models \afo
-  }
-\end{displaymath}
-
-The second rule describes composition, in the style of~\citet{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
-consider the special case with a single invariant.
-% We view the
-% composition result as capturing key aspects of no-ThinAirRead, as will become
-% clearer in the examples below.
-In order to state the theorem, we generalize the satisfaction relation to
-include environment assumptions.  Let
-\begin{math}
-  \mods{(\afo)} = \{ \aPSS \mid \aPSS \models \afo \}
-\end{math}
-be the set of pomsets that satisfy $\afo$.  We say that $\afo$ is prefix
-closed if $\mods{(\afo)}$ is prefix-closed\footnote{$\aPS'$ is a prefix of
-  $\aPS$ if $\Event'\subseteq\Event$, $\aEv\in\Event'$ and $ \bEv\le\aEv$
-  imply $\bEv\in\Event'$, and $(\labeling',\le')$ coincide with
-  $(\labeling,\le)$ for elements of $\Event'$.}.
-  % when $\aEv,\,\bEv\in\Event'$: $\labeling'(\aEv)=\labeling(\aEv)$,
-  % $\aEv\le'\bEv$ iff $\aEv\le\bEv$, and $\aEv\gtN'\bEv$ iff
-  % $\aEv\gtN\bEv$. 
-\begin{noenv}
-  Define
-  \begin{math}
-    \afo, \aPSS \models \bfo  \text{ if } \mods{(\afo)} \parallel \aPSS \models \bfo.
-  \end{math}
-\end{noenv}
-\begin{proposition}%[Composition]
-  Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
-  augmentation-closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
- %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
- %   implies $\aEv\gtN'\bEv$, and
- %   % $\labeling'(\aEv)=\labeling(\aEv)$
- %   if $\labeling(\aEv) = (\bForm \mid \bAct)$ then
- %   $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies
- %   $\bForm$.}
-  Then:
-  \begin{displaymath}
-    \tag{Composition}
-    \frac{
-      \afo, \aPSS_1 \models\afo
-      \qquad
-      \afo, \aPSS_2 \models\afo
-    }{\aPSS_1 \parallel \aPSS_2 \models \afo}
-  \end{displaymath}
-\end{proposition}
-\begin{proof}[Proof sketch]
-  We will show that all prefixes in the prefix closures of
-  $\aPSS_1 \parallel \aPSS_2$ satisfy the required property.  Proof proceeds
-  by induction on prefixes of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
-
-  The case for empty prefix  follows from assumption that  $\afo$ is prefix closed.  
-
-  For the inductive case, consider %$\aPS$ in the prefix closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
-  $\aPS \in \aPS_1 \parallel \aPS_2$ where
-  $\aPS_i \in \aPSS_i$.  Since $\aPSS_1$ and $\aPSS_2$ are augmentation
-  closed, we can assume that the restriction of $\aPS$ to the events of
-  $\aPS_i$ coincides with $\aPS_i$, for $i=1,2$.
-  %
-  Consider a prefix $\aPS'$ derived by removing a maximal element $\aEv$ from
-  $\aPS$.  Suppose $\aEv$ comes from $\aPS_1$ (the other case is
-  symmetric). Since $\aPS_2$ is a prefix of $\aPS'$ and $\aPS' \models \afo$
-  by induction hypothesis, we deduce that $\aPS_2 \models \afo$.
-  % Thus, $\aPS_2 \in \mods{(\afo)}$.
-  Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
-  deduce that $\aPS \models \afo$.
-\end{proof}
-
-A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
-
-\begin{example}
-We now turn the conditional TAR-pit program, given in \eqref{alan}:
-% which is a variant of \cite[Figure 8]{DBLP:journals/toplas/Lochbihler13}:
-\begin{equation}
-  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
-  (
-    y\GETS x
-  \PAR
-    \IF{z}\THEN x\GETS1 \ELSE x\GETS y\SEMI a\GETS y \FI
-  \PAR
-    z\GETS1
-  )
-\end{equation}
-We prove the formula
-\begin{math}
-  \lnot\once(\DW{a}{1})
-\end{math}
-holds for the models of this program in our semantics.  We start with the following invariant,
-which holds for each of the three threads, and thus, by composition, for the
-aggregate program:
-\begin{align*}
-  &[\once(\DW{y}{1}) \Rightarrow \once(\DR{x}{1})]
-  \land\\[-.5ex]
-  &[\once(\DW{a}{1}) \Rightarrow (\once(\DR{y}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{y}{1})))]
-\end{align*}
-Closing $y$, we have,
-\begin{math}
-  \once(\DR{y}{1}) \Rightarrow \once(\DW{y}{1}) % \Rightarrow \once(\DR{x}{1})
-\end{math}
-which we substitute into the left conjunct to get:
-\begin{displaymath}
-  \once(\DR{y}{1}) \Rightarrow \once(\DR{x}{1})
-\end{displaymath}
-which in turn we substitute into the right conjunct to get:
-\begin{displaymath}
-  \once(\DW{a}{1}) \Rightarrow (\once(\DR{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DR{x}{1})))
-\end{displaymath}
-Closing $x$, we can replace $\once(\DR{x}{1})$ with $\once(\DW{x}{1})$:
-\begin{displaymath}
-  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\DW{x}{1} \Rightarrow \once(\DW{x}{1})))
-\end{displaymath}
-Applying coinduction to the right conjunct, we have:
-\begin{displaymath}
-  \once(\DW{a}{1}) \Rightarrow (\once(\DW{x}{1}) \land \always(\lnot \DW{x}{1}))
-\end{displaymath}
-Simplifying, we have, as required:  
-\begin{displaymath}
-  \once(\DW{a}{1}) \Rightarrow \FALSE
-\end{displaymath}
-\end{example}
-
-\begin{example}[~\citet{DBLP:conf/lics/JeffreyR16,DBLP:conf/esop/SvendsenPDLV18}]
-We show that the following program never writes $2$ to $z$. 
-\begin{displaymath}
-  \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
-  (
-    y\GETS x+1\SEMI z \GETS y
-  \PAR
-    x\GETS y
-  )
-\end{displaymath}
-We start with the following invariant, which holds for each of the two threads, and thus, by composition, for the aggregate program:
-\begin{align*}
-  &[(\once(\DW{y}{v_1}) \land \once(\DW{y}{v_2})) \Rightarrow ((v_1 == v_2) \vee (v_1 == 0) \vee (v_2 == 0))] \land\\[-.5ex]
-  &[\DW{x}{1} \Rightarrow (\once(\DR{y}{1}))] \land \\[-.5ex]
-  &[\DW{y}{2} \Rightarrow (\once(\DR{x}{1}))]  \land \\[-.5ex]
-  &[\DW{z}{2} \Rightarrow (\once(\DR{y}{2}))]
-\end{align*}
-Closing both $x,y$ and substituting, we deduce:
-\[ \DW{z}{2} \Rightarrow (\once(\DW{y}{2})  \land \once(\DW{y}{2})) \]
-Using the first conjunct, we deduce the required conclusion $\DW{z}{2} \Rightarrow \FALSE$. 
-
-\end{example}
-
-\endinput
 
 \begin{verbatim}
 
