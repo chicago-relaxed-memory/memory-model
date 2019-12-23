@@ -583,7 +583,7 @@ location).
       \po{a}{f}
     }}
   \\
-  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+  \sem{\aLoc^\amode\GETS\aExp} & =
   \PREPAR{\textstyle\PAR_\aVal\;
     \TIKZ{
       \event{a}{\aExp=\aVal \mid \DWmode\aLoc\aVal}{}
@@ -597,10 +597,10 @@ location).
     }}
   \\
   \sem{\aCmd \PAR \bCmd}
-  =& \sem{\aCmd} \parallel \killS\sem{\bCmd}
+  &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
   \\
   \sem{\aCmd \SEMI \bCmd}
-  =& \sem{\aCmd} \sequence \sem{\bCmd}
+  &= \sem{\aCmd} \sequence \sem{\bCmd}
 \end{align*}
 The definitions for conditional and location binding are unchanged.
 
@@ -663,18 +663,15 @@ The definitions for conditional and location binding are unchanged.
 \begin{definition}
   \label{def:semi:seq}
   $\DISJUNCT(\aPSS)$ be the set $\DISJUNCT(\aPSS')$ where $\aPS'\in\aPSS'$ if
-  there is $\aPS\in\aPSS$ such that
-  $\Event' = \Event$,
-  ${\le'}\supseteq{\le}$,
-  and for every $\aEv\in\Event$ there are $\aPS^i\in\aPSS$ such that the
-  prefix to $\aEv$ is the same in all of them, and $\labelingForm'(\aEv)$
-  implies $\bigvee_i \labelingForm^i(\aEv)$.
-  
+  there is $\aPS\in\aPSS$ such that $\Event' = \Event$,
+  ${\le'}\supseteq{\le}$, and for every $\aEv\in\Event$ there are
+  $\aPS^i\in\aPSS$ that are identical but for the precondition of $\aEv$ such
+  that $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.  
   
   Let $\aPS'\in (\aPSS^1 \sequence \aPSS^2)$ be the set $\DISJUNCT(\aPSS')$ where $\aPS'\in\aPSS'$ 
   when either (a) $\aPS' \in \aPSS^1$ and
   $\disjoint{\Event'}{\Sub}$, or (b) there are $\aPS^1 \in \aPSS^1$,
-  $\cEv\in\Event^1$ and $\aPS^2\in\aPSS^2$ such that the following hold.  Let
+  $\cEv\in\Event^1\cap\Sub$ and $\aPS^2\in\aPSS^2$ such that the following hold.  Let
   $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over
   $\Event^2$.
 \begin{enumerate}
