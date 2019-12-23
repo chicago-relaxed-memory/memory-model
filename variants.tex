@@ -537,7 +537,7 @@ We only apply substitutions to formulae, which have no binders.
 Let $\Sub$ be the set of all (explicit) substitutions.  In a data model,
 substitutions are silent actions: $\Sub\subseteq\Int$.  Pomsets may contain
 at most one event $\cEv$ with a label in $\Sub$, and that may be no
-$\aEv\gt\cEv$.
+$\aEv$ such that $\cEv\le\aEv$.
 
 Substitutions track dependencies for the follower.
 
