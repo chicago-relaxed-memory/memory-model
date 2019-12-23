@@ -555,21 +555,27 @@ Write fence actions need to indicate which variable was written:
 $\DFW[\aLoc]{\amode}$.  We extend the notion of \emph{conflict} to include
 write fence actions (thus ordering them w.r.t.~reads and writes on the same
 location).
+
+To simplify the definition of the base cases, we use a literal notation for
+pomsets.
+
+Let $\aPS'\in\CLOSE{\aPSS}$ if there is $\aPS\in\PRE(\aPSS)$ such that
+$\aPS'$ implies $\aPS$ and $\aPS'$ is an augmentation of $\aPS$.
 \begin{align*}
   \sem{\SKIP} & \eqdef
-  \PREPAR{\TIKZ{\final{f}{\SUBEMP}{}}}
+  \CLOSE{\TIKZ{\final{f}{\SUBEMP}{}}}
   \\  
   \sem{\aReg\GETS\aExp} & \eqdef
-  \PREPAR{\TIKZ{\final{f}{\SUB{\aExp/\aReg}}{}}}
+  \CLOSE{\TIKZ{\final{f}{\SUB{\aExp/\aReg}}{}}}
   \\
   \sem{\FENCE^{\fmode}} & =
-  \PREPAR{\TIKZ{
+  \CLOSE{\TIKZ{
       \event{a}{\DFS{\fmode}}{}
       \final{f}{\SUBEMP}{right=of a}
     }} 
   \\
   \sem{\aReg\GETS\aLoc^\amode} & =
-  \PREPAR{\textstyle\bigcup_\aVal\;
+  \CLOSE{\textstyle\bigcup_\aVal\;
     \TIKZ{
       \event{a}{\DRmode\aLoc\aVal}{}
       \final{f}{\SUB{\aVal/\aReg}}{right=of a}
@@ -577,21 +583,21 @@ location).
     }}
   \\[-.5ex] &
   \mkern2mu\cup
-  \PREPAR{\TIKZ{
+  \CLOSE{\TIKZ{
       \event{a}{\DFR{\amode}}{}
       \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
       \po{a}{f}
     }}
   \\
   \sem{\aLoc^\amode\GETS\aExp} & =
-  \PREPAR{\textstyle\PAR_\aVal\;
+  \CLOSE{\textstyle\PAR_\aVal\;
     \TIKZ{
       \event{a}{\aExp=\aVal \mid \DWmode\aLoc\aVal}{}
       \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
     }}
   \\[-.5ex] &
   \mkern2mu\cup
-  \PREPAR{\TIKZ{
+  \CLOSE{\TIKZ{
       \event{a}{\DFW[\aLoc]{\amode}}{}
       \final{f}{\SUB{\aExp/\aLoc}}{right=of a}
     }}
@@ -662,17 +668,16 @@ The definitions for conditional and location binding are unchanged.
 
 \begin{definition}
   \label{def:semi:seq}
-  $\DISJUNCT(\aPSS)$ be the set $\DISJUNCT(\aPSS')$ where $\aPS'\in\aPSS'$ if
-  there is $\aPS\in\aPSS$ such that $\Event' = \Event$,
-  ${\le'}\supseteq{\le}$, and for every $\aEv\in\Event$ there are
-  $\aPS^i\in\aPSS$ that are identical but for the precondition of $\aEv$ such
-  that $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.  
+  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ if there
+  are $\aPS^i\in\aPSS$ such $\Event' = \Event^i$, ${\le'}={\le^i}$,
+  $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
+  $\bigvee_i \labelingForm^i(\aEv)$.
   
-  Let $\aPS'\in (\aPSS^1 \sequence \aPSS^2)$ be the set $\DISJUNCT(\aPSS')$ where $\aPS'\in\aPSS'$ 
-  when either (a) $\aPS' \in \aPSS^1$ and
-  $\disjoint{\Event'}{\Sub}$, or (b) there are $\aPS^1 \in \aPSS^1$,
-  $\cEv\in\Event^1\cap\Sub$ and $\aPS^2\in\aPSS^2$ such that the following hold.  Let
-  $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over
+  Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
+  $\{\aPS^1\in\aPSS^1\mid \disjoint{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
+  where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
+  $\cEv\in\Event^1\cap\Sub$ and $\aPS^2\in\aPSS^2$ such that the following
+  hold.  Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over
   $\Event^2$.
 \begin{enumerate}
 \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
