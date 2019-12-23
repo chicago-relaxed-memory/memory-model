@@ -1,4 +1,4 @@
-\section{Test Cases and Additional Features}
+\section{Test Cases and Extensions}
 \label{sec:variants}
 
 After discussing a few test cases, we extend the model to include additional
@@ -184,12 +184,13 @@ $\amode\in\{\modeRA,\,\modeSC\}$, $\DFR{\amode}$ is an acquire, and
 $\DFW{\amode}$ is a release.  The fences with access mode $\modeRLX$ do
 nothing; we include them only to remove case analysis from the definitions.
 
-Because the semantics of syntactic fences is subtly different from the
-fencing behavior of $\modeRA$/$\modeSC$-accesses, our example language
-includes separate internal actions for syntactic fences: $\DFS{\fmode}$.  The
-\emph{syntactic fence mode}
-$(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$ is either
-\emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
+We also include syntactic fences of the form
+``$\FENCE^{\fmode} \SEMI \aCmd$.''  In C11, the semantics of syntactic fences
+is subtly different from the fencing behavior of
+$\modeRA$/$\modeSC$-accesses.  Thus we include separate actions for syntactic
+fences: $\DFS{\fmode}$.  The \emph{syntactic fence mode}
+$(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
+is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
 $\DFS{\modeREL}$ is a release. $\DFS{\modeACQ}$ is an acquire.
 $\DFS{\modeSC}$ is both a release and an acquire.
 
@@ -200,8 +201,6 @@ To Definition \ref{def:prefix} of prefixing, add:
 \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}
-
-As concrete syntax for commands, we write ``$\FENCE^{\fmode} \SEMI \aCmd$.''
 \begin{align*}
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
   (\DFS{\fmode}) \prefix \sem{\aCmd}

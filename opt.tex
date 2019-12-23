@@ -1,10 +1,3 @@
-\newcommand{\aCtxt}{{\mathcal C}}
-\newcommand{\aLocReg}{\aLoc_{{loc}}}
-\newcommand{\aRead}{\aLoc_{r}}
-\newcommand{\aChanged}{\aLoc_{c}}
-\newcommand{\linV}[1]{#1_{{\tt lin}}}
-
-
 \section{Single Threaded Optimizations}
 \label{sec:opt}
 
@@ -320,19 +313,19 @@ By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $
 We conclude this subsection by showing that any sequential and synchronization free  program fragment is sequentially equivalent to a ``linear'' program fragment.  Given $\aCmd$, define 
 $\linV{\aCmd}$ as follows.
 \begin{definition}
-With each shared variable $\aLoc$, we associate a thread local variable $\aLocReg$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
+With each shared variable $\aLoc$, we associate a thread local variable $\aLocLoc$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
 
 \begin{align*}
-\linV{\aCmd}= & \VAR\vec{\aLocReg} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
+\linV{\aCmd}= & \VAR\vec{\aLocLoc} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
 & \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
 & \aCmd' \SEMI   \\
-& \overline{\IF \aChanged\  \aLoc= \aLocReg}
+& \overline{\IF \aChanged\  \aLoc= \aLocLoc}
 \end{align*}
 where:
 $\aCmd'$ is derived from $\aCmd$ by replacing:
 \begin{itemize}
-\item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF  (\aChanged \lor\ \aRead) \THEN\  \aReg= \aLocReg \ELSE\  \aReg= \aLoc \SEMI \FI $,
-\item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocReg = \aExp$
+\item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF  (\aChanged \lor\ \aRead) \THEN\  \aReg= \aLocLoc \ELSE\  \aReg= \aLoc \SEMI \FI $,
+\item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocLoc = \aExp$
 \end{itemize}
 \end{definition}
 From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce:
