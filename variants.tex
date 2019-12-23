@@ -539,18 +539,17 @@ substitutions are silent actions: $\Sub\subseteq\Int$.  Pomsets may contain
 at most one event $\cEv$ with a label in $\Sub$, and that may be no
 $\aEv$ such that $\cEv\le\aEv$.
 
-Substitutions track dependencies for the follower.
-
-Write fence actions need to indicate which variable was written:
-$\DFW[\aLoc]{\amode}$.  We extend the notion of \emph{conflict} to include
-write fence actions (thus ordering them w.r.t.~reads and writes on the same
-location).
+We modify the syntax of write fence actions to name the variable that was
+written: $\DFW[\aLoc]{\amode}$.  The new actions remain silent.  We extend
+the notion of \emph{conflict} to include the new write fence actions, thus
+ordering $\DFW[\aLoc]{\amode}$ w.r.t.~reads and writes on $\aLoc$.
 
 To simplify the definition of the base cases, we use a literal notation for
 pomsets, drawing substitutions as accepting states.  Let
 $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that $\aPS''$
-implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.
-The definitions for conditional and location binding are unchanged.
+implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.  We elide the
+definitions for location binding and conditional, which are unchanged from
+\textsection\ref{sec:model:intro}.
 \begin{gather*}
   \begin{aligned}
   \sem{\SKIP} & \eqdef
