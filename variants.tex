@@ -541,16 +541,6 @@ $\aEv$ such that $\cEv\le\aEv$.
 
 Substitutions track dependencies for the follower.
 
-To express concurrency under these constraints, we must break the asymmetry
-of \!$\PAR$\!.  Arbitrarily, we choose to keep the substitution on the left:
-\begin{gather*}
-  \begin{aligned}
-    \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
-    &
-    \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
-  \end{aligned}
-\end{gather*}
-
 Write fence actions need to indicate which variable was written:
 $\DFW[\aLoc]{\amode}$.  We extend the notion of \emph{conflict} to include
 write fence actions (thus ordering them w.r.t.~reads and writes on the same
@@ -561,7 +551,8 @@ pomsets, drawing substitutions as accepting states.  Let
 $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that $\aPS''$
 implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.
 The definitions for conditional and location binding are unchanged.
-\begin{align*}
+\begin{gather*}
+  \begin{aligned}
   \sem{\SKIP} & \eqdef
   \CLOSE{\TIKZ{\final{f}{\SUBEMP}{}}}
   \\  
@@ -601,13 +592,27 @@ The definitions for conditional and location binding are unchanged.
       \event{a}{\DFW[\aLoc]{\amode}}{}
       \final{f}{\SUB{\aExp/\aLoc}}{right=of a}
     }}
+  \end{aligned}
   \\
-  \sem{\aCmd \PAR \bCmd}
-  &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
-  \\
-  \sem{\aCmd \SEMI \bCmd}
-  &= \sem{\aCmd} \sequence \sem{\bCmd}
-\end{align*}
+  \begin{aligned}
+    \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
+    &
+    \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
+    \\
+    \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
+    &
+    \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
+  \end{aligned}
+\end{gather*}
+To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
+choosing to keep the substitution on the left.
+% \begin{gather*}
+%   \begin{aligned}
+%     \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
+%     &
+%     \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
+%   \end{aligned}
+% \end{gather*}
 
 % Relative to the previous definitions, the base cases are handled as follows:
 % \begin{itemize}
