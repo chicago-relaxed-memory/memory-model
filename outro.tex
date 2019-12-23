@@ -1,4 +1,4 @@
-\section{Comparison to related work}\label{sec:ldrf}
+\section{Related Work}\label{sec:ldrf}
 A memory consistency model for a shared-memory multiprocessor defines the
 values that a read may return.  There has been extensive research on hardware
 and software memory models. \citet{DBLP:journals/pacmpl/PodkopaevLV19}
@@ -18,8 +18,8 @@ We have already discussed related work in context earlier in the paper.
 Here, we discuss in more detail the relationship with the most closely
 related work.
 
-\subsection{Memory models via program transformations}
-We discuss prior approaches to definining memory models using program
+\paragraph{Memory Models Via Program Transformations.}
+We Discuss prior approaches to definining memory models using program
 transformations in chronological order.  The general flavor in these
 approaches is to consider SC executions, albeit with the threads subject to
 sequential program transformation.
@@ -45,9 +45,9 @@ expressive than considering \textsc{wr}, \textsc{raw} and thread-inlining.  Our 
 inspired by their implicit challenge: ``Some memory models can be defined via
 transformations.  But there is more to weak memory than transformations.''
 
-\subsection{Modeling the invalidation of load buffering} 
+\paragraph{Modeling the Invalidation of Load Buffering.} 
 
-In this subsection, we argue that our paper is relevant even to the reader
+In this paragraph, we argue that our paper is relevant even to the reader
 who desires a semantics that invalidates ``load buffering,'' or ``reads from the future.''
 There are two related lines of research that suggest to prohibit the
 reordering of loads with following stores.
@@ -150,7 +150,7 @@ compilation to \armeight, our approach yields the following new insights.
 
 \end{itemize}
 
-\subsection{Revisiting \oota}
+\paragraph{Revisiting \oota.}
 \citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air
 executions. \citet{BoehmOOTA} revisits community discussions on ``\oota''
 like examples.  We classify the models on the basis of their behavior on
@@ -174,7 +174,7 @@ eg. type safety.  And while \oota\ in a model is an elusive creature, and
 hence hard to prove or disprove, the support of a model for a compositional
 proof principle is objectively provable or falsifiable.
 
-\subsection{Relationship to models of speculation}
+\paragraph{Relationship to Models of Speculation.}
 \citet{2019-sp} is a close formal cousin to our approach.  In the spectrum
 from micro architectures to architectures to software,whereas \citet{2019-sp}
 lies between the micro and architectural levels, we aim to be as abstract as
