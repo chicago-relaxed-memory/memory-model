@@ -1,3 +1,4 @@
+\newcommand{\weakestmo}{\textsc{weak\-est\-mo}}
 \newcommand{\semold}[1]{\mathsf{old}\sem{#1}}
 \newcommand{\aCtxt}{{\mathcal C}}
 \newcommand{\aLocLoc}{\aLoc_{{loc}}}
@@ -125,8 +126,8 @@
 \newcommand{\closed}{\textsf{closed}}
 \newcommand{\addRead}{\textsf{addRead}}
 \newcommand{\pLTL}{\textsf{PLTL}}
-\newcommand{\once}{\Diamond^{-1}}
-\newcommand{\always}{\Box^{-1}}
+\newcommand{\once}{\Diamond\mkern-10.1mu\text{-}\mkern4mu}
+\newcommand{\always}{\Box\mkern-8.8mu\text{-}\mkern3mu}
 \newcommand{\afo}{\phi}
 \newcommand{\bfo}{\psi}
 \newcommand{\mods}{\textsf{Models}}
@@ -445,129 +446,129 @@
 \tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=red!50!black]
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
 
-\tikzstyle{graypo} = [->,color=gray,]
-\tikzstyle{graywk} = [->,dashed,color=gray]
+\tikzstyle{graypo} = [-latex,color=gray,]
+\tikzstyle{graywk} = [-latex,dashed,color=gray]
 % \newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
 % \newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
 \newcommand{\graypo}[3][]{}
 \newcommand{\graywk}[3][]{}
 
-\tikzstyle{po} = [->,color=blue,]
+\tikzstyle{po} = [-latex,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
 \newcommand{\xpo}{\xarrowtikz{po}{}}%
-\tikzstyle{lift} = [->,double]
+\tikzstyle{lift} = [-latex,double]
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
-\tikzstyle{wk} = [->,dashed,color=red!50!black,]
+\tikzstyle{wk} = [-latex,dashed,color=red!50!black,]
 \newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
 \newcommand{\xwk}{\xarrowtikzlong{wk}{}}%
 
-\tikzstyle{rmw} = [->,thick]
+\tikzstyle{rmw} = [-latex,thick]
 \NewDocumentCommand \rmw {O{} m O{} m} {\draw[rmw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rmw}$}  (#4);}
 \newcommand{\rrmw}{\ensuremath{\mathrel{\mathsf{rmw}}}}%
 \newcommand{\xrmw}{\xarrowtikz{rmw}{rmw}}%
 
-\tikzstyle{eco} = [->,color=red!50!black,thick]
+\tikzstyle{eco} = [-latex,color=red!50!black,thick]
 \NewDocumentCommand \eco {O{} m O{} m} {\draw[eco,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{eco}$}  (#4);}
 \newcommand{\reco}{\ensuremath{\mathrel{\textcolor{red!50!black}{\textsf{eco}}}}}%
 \newcommand{\xeco}{\xarrowtikz{eco}{eco}}%
-\tikzstyle{co} = [->,color=red!50!black,thick]
+\tikzstyle{co} = [-latex,color=red!50!black,thick]
 \NewDocumentCommand \co {O{} m O{} m} {\draw[co,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{co}$}  (#4);}
 \newcommand{\rco}{\ensuremath{\mathrel{\textcolor{red!50!black}{\textsf{co}}}}}%
 \newcommand{\xco}{\xarrowtikz{co}{co}}%
-\tikzstyle{coi} = [->,color=red!50!black,thick]
+\tikzstyle{coi} = [-latex,color=red!50!black,thick]
 \NewDocumentCommand \coi {O{} m O{} m} {\draw[coi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coi}$}  (#4);}
 \newcommand{\rcoi}{\ensuremath{\mathrel{\textcolor{red!50!black}{\textsf{coi}}}}}%
 \newcommand{\xcoi}{\xarrowtikz{coi}{coi}}%
-\tikzstyle{coe} = [->,color=red!50!black,thick]
+\tikzstyle{coe} = [-latex,color=red!50!black,thick]
 \NewDocumentCommand \coe {O{} m O{} m} {\draw[coe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coe}$}  (#4);}
 \newcommand{\rcoe}{\ensuremath{\mathrel{\textcolor{red!50!black}{\textsf{coe}}}}}%
 \newcommand{\xcoe}{\xarrowtikz{coe}{coe}}%
 
-\tikzstyle{fr} = [->,color=red!90!black,thick]
+\tikzstyle{fr} = [-latex,color=red!90!black,thick]
 \NewDocumentCommand \fr {O{} m O{} m} {\draw[fr,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fr}$}  (#4);}
 \newcommand{\rfr}{\ensuremath{\mathrel{\textcolor{red!90!black}{\textsf{fr}}}}}%
 \newcommand{\xfr}{\xarrowtikz{fr}{fr}}%
-\tikzstyle{fre} = [->,color=red!90!black,thick]
+\tikzstyle{fre} = [-latex,color=red!90!black,thick]
 \NewDocumentCommand \fre {O{} m O{} m} {\draw[fre,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fre}$}  (#4);}
 \newcommand{\rfre}{\ensuremath{\mathrel{\textcolor{red!90!black}{\textsf{fre}}}}}%
 \newcommand{\xfre}{\xarrowtikz{fre}{fre}}%
-\tikzstyle{fri} = [->,color=red!90!black,thick]
+\tikzstyle{fri} = [-latex,color=red!90!black,thick]
 \NewDocumentCommand \fri {O{} m O{} m} {\draw[fri,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fri}$}  (#4);}
 \newcommand{\rfri}{\ensuremath{\mathrel{\textcolor{red!90!black}{\textsf{fri}}}}}%
 \newcommand{\xfri}{\xarrowtikz{fri}{fri}}%
-%\tikzstyle{rb} = [->,thick,dotted,color=red!90!black,]
+%\tikzstyle{rb} = [-latex,thick,dotted,color=red!90!black,]
 \NewDocumentCommand \rb {O{} m O{} m} {\draw[fr,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fr}$}  (#4);}
 \newcommand{\rrb}{\ensuremath{\mathrel{\textcolor{red!90!black}{\textsf{fr}}}}}%
 \newcommand{\xrb}{\xarrowtikz{rb}{fr}}%
 
-\tikzstyle{rf} = [->,thick,color=green!50!black,]
+\tikzstyle{rf} = [-latex,thick,color=green!50!black,]
 \newcommand{\rf}[3][]{\draw[rf,#1](#2)to(#3);}
 \newcommand{\rrf}{\ensuremath{\mathrel{\textcolor{green!50!black}{\textsf{rf}}}}}%
 \newcommand{\xrf}{\xarrowtikz{rf}{}}%
-\tikzstyle{rfx} = [->,thick,color=green!50!black,]
+\tikzstyle{rfx} = [-latex,thick,color=green!50!black,]
 \NewDocumentCommand \rfx {O{} m O{} m} {\draw[rf,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rf}$}  (#4);}
 \newcommand{\rrfx}{\ensuremath{\mathrel{\textcolor{green!50!black}{\textsf{rf}}}}}%
 \newcommand{\xrfx}{\xarrowtikz{rf}{rf}}%
-\tikzstyle{rfe} = [->,color=green!50!black,thick]
+\tikzstyle{rfe} = [-latex,color=green!50!black,thick]
 \NewDocumentCommand \rfe {O{} m O{} m} {\draw[rfe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rfe}$}  (#4);}
 \newcommand{\rrfe}{\ensuremath{\mathrel{\textcolor{green!50!black}{\textsf{rfe}}}}}%
 \newcommand{\xrfe}{\xarrowtikz{rfe}{rfe}}%
-\tikzstyle{rfi} = [->,color=green!50!black,thick]
+\tikzstyle{rfi} = [-latex,color=green!50!black,thick]
 \NewDocumentCommand \rfi {O{} m O{} m} {\draw[rfi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rfi}$}  (#4);}
 \newcommand{\rrfi}{\ensuremath{\mathrel{\textcolor{green!50!black}{\textsf{rfi}}}}}%
 \newcommand{\xrfi}{\xarrowtikz{rfi}{rfi}}%
 
-\tikzstyle{sw} = [->,color=blue,thick]
+\tikzstyle{sw} = [-latex,color=blue,thick]
 \NewDocumentCommand \sw {O{} m O{} m} {\draw[sw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{sw}$}  (#4);}
 \newcommand{\rsw}{\ensuremath{\mathrel{\textcolor{blue}{\textsf{sw}}}}}%
 \newcommand{\xsw}{\xarrowtikz{sw}{sw}}%
-\tikzstyle{obs} = [->,color=blue,thick]
+\tikzstyle{obs} = [-latex,color=blue,thick]
 \NewDocumentCommand \obs {O{} m O{} m} {\draw[obs,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{obs}$}  (#4);}
 \newcommand{\robs}{\ensuremath{\mathrel{\textcolor{blue}{\textsf{obs}}}}}%
 \newcommand{\xobs}{\xarrowtikz{obs}{obs}}%
 
-\tikzstyle{hb} = [->,color=blue,thick]
+\tikzstyle{hb} = [-latex,color=blue,thick]
 \NewDocumentCommand \hb {O{} m O{} m} {\draw[hb,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{hb}$}  (#4);}
 \newcommand{\rhb}{\ensuremath{\mathrel{\textcolor{blue}{\textsf{hb}}}}}%
 \newcommand{\xhb}{\xarrowtikz{hb}{hb}}%
-\tikzstyle{ob} = [->,color=blue,thick]
+\tikzstyle{ob} = [-latex,color=blue,thick]
 \NewDocumentCommand \ob {O{} m O{} m} {\draw[ob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ob}$}  (#4);}
 \newcommand{\rob}{\ensuremath{\mathrel{\textcolor{blue}{\textsf{ob}}}}}%
 \newcommand{\xob}{\xarrowtikz{ob}{ob}}%
 
-% \tikzstyle{ird} = [->,thick,color=green!50!black,]
+% \tikzstyle{ird} = [-latex,thick,color=green!50!black,]
 % \NewDocumentCommand \ird {O{} m O{} m} {\draw[ird,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ird}$}  (#4);}
 % \newcommand{\rird}{\ensuremath{\mathrel{\textcolor{green!50!black}{\textsf{ird}}}}}%
 % \newcommand{\xird}{\xarrowtikz{ird}{ird}}%
-\tikzstyle{pox} = [->,thick,color=cyan!90!black,]
+\tikzstyle{pox} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \pox {O{} m O{} m} {\draw[pox,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{po}$}  (#4);}
 \newcommand{\rpox}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{po}}}}}%
 \newcommand{\xpox}{\xarrowtikz{pox}{po}}%
-\tikzstyle{poloc} = [->,thick,color=cyan!90!black,]
+\tikzstyle{poloc} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \poloc {O{} m O{} m} {\draw[poloc,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{poloc}$}  (#4);}
 \newcommand{\rpoloc}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{poloc}}}}}%
 \newcommand{\xpoloc}{\xarrowtikz{poloc}{poloc}}%
-\tikzstyle{addr} = [->,color=cyan!90!black,thick]
+\tikzstyle{addr} = [-latex,color=cyan!90!black,thick]
 \NewDocumentCommand \addr {O{} m O{} m} {\draw[addr,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{addr}$}  (#4);}
 \newcommand{\raddr}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{addr}}}}}%
 \newcommand{\xaddr}{\xarrowtikz{addr}{addr}}%
-\tikzstyle{ctrl} = [->,color=cyan!90!black,thick]
+\tikzstyle{ctrl} = [-latex,color=cyan!90!black,thick]
 \NewDocumentCommand \ctrl {O{} m O{} m} {\draw[ctrl,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ctrl}$}  (#4);}
 \newcommand{\rctrl}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{ctrl}}}}}%
 \newcommand{\xctrl}{\xarrowtikz{ctrl}{ctrl}}%
-\tikzstyle{data} = [->,color=cyan!90!black,thick]
+\tikzstyle{data} = [-latex,color=cyan!90!black,thick]
 \NewDocumentCommand \data {O{} m O{} m} {\draw[data,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{data}$}  (#4);}
 \newcommand{\rdata}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{data}}}}}%
 \newcommand{\xdata}{\xarrowtikz{data}{data}}%
-\tikzstyle{dob} = [->,thick,color=cyan!90!black,]
+\tikzstyle{dob} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \dob {O{} m O{} m} {\draw[dob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{dob}$}  (#4);}
 \newcommand{\rdob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{dob}}}}}%
 \newcommand{\xdob}{\xarrowtikz{dob}{dob}}%
-\tikzstyle{bob} = [->,thick,color=cyan!90!black,]
+\tikzstyle{bob} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \bob {O{} m O{} m} {\draw[bob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{bob}$}  (#4);}
 \newcommand{\rbob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{bob}}}}}%
 \newcommand{\xbob}{\xarrowtikz{bob}{bob}}%
-\tikzstyle{aob} = [->,thick,color=cyan!90!black,]
+\tikzstyle{aob} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \aob {O{} m O{} m} {\draw[aob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{aob}$}  (#4);}
 \newcommand{\raob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{aob}}}}}%
 \newcommand{\xaob}{\xarrowtikz{aob}{aob}}%
