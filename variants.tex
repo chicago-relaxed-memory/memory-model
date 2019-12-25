@@ -181,9 +181,9 @@ $\DFW{\amode}$ is a release.  The fences with access mode $\modeRLX$ do
 nothing; we include them only to remove case analysis from the definitions.
 
 We also include syntactic fences of the form
-``$\FENCE^{\fmode} \SEMI \aCmd$.''  In C11, the semantics of syntactic fences
+``$\FENCE^{\fmode} \SEMI \aCmd$.''  The semantics of syntactic fences
 is subtly different from the fencing behavior of
-$\modeRA$/$\modeSC$-accesses.  Thus we include separate actions for syntactic
+$\modeRA$/$\modeSC$-accesses in C11.  Thus we include separate actions for syntactic
 fences: $\DFS{\fmode}$.  The \emph{syntactic fence mode}
 $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
 is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
@@ -209,7 +209,7 @@ To Definition \ref{def:prefix} of prefixing, add:
   \sem{\aCmd}[\aLoc/\aReg]
   \\
   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-  \textstyle\PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+  \;\;\textstyle\parallel_\aVal (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
   \\[-.5ex] &
   \mkern2mu\cup
   \,\mathhl{(\DFW{\amode}) \;\prefix}\,\;
@@ -302,9 +302,9 @@ In our example language, we update the syntax of commands:
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
   \\[-1ex]
   &\mkern-65mu\hbox to 0pt{$\begin{aligned}
-    &\textstyle\PAR_{\cVal,\aVal}\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+    &\textstyle\parallel_{\cVal,\aVal}\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
     \\[-.5ex]  \cup\!&
-    \textstyle\PAR_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFW{\amode}) \prefix
+    \textstyle\parallel_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFW{\amode}) \prefix
     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
   \end{aligned}$}
   % \\[-9.5ex]
@@ -321,9 +321,9 @@ In our example language, we update the syntax of commands:
 %   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
 %   \\[-1ex]
 %   &\mkern-65mu\hbox to 0pt{$\begin{aligned}
-%     &\textstyle\PAR_{\cVal,\aVal}\;(\cExp=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+%     &\textstyle\parallel_{\cVal,\aVal}\;(\cExp=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
 %     \\[-.5ex]  \cup\!&
-%     \textstyle\PAR_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFW{\amode}) \prefix
+%     \textstyle\parallel_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFW{\amode}) \prefix
 %     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
 %   \end{aligned}$}
 % \end{aligned}
@@ -362,9 +362,10 @@ in the syntax.
 
 
 Because we do not enforce order between reads, there is some danger that
-address calculations could allow thin air behavior.  Consider the following
-attempted execution, where all memory addresses are initialized to $0$,
-except that $\REF{2}$ is $1$ and $\REF{1}$ is $2$:
+address calculations could introduce anomalous behaviors that arise \emph{out of thin air}
+(\oota) \cite{DBLP:conf/esop/BattyMNPS15}.  Consider the following attempted
+execution, where all memory addresses are initialized to $0$, except that
+$\REF{2}$ is $1$ and $\REF{1}$ is $2$:
 \begin{gather*}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
@@ -387,7 +388,7 @@ except that $\REF{2}$ is $1$ and $\REF{1}$ is $2$:
     \end{tikzinline}}
 \end{gather*}
 Although there is no order enforced between the reads, the read-to-write
-order induced by the semantics is sufficient to prohibit this thin-air
+order induced by the semantics is sufficient to prohibit this \oota{}
 behavior.  Note the intermediate state:
 \begin{gather*}
   \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
@@ -403,8 +404,8 @@ Definition~\ref{def:mmpomset}: if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
 implies $\labelingForm(\bEv)$.
 
 \paragraph{Read-Modify-Write.} We discuss \RMW\ operations that work on a
-single location in memory, such as Fetch-And-Add ($\FADD$) and
-compare-and-swap ($\CAS$).  These operations can be modeled using read/write
+single location in memory, such as \emph{fetch-and-add} ($\FADD$) and
+\emph{compare-and-swap} ($\CAS$).  These operations can be modeled using read/write
 actions or using an additional relation between events.  The second approach
 is more general and less obvious, therefore we explain it here.
 
@@ -451,7 +452,7 @@ This definition ensures atomicity, disallowing executions such as
     \end{tikzinline}}
 \end{gather*}
 
-By using two actions rather than one, we allow examples such as the
+By using two actions rather than one, the definition allows examples such as the
 following, which is allowed by \armeight{} 
 \cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
@@ -496,8 +497,8 @@ We refactor the syntax:
   \BNFSEP \VAR\aLoc
   \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
-For clarity, we do not include address calculation or \RMW{}s in this
-subsection.
+To keep the presentation as simple as possible, we include neither address
+calculation nor \RMW{}s in this subsection.
 
 
 We introduce explicit substitutions,
@@ -508,11 +509,26 @@ following the conventions of \citet{DBLP:conf/icalp/RitterP97}:
   \aSub,\,\bSub\!\!\BNFDEF\!\! \SUBEMP \!\BNFSEP\! \SUBPAR{\aSub}{\aExp/\aLocReg}
   \!\BNFSEP\! \aSub\SUBSEQ\bSub
 \end{align*}
-We write application as $\aForm\SUBAPP\aSub$ and write
+We write application as $\aSub\SUBAPP\aForm$ and write
 $\SUBPAR{\SUBEMP}{\aExp/\aLocReg}$ as $\SUB{\aExp/\aLocReg}$.  The definition
 of application is not complicated by the lack of support for renaming
 locations in our language: We only apply substitutions to formulae, which
 have no binders.
+By definition:
+% \begin{math}
+%   \aSub\SUBSEQ\SUBPAR{\bSub}{\aExp/\aLocReg}
+%   = 
+%   \SUBPAR{\aSub\SUBSEQ\bSub}{\aSub\SUBAPP\aExp/\aLocReg}
+% \end{math}
+\begin{math}
+  \aSub\SUBSEQ\SUB{\aExp/\aLocReg}
+  = 
+  \SUBPAR{\aSub}{\aSub\SUBAPP\aExp/\aLocReg}
+\end{math}
+and
+\begin{math}
+  (\aSub\SUBSEQ\bSub)\SUBAPP\aForm = \aSub\SUBAPP(\bSub\SUBAPP\aForm).
+\end{math}
 
 % Goal:
 % \begin{math}
@@ -532,7 +548,7 @@ have no binders.
 
 Let $\Sub$ be the set of all (explicit) substitutions.  In a data model,
 substitutions are silent actions: $\Sub\subseteq\Int$.  Pomsets may contain
-at most one event $\cEv$ with a label in $\Sub$, and that may be no
+at most one event $\cEv$ with a label in $\Sub$, and there may be no
 $\aEv$ such that $\cEv\le\aEv$.
 
 We modify the syntax of write fence actions to name the variable that was
@@ -540,11 +556,12 @@ written: $\DFW[\aLoc]{\amode}$.  The new actions remain silent.  We extend
 the notion of \emph{conflict} to include the new write fence actions, thus
 ordering $\DFW[\aLoc]{\amode}$ w.r.t.~reads and writes on $\aLoc$.
 
+Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that both
+$\aPS''$ implies $\aPS'$ and also $\aPS''$ is an augmentation of $\aPS'$.
+
 To simplify the definition of the base cases, we use a literal notation for
-pomsets, drawing substitutions as accepting states.  Let
-$\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that $\aPS''$
-implies $\aPS'$ and $\aPS''$ is an augmentation of $\aPS'$.  We elide the
-definitions for location binding and conditional, which are unchanged from
+pomsets, drawing substitutions as accepting states.  We elide the definitions
+for location binding and conditional, which are unchanged from
 \textsection\ref{sec:model}.
 \begin{gather*}
   \begin{aligned}
@@ -576,7 +593,7 @@ definitions for location binding and conditional, which are unchanged from
     }}
   \\
   \sem{\aLoc^\amode\GETS\aExp} & =
-  \textstyle\PAR_\aVal\;
+  \textstyle\parallel_\aVal\;
   \CLOSE{\TIKZ{
       \event{a}{\aExp=\aVal \mid \DWmode\aLoc\aVal}{}
       \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
@@ -601,6 +618,8 @@ definitions for location binding and conditional, which are unchanged from
 \end{gather*}
 To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
 choosing to keep the substitution on the left.
+
+Note that only reads introduce order.
 
 The main work is to define semantic sequencing.  Unfortunately, disjunction
 closure does not come for free.
@@ -692,8 +711,8 @@ closure does not come for free.
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^2(\aEv)\SUBSEQ\labelingAct^1(\cEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
-\item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)\SUBAPP\labelingAct^1(\cEv)$,
+\item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^1(\cEv)\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+\item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingAct^1(\cEv)\SUBAPP\labelingForm^2(\aEv)$,
 % \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
 %   $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
 % \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$

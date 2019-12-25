@@ -7,14 +7,14 @@ behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
 \begin{align}
   \label{oota1}
-  (y\GETS x \PAR x\GETS y) %\SEMI x\GETS r)
+  (y\GETS x \PAR r\GETS y\SEMI x\GETS r)
   &&
   %\nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{rx}{\DR{x}{1}}{}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
-  \event{ry}{\DR{y}{1}}{right=3em of wy}
+  \event{ry}{\DR{y}{1}}{right=2em of wy}
   \event{wx}{\DW{x}{1}}{right=of ry}
   \po{ry}{wx}
   \rf{wy}{ry}
@@ -504,7 +504,7 @@ to the cycle:
     \end{tikzinline}}
 \end{gather*}
 
-
+Could put \rfub{} here.
 
 
 \endinput
