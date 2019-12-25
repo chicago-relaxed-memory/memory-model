@@ -29,11 +29,9 @@ The following program ``is type correct if it declares $x$, $y$ and $r$ of type 
   \label{lochbihler}
   \begin{aligned}
     &z \GETS 1
-    \\[-1ex]
-    \PAR&
+    \PAR %\\[-1ex] \PAR&
     y\GETS x
-    \\[-1ex]
-    \PAR&
+    \\[-1ex] \PAR&
     \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \texttt{C} \ELSE \aReg \GETS \NEW \texttt{D} \FI  \SEMI x \GETS \aReg 
   \end{aligned}
 \end{gather}
@@ -52,18 +50,11 @@ Java and  related models \citep{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/J
 
 Our approach has two key ingredients.  
 
-First, we focus on multi-copy atomicity (\mca), which holds that when a write becomes visible to one threads it must become visible to all threads \nofootnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).} \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in chapter 3.3 of~\citet{AlglaveThesis},  this permits us to address cross-thread dependencies simply by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}, with the acylicity of the pomset providing a global notion of time.  
-
-Just as \mca{} dramatically simplifies the programmer model for hardware \citep{DBLP:journals/pacmpl/PulteFDFSS18},
-this global notion of time dramatically simplifies our model for the language level.
-% As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  We believe it has the same appeal at the language-level.  
-
-Second, we weaken the program-order within a thread to capture only essential dependencies.
+First, we weaken the program-order within a thread to capture only essential dependencies.
 Previous language models have used syntactic notions of dependency \cite{Batty:2011:MCC:1926385.1926394}.
 Instead, we embed formulae in pomset events, using classical
 Hoare logic~\citep{Hoare:1969:ABC:363235.363259, gordonHoare} to compute dependencies when calculating the semantics of read and write events. %, as presented by~\citet{}.  
-
-Consider the following sequential program fragments:
+Consider the following  program fragments:
 \begin{align*}
   & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
   \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
@@ -74,6 +65,10 @@ All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each c
 any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
 DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
 
+Second, we focus on multi-copy atomicity (\mca), which holds that when a write becomes visible to one threads it must become visible to all threads\nofootnote{\mca\ is traditionally explored in hardware memory models.   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).} \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in chapter 3.3 of~\citet{AlglaveThesis},  this permits us to address cross-thread dependencies  by a partial order in a pomset model~\citep{GISCHER1988199,Plotkin:1997:TSP:266557.266600}, with the acylicity of the pomset providing a global notion of time.  
+Just as \mca{} dramatically simplifies the programmer model for hardware \citep{DBLP:journals/pacmpl/PulteFDFSS18},
+this global notion of time dramatically simplifies our model for the language level.
+% As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  We believe it has the same appeal at the language-level.  
 
 We show that model:
 \begin{itemize}
