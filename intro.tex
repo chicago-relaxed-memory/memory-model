@@ -37,7 +37,7 @@ The following program ``is type correct if it declares $x$, $y$ and $r$ of type 
     \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \texttt{C} \ELSE \aReg \GETS \NEW \texttt{D} \FI  \SEMI x \GETS \aReg 
   \end{aligned}
 \end{gather}
- Informally, all threads satisfy the invariant ``allocation at type \texttt{C} is preceded by reading $1$ for \texttt{z}'' and ``allocation at type \texttt{D} is preceded by a reading $0$ for \texttt{z}.''  If composability of safety were to hold, the full program would satisfy both invariants.
+ Informally, all threads satisfy the invariant ``allocation at type \texttt{C} is preceded by reading $1$ for $z$'' and ``allocation at type \texttt{D} is preceded by a reading $0$ for $z$.''  If composability of safety were to hold, the full program would satisfy both invariants.
 \citeauthor{DBLP:journals/toplas/Lochbihler13} argues that composability is necessary to prove type safety of racy Java programs without partitioning memory by type---an unrealistic assumption for any allocator. %    and facilitates the proof of a temporal invariant that forbids``pointer forging''  within a single execution.  
  % Prima facie, the allocation operation can pick the same address for the two new objects, because only one of them occurs in any one execution.   This causes type safety to break for racy programs in the JMM, forcing~\citeauthor{DBLP:journals/toplas/Lochbihler13} to include the type information in the address itself.
 

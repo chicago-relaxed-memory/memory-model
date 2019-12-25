@@ -3,7 +3,7 @@
 
 A significant challenge for a software memory model is to relax order enough
 to allow efficient implementation without admitting anomalous
-behaviors---called \emph{out of thin air} \oota\ in the literature
+behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
 \begin{align}
   \label{oota1}
@@ -289,6 +289,10 @@ We consider a variant of
   \PAR
     \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
 \end{align*}
+This variant retains the essential temporal aspects of \eqref{lochbihler}.
+In this case, all threads satisfy the invariant ``a write to $a$ is preceded
+by a read of $z$ as $1$.''
+
 Attempting to write $1$ to $a$ results in a cycle:
 \begin{tikzdisplay}[node distance=1em]
   \event{rx}{\DR{x}{1}}{}
@@ -305,9 +309,6 @@ Attempting to write $1$ to $a$ results in a cycle:
   \po[out=10,in=170]{rz}{wa}
   \po[out=-15,in=-165]{ry}{wa}
 \end{tikzdisplay}
-This variant retains the essential temporal aspects of \eqref{lochbihler}.
-In this case, all threads satisfy the invariant ``a write to $a$ is preceded
-by a read of \texttt{z} as $1$.''
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
@@ -469,13 +470,11 @@ From the first conjunct, we then derive
 \end{math}
 as required.
 
-Other \oota\ examples require that we extend the logic to deal with
-intervening writes and
-coherence. \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19} introduce
-\weakestmo{} to disallow the following outcome, which is allowed by
-the promising semantics %\textsc{promising}
-\cite{DBLP:conf/popl/KangHLVD17}.
-The outcome is disallowed in our semantics due to the evident cycle.
+Other \oota\ examples may require that we extend the logic to deal with
+intervening writes or coherence. The following outcome is allowed by the
+promising semantics \cite{DBLP:conf/popl/KangHLVD17}, but not in \weakestmo{}
+\cite[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19} nor in our semantics, due
+to the cycle:
 \begin{gather*}
   \label{weakestmo}
   x\GETS 2\SEMI
