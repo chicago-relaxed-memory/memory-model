@@ -560,9 +560,9 @@ Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that both
 $\aPS''$ implies $\aPS'$ and also $\aPS''$ is an augmentation of $\aPS'$.
 
 To simplify the definition of the base cases, we use a literal notation for
-pomsets, drawing substitutions as accepting states.  We elide the definitions
-for location binding and conditional, which are unchanged from
-\textsection\ref{sec:model}.
+pomsets, drawing substitutions as accepting states.  Only reads introduce
+order. We import the definitions for location binding and conditional from
+\textsection\ref{sec:model}, unchanged.
 \begin{gather*}
   \begin{aligned}
   \sem{\SKIP} & \eqdef
@@ -619,10 +619,8 @@ for location binding and conditional, which are unchanged from
 To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
 choosing to keep the substitution on the left.
 
-Note that only reads introduce order.
-
-The main work is to define semantic sequencing.  Unfortunately, disjunction
-closure does not come for free.
+The most significant challenge is to define semantic sequencing.
+Unfortunately, prefix weakening and disjunction do not come for free.
 % \begin{gather*}
 %   \begin{aligned}
 %     \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
