@@ -580,7 +580,7 @@ order. We import the definitions for location binding and conditional from
   \sem{\aReg\GETS\aLoc^\amode} & =
   \textstyle\bigcup_\aVal\;
   \CLOSE{\TIKZ{
-      \event{a}{\DRmode\aLoc\aVal}{}
+      \event{a}{\DR\aLoc\aVal}{}
       \final{f}{\SUB{\aVal/\aReg}}{right=of a}
       \po{a}{f}
     }}
@@ -595,7 +595,7 @@ order. We import the definitions for location binding and conditional from
   \sem{\aLoc^\amode\GETS\aExp} & =
   \textstyle\parallel_\aVal\;
   \CLOSE{\TIKZ{
-      \event{a}{\aExp=\aVal \mid \DWmode\aLoc\aVal}{}
+      \event{a}{\aExp=\aVal \mid \DW\aLoc\aVal}{}
       \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
     }}
   \\[-.5ex] &
@@ -753,6 +753,41 @@ extended with silent actions and fences.  We expect:
   \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd} &= 
   \sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE \aCmd_2\SEMI\bCmd\FI}
 \end{align*}
+
+
+\begin{gather*}
+  \begin{gathered}
+    r\GETS y
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DR{y}{1}}{}
+      \final{f}{\SUB{1/r}}{right=of a}
+      \po{a}{f}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad\qquad
+  \begin{gathered}
+    x\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{b}{r\EQ1 \mid \DW{x}{1}}{}
+      \final{f}{r\EQ1 \mid \SUB{1/x}}{right=of b}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \begin{gathered}
+    r\GETS y\SEMI x\GETS r
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{\DR{y}{1}}{}
+        \event{b}{\DW{x}{1}}{right=of a}
+        \final{f}{\SUB{1/r, 1/x}}{right=of b}
+        \po[out=15,in=165]{a}{f}
+        \po{a}{b}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+
 
 \begin{comment}
 Plan: 

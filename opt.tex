@@ -226,17 +226,28 @@ hold, as seen by the execution:
 \end{tikzdisplay}
 
 
-Consider a fragment from example~\eqref{rfub}.
+Let $\aCmd$ be the right thread in \eqref{rfub}.
 \begin{align*}
-\bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+  \aCmd = r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
 \end{align*}
-Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$, as seen by the execution:
+Then, $\hoare{\TRUE}{\aCmd}{x=1} $ and $\hoare{y \neq 1}{\bCmd}{z=1}$.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $1$ to $x$, as seen by the execution:
 \begin{tikzdisplay}[node distance=1em]
- \event{ry}{\DR{y}{41}}{}
- \event{wx}{\DW{x}{42}}{right=of ry}
- \event{wa}{\DW{a}{1}}{below=of rx}
+ \event{ry}{\DR{y}{1}}{}
+ \event{wx}{\DW{x}{1}}{right=of ry}
+ \event{wa}{\DW{z}{1}}{below=of rx}
  \rf{ry}{wa}
 \end{tikzdisplay}
+% Consider a fragment from example~\eqref{rfub}.
+% \begin{align*}
+% \bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+% \end{align*}
+% Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$, as seen by the execution:
+% \begin{tikzdisplay}[node distance=1em]
+%  \event{ry}{\DR{y}{41}}{}
+%  \event{wx}{\DW{x}{42}}{right=of ry}
+%  \event{wa}{\DW{a}{1}}{below=of rx}
+%  \rf{ry}{wa}
+% \end{tikzdisplay}
 Consider the
 following, where all locations are initialized to $0$.  In \textsection\ref{sec:logic} we provide machinery to prove that \oota{} is
 incapable of writing $1$.  The question is whether this should be possible
