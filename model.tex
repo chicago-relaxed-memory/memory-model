@@ -1378,43 +1378,57 @@ precondition of the write via 4b, as on the left hand side of
 Item 4b \emph{allows} a precondition to weaken, but does not \emph{require} it.
 Item 5a only requires order when the precondition weakens.
 Thus, no order is required in: % the following execution:
-\begin{gather*}
-  r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+\begin{gather}
+  \aCmd=r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+  \label{ex555}
   \\
+  \nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wy1}{x\geq0\mid\DW{y}{1}}{}
+      \event{wy1}{x{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=of wy1}
       % \po{rx1}{wy1}
     \end{tikzinline}}
-\end{gather*}
+\end{gather}
 Let $\aCmd$ be the program above.  The existence of this pomset is justified
 by the triple $\hoare{x\geq0}{\aCmd}{y=1}$, rather than by the value of the read
 action.  Nonetheless, item 4b requires that the value of the read action must
 be compatible with subsequent formulae.  In this example, the write
 precondition must be unsatisfiable if a negative number is read:
-\begin{gather}
-  \label{ex555}
-  r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
-  \\
+\begin{gather*}
+  % r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+  % \\
   \nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
-      \nonevent{wy1}{{-2}\geq0\mid\DW{y}{1}}{}
+      \nonevent{wy1}{{-2}{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{{-2}}}{left=of wy1}
       % \po{rx1}{wy1}
     \end{tikzinline}}
-\end{gather}
+\end{gather*}
 
-The substitution in the semantics of write allows
-preconditions to be satisfied without imposing order:
+The write substitution may allow preconditions to weaken---without imposing
+order---or require them to strengthen:
 \begin{gather*}
-  x \GETS 0\SEMI r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+\begin{gathered}
+  x \GETS 0\SEMI \aCmd
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wy1}{0\geq0\mid\DW{y}{1}}{}
-      \event{rx1}{\DR{x}{1}}{left=of wy1}
+      \event{wy1}{0{\geq}0\mid\DW{y}{1}}{}
+      \event{rx1}{\DR{x}{1}}{left=.3em of wy1}
       \event{wx0}{\DW{x}{0}}{left=of rx1}
       \wk{wx0}{rx1}
     \end{tikzinline}}
+\end{gathered}
+\qquad
+\begin{gathered}
+  x \GETS {-}2\SEMI\aCmd
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \nonevent{wy1}{{-}2{\geq}0\mid\DW{y}{1}}{}
+      \event{rx1}{\DR{x}{1}}{left=.3em of wy1}
+      \event{wx0}{\DW{x}{{-}2}}{left=of rx1}
+      \wk{wx0}{rx1}
+    \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 In the JMM test cases \citep{PughWebsite}, such executions are justified via
 compiler analysis, possibly in collusion with the scheduler:  If every racing

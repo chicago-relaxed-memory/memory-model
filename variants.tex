@@ -509,12 +509,17 @@ following the conventions of \citet{DBLP:conf/icalp/RitterP97}:
   \aSub,\,\bSub\!\!\BNFDEF\!\! \SUBEMP \!\BNFSEP\! \SUBPAR{\aSub}{\aExp/\aLocReg}
   \!\BNFSEP\! \aSub\SUBSEQ\bSub
 \end{align*}
-We write application as $\aSub\SUBAPP\aForm$ and write
-$\SUBPAR{\SUBEMP}{\aExp/\aLocReg}$ as $\SUB{\aExp/\aLocReg}$.  The definition
-of application is not complicated by the lack of support for renaming
-locations in our language: We only apply substitutions to formulae, which
-have no binders.
-By definition:
+We only apply substitutions to formulae---which
+do not bind locations or registers. Written $\aSub\SUBAPP\aForm$, the
+base case says
+\begin{math}
+  \SUBPAR{\aSub}{\aExp/\aLocReg}\SUBAPP\bLocReg
+\end{math}
+is $\aExp$ if $\aLocReg=\bLocReg$ and $\aSub \SUBAPP\bLocReg$ otherwise.
+We write $\SUBPAR{\SUBEMP}{\aExp/\aLocReg}$ as $\SUB{\aExp/\aLocReg}$ and 
+$\SUBPAR{\SUBPAR{\aSub}{\bExp/\aLocReg}}{\aExp/\aLocReg}$ as
+$\SUBPAR{\aSub}{\aExp/\aLocReg}$.
+Sequencing is defined so that
 % \begin{math}
 %   \aSub\SUBSEQ\SUBPAR{\bSub}{\aExp/\aLocReg}
 %   = 
@@ -546,10 +551,11 @@ and
 %   \end{cases}
 % \end{displaymath}
 
-Let $\Sub$ be the set of all (explicit) substitutions.  In a data model,
-substitutions are silent actions: $\Sub\subseteq\Int$.  Pomsets may contain
-at most one event $\cEv$ with a label in $\Sub$, and there may be no
-$\aEv$ such that $\cEv\le\aEv$.
+Let $\Sub$ be the set of all (explicit) substitutions.  We include
+substitutions as silent actions: $\Sub\subseteq\Int$.  Alternatively, we
+could extend the Definition~\ref{def:mmpomset} to include an optional
+substitution: Our pomsets will contain at most one substitution event, and we
+ignore pomset order on substitutions: they always indicate a final state.
 
 We modify the syntax of write fence actions to name the variable that was
 written: $\DFW[\aLoc]{\amode}$.  The new actions remain silent.  We extend
@@ -560,8 +566,10 @@ Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that both
 $\aPS''$ implies $\aPS'$ and also $\aPS''$ is an augmentation of $\aPS'$.
 
 To simplify the definition of the base cases, we use a literal notation for
-pomsets, drawing substitutions as accepting states.  Only reads introduce
-order. We import the definitions for location binding and conditional from
+pomsets, drawing substitutions as accepting states.  
+% Only reads introduce
+% order.
+We import the definitions for location binding and conditional from
 \textsection\ref{sec:model}, unchanged.
 \begin{gather*}
   \begin{aligned}
@@ -581,15 +589,13 @@ order. We import the definitions for location binding and conditional from
   \textstyle\bigcup_\aVal\;
   \CLOSE{\TIKZ{
       \event{a}{\DR\aLoc\aVal}{}
-      \final{f}{\SUB{\aVal/\aReg}}{right=of a}
-      \po{a}{f}
+      \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
     }}
   \\[-.5ex] &
   \mkern2mu\cup
   \CLOSE{\TIKZ{
       \event{a}{\DFR{\amode}}{}
       \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
-      \po{a}{f}
     }}
   \\
   \sem{\aLoc^\amode\GETS\aExp} & =
@@ -702,21 +708,24 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
   $\cEv\in\Event^1\cap\Sub$ and $\aPS^2\in\aPSS^2$ such that the following
   hold.  Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over
-  $\Event^2$.
+  $\Event^2$.  For each $\aEv$, let $B_\aEv\subseteq\Event^1$ be a set of
+  reads such that no two events read the same variable, and let $\aSub_\aEv$ be
+  the associated substitution.
 \begin{enumerate}
 \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
 \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
+%\item[2b.] if $\bEv\le\cEv$ then $\bEv\le'\aEv$, for $\aEv\in\Event^2\cap\Sub$,
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
 \item[4a2.] $\labelingAct'(\aEv) =  \labelingAct^1(\cEv)\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
-\item[4bc.] $\labelingForm'(\aEv)$ implies $\labelingAct^1(\cEv)\SUBAPP\labelingForm^2(\aEv)$,
+\item[4bc.] $\labelingForm'(\aEv)$ implies $\aSub_\aEv \SUBAPP (\labelingAct^1(\cEv)\SUBAPP\labelingForm^2(\aEv))$,
 % \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
 %   $\labelingForm'(\aEv)$ implies $\labelingForm^2(\aEv)[\aVal/\aLoc]$,
 % \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
 %   implies $\labelingForm^2(\aEv)$,
-\item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm^2(\aEv)$ and
-  $\aEv$ writes, then $\cEv\ORDER\aEv$,
+\item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingAct^1(\cEv)\SUBAPP\labelingForm^2(\aEv)$ and
+  $\aEv$ writes, then, for every $\dEv\in B_\aEv$, $\dEv\ORDER\aEv$,
 \item[5b-f.] as before,
 % \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
 %   $\bEv\ORDER\aEv$,
@@ -736,53 +745,106 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 \end{enumerate}
 \end{definition}
 
+% \begin{enumerate}
+% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+% \item[4c.] if $\bEv$ does not \externally read then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+% \item[5a.] if %$\bEv$ \externally reads and
+%   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
+%   $\bEv\lt'\aEv$,
+% \end{enumerate}
+
 The item numbers are chosen to match those of the corresponding clauses in
-\textsection\ref{sec:model}.  Item 4a and item 6 are more complicated
-here: The label of the accepting state is calculated differently from other
-states. Item 6b is necessary to ensure the effect of $\relfilt{}$ in the
-local write rule.  Instead, items 4b and 4c collapse into a single item here.
-Item 5 is morally unchanged; we need only adjust the notation in item 5a.
+\textsection\ref{sec:model}.  Items 4 and 6 are more complicated here:
+% Item 2b ensures that order into the substitution $\cEv\in\Event^1$ is
+% preserved into any substitution in $\Event'$.
+In item 4a, the label of the accepting state is calculated differently from
+other states. Instead, items 4b and 4c collapse into a single item here.
+Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
+rule.  Item 5 is morally unchanged; we need only adjust item 5a to consider
+the selected set of reads.
 
 Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model},
 extended with silent actions and fences.  We expect:
-\begin{align*}
-  \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\} &= \semold{\aCmd}
+% \begin{align*}
+%   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
+%   \\
+%   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
+%   \\
+%   \hbox{\small$\sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd}$} &= 
+%   \hbox{\small$\sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE \aCmd_2\SEMI\bCmd\FI}$}
+% \end{align*}
+\begingroup
+\small
+\begin{gather*}
+    \semold{\aCmd} = \{ \aPS{\in}\sem{\aCmd} \mid \disjointsmall{\Event}{\Sub}\}
+    \qquad
+    \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} =
+    \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
   \\
-  \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
-  \\
-  \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd} &= 
+  \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd} = 
   \sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE \aCmd_2\SEMI\bCmd\FI}
-\end{align*}
-
+\end{gather*}
+\endgroup
 
 \begin{gather*}
   \begin{gathered}
     r\GETS y
-    \\
+    \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DR{y}{1}}{}
-      \final{f}{\SUB{1/r}}{right=of a}
-      \po{a}{f}
+      \final{f}{\SUB{y/r}}{right=of a}
       \end{tikzinline}}
   \end{gathered}
-  \qquad\qquad
+  \qquad
   \begin{gathered}
     x\GETS r
-    \\
+    \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{b}{r\EQ1 \mid \DW{x}{1}}{}
       \final{f}{r\EQ1 \mid \SUB{1/x}}{right=of b}
       \end{tikzinline}}
   \end{gathered}
+  \qquad
+  \begin{gathered}
+    s\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{c}{\DFR{}}{}
+      \final{f}{\SUB{x/s}}{right=of c}
+      \end{tikzinline}}
+  \end{gathered}
   \\
   \begin{gathered}
     r\GETS y\SEMI x\GETS r
-    \\
+    \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{a}{\DR{y}{1}}{}
         \event{b}{\DW{x}{1}}{right=of a}
-        \final{f}{\SUB{1/r, 1/x}}{right=of b}
-        \po[out=15,in=165]{a}{f}
+        \final{f}{\SUB{y/r, 1/x}}{right=of b}
+        \po{a}{b}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    s\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{c}{\DFR{}}{}
+      \final{f}{\SUB{x/s}}{right=of c}
+      \po{c}{f}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \begin{gathered}
+    r\GETS y\SEMI x\GETS r \SEMI s\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{\DR{y}{1}}{}
+        \event{b}{\DW{x}{1}}{right=of a}
+        \event{c}{\DFR{}}{right=of b}
+        \final{f}{\SUB{y/r, 1/x, x/s}}{right=of c}
         \po{a}{b}
       \end{tikzinline}}
   \end{gathered}
