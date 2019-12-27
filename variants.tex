@@ -483,7 +483,7 @@ following, which is allowed by \armeight{}
 \end{gather*}
 
 \paragraph{Sequential Composition.}
-We assume that each register is assigned at most once\footnote{One can remove
+We assume that each register is assigned at most once\nofootnote{One can remove
   this restriction by defining conflict (Definition~\ref{def:prefix}) to
   include actions that read into the same register; this includes order
   between reads in item 5b.  In addition, let $\READS(\aPS)=\{\aEv\mid\aEv$
@@ -893,11 +893,11 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   $\bEv=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$
   then either $\bEv\le'\aEv$ or
   $\labelingForm'(\aEv)$ implies  
-  $(\beforeSub \SUBSEQ \SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBSEQ \afterSub)\SUBAPP\labelingForm^2(\aEv)$,
-\item[old5a.] if $\aEv$ writes 
-  and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
-  $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
-  $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSub_\cEv\SUBAPP\labelingForm^2(\aEv))$,
+  $(\SUBDRS{\dEvs}\SUBSEQ \beforeSub \SUBSEQ {\aLoc/\aReg} \SUBSEQ \afterSub)\SUBAPP\labelingForm^2(\aEv)$,
+% \item[old5a.] if $\aEv$ writes 
+%   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
+%   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
+%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSub_\cEv\SUBAPP\labelingForm^2(\aEv))$,
 \item[5b-f.] as before,
 \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
