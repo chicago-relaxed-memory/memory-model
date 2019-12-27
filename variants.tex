@@ -483,7 +483,8 @@ following, which is allowed by \armeight{}
 \end{gather*}
 
 \paragraph{Sequential Composition.}
-We refactor the syntax:
+We assume that each register is assigned at most once and refactor the
+syntax:
 \begin{align*}
   \aCmd,\,\bCmd
   \BNFDEF& \SKIP
@@ -498,8 +499,7 @@ We refactor the syntax:
   \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
 % Without loss of generality,
-We assume that each register is assigned at most
-once.  To keep the presentation as simple as possible, we include neither
+To keep the presentation as simple as possible, we include neither
 address calculation nor \RMW{}s in this subsection.
 
 
