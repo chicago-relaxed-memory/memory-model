@@ -510,12 +510,12 @@ address calculation nor \RMW{}s in this subsection.
 
 We introduce explicit substitutions over extended expressions,
 following the conventions of \citet{DBLP:conf/icalp/RitterP97}: 
-\begin{align*}
-  \aLocReg\!\!\BNFDEF\!\! \aLoc \!\BNFSEP\! \aReg
-  &&
-  \aSub,\,\beforeSub,\,\afterSub\!\!\BNFDEF\!\! \SUBEMP \!\BNFSEP\! \SUBPAR{\aSub}{\aEExp/\aLocReg}
-  \!\BNFSEP\! \aSub\SUBSEQ\aSub'
-\end{align*}
+\begin{gather*}
+  \aLocReg\BNFDEF \aLoc \BNFSEP \aReg
+  \qquad\quad
+  \aSub,\,\beforeSub,\,\afterSub\BNFDEF \SUBEMP \BNFSEP \SUBPAR{\aSub}{\aEExp/\aLocReg}
+  \BNFSEP \aSub\SUBSEQ\aSub'
+\end{gather*}
 We only apply substitutions to formulae---which
 do not bind locations or registers. Written $\aSub\SUBAPP\aForm$, the
 base case says
@@ -538,7 +538,7 @@ Sequencing is defined so that
 \end{math}
 and
 \begin{math}
-  (\aSub\SUBSEQ\bSub)\SUBAPP\aForm = \aSub\SUBAPP(\bSub\SUBAPP\aForm).
+  (\beforeSub\SUBSEQ\afterSub)\SUBAPP\aForm = \beforeSub\SUBAPP(\afterSub\SUBAPP\aForm).
 \end{math}
 
 % Goal:
