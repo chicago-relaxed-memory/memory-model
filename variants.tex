@@ -508,7 +508,7 @@ To keep the presentation as simple as possible, we include neither
 address calculation nor \RMW{}s in this subsection.
 
 
-We introduce explicit substitutions,
+We introduce explicit substitutions over extended expressions,
 following the conventions of \citet{DBLP:conf/icalp/RitterP97}: 
 \begin{align*}
   \aLocReg,\,\bLocReg\!\!\BNFDEF\!\! \aLoc \!\BNFSEP\! \aReg
@@ -523,9 +523,8 @@ base case says
   \SUBPAR{\aSub}{\aEExp/\aLocReg}\SUBAPP\bLocReg
 \end{math}
 is $\aEExp$ if $\aLocReg=\bLocReg$ and $\aSub \SUBAPP\bLocReg$ otherwise.
-We write $\SUBPAR{\SUBEMP}{\aEExp/\aLocReg}$ as $\SUB{\aEExp/\aLocReg}$ and 
-$\SUBPAR{\SUBPAR{\aSub}{\bEExp/\aLocReg}}{\aEExp/\aLocReg}$ as
-$\SUBPAR{\aSub}{\aEExp/\aLocReg}$.
+We write $\SUBPAR{\SUBEMP}{\aEExp/\aLocReg}$ as $\SUB{\aEExp/\aLocReg}$.
+%and $\SUBPAR{\SUBPAR{\aSub}{\bEExp/\aLocReg}}{\aEExp/\aLocReg}$ as $\SUBPAR{\aSub}{\aEExp/\aLocReg}$.
 Sequencing is defined so that
 % \begin{math}
 %   \aSub\SUBSEQ\SUBPAR{\bSub}{\aEExp/\aLocReg}
@@ -534,7 +533,7 @@ Sequencing is defined so that
 % \end{math}
 \begin{math}
   \aSub\SUBSEQ\SUB{\aEExp/\aLocReg}
-  = 
+  \allowbreak= 
   \SUBPAR{\aSub}{\aSub\SUBAPP\aEExp/\aLocReg}
 \end{math}
 and
@@ -559,17 +558,17 @@ and
 % \end{displaymath}
 
 Let $\Sub$ be the set of all (explicit) substitutions.  We include
-substitutions as silent actions: $\Sub\subseteq\Int$.  Alternatively, we
-could extend the Definition~\ref{def:mmpomset} to include an optional
-substitution: Our pomsets will contain at most one substitution event, and we
-ignore pomset order on substitutions: they always indicate a final state.
+substitutions as silent actions: $\Sub\subseteq\Int$.
+% Alternatively, we
+% could extend the Definition~\ref{def:mmpomset} to include an optional
+% substitution:
+Our pomsets will contain at most one substitution event.  We ignore order on
+this event, which represents a final state.
 
 We modify the syntax of write fence actions to name the variable that was
 written: $\DFW[\aLoc]{\amode}$.  The new actions remain silent.  We extend
 the notion of \emph{conflict} to include the new write fence actions, thus
 ordering $\DFW[\aLoc]{\amode}$ w.r.t.~reads and writes on $\aLoc$.
-
-Let $\READS(\aPS)=\{\aEv\mid\aEv \text{ is a read}\}$.
 
 We modify the syntax of read actions to name the register that was written
 and to include two substitutions:
@@ -578,11 +577,13 @@ Here, $\beforeSub$ represents the substitutions that occurred before the
 action, and $\afterSub$ represents those that occurred after.
 We maintain the invariant that if
 $\cEv\in\Event\cap\Sub$,
-$\aSub_\cEv=\labelingAct(\cEv)$,
+$\aSubC=\labelingAct(\cEv)$,
 and
 $\labelingAct(\aEv)=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, 
 then
-$\beforeSub\SUBSEQ\afterSub = \aSub_\cEv$.
+$(\beforeSub\SUBSEQ\afterSub) = \aSubC$.
+
+Let $\READS(\aPS)=\{\aEv\mid\aEv \text{ is a read}\}$.
 
 For $\dEvs\subseteq \READS(\aPS)$, let $\SUBDRS{\dEvs}$ be the derived
 substitution of values for registers: $\SUBDRS{\dEvs}\SUBAPP\aReg$ is $\aVal$
@@ -884,8 +885,9 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
   $\{\aPS^1{\in}\aPSS^1\mid \disjointsmall{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
-  $\cEv\in\Event^1\cap\Sub$,
-  $\aSub_\cEv=\labelingAct^1(\cEv)$, 
+  % $\cEv\in\Event^1\cap\Sub$,
+  % $\aSubC=\labelingAct^1(\cEv)$, 
+  $\aSubC=\labelingAct(\Event^1\cap\Sub)$
   $\dEvs=\READS(\aPS^1)$,
   and $\aPS^2\in\aPSS^2$
   such that the following hold.
@@ -907,9 +909,9 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 %   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$  after $\aPS^1$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv) =  \aSub_\cEv\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+\item[4a2.] $\labelingAct'(\aEv) =  \aSubC\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 \item[4bc.] $\labelingForm'(\aEv)$ implies
-  $(\SUBDRS{\dEvs} \SUBSEQ \aSub_\cEv)\SUBAPP\labelingForm^2(\aEv)$, 
+  $(\SUBDRS{\dEvs} \SUBSEQ \aSubC)\SUBAPP\labelingForm^2(\aEv)$, 
 \item[5a.] if $\aEv$ writes and
   $\bEv=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$
   then either $\bEv\le'\aEv$ or
@@ -918,7 +920,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 % \item[old5a.] if $\aEv$ writes 
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
-%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSub_\cEv\SUBAPP\labelingForm^2(\aEv))$,
+%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
 \item[5b-f.] as before,
 \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
@@ -930,13 +932,13 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 % \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 % \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 % \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-% \item[4a2.] $\labelingAct'(\aEv) =  \aSub_\cEv\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+% \item[4a2.] $\labelingAct'(\aEv) =  \aSubC\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 % \item[4bc.] $\labelingForm'(\aEv)$ implies
-%   $(\SUBDRS{\dEvs} \SUBSEQ \aSub_\cEv)\SUBAPP\labelingForm^2(\aEv)$, 
+%   $(\SUBDRS{\dEvs} \SUBSEQ \aSubC)\SUBAPP\labelingForm^2(\aEv)$, 
 % \item[5a.] if $\aEv$ writes 
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
-%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSub_\cEv\SUBAPP\labelingForm^2(\aEv))$,
+%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
 % \item[5b-f.] as before,
 % \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
 %   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
@@ -966,25 +968,36 @@ Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
 rule.  Item 5 is morally unchanged; we need only adjust item 5a to consider
 the selected set of reads.
 
+In item 4bc, note that the domain of $\aSubC$ is disjoint from the domain
+of $\SUBDRS{\dEvs}$, although registers in the domain of $\aSubC$ may
+appear in the expressions in the codomain of $\SUBDRS{\dEvs}$.
+
+In item 5a, recall that $(\beforeSub \SUBSEQ \afterSub)=\aSubC$.  Note that
+$\SUBDRS{\dEvs}\SUBSEQ \beforeSub \SUBSEQ \SUB{\aLoc/\aReg} \SUBSEQ
+\afterSub$ is insensitive to the value assigned to $\aReg$ by
+$\SUBDRS{\dEvs}$.
+
 To see the need for parallel substitution in 4b, consider:
-\begin{gather*}
+\begin{align*}
   \begin{gathered}
     r\GETS x\SEMI s\GETS z
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DRreg{r}{}{}{x}{1}}{}
       \event{b}{\DRreg{s}{}{}{z}{2}}{right=of a}
+      \final{f}{\SUBEMP}{right=of b}
       \end{tikzinline}}
   \end{gathered}
-  \qquad
+  &&
   \begin{gathered}
      \IF{r{=}s}\THEN y\GETS1\FI
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
-      \event{c}{r{=}s\mid\DW{y}{1}}{right=of b}
+      \event{c}{r{=}s\mid\DW{y}{1}}{}
+      \final{f}{r{=}s\mid\SUB{1/y}}{right=of c}
       \end{tikzinline}}
   \end{gathered}
-\end{gather*}
+\end{align*}
 
 The see the need for substitution decomposition on reads in 5a, consider:
 \begin{gather*}
