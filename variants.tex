@@ -806,8 +806,8 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 \begin{definition}
   \label{def:semi:seq}
   Let $\READS(\aPS)$ be the set $\dEvs\subseteq\Event$ where
-  $\aEv\in\dEvs$ when $\aEv$ is a read of some $\aLoc$, and
-  there is no $\dEv>\aEv$ that reads from $\aLoc$.
+  $\dEv\in\dEvs$ when $\dEv$ is a read of some $\aLoc$, and
+  there is no $\aEv$ that reads from $\aLoc$ such that $\dEv\le\aEv$.
 
   % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
   % $\dEvs\subseteq\Event$,
@@ -842,9 +842,10 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   % $\bigvee_i \labelingForm^i(\aEv)$.
 
   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
-  $\{\aPS^1\in\aPSS^1\mid \disjoint{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
+  $\{\aPS^1{\in}\aPSS^1\mid \disjointsmall{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
   $\cEv\in\Event^1\cap\Sub$,
+  $\dEvs=\READS(\aPS^1)$,
   $\aSub=\labelingAct^1(\cEv)$, 
   and $\aPS^2\in\aPSS^2$
   such that the following hold.
@@ -864,8 +865,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 %   some $\bSub$ such that
 %   $\labelingForm'(\aEv)$ implies
 %   $\SUBPAR{\bSub}{\aVal/\aLoc}\SUBAPP(\aSub\SUBAPP\labelingAct^2(\aEv))$,
-\item[4bc.] if
-  $\dEvs=\READS(\aPS^1)$ then $\labelingForm'(\aEv)$ implies
+\item[4bc.] $\labelingForm'(\aEv)$ implies
   $\SUBDRS{\dEvs} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$, 
 % \item[4c.] 
 %   %if $\READS(\aPS^1)=\emptyset$
@@ -873,7 +873,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 %   then $\labelingForm'(\aEv)$ implies
 %   $\labelingForm(\aEv)$,   
 \item[5a.] if $\aEv$ writes %, there is some $\dEvs\in\READS(\aPS^1)$ such that when $\dEv\in\dEvs$, 
-  and $\dEv\in\READS(\aPS^1)$, then either $\dEv\le'\aEv$ or
+  and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
   $\dEv$ reads into $\aReg$ and $\labelingForm'(\aEv)$ implies  
   $\SUBPAR{\SUBDRS{\dEvs}}{\aReg/\aReg} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$,
 % \item[----]  
