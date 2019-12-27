@@ -520,9 +520,9 @@ We only apply substitutions to formulae---which
 do not bind locations or registers. Written $\aSub\SUBAPP\aForm$, the
 base case says
 \begin{math}
-  \SUBPAR{\aSub}{\aEExp/\aLocReg}\SUBAPP\bLocReg
+  \SUBPAR{\aSub}{\aEExp/\bLocReg}\SUBAPP\aLocReg
 \end{math}
-is $\aEExp$ if $\aLocReg=\bLocReg$ and $\aSub \SUBAPP\bLocReg$ otherwise.
+is $\aEExp$ if $\bLocReg=\aLocReg$ and $\aSub \SUBAPP\aLocReg$ otherwise.
 We write $\SUBPAR{\SUBEMP}{\aEExp/\aLocReg}$ as $\SUB{\aEExp/\aLocReg}$.
 %and $\SUBPAR{\SUBPAR{\aSub}{\bEExp/\aLocReg}}{\aEExp/\aLocReg}$ as $\SUBPAR{\aSub}{\aEExp/\aLocReg}$.
 Sequencing is defined so that
