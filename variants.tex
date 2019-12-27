@@ -846,7 +846,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
   $\cEv\in\Event^1\cap\Sub$,
   $\dEvs=\READS(\aPS^1)$,
-  $\aSub=\labelingAct^1(\cEv)$, 
+  $\aSub_\cEv=\labelingAct^1(\cEv)$, 
   and $\aPS^2\in\aPSS^2$
   such that the following hold.
   Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.  
@@ -860,13 +860,13 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv) =  \aSub\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+\item[4a2.] $\labelingAct'(\aEv) =  \aSub_\cEv\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 % \item[4b.] if $\dEv\in\READS(\aPS^1)$ reads $\aVal$ from $\aLoc$, there is
 %   some $\bSub$ such that
 %   $\labelingForm'(\aEv)$ implies
 %   $\SUBPAR{\bSub}{\aVal/\aLoc}\SUBAPP(\aSub\SUBAPP\labelingAct^2(\aEv))$,
 \item[4bc.] $\labelingForm'(\aEv)$ implies
-  $\SUBDRS{\dEvs} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$, 
+  $\SUBDRS{\dEvs} \SUBAPP (\aSub_\cEv\SUBAPP\labelingForm^2(\aEv))$, 
 % \item[4c.] 
 %   %if $\READS(\aPS^1)=\emptyset$
 %   if $\emptyset\in\drs(\aPS^1)$
@@ -875,7 +875,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 \item[5a.] if $\aEv$ writes %, there is some $\dEvs\in\READS(\aPS^1)$ such that when $\dEv\in\dEvs$, 
   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
   $\dEv$ reads into $\aReg$ and $\labelingForm'(\aEv)$ implies  
-  $\SUBPAR{\SUBDRS{\dEvs}}{\aReg/\aReg} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$,
+  $\SUBPAR{\SUBDRS{\dEvs}}{\aReg/\aReg} \SUBAPP (\aSub_\cEv\SUBAPP\labelingForm^2(\aEv))$,
 % \item[----]  
 %  for every $\dEvs\in\drs(\aPS^1)$, either
 %   \begin{itemize}
