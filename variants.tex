@@ -893,7 +893,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   $\bEv=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$
   then either $\bEv\le'\aEv$ or
   $\labelingForm'(\aEv)$ implies  
-  $(\SUBDRS{\dEvs}\SUBSEQ \beforeSub \SUBSEQ {\aLoc/\aReg} \SUBSEQ \afterSub)\SUBAPP\labelingForm^2(\aEv)$,
+  $(\SUBDRS{\dEvs}\SUBSEQ \beforeSub \SUBSEQ \SUB{\aLoc/\aReg} \SUBSEQ \afterSub)\SUBAPP\labelingForm^2(\aEv)$,
 % \item[old5a.] if $\aEv$ writes 
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
