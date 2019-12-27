@@ -828,6 +828,27 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 
 \begin{definition}
   \label{def:semi:seq}
+  Let $\aAct$ \emph{after} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
+  or $\aAct$ is not a read, and
+  $\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub\SUBSEQ\aSub}{\aLoc}{\aVal}$
+  when 
+  $\aSub=\labelingAct(\Event\cap\Sub)$
+  and
+  $\aAct=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$.
+
+  Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
+  or $\aAct$ is not a read, and
+  $\DRreg[\amode]{\aReg}{\aSub\SUBSEQ\beforeSub}{\afterSub}{\aLoc}{\aVal}$
+  when 
+  $\aSub=\labelingAct(\Event\cap\Sub)$
+  and
+  $\aAct=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$.
+  % if
+%   $\labelingAct^1(\bEv)
+%   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, where if
+%   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
+
+
   % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
   % $\dEvs\subseteq\Event$,
   % all $\aEv\in\dEvs$ are reads, and
@@ -876,7 +897,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 \begin{enumerate}
 \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
 \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
-\item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ (update $\afterSub$ for reads...) %, for $\bEv\in\Event^1\setminus\READS(\aPS^1)$,
+\item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ before $\aPS^2$,
 % \item[3a1.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ %, for $\bEv\in\Event^1\setminus\READS(\aPS^1)$,
 % \item[3a2.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)
 %   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub\SUBSEQ\aSub}{\aLoc}{\aVal}$,
@@ -885,7 +906,7 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 %   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, where if
 %   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
-\item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$, (update $\beforeSub$ for reads...)
+\item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$  after $\aPS^1$,  for $\aEv\in\Event^2\setminus\Sub$,
 \item[4a2.] $\labelingAct'(\aEv) =  \aSub_\cEv\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 \item[4bc.] $\labelingForm'(\aEv)$ implies
   $(\SUBDRS{\dEvs} \SUBSEQ \aSub_\cEv)\SUBAPP\labelingForm^2(\aEv)$, 
