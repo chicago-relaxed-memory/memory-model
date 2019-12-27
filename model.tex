@@ -1446,10 +1446,10 @@ order---or require them to strengthen:
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-In the JMM test cases \citep{PughWebsite}, such executions are justified via
-compiler analysis, possibly in collusion with the scheduler: If every visible
-racing value can be shown to satisfy a precondition, then the precondition
-can be dropped. (The last example above shows the effect of coherence.)  For
+In the JMM causality test cases \citep{PughWebsite}, such executions are justified via
+compiler analysis, possibly in collusion with the scheduler, as in the last example above: If every 
+offered value can be shown to satisfy a precondition, then the precondition
+can be dropped.  For
 example, TC1 determines that the following top-level execution should be
 allowed, as it is in our model:
 \begin{gather*}
@@ -1471,7 +1471,7 @@ allowed, as it is in our model:
   \wk{wx0}{rx1}
     \end{tikzinline}}
 \end{gather*}
-Unlike \cite{DBLP:conf/lics/JeffreyR16}, this semantics is robust
+Unlike \cite{DBLP:conf/lics/JeffreyR16}, our semantics is robust
 with respect to the introduction of concurrent writes, as in TC9:
 \begin{gather*}
   x\GETS 0 \SEMI
