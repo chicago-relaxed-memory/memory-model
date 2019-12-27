@@ -822,11 +822,13 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 
 \begin{definition}
   \label{def:semi:seq}
+  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
+  there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
+  $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
+  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
+  
 %Let $\READS(\aPS)=\{\aEv\mid\aEv \text{ is a read}\}$.
 %For $\dEvs\subseteq \READS(\aPS)$, let $\SUBDRS{\dEvs}$ be the derived
-Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
-from the reads of $\aPS$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
-if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
 
   Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
   or $\aAct$ is not a read, and
@@ -848,6 +850,9 @@ if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
 %   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, where if
 %   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
 
+% Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
+% from the reads of $\aPS$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
+% if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
 
   % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
   % $\dEvs\subseteq\Event$,
@@ -871,11 +876,6 @@ if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
   % $\dEv\in\SUBDRS{\dEvs}$ reads $\aVal$ from $\aLoc$, and is $\aLoc$
   % otherwise---where $\dEvs\in\drs(\aPS)$.
   
-  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
-  there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
-  $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
-  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
-  
   % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
   % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
   % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
@@ -891,7 +891,12 @@ if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
   and $\aPS^2\in\aPSS^2$
   such that the following hold.
 
-  Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.  
+Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
+from the reads of $\aPS^1$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
+if some $\bEv\in\Event^1$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
+
+Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.  
+
   % For each $\aEv$, let $B_\aEv\subseteq\Event^1$ be a set of
   % reads such that no two events read the same variable, and let $\aSub_\aEv$ be
   % the associated substitution.
