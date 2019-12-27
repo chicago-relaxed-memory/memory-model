@@ -1242,9 +1242,9 @@ Definition \ref{def:pre-sc} such that:
 \begin{enumerate}
 \item[5a.] %$\bEv$ \externally reads and
   if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-\item[5a.] if %$\bEv$ \externally reads and
-  $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
-  $\bEv\lt'\aEv$,
+% \item[5a.] if %$\bEv$ \externally reads and
+%   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
+%   $\bEv\lt'\aEv$,
 \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict,
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
@@ -1412,7 +1412,7 @@ order---or require them to strengthen:
 \begin{gather*}
 \begin{gathered}
   x \GETS 0\SEMI \aCmd
-  \\
+  \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wy1}{0{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=.3em of wy1}
@@ -1423,12 +1423,26 @@ order---or require them to strengthen:
 \qquad
 \begin{gathered}
   x \GETS {-}2\SEMI\aCmd
-  \\
+  \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \nonevent{wy1}{{-}2{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=.3em of wy1}
       \event{wx0}{\DW{x}{{-}2}}{left=of rx1}
       \wk{wx0}{rx1}
+    \end{tikzinline}}
+\end{gathered}
+\\
+\begin{gathered}
+  x \GETS 0\SEMI s\GETS x\SEMI \aCmd
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wy1}{0{\geq}0\mid\DW{y}{1}}{}
+      \event{rx1}{\DR{x}{1}}{left=of wy1}
+      \event{rx2}{\DR{x}{{-}2}}{left= of rx1}
+      \event{wx0}{\DW{x}{0}}{left=of rx2}
+      \wk[out=10,in=170]{wx0}{rx1}
+      \wk{wx0}{rx2}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}

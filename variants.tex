@@ -497,8 +497,10 @@ We refactor the syntax:
   \BNFSEP \VAR\aLoc
   \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
-To keep the presentation as simple as possible, we include neither address
-calculation nor \RMW{}s in this subsection.
+% Without loss of generality,
+We assume that each register is assigned at most
+once.  To keep the presentation as simple as possible, we include neither
+address calculation nor \RMW{}s in this subsection.
 
 
 We introduce explicit substitutions,
@@ -562,6 +564,12 @@ written: $\DFW[\aLoc]{\amode}$.  The new actions remain silent.  We extend
 the notion of \emph{conflict} to include the new write fence actions, thus
 ordering $\DFW[\aLoc]{\amode}$ w.r.t.~reads and writes on $\aLoc$.
 
+We modify the syntax of read actions to name the register that was written:
+$\DRreg[\amode]{\aReg}{\aLoc}{\aVal}$.  For a set of read actions, $\dEvs\subseteq\Event$,
+let $\SUBDRS{\dEvs}$ be the derived substitution of values for registers:
+$\SUBDRS{\dEvs}\SUBAPP\aReg$ is $\aVal$ if some $\dEv\in\SUBDRS{\dEvs}$ reads
+$\aVal$ into $\aReg$, and is $\aReg$ otherwise.
+ 
 Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that both
 $\aPS''$ implies $\aPS'$ and also $\aPS''$ is an augmentation of $\aPS'$.
 
@@ -588,8 +596,8 @@ We import the definitions for location binding and conditional from
   \sem{\aReg\GETS\aLoc^\amode} & =
   \textstyle\bigcup_\aVal\;
   \CLOSE{\TIKZ{
-      \event{a}{\DR\aLoc\aVal}{}
-      \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
+      \event{a}{\DRreg[\amode]{\aReg}{\aLoc}{\aVal}}{}
+      \final{f}{\SUBEMP}{right=of a}
     }}
   \\[-.5ex] &
   \mkern2mu\cup
@@ -601,7 +609,7 @@ We import the definitions for location binding and conditional from
   \sem{\aLoc^\amode\GETS\aExp} & =
   \textstyle\parallel_\aVal\;
   \CLOSE{\TIKZ{
-      \event{a}{\aExp=\aVal \mid \DW\aLoc\aVal}{}
+      \event{a}{\aExp=\aVal \mid \DW[\amode]{\aLoc}{\aVal}}{}
       \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
     }}
   \\[-.5ex] &
@@ -690,11 +698,116 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 % \end{enumerate}
 
 
+% \begin{definition}
+%   \label{def:semi:seq}
+%   % Let $\READS(\aPS)$ be the set $\dEvs\subseteq\Event$ where
+%   % $\aEv\in\dEvs$ when $\aEv$ is a read of some $\aLoc$, and
+%   % there is no $\dEv>\aEv$ that reads from $\aLoc$.
+
+%   % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
+%   % $\dEvs\subseteq\Event$,
+%   % all $\aEv\in\dEvs$ are reads, and
+%   % if $\aEv\in\dEvs$ reads from $\aLoc$ then
+%   % (1) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
+%   % (2) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
+
+%   Let $\dEvs$ be a \emph{maximal disjoint read set} of $\aPS$  when 
+%   (1) $\dEvs\subseteq\Event$,
+%   (2) all $\aEv\in\dEvs$ are reads,
+%   (3) if $\aEv\in\Event$ reads from $\aLoc$ then some $\dEv\in\dEvs$ reads from $\aLoc$, and
+%   (4) if $\aEv\in\dEvs$ reads from $\aLoc$ then
+%   (4a) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
+%   (4b) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
+
+%   Let $\drs(\aPS)$ be the set of maximal disjoint read sets of $\aPS$.
+
+%   Let $\SUBDRS{\dEvs}$ be the substitution such
+%   that $\SUBDRS{\dEvs}\SUBAPP\aLoc$ is $\aVal$ if some
+%   $\dEv\in\SUBDRS{\dEvs}$ reads $\aVal$ from $\aLoc$, and is $\aLoc$
+%   otherwise---where $\dEvs\in\drs(\aPS)$.
+  
+%   Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
+%   there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
+%   $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
+%   $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
+  
+%   % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
+%   % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
+%   % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
+%   % $\bigvee_i \labelingForm^i(\aEv)$.
+
+%   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
+%   $\{\aPS^1\in\aPSS^1\mid \disjoint{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
+%   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
+%   $\cEv\in\Event^1\cap\Sub$,
+%   $\aSub=\labelingAct^1(\cEv)$, 
+%   and $\aPS^2\in\aPSS^2$
+%   such that the following hold.
+%   Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.  
+%   % For each $\aEv$, let $B_\aEv\subseteq\Event^1$ be a set of
+%   % reads such that no two events read the same variable, and let $\aSub_\aEv$ be
+%   % the associated substitution.
+% \begin{enumerate}
+% \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
+% \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
+% %\item[2b.] if $\bEv\le\cEv$ then $\bEv\le'\aEv$, for $\aEv\in\Event^2\cap\Sub$,
+% \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
+% \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
+% \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
+% \item[4a2.] $\labelingAct'(\aEv) =  \aSub\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+% % \item[4b.] if $\dEv\in\READS(\aPS^1)$ reads $\aVal$ from $\aLoc$, there is
+% %   some $\bSub$ such that
+% %   $\labelingForm'(\aEv)$ implies
+% %   $\SUBPAR{\bSub}{\aVal/\aLoc}\SUBAPP(\aSub\SUBAPP\labelingAct^2(\aEv))$,
+% \item[4bc.] if
+%   $\dEvs\in\drs(\aPS^1)$ then $\labelingForm'(\aEv)$ implies
+%   $\SUBDRS{\dEvs} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$, 
+% % \item[4c.] 
+% %   %if $\READS(\aPS^1)=\emptyset$
+% %   if $\emptyset\in\drs(\aPS^1)$
+% %   then $\labelingForm'(\aEv)$ implies
+% %   $\labelingForm(\aEv)$,   
+% \item[5a.] if $\aEv$ writes, there is some $\dEvs\in\READS(\aPS^1)$
+%   such that when $\dEv\in\dEvs$, either $\dEv\le'\aEv$ or
+%   $\dEv$ reads $\aLoc$ and $\labelingForm'(\aEv)$ implies  
+%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aLoc} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$,
+% % \item[----]  
+% %  for every $\dEvs\in\drs(\aPS^1)$, either
+% %   \begin{itemize}
+% %   \item[4c]
+% %     $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+% %     if $\labelingForm'(\aEv)$ implies
+% %     $\aSub\SUBAPP\labelingForm^2(\aEv)$ and $\aEv$ writes,
+% %     then for some $\dEvs\in\drs(\aPS^1)$ and every $\dEv\in \dEvs$,
+% %     $\dEv\ORDER\aEv$, or
+% %   \item[5a] if $\labelingForm'(\aEv)$ implies
+% %     $\aSub\SUBAPP\labelingForm^2(\aEv)$ and $\aEv$ writes,
+% %     then for some $\dEvs\in\drs(\aPS^1)$ and every $\dEv\in \dEvs$,
+% %     $\dEv\ORDER\aEv$,    
+% %   \end{itemize}
+% \item[5b-f.] as before,
+% % \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
+% %   $\bEv\ORDER\aEv$,
+% % \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then
+% %   $\bEv \ORDER \aEv$,
+% % \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
+% %   $\bEv \ORDER \aEv$, 
+% % \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
+% %   $\aEv \ORDER \bEv$,
+% % \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
+% %   $\bEv \ORDER \aEv$, 
+% \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
+%   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
+% \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
+%   $\aEv$ is a release that does not write $\aLoc$, then  some
+%   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
+% \end{enumerate}
+% \end{definition}
 \begin{definition}
   \label{def:semi:seq}
-  % Let $\READS(\aPS)$ be the set $\dEvs\subseteq\Event$ where
-  % $\aEv\in\dEvs$ when $\aEv$ is a read of some $\aLoc$, and
-  % there is no $\dEv>\aEv$ that reads from $\aLoc$.
+  Let $\READS(\aPS)$ be the set $\dEvs\subseteq\Event$ where
+  $\aEv\in\dEvs$ when $\aEv$ is a read of some $\aLoc$, and
+  there is no $\dEv>\aEv$ that reads from $\aLoc$.
 
   % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
   % $\dEvs\subseteq\Event$,
@@ -703,25 +816,25 @@ Unfortunately, prefix weakening and disjunction do not come for free.
   % (1) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
   % (2) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
 
-  Let $\dEvs$ be a \emph{maximal disjoint read set} of $\aPS$  when 
-  (1) $\dEvs\subseteq\Event$,
-  (2) all $\aEv\in\dEvs$ are reads,
-  (3) if $\aEv\in\Event$ reads from $\aLoc$ then some $\dEv\in\dEvs$ reads from $\aLoc$, and
-  (4) if $\aEv\in\dEvs$ reads from $\aLoc$ then
-  (4a) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
-  (4b) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
+  % Let $\dEvs$ be a \emph{maximal disjoint read set} of $\aPS$  when 
+  % (1) $\dEvs\subseteq\Event$,
+  % (2) all $\aEv\in\dEvs$ are reads,
+  % (3) if $\aEv\in\Event$ reads from $\aLoc$ then some $\dEv\in\dEvs$ reads from $\aLoc$, and
+  % (4) if $\aEv\in\dEvs$ reads from $\aLoc$ then
+  % (4a) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
+  % (4b) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
 
-  Let $\drs(\aPS)$ be the set of maximal disjoint read sets of $\aPS$.
+  % Let $\drs(\aPS)$ be the set of maximal disjoint read sets of $\aPS$.
 
-  Let $\SUBDRS{\dEvs}$ be the substitution such
-  that $\SUBDRS{\dEvs}\SUBAPP\aLoc$ is $\aVal$ if some
-  $\dEv\in\SUBDRS{\dEvs}$ reads $\aVal$ from $\aLoc$, and is $\aLoc$
-  otherwise---where $\dEvs\in\drs(\aPS)$.
+  % Let $\SUBDRS{\dEvs}$ be the substitution such
+  % that $\SUBDRS{\dEvs}\SUBAPP\aLoc$ is $\aVal$ if some
+  % $\dEv\in\SUBDRS{\dEvs}$ reads $\aVal$ from $\aLoc$, and is $\aLoc$
+  % otherwise---where $\dEvs\in\drs(\aPS)$.
   
-  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
-  there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
-  $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
-  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
+  % Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
+  % there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
+  % $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
+  % $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
   
   % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
   % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
@@ -752,17 +865,17 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 %   $\labelingForm'(\aEv)$ implies
 %   $\SUBPAR{\bSub}{\aVal/\aLoc}\SUBAPP(\aSub\SUBAPP\labelingAct^2(\aEv))$,
 \item[4bc.] if
-  $\dEvs\in\drs(\aPS^1)$ then $\labelingForm'(\aEv)$ implies
+  $\dEvs=\READS(\aPS^1)$ then $\labelingForm'(\aEv)$ implies
   $\SUBDRS{\dEvs} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$, 
 % \item[4c.] 
 %   %if $\READS(\aPS^1)=\emptyset$
 %   if $\emptyset\in\drs(\aPS^1)$
 %   then $\labelingForm'(\aEv)$ implies
 %   $\labelingForm(\aEv)$,   
-\item[5a.] if $\aEv$ writes, there is some $\dEvs\in\READS(\aPS^1)$
-  such that when $\dEv\in\dEvs$, either $\dEv\le'\aEv$ or
-  $\dEv$ reads $\aLoc$ and $\labelingForm'(\aEv)$ implies  
-  $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aLoc} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$,
+\item[5a.] if $\aEv$ writes %, there is some $\dEvs\in\READS(\aPS^1)$ such that when $\dEv\in\dEvs$, 
+  and $\dEv\in\READS(\aPS^1)$, then either $\dEv\le'\aEv$ or
+  $\dEv$ reads into $\aReg$ and $\labelingForm'(\aEv)$ implies  
+  $\SUBPAR{\SUBDRS{\dEvs}}{\aReg/\aReg} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$,
 % \item[----]  
 %  for every $\dEvs\in\drs(\aPS^1)$, either
 %   \begin{itemize}
@@ -817,7 +930,8 @@ rule.  Item 5 is morally unchanged; we need only adjust item 5a to consider
 the selected set of reads.
 
 Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model},
-extended with silent actions and fences.  We expect:
+extended with silent actions and fences.  Ignoring the additional annotations
+on actions, we expect:
 % \begin{align*}
 %   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
 %   \\
