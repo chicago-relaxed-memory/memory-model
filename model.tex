@@ -1441,16 +1441,17 @@ order---or require them to strengthen:
       \event{rx1}{\DR{x}{1}}{left=of wy1}
       \event{rx2}{\DR{x}{{-}2}}{left= of rx1}
       \event{wx0}{\DW{x}{0}}{left=of rx2}
-      \wk[out=15,in=165]{wx0}{rx1}
+      \wk[out=20,in=160]{wx0}{rx1}
       \wk{wx0}{rx2}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
 In the JMM test cases \citep{PughWebsite}, such executions are justified via
-compiler analysis, possibly in collusion with the scheduler:  If every racing
-value read by a thread can be shown to satisfy a precondition, then the
-precondition can be dropped.  For example, TC1 determines that the
-following top-level execution should be allowed, as it is in our model:
+compiler analysis, possibly in collusion with the scheduler: If every visible
+racing value can be shown to satisfy a precondition, then the precondition
+can be dropped. (The last example above shows the effect of coherence.)  For
+example, TC1 determines that the following top-level execution should be
+allowed, as it is in our model:
 \begin{gather*}
   x\GETS 0 \SEMI
   (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
