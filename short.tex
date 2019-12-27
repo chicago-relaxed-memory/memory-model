@@ -1,0 +1,44 @@
+\section{Efficient Implementation on ARMv8}
+\label{sec:arm}
+
+We consider the fragment of our language where concurrent composition occurs
+only at top level and there are no location declarations.  Using the
+translation strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}, we show
+that any \emph{consistent} \armeight{} execution graph for this sublanguage
+can be considered a top-level execution of our semantics.  Consistency is
+defined by \citet{DBLP:journals/pacmpl/PulteFDFSS18}.
+The key step is constructing the order for the derived pomset candidate: We
+take ${\gtN} = ({\rob} \cup {\reco})^*$, where $\rob$ is the \armeight{}
+acyclicity relation, and ${\reco}$ is the \armeight{} extended coherence
+order, as discussed after Definition~\ref{def:rf}.
+
+We prove the following theorem in \textsection\ref{sec:arm:proof}.
+\begin{theorem}
+  For any consistent \armeight{} execution graph, the constructed candidate
+  is a top-level memory model pomset.
+\end{theorem}
+
+\section{Data Race Free Behaviors are Sequentially Consistent}
+\label{sec:sc}
+
+When constructing a pomset, define \emph{program order} $(\xpox)$ in the
+obvious way.  Define $\bEv\xsw\aEv$ exactly when $\bEv$ fulfills $\aEv$,
+$\bEv$ is a release, $\aEv$ is an acquire, and $\lnot(\bEv\xpox\aEv)$.
+Define ${\xhb}=({\xpox}\cup{\xsw})^*$.  A pomset has a
+\emph{data race} if there are conflicting events that are unordered by
+$\rhb$.
+
+Let a \emph{generator} for $\aCmd$ be a top-level pomset that is minimal with
+respect to augmentation and implication.  Let $\semsc{\aCmd}$ be the
+executions as defined in Candidate~\ref{cand:sc} of
+\textsection\ref{sec:model}.
+
+We prove the following theorem in \textsection\ref{drfproof}.
+\begin{theorem}
+  Let $\aPS$ be a generator for $\aCmd$.
+  \begin{itemize}
+  \item If $\aPS$ does not have a data race, $\aPS \in \semsc{\aCmd}$.
+  \item If $\aPS$ has a data race, then there exists
+    $\aPS'\in \semsc{\aCmd}$ that has a data race.
+  \end{itemize}
+\end{theorem}

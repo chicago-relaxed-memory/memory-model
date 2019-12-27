@@ -75,16 +75,15 @@ We show that model:
 \item captures all C11 concurrency features  %, including relaxed, release-acquire and SC atomics, fences, and RMW
   (\textsection\ref{sec:variants}),
 
-\item  validates single-threaded
-  compiler optimizations % , as discussed below
-  (\textsection\ref{sec:opt}),
-
 \item allows compositional reasoning for safety %properties
   (\textsection\ref{sec:logic}),
 
+\item compiles to \armeight\ and \tso\ {\em without} extra synchronization for relaxed-atomic access\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}), 
+
 \item  satisfies the \drfsc\ criterion  (\textsection\ref{sec:sc}), and
 
-\item compiles to \armeight\ and \tso\ {\em without} extra synchronization for relaxed-atomic access\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.}  (\textsection\ref{sec:arm}).
+\item validates single-threaded compiler optimizations
+  (\textsection\ref{sec:opt}).
 
 \end{itemize}
 

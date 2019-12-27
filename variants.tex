@@ -1,170 +1,11 @@
-\section{Test Cases and Extensions}
+\section{Extensions}
 \label{sec:variants}
 
-After discussing a few test cases, we extend the model to include additional
+We extend the model to include additional
 features: fences, address calculation, and read-modify-write (\RMW). The
 proofs given later in the paper extend to include these features.  We then
 provide an alternative semantics that supports full sequential composition,
 building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and $\sem{\bCmd}$.
-
-\paragraph{Test Cases.}
-Our model gives the desired results for the test cases of \citet{PughWebsite},
-\citet[\textsection 5.3]{SevcikThesis}, and \citet[\textsection
-4]{DBLP:conf/esop/BattyMNPS15}.  It also agrees with the ``surprising and
-controversial behaviors'' of \citet[\textsection
-8]{Manson:2005:JMM:1047659.1040336}.
-
-We present two examples that are hallmarks of \mca{} architectures.
-The analysis follows from a few simple principles.  
-% \begin{gather*}
-%   \renewcommand{\arraycolsep}{1pt}
-%   \hbox{\small
-%     $\begin{array}{ccccc}
-%     &x\GETS0\SEMI x\GETS 1
-%     &\PAR&
-%     r\GETS x \SEMI s\GETS y
-%     %\IF{x}\THEN r\GETS y \FI
-%     \\
-%     \PAR
-%     &y\GETS0\SEMI y\GETS 1
-%     &\PAR&
-%     r\GETS y \SEMI s\GETS x
-%     %\IF{y}\THEN s\GETS x \FI
-%   \end{array}$}
-%   \quad
-%   \hbox{\begin{tikzinlinesmall}[node distance=.5em and 1em]
-%   \event{wx0}{\DW{x}{0}}{}
-%   \event{wx1}{\DW{x}{1}}{right=of wx0}
-%   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
-%   \event{wy1}{\DW{y}{1}}{right=of wy0}
-%   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-%   \event{rx0}{\DR{x}{0}}{right=of ry1}
-%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
-%   \event{ry0}{\DR{y}{0}}{right=of rx1}
-%   \wk{wx0}{wx1}
-%   \wk{wy0}{wy1}
-%   \rf{wx1}{rx1}
-%   \rf[bend left]{wy0}{ry0}
-%   \rf{wy1}{ry1}
-%   \rf[bend right]{wx0}{rx0}
-%   \wk{rx0}{wx1}
-%   \wk{ry0}{wy1}
-%     \end{tikzinlinesmall}}
-% \end{gather*}
-\begin{gather*}
-  \\[-2.5ex]
-  \renewcommand{\arraycolsep}{1pt}
-  \hbox{\small
-    $\begin{array}{ccccc}
-    &x\GETS0\SEMI x\GETS 1
-    &\PAR&
-    r\GETS x\ACQ \SEMI s\GETS y
-    %\IF{x}\THEN r\GETS y \FI
-    \\
-    \PAR
-    &y\GETS0\SEMI y\GETS 1
-    &\PAR&
-    r\GETS y\ACQ \SEMI s\GETS x
-    %\IF{y}\THEN s\GETS x \FI
-  \end{array}$}
-  \quad
-  \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
-  \event{wy1}{\DW{y}{1}}{right=of wy0}
-  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-  \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
-  \event{ry0}{\DR{y}{0}}{right=of rx1}
-  \wk{wx0}{wx1}
-  \wk{wy0}{wy1}
-  \rf{wx1}{rx1}
-  \rf[bend left]{wy0}{ry0}
-  \rf{wy1}{ry1}
-  \rf[bend right]{wx0}{rx0}
-  \wk{rx0}{wx1}
-  \wk{ry0}{wy1}
-  \po{rx1}{ry0}
-  \po{ry1}{rx0}
-    \end{tikzinlinesmall}}}
-  \\[-1ex]
-\end{gather*}
-In this variant of \iriw\ (Independent Reads of Independent Writes), order 
-is imposed by \emph{coherence} (between the writes), \emph{fulfillment}
-(between read and write), and \emph{fencing} (from acquiring read to relaxed read).
-Given the evident cycle, the candidate execution is invalid.
-% Note that if you enforce the dependency between the reads, then the execution
-% is disallowed, because the is a cycle on weak edges restricted to $x$:
-% \begin{math}
-%   (\DW{x}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
-% \end{math}
-% therefore
-% \begin{math}
-%   (\DW{x}{1}) \gtN  (\DW{y}{1});
-% \end{math}
-% then
-% \begin{math}
-%   (\DW{y}{1})\le (\DR{y}{0}) \gtN (\DW{y}{1})
-% \end{math}
-% therefore
-% \begin{math}
-%   (\DW{x}{1}) \gtN  (\DW{y}{1});
-% \end{math}
-
-It is also impossible for all threads to read $1$ in the following, due to
-\emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
-\begin{gather*}
-  \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
-  {\PAR}
-  \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
-  {\PAR}
-  \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
-  $}
-  \\[-.5ex]
-  \hbox{\begin{tikzinlinesmall}[node distance=1em]
-  \event{a1}{\DR{x}{1}}{}
-  \event{a2}{\DW{y}{0}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DW{y}{1}}{right=of a2}
-  \wk{a2}{a3}
-  \event{b1}{\DR{x}{1}}{right=of a3}
-  \event{b2}{\DW{y}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{y}{1}}{right=of b2}
-  \wk{b2}{b3}
-  \event{c1}{\DR{x}{1}}{right=of b3}
-  \event{c2}{\DW{y}{0}}{right=of c1}
-  \po{c1}{c2}
-  \event{c3}{\DW{y}{1}}{right=of c2}
-  \wk{c2}{c3}
-  \rf{a3}{b1}
-  \rf{b3}{c1}
-  \rf[out=173,in=7]{c3}{a1}  
-    \end{tikzinlinesmall}}
-\end{gather*}
-
-In either example, the execution is allowed if the cycle is broken---for
-example, by changing $x\ACQ$ to $x\RLX$ in \iriw.
-
-
-% \citet{PughWebsite} developed a set of twenty {causality test cases} in the
-% process of revising the Java Memory Model (JMM)
-% \cite{Manson:2005:JMM:1047659.1040336}.
-% %Using hand calculation, we have confirmed that
-% Our model gives the desired result for all twenty cases,
-% unrolling loops as necessary.
-% % confirmed that our model gives the desired result these test cases, with the
-% % following caveats: to model TC14 and TC15 we must unroll loops; the behaviors
-% % of TC1 and TC8 are only allowed in our model if the inferred range of
-% % variables is included as a global assumption in the logic. 
-% Our model also gives the desired results for the examples of
-% \citet{PughWebsite}, \citet[\textsection 5.3]{SevcikThesis},
-% \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15}.  Our model agrees with
-% ``surprising and controversial behaviors'' of
-% \citet[\textsection 8]{Manson:2005:JMM:1047659.1040336}.  We elide the
-% details.
-% \textsection\ref{sec:examples} develops some of these examples.
 
 \paragraph{Silent Actions and Fences.}
 
@@ -540,7 +381,7 @@ and
 \begin{math}
   (\beforeSub\SUBSEQ\afterSub)\SUBAPP\aForm = \beforeSub\SUBAPP(\afterSub\SUBAPP\aForm).
 \end{math}
-
+We identify substitutions up to semantic equivalence.
 % Goal:
 % \begin{math}
 %   (\aForm\aSub)\bSub =
@@ -970,8 +811,7 @@ The item numbers are chosen to match those of the corresponding clauses in
 In item 4a, the label of the accepting state is calculated differently from
 other states. Instead, items 4b and 4c collapse into a single item here.
 Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
-rule.  Item 5 is morally unchanged; we need only adjust item 5a to consider
-the selected set of reads.
+rule.  Item 5 is morally unchanged. \textcolor{red}{more...}
 
 In item 4bc, note that the domain of $\aSubC$ is disjoint from the domain
 of $\SUBDRS{\aPS^1}$, although registers in the domain of $\aSubC$ may
@@ -1046,12 +886,16 @@ The see the need for substitution decomposition on reads in 5a, consider:
 The semantics validates expected equations, such as
 \begin{math}
   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} =
-  \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
+  \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3},
+\end{math}
+\begin{math}
+  \sem{\IF{\aExp} \THEN \aCmd \SEMI\bCmd_1\ELSE \aCmd\SEMI\bCmd_2\FI} =
+  \sem{\aCmd}\sequence\sem{\IF{\aExp} \THEN \bCmd_1 \ELSE \bCmd_2\FI},
 \end{math}
 and
 \begin{math}
-  \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd} =
-  \sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE \aCmd_2\SEMI\bCmd\FI}.
+  \sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE\allowbreak \aCmd_2\SEMI\bCmd\FI} =
+  \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd}.
 \end{math}
 We also have:
 \begin{theorem}
