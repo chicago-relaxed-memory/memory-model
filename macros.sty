@@ -454,7 +454,21 @@
         }
     }
 }
+\tikzset{nonfinal/.style={
+        final, 
+        append after command={
+            node [
+                fit=(\tikzlastnode),
+                draw=red!50!black,
+                thick,
+                inner sep=-2\pgflinewidth,
+                cross out
+            ] {}
+        }
+    }
+}
 \newcommand{\nonevent}[3]{\node[nonevent](#1)[#3]{$\mathstrut#2$};}
+\newcommand{\nonfinal}[3]{\node[nonfinal](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{race} = [-,thick,decorate,decoration={zigzag,segment length = 0.2cm, amplitude = 0.5mm},color=red!50!black]
 \newcommand{\race}[3][]{\begin{pgfonlayer}{background}\draw[race,#1](#2) to (#3);\end{pgfonlayer}}
 
