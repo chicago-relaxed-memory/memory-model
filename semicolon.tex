@@ -639,16 +639,39 @@ As a simple example, consider the following:
   \end{gathered}
 \end{gather*}
 
+To see the need for parallel substitution in 4bc, consider that the
+precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
+\begin{align*}
+  \begin{gathered}
+    r\GETS x\SEMI s\GETS z
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
+      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
+      \final{f}{\SUBEMP}{right=of b}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+     \IF{r{=}s}\THEN y\GETS1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{c}{r{=}s\mid\DW{y}{1}}{}
+      \final{f}{r{=}s\mid\SUB{1/y}}{right=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+
 The see the need for substitution on read actions, used in 5a, consider the
-following, where we elide the substitution
-on read actions:
+following, where
+$\bSub=\SUB{0/x,x/r,{-}2/x}$:
 \begin{gather*}
   \begin{gathered}
     x\GETS 0\SEMI r\GETS x\SEMI x\GETS{-2} 
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DW{x}{0}}{}
-      \event{b}{\DRreg{r}{}{x}{1}}{right=of a}
+      \event{b}{\DRreg{r}{\bSub}{x}{1}}{right=of a}
       \event{c}{\DW{x}{{-}2}}{right=of b}
       \wk{a}{b}
       \wk{b}{c}
@@ -670,7 +693,7 @@ on read actions:
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DW{x}{0}}{}
-      \event{b}{\DRreg{r}{}{x}{1}}{right=of a}
+      \event{b}{\DRreg{r}{\bSub}{x}{1}}{right=of a}
       \event{c}{\DW{x}{{-}2}}{right=of b}
       \wk{a}{b}
       \wk{b}{c}
@@ -679,29 +702,6 @@ on read actions:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
-
-To see the need for parallel substitution in 4bc, consider that the
-precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
-\begin{align*}
-  \begin{gathered}
-    r\GETS x\SEMI s\GETS z
-    \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{}{x}{1}}{}
-      \event{b}{\DRreg{s}{}{z}{2}}{right=of a}
-      \final{f}{\SUBEMP}{right=of b}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-     \IF{r{=}s}\THEN y\GETS1\FI
-    \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \event{c}{r{=}s\mid\DW{y}{1}}{}
-      \final{f}{r{=}s\mid\SUB{1/y}}{right=of c}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align*}
 
 
 The semantics validates expected equations, such as
