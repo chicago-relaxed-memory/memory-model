@@ -154,8 +154,8 @@ augmentation, and reverse subsumption: Let $\aPS''\in\CLOSE{\aPS}$ if there
 is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$ implies $\aPS'$, (2) $\aPS''$ is an
 augmentation of $\aPS'$ and (3) $\aPS''$ is subsumed by $\aPS'$.
 
-We also use a literal notation for
-pomsets, drawing substitutions as accepting states.  
+Also to simplify the base cases, we use a literal notation for
+ pomsets, drawing substitution actions as accepting states.  
 % Only reads introduce
 % order.
 
@@ -442,7 +442,7 @@ implies $\bigvee_i \labelingForm^i(\aEv)$.
   % $\bigvee_i \labelingForm^i(\aEv)$.
 
   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
-  $\{\aPS^1\in\aPSS^1\mid \disjoint{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
+  $\{\aPS^1{\in}\aPSS^1\mid \disjointsmall{\Event^1}{\Sub}\}\allowbreak\cup \DISJUNCT(\aPSS')$
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
   % $\cEv\in\Event^1\cap\Sub$,
   % $\aSubC=\labelingAct^1(\cEv)$, 
