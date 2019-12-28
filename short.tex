@@ -28,6 +28,10 @@ Define ${\xhb}=({\xpox}\cup{\xsw})^*$.  A pomset has a
 \emph{data race} if there are conflicting events that are unordered by
 $\rhb$.
 
+Note that the definition of a data-race does not mention \emph{pomset} order.
+Instead, it relies on the auxiliary definition of \emph{program} order.  Thus
+it is stable with respect to augmentation.
+
 Let a \emph{generator} for $\aCmd$ be a top-level pomset that is minimal with
 respect to augmentation and implication.  Let $\semsc{\aCmd}$ be the
 executions as defined in Candidate~\ref{cand:sc} of
@@ -36,9 +40,7 @@ executions as defined in Candidate~\ref{cand:sc} of
 We prove the following theorem in \textsection\ref{drfproof}.
 \begin{theorem}
   Let $\aPS$ be a generator for $\aCmd$.
-  \begin{itemize}
-  \item If $\aPS$ does not have a data race, $\aPS \in \semsc{\aCmd}$.
-  \item If $\aPS$ has a data race, then there exists
-    $\aPS'\in \semsc{\aCmd}$ that has a data race.
-  \end{itemize}
+  (1) If $\aPS$ does not have a data race, $\aPS \in \semsc{\aCmd}$.
+  (2) If $\aPS$ has a data race, then there is some
+    $\aPS'\in \semsc{\aCmd}$ that also has a data race.
 \end{theorem}
