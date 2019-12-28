@@ -105,9 +105,10 @@ substitutions as silent actions: $\Sub\subseteq\Int$.
 Our pomsets will contain at most one substitution event.  We ignore order on
 this event, which represents a final state.
 
-We also modify read actions to both name the register that was written
+We also modify read actions both to name the register that was written
 and also to include a substitution:
 $\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
+
 We maintain the invariant that if
 $\Event\cap\Sub\neq\emptyset$ and 
 $\labelingAct(\aEv)=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$, 
