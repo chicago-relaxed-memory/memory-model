@@ -683,8 +683,11 @@ precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
-Note that $\IF{r{=}s}\THEN y\GETS1\FI$ is shorthand for
-$\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI$, and thus we also have:
+This pomset candidate fails the compatibility test of
+Definition~\ref{def:mmpomset}.  Note, however, that
+$\IF{r{=}s}\THEN y\GETS1\FI$ is shorthand for
+$\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI$, and thus we do have a valid pomset
+for this composition, even with this choice of read values:
 \begin{gather*}
   \begin{gathered}
     r\GETS x\SEMI s\GETS z
