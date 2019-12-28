@@ -581,27 +581,36 @@ As a simple example, consider the following:
   \begin{gathered}
     r\GETS y
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=.2em]
       \event{a}{\DRreg{r}{\SUB{y/r}}{y}{1}}{}
-      \final{f}{\SUBEMP}{right=of a}
+      \final{f}{\SUBEMP}{below=of a}
       \end{tikzinline}}
   \end{gathered}
   \qquad
   \begin{gathered}
     x\GETS r
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=.2em]
       \event{b}{r\EQ1 \mid \DW{x}{1}}{}
-      \final{f}{r\EQ1 \mid \SUB{1/x}}{right=of b}
+      \final{f}{r\EQ1 \mid \SUB{r/x}}{below=of b}
       \end{tikzinline}}
   \end{gathered}
   \qquad
   \begin{gathered}
     s\GETS x
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=.2em]
       \event{c}{\DFR{}}{}
-      \final{f}{\SUB{x/s}}{right=of c}
+      \final{f}{\SUB{x/s}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    z\GETS s
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{d}{\DW{z}{1}}{}
+      \final{f}{\SUB{s/z}}{below=of d}
       \end{tikzinline}}
   \end{gathered}
   \\
@@ -630,11 +639,13 @@ As a simple example, consider the following:
     r\GETS y\SEMI x\GETS r \SEMI s\GETS x
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{\DRreg{r}{\SUB{y/r, 1/x, x/s}}{y}{1}}{}
+        \event{a}{\DRreg{r}{\SUB{y/r, r/x, x/s, s/z}}{y}{1}}{}
         \event{b}{\DW{x}{1}}{right=of a}
         \event{c}{\DFR{}}{right=of b}
-        \final{f}{\SUB{1/x, x/s}}{right=of c}
+        \event{d}{\DW{z}{1}}{right=of c}
+        \final{f}{\SUB{r/x, x/s, s/z}}{right=of d}
         \po{a}{b}
+        \po[out=-10,in=-160]{a}{d}
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
