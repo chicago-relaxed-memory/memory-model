@@ -125,6 +125,21 @@ $\aPS'$ \emph{subsumes} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
 $\labelingForm'=\labelingForm$, and $\labelingAct'(\aEv)$
 subsumes $\labelingAct(\aEv)$. 
 
+We also define notation to lift sequential composition of substitutions into
+read actions:
+\begin{itemize}
+\item Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when
+  $\disjoint{\Event}{\Sub}$ or $\aAct$ is not a read, and
+  $\DRreg[\amode]{\aReg}{(\bSub\SUBSEQ\aSub)}{\aLoc}{\aVal}$ when
+  $\aSub=\labelingAct(\Event\cap\Sub)$ and
+  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
+\item 
+  Let $\aAct$ \emph{after} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
+  or $\aAct$ is not a read, and
+  $\DRreg[\amode]{\aReg}{(\aSub\SUBSEQ\bSub)}{\aLoc}{\aVal}$ when
+  $\aSub=\labelingAct(\Event\cap\Sub)$ and
+  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
+\end{itemize}
 \paragraph{Semantics of the Example Language.}
 We extend the notion of \emph{$\aLoc$-closure} (Definition~\ref{def:rf}) to
 require that for every substitution $\aSub$ appearing in the pomset,
@@ -200,7 +215,12 @@ choosing to keep the substitution on the left.
 
 The most significant challenge is to define semantic sequencing.
 Unfortunately, disjunction and prefix weakening do not come for free.  We
-define $\DISJUNCT(\aPSS)$ to ensure these properties.
+define $\DISJUNCT(\aPSS)$ to ensure these properties: Let $\DISJUNCT(\aPSS)$
+be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if there are
+$\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such $\Event' = \Event^i$,
+${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$
+implies $\bigvee_i \labelingForm^i(\aEv)$.
+
 % \begin{gather*}
 %   \begin{aligned}
 %     \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
@@ -372,29 +392,10 @@ define $\DISJUNCT(\aPSS)$ to ensure these properties.
 
 \begin{definition}
   \label{def:semi:seq}
-  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
-  there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
-  $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
-  $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
   
 %Let $\READS(\aPS)=\{\aEv\mid\aEv \text{ is a read}\}$.
 %For $\dEvs\subseteq \READS(\aPS)$, let $\SUBDRS{\dEvs}$ be the derived
 
-  Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
-  or $\aAct$ is not a read, and
-  $\DRreg[\amode]{\aReg}{(\bSub\SUBSEQ\aSub)}{\aLoc}{\aVal}$
-  when 
-  $\aSub=\labelingAct(\Event\cap\Sub)$
-  and
-  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
-
-  Let $\aAct$ \emph{after} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
-  or $\aAct$ is not a read, and
-  $\DRreg[\amode]{\aReg}{(\aSub\SUBSEQ\bSub)}{\aLoc}{\aVal}$
-  when 
-  $\aSub=\labelingAct(\Event\cap\Sub)$
-  and
-  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
   % if
 %   $\labelingAct^1(\bEv)
 %   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$, where if
