@@ -232,6 +232,10 @@ We elide the $\modeRLX$-mode annotation in examples.
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
 % \end{align*}
 %The syntax of statements is as follows.
+
+In the main paper, we define the language by prefixing individual reads and writes.  In
+\textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
+full sequential composition of the form $(\aCmd\SEMI\bCmd)$.
 \begin{align*}
   % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
   % \\
