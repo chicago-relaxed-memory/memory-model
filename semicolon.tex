@@ -125,6 +125,11 @@ $\aPS'$ \emph{subsumes} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
 $\labelingForm'=\labelingForm$, and $\labelingAct'(\aEv)$
 subsumes $\labelingAct(\aEv)$. 
 
+The semantics of programs is closed with respect to \emph{reverse
+  subsumption}:  if $\aPS\in\sem{\aCmd}$ and $\aPS$ is subsumed by $\aPS'$,
+then $\aPS'\in\sem{\aCmd}$.
+
+
 We also define notation to lift sequential composition of substitutions into
 read actions:
 \begin{itemize}
@@ -145,17 +150,20 @@ We extend the notion of \emph{$\aLoc$-closure} (Definition~\ref{def:rf}) to
 require that for every substitution $\aSub$ appearing in the pomset,
 $\aSub\SUBAPP\aLoc=\aLoc$.
 
-To simplify the definition of the base cases, we use a literal notation for
+To simplify the base cases, we define $\CLOSE{\aPS}$ to be the smallest
+set that includes $\aPS$ and is closed w.r.t.~implication, augmentation, and
+reverse subsumption: Let $\aPS''\in\CLOSE{\aPS}$ if there is
+$\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$ implies $\aPS'$, (2) $\aPS''$ is an
+augmentation of $\aPS'$ and (3) $\aPS''$ is subsumed by $\aPS'$.
+
+We also use a literal notation for
 pomsets, drawing substitutions as accepting states.  
 % Only reads introduce
 % order.
+
 We import the definitions for location binding and conditional from
 \textsection\ref{sec:model}, unchanged except for \emph{$\aLoc$-closure}, as
-explained above.
-
-Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1)
-$\aPS''$ implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3)
-$\aPS''$ is subsumed by $\aPS'$.
+ above.
 \begingroup
 \allowdisplaybreaks
 \begin{gather*}
@@ -465,7 +473,7 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 %   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$  after $\aPS^1$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv)$ is subsumed by $\aSubC\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+\item[4a2.] $\labelingAct'(\aEv) = \aSubC\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
 \item[4bc.] $\labelingForm'(\aEv)$ implies
   $(\SUBDRS{\aPS^1} \SUBSEQ \aSubC)\SUBAPP\labelingForm^2(\aEv)$, 
 \item[5a.] if $\aEv$ writes and

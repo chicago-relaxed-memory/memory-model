@@ -50,15 +50,16 @@ Given a pomset $\aPS$ and event $\aEv$, define\footnote{Let $\FALSE$, $\lor$,
   $\Rightarrow$ and $\once$ as usual;
   for example,
   $\once\afo = \lnot(\always\lnot\afo)$.}:
-  \begin{displaymath}
-    \begin{array}{lrl}
-      \aPS,\aEv &\models& \DW{\aLoc}{\aVal}, \text{ if } \labelingAct(\aEv) = \DW{\aLoc}{\aVal} \text{ and } \TRUE \text{ implies } \labelingForm(\aEv) \\
-      \aPS,\aEv &\models& \DR{\aLoc}{\aVal}, \text{ if } \labelingAct(\aEv) = \DR{\aLoc}{\aVal} \text{ and } \TRUE \text{ implies } \labelingForm(\aEv) \\
-      \aPS,\aEv &\models& \afo\land\bfo, \text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
+\begin{displaymath}
+  \renewcommand{\arraycolsep}{.2ex}
+    \begin{array}{lrll}
+      \aPS,\aEv &\models& \DW{\aLoc}{\aVal} &\text{ if } \labelingAct(\aEv) = \DW{\aLoc}{\aVal} \text{ and } \TRUE \text{ implies } \labelingForm(\aEv) \\
+      \aPS,\aEv &\models& \DR{\aLoc}{\aVal} &\text{ if } \labelingAct(\aEv) = \DR{\aLoc}{\aVal} \text{ and } \TRUE \text{ implies } \labelingForm(\aEv) \\
+      \aPS,\aEv &\models& \afo\land\bfo &\text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
       \aPS,\aEv &\models& \TRUE\\
-      \aPS,\aEv &\models& \lnot\afo, \text{ if } \aPS,\aEv \not\models \afo \\
-      \aPS,\aEv &\models& \once\afo,\mkern1.5mu \text{if } (\exists \bEv \lt \aEv)\;  \aPS,\bEv \models \afo \\
-      \aPS,\aEv &\models& \always\afo, \text{ if } (\forall \bEv \lt \aEv)\; \aPS,\bEv \models \afo
+      \aPS,\aEv &\models& \lnot\afo &\text{ if } \aPS,\aEv \not\models \afo \\
+      \aPS,\aEv &\models& \always\afo &\text{ if } (\forall \bEv \lt \aEv)\; \aPS,\bEv \models \afo\\
+      \aPS,\aEv &\models& \once\afo &\text{ if } (\exists \bEv \lt \aEv)\;  \aPS,\bEv \models \afo 
     \end{array} 
   \end{displaymath}
 
