@@ -636,7 +636,7 @@ As a simple example, consider the following:
   % \end{gathered}
   % \\
   \begin{gathered}
-    r\GETS y\SEMI x\GETS r \SEMI s\GETS x
+    r\GETS y\SEMI x\GETS r \SEMI s\GETS x \SEMI z\GETS s
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{a}{\DRreg{r}{\SUB{y/r, r/x, x/s, s/z}}{y}{1}}{}
@@ -683,6 +683,38 @@ precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
+Note that $\IF{r{=}s}\THEN y\GETS1\FI$ is shorthand for
+$\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI$, and thus we also have:
+\begin{gather*}
+  \begin{gathered}
+    r\GETS x\SEMI s\GETS z
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
+      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
+      \final{f}{\SUBEMP}{right=of b}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+     \IF{r{=}s}\THEN y\GETS1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \final{f}{r{\neq}s\mid\SUBEMP}{}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \begin{gathered}
+    r\GETS x\SEMI s\GETS z \SEMI \IF{r{=}s}\THEN y\GETS1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
+      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
+      \final{f}{1{\neq}2\mid\SUBEMP}{right=of b}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+
 
 The see the need for substitution on read actions, used in 5a, consider the
 following, where
