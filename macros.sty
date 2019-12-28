@@ -187,8 +187,8 @@
 \newcommand{\finternalize}{\tau}%\mathsf{internalize}}
 
 \newcommand{\Sub}{\mathcal{S}}
-\newcommand{\beforeSub}{\alpha}
-\newcommand{\afterSub}{\omega}
+\newcommand{\beforeSub}{\sigma_1}
+\newcommand{\afterSub}{\sigma_2}
 \newcommand{\aSub}{\sigma}
 \newcommand{\bSub}{\pi}
 
@@ -249,7 +249,7 @@
 \newcommand{\DWRel}[2]{\smash{\mathsf{W\REL}}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
-\newcommand{\DRreg}[6][]{\prescript{#3}{#4}{\mathsf{R}}^{#1}_{#2}\ifnotempty{#5}{\mkern1mu#5\ifnotempty{#6}{\mkern1mu#6}}}
+\newcommand{\DRreg}[5][]{\mathsf{R}^{#1\ifnotempty{#2}{,#2}}_{#3}\ifnotempty{#4}{\mkern1mu#4\ifnotempty{#5}{\mkern1mu#5}}}
 \newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}

@@ -354,7 +354,8 @@ following the conventions of \citet{DBLP:conf/icalp/RitterP97}:
 \begin{gather*}
   \aLocReg\BNFDEF \aLoc \BNFSEP \aReg
   \qquad\quad
-  \aSub,\,\beforeSub,\,\afterSub\BNFDEF \SUBEMP \BNFSEP \SUBPAR{\aSub}{\aEExp/\aLocReg}
+  \aSub,\,\bSub,\, \SUBDRS{\dEvs} %\beforeSub,\,\afterSub
+  \BNFDEF \SUBEMP \BNFSEP \SUBPAR{\aSub}{\aEExp/\aLocReg}
   \BNFSEP \aSub\SUBSEQ\aSub'
 \end{gather*}
 We only apply substitutions to formulae---which
@@ -412,17 +413,15 @@ the notion of \emph{conflict} to include the new write fence actions, thus
 ordering $\DFW[\aLoc]{\amode}$ w.r.t.~reads and writes on $\aLoc$.
 
 We modify the syntax of read actions to name the register that was written
-and to include two substitutions:
-$\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$.
-Here, $\beforeSub$ represents the substitutions that occurred before the
-action, and $\afterSub$ represents those that occurred after.
+and include a substitution:
+$\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
 We maintain the invariant that if
-$\cEv\in\Event\cap\Sub$,
-$\aSubC=\labelingAct(\cEv)$,
-and
-$\labelingAct(\aEv)=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, 
+$\Event\cap\Sub\neq\emptyset$ and 
+$\labelingAct(\aEv)=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$, 
 then
-$(\beforeSub\SUBSEQ\afterSub) = \aSubC$.
+$\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
+$(\beforeSub\SUBSEQ\afterSub) = \labelingAct(\Event\cap\Sub)$.
+
 
 Let $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such that both
 $\aPS''$ implies $\aPS'$ and also $\aPS''$ is an augmentation of $\aPS'$.
@@ -452,7 +451,7 @@ We import the definitions for location binding and conditional from
   \sem{\aReg\GETS\aLoc^\amode} & =
   \textstyle\bigcup_\aVal\;
   \CLOSE{\TIKZ{
-      \event{a}{\DRreg[\amode]{\aReg}{\SUBEMP}{\SUBEMP}{\aLoc}{\aVal}}{}
+      \event{a}{\DRreg[\amode]{\aReg}{\SUB{\aLoc/\aReg}}{\aLoc}{\aVal}}{}
       \final{f}{\SUBEMP}{right=of a}
     }}
   \\[-.5ex] &
@@ -673,22 +672,22 @@ Unfortunately, prefix weakening and disjunction do not come for free.
 
   Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
   or $\aAct$ is not a read, and
-  $\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub\SUBSEQ\aSub}{\aLoc}{\aVal}$
+  $\DRreg[\amode]{\aReg}{(\bSub\SUBSEQ\aSub)}{\aLoc}{\aVal}$
   when 
   $\aSub=\labelingAct(\Event\cap\Sub)$
   and
-  $\aAct=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$.
+  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
 
   Let $\aAct$ \emph{after} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
   or $\aAct$ is not a read, and
-  $\DRreg[\amode]{\aReg}{\aSub\SUBSEQ\beforeSub}{\afterSub}{\aLoc}{\aVal}$
+  $\DRreg[\amode]{\aReg}{(\aSub\SUBSEQ\bSub)}{\aLoc}{\aVal}$
   when 
   $\aSub=\labelingAct(\Event\cap\Sub)$
   and
-  $\aAct=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$.
+  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
   % if
 %   $\labelingAct^1(\bEv)
-%   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, where if
+%   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$, where if
 %   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
 
 % Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
@@ -748,10 +747,10 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ before $\aPS^2$,
 % \item[3a1.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ %, for $\bEv\in\Event^1\setminus\READS(\aPS^1)$,
 % \item[3a2.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)
-%   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub\SUBSEQ\aSub}{\aLoc}{\aVal}$,
+%   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$,
 %   if
 %   $\labelingAct^1(\bEv)
-%   =\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$, where if
+%   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$, where if
 %   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$  after $\aPS^1$,  for $\aEv\in\Event^2\setminus\Sub$,
@@ -759,10 +758,10 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 \item[4bc.] $\labelingForm'(\aEv)$ implies
   $(\SUBDRS{\aPS^1} \SUBSEQ \aSubC)\SUBAPP\labelingForm^2(\aEv)$, 
 \item[5a.] if $\aEv$ writes and
-  $\bEv=\DRreg[\amode]{\aReg}{\beforeSub}{\afterSub}{\aLoc}{\aVal}$
+  $\bEv=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$
   then either $\bEv\le'\aEv$ or
   $\labelingForm'(\aEv)$ implies  
-  $(\SUBDRS{\aPS^1}\SUBSEQ \beforeSub \SUBSEQ \SUB{\aLoc/\aReg} \SUBSEQ \afterSub)\SUBAPP\labelingForm^2(\aEv)$,
+  $(\SUBDRS{\aPS^1}\SUBSEQ \bSub)\SUBAPP\labelingForm^2(\aEv)$,
 % \item[old5a.] if $\aEv$ writes 
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
@@ -811,15 +810,17 @@ The item numbers are chosen to match those of the corresponding clauses in
 In item 4a, the label of the accepting state is calculated differently from
 other states. Instead, items 4b and 4c collapse into a single item here.
 Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
-rule.  Item 5 is morally unchanged. \textcolor{red}{more...}
+rule.  Item 5 is morally unchanged. \textcolor{red}{more...
+}
 
 In item 4bc, note that the domain of $\aSubC$ is disjoint from the domain
 of $\SUBDRS{\aPS^1}$, although registers in the domain of $\aSubC$ may
 appear in the expressions in the codomain of $\SUBDRS{\aPS^1}$.
 
-In item 5a, recall that $(\beforeSub \SUBSEQ \afterSub)=\aSubC$.  Note that
-$\SUBDRS{\aPS^1}\SUBSEQ \beforeSub \SUBSEQ \SUB{\aLoc/\aReg} \SUBSEQ
-\afterSub$ is insensitive to the value assigned to $\aReg$ by
+In item 5a, recall that $\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
+$(\beforeSub\SUBSEQ\afterSub) = \aSub$.
+Note that
+$\SUBDRS{\aPS^1}\SUBSEQ \bSub$ is insensitive to the value assigned to $\aReg$ by
 $\SUBDRS{\aPS^1}$.
 
 To see the need for parallel substitution in 4b, consider:
@@ -828,8 +829,8 @@ To see the need for parallel substitution in 4b, consider:
     r\GETS x\SEMI s\GETS z
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{}{}{x}{1}}{}
-      \event{b}{\DRreg{s}{}{}{z}{2}}{right=of a}
+      \event{a}{\DRreg{r}{}{x}{1}}{}
+      \event{b}{\DRreg{s}{}{z}{2}}{right=of a}
       \final{f}{\SUBEMP}{right=of b}
       \end{tikzinline}}
   \end{gathered}
@@ -851,7 +852,7 @@ The see the need for substitution decomposition on reads in 5a, consider:
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DW{x}{0}}{}
-      \event{b}{\DRreg{}{}{}{x}{1}}{right=of a}
+      \event{b}{\DRreg{}{}{x}{1}}{right=of a}
       \event{c}{\DW{x}{{-}2}}{right=of b}
       \wk{a}{b}
       \wk{b}{c}
@@ -873,7 +874,7 @@ The see the need for substitution decomposition on reads in 5a, consider:
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DW{x}{0}}{}
-      \event{b}{\DRreg{}{}{}{x}{1}}{right=of a}
+      \event{b}{\DRreg{}{}{x}{1}}{right=of a}
       \event{c}{\DW{x}{{-}2}}{right=of b}
       \wk{a}{b}
       \wk{b}{c}
