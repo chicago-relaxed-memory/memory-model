@@ -658,7 +658,7 @@ As a simple example, consider the following:
   \end{gathered}
 \end{gather*}
 
-To see the need for parallel substitution in 4bc, consider that the
+To see the need for parallel substitution of all register values via $\SUBDRS{}$ in 4bc, consider that the
 precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
 \begin{gather*}
   \begin{gathered}
@@ -727,9 +727,9 @@ for this composition, even with this choice of read values:
 \end{gather*}
 
 
-The see the need for substitution on read actions, used in 5a, consider the
+The see the need for substitutions on read actions, used in 5a, consider the
 following, where
-$\bSub=\SUB{0/x,x/r,{-}2/x}$:
+$\bSub=\SUB{0/x,\allowbreak x/r,\allowbreak {-}2/x}$:
 \begin{gather*}
   \begin{gathered}
     x\GETS 0\SEMI r\GETS x\SEMI x\GETS{-2} 
