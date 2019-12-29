@@ -222,6 +222,16 @@ $\aSub$ appearing in $\aPS$ satisfies $\aSub\SUBAPP\aLoc=\aLoc$.
 \endgroup
 To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
 choosing to keep the substitution on the left.
+Due to the asymmetry,
+\begin{math}
+  (r\GETS 1\PAR\SKIP)\SEMI x\GETS r
+\end{math}
+can write $x$, but
+\begin{math}
+  (\SKIP\PAR r\GETS 1)\SEMI x\GETS r
+\end{math}
+cannot.
+
 
 The most significant challenge is to define semantic sequencing.  The
 definition is complex, not only because of the bookkeeping required by
@@ -566,13 +576,14 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 % \end{enumerate}
 
 The item numbers are chosen to match those of the corresponding clauses in
-\textsection\ref{sec:model}.  Items 4 and 6 are more complicated here:
+\textsection\ref{sec:model}.  Item 5 is morally unchanged. 
+ Items 4 and 6 are more complicated here:
 % Item 2b ensures that order into the substitution $\cEv\in\Event^1$ is
 % preserved into any substitution in $\Event'$.
 In item 4a, the label of the accepting state is calculated differently from
 other states. Instead, items 4b and 4c collapse into a single item here.
 Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
-rule.  Item 5 is morally unchanged. 
+rule.  The requirement for a final write is imposed at top level---see below.
 
 In item 4bc, note that the domain of $\aSubC$ is disjoint from the domain
 of $\SUBDRS{\aPS^1}$, although registers in the domain of $\aSubC$ may
@@ -783,7 +794,14 @@ and
   \sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE\allowbreak \aCmd_2\SEMI\bCmd\FI} =
   \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd}.
 \end{math}
-We also have:
+
+
+The semantics is equivalent to that of the main text.
+
+Let $\coverEnd\aPSS$ be the set $\aPSS'$, where $\aPS'\in\aPSS'$ when for
+every $\labelingAct'(\bEv)=\DFW[\aLoc]{\amode}$ there is some $\aEv\gt\bEv$
+that writes $\aLoc$.
+
 \begin{proposition}
   \label{thm:seq}
   Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model},
@@ -791,7 +809,7 @@ We also have:
   section and the corresponding notion of \emph{conflict}.  Ignoring the
   additional annotations on actions:
 \begin{math}
-  \semold{\aCmd} = \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}.
+  \semold{\aCmd} = \{ \aPS\in\coverEnd\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}.
 \end{math}
 % \begin{align*}
 %   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}

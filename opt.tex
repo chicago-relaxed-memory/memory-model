@@ -1,4 +1,4 @@
-\section{Single Threaded Optimizations}
+\section{Single-Threaded Optimizations}
 \label{sec:opt}
 
 % 's concern arises from the similarity of this program
@@ -70,21 +70,29 @@
 % \end{displaymathsmall}
 
 
-As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations by showing that it validates {\em all} valid transformation of a sequential program without synchronization into a ``linear'' sequential program.   A key technical tool is the connection of our semantics to traditional Hoare logic for sequential programs, that connects the thread-local order of our model to the dependencies captured by Hoare triples.  We illustrate  concretely with several 
-single threaded optimizations including reordering of independent statements.  
+As discussed after example \eqref{inlining}, our model {\em invalidates}
+thread inlining.  We argue that our model is fully flexible with respect to
+single-threaded optimizations by showing that it validates {\em all} valid
+transformation of a sequential program without synchronization into a
+``linear'' sequential program.
 
-\paragraph*{Defining valid transformations}
-We first make the semantics insensitive to
-reads that are never used.
+A key technical tool is the connection of our
+semantics to traditional Hoare logic for sequential programs, that connects
+the thread-local order of our model to the dependencies captured by Hoare
+triples.  We illustrate concretely with several single-threaded optimizations
+including reordering of independent statements.
+
+\paragraph*{Defining Valid Transformations.}
+We first make the semantics insensitive to reads that are never used.
 
 
 Let $\readc(\aPSS)$ be the smallest augmentation
 closed set containing $\aPSS$ that also satisfies closure under the inclusion
 of useless reads: if $\aPS \in \readc(\aPSS)$, then
-$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\cup\{\aEv\}$,
-$\aEv \not \in \Event$, ${\le'} ={\le}$,
-${\labeling'} \restrict \Event = {\labeling}$, and
-$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ and $\aVal$.
+$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\uplus\{\bEv\}$,
+${\le'} \supseteq{\le}$,
+$\labeling'(\aEv) = \labeling(\aEv)$, and
+$\labelingAct'(\bEv) = \DR[\modeRLX]{\aLoc}{\aVal}$, for any $\aLoc$ and $\aVal$.
 
 % and to events with false preconditions.
 %Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
@@ -100,8 +108,10 @@ $\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ and $\aVal$.
 % Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
 
 %\begin{lemma}\label{freadssatcomp}[Compositionality of $\freadsat$]
-Let $\readc(\sem{\aCmd}) \subseteq \readc(\sem{\bCmd})$.  Then for any program context $\aCtxt\hole{}$
-\[ \readc(\sem{\aCtxt\hole{\aCmd}}) \subseteq \readc(\sem{\aCtxt\hole{\bCmd}}) \]
+Let $\readc\sem{\aCmd} \subseteq \readc\sem{\aCmd'}$.  Then for any context $\aCtxt$:
+\begin{displaymath}
+  \readc\sem{\aCtxt\hole{\aCmd}} \subseteq \readc\sem{\aCtxt\hole{\aCmd'}}
+\end{displaymath}
 %\begin{proof}
 %The proof follows from the following observations.
 %\begin{itemize}
@@ -113,46 +123,66 @@ Let $\readc(\sem{\aCmd}) \subseteq \readc(\sem{\bCmd})$.  Then for any program c
 %\end{itemize}
 %\end{proof}
 %\end{lemma}
-This compositionality principle justifies the following definition of valid program transformations. 
+This compositionality principle justifies the following definition of valid
+program transformations.
 \begin{definition}
-A program fragment $\aCmd$ can be validly transformed into $\bCmd$ if  $\readc(\sem{\aCmd}) \supseteq  \readc(\sem{\bCmd})$.
+  A program fragment $\aCmd$ can be validly transformed into $\aCmd'$ if
+  $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$.
 \end{definition}
 
 
-\subsection{Relationship to Hoare logic}
-In this theorem, we consider Hoare triples over formulas as per as per \textsection\ref{sec:data}.  We follow the treatment of Hoare logic as laid out in~\citet{gordonHoare}.  
+\paragraph{Relationship to Hoare Logic.}
+In this theorem, we consider Hoare triples over formulas as discussed in
+\textsection\ref{sec:model}.  We follow \citeauthor{gordonHoare}'s
+[\citeyear{gordonHoare}] presentation of Hoare logic.
 
-In the hypothesis of this theorem, we consider valid state assignments $\vec{\bLoc} =\vec{\aVal}$, to rule out conflicting assignments to the same location.  
+% In the hypothesis of this theorem, we consider valid state assignments
+% $\vec{\bLoc} =\vec{\aVal}$, to rule out conflicting assignments to the same
+% location.
 \begin{theorem}\label{hoareGen}
-Let $\aCmd$ be a command without either synchronization or parallelism.   For all $i=1, \ldots m$, let $\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^i_n$ be a valid state. 
+  Let $\aCmd$ be a command without either synchronization or parallelism.
+  For all $i=1, \ldots m$, let
+  $\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^i_n$ be a valid state.
 
-The following Hoare triples are valid for all $i=1, \ldots m$:
+  The following Hoare triples are valid for all $i=1, \ldots m$:
 \begin{displaymath}
   \hoare{\aForm_i\land\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^n}{\aCmd}{\aLoc_i=\bVal_i}  
 \end{displaymath}
 if and only if, $\readc\sem{\aCmd}$ contains a pomset  that includes for all $i=1, \ldots, m$
 \begin{tikzdisplay}[node distance=1em]
   \event{r}{\smash{\vec{\bForm_i}}\mid\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}}{}
-  \internal{w1}{\vec{\cForm}\mid\DW{\aLoc_i}{\vec{\dVal}}}{right=4em of r}
   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc_i}{\bVal_i}}{below right=of r}
+  \event{w1}{\vec{\cForm}\mid\DW{\aLoc_i}{\vec{\dVal}}}{above right=of w2}
   \po{r}{w2}
   \wk{w1}{w2}
 \end{tikzdisplay}
-where $\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}$ are all the events that precede $\aEv$, $\DW{\aLoc_i}{\bVal_i}$ is the maximum write on $\aLoc_i$,  and
-$\DW{\aLoc_i}{\vec{\dVal_i}}$ are all the other writes on $\aLoc_i$, marked here as internal writes.
+where $\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}$ are all the events that precede
+$\aEv$, $\DW{\aLoc_i}{\bVal_i}$ is the maximum write on $\aLoc_i$, and
+$\DW{\aLoc_i}{\vec{\dVal_i}}$ are all the other writes on $\aLoc_i$, marked
+here as internal writes.
 \begin{proof}
-The proof proceeds by induction on the number of steps of derivation of the proof of the Hoare triple.  
+  The proof proceeds by induction on the number of steps of derivation of the
+  proof of the Hoare triple.
 
-We first consider the structural rules.  Precondition strengthening follows from augmentation closure.    
-The proof that the structural rule of disjunction:
-\[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
-\]
-holds  follows from closure of the semantics under disjuncts. The proof for the structural rule of conjunction:
-\[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
-\]
-follows from the fact that pomsets have only concurrency and no conflict.  
+  We first consider the structural rules.  Precondition strengthening follows
+  from augmentation closure.  The proof that the structural rule of
+  disjunction:
+  \begin{displaymath}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
+  \end{displaymath}
+  holds  follows from closure of the semantics under disjuncts. The proof for the structural rule of conjunction:
+  \begin{displaymath}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
+  \end{displaymath}
+  follows from the fact that pomsets have only concurrency and no conflict.  
 
-The remaining cases that use the rules for deducing Hoare triples by structural induction on the command follow straightforwardly from the semantics.    The only subtleties are about the write rule.  First, the write prefixing rule permits all non-maximum writes to be made internal, so as to fit the format of the statement of the theorem.  Secondly, the semantics of write prefixing performs  an explicit closure to restore closure under disjunctive pomsets.    
+  The remaining cases that use the rules for deducing Hoare triples by
+  structural induction on the command follow straightforwardly from the
+  semantics.  The only subtleties are about the write rule.  First, the write
+  prefixing rule permits all non-maximum writes to be made internal, so as to
+  fit the format of the statement of the theorem.  Secondly, the semantics of
+  write prefixing performs an explicit closure to restore closure under
+  disjunctive pomsets.
 \end{proof}
 \end{theorem}
 
@@ -180,6 +210,7 @@ The remaining cases that use the rules for deducing Hoare triples by structural 
 % \end{theorem}
 
 
+\paragraph*{Examples.}
 We illustrate with a few examples.
 $\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds, as seen by the execution:
 \begin{tikzdisplay}[node distance=1em]
@@ -212,15 +243,15 @@ In contrast, in a semantics that forbids load buffering, where the best that one
 $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
 $.
 
-Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI s \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
-$ \hoare{x=1}{\aCmd}{y=1}$ and
-$ \hoare{u=1}{\aCmd}{v=1}$
+Let $\aCmd = r \GETS x_1 \SEMI \IF{r=1} \THEN y_1 \GETS 1 \FI \SEMI s \GETS x_2 \SEMI \IF{s=1} \THEN y_2 \GETS 1 \FI$.  Then:
+$\hoare{x_1=1}{\aCmd}{y_1=1}$ and
+$\hoare{x_2=1}{\aCmd}{y_2=1}$
 hold, as seen by the execution:
 \begin{tikzdisplay}[node distance=1em]
- \event{rx}{\DR{x}{1}}{}
- \event{ru}{\DR{u}{1}}{right=of rx}
- \event{wy}{\DW{y}{1}}{below=of rx}
-\event{wv}{\DW{u}{1}}{below=of ru}
+ \event{rx}{\DR{x_1}{1}}{}
+ \event{wy}{\DW{y_1}{1}}{right=of rx}
+ \event{ru}{\DR{x_2}{1}}{right=of wy}
+\event{wv}{\DW{y_2}{1}}{right=of ru}
  \rf{rx}{wy}
  \rf{ru}{wv}
 \end{tikzdisplay}
@@ -233,8 +264,8 @@ Let $\aCmd$ be the right thread in \eqref{rfub}.
 Then, $\hoare{\TRUE}{\aCmd}{x=1} $ and $\hoare{y \neq 1}{\bCmd}{z=1}$.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $1$ to $x$, as seen by the execution:
 \begin{tikzdisplay}[node distance=1em]
  \event{ry}{\DR{y}{1}}{}
- \event{wx}{\DW{x}{1}}{right=of ry}
- \event{wa}{\DW{z}{1}}{below=of rx}
+ \event{wa}{\DW{z}{1}}{right=of ry}
+ \event{wx}{\DW{x}{1}}{right=of wa}
  \rf{ry}{wa}
 \end{tikzdisplay}
 % Consider a fragment from example~\eqref{rfub}.
@@ -274,20 +305,21 @@ thread from \oota{} to \rfub{} is not a valid refinement under Hoare logic:
 not.  As a result, it is expected that \rfub{} may have additional behaviors.
 
 
-\paragraph{``Linear'' programs.}
+\paragraph{Nonlinear Programs.}
 
 It is invalid to introduce new reads or writes.  For example, 
 \begin{align*}
-    \tag{Read-Intro-Invalid}
-\sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
-\IF{\aReg != \bReg} \THEN \cLoc \GETS 1} &\not\subseteq
-  \sem{\aReg \GETS \REF{\cExp} \SEMI \IF{\aReg != \bReg} \cLoc \GETS 1} \\
-    \tag{Write-Intro-Invalid}
-\sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd} &\not\subseteq
-  \sem{\aLoc \GETS 1 \SEMI \aCmd} \\
+  %\tag{Read-Intro-Invalid}
+  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
+    \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI} &\not\subseteq
+  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
+  \\
+  % \tag{Write-Intro-Invalid}
+  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd} &\not\subseteq
+  \sem{\aLoc \GETS 1 \SEMI \aCmd} 
 \end{align*}
 
-For Read-Intro-Invalid, the left hand side contains the pomset:
+In the first example above, the left hand side contains the pomset:
 \begin{tikzdisplay}[node distance=1em]
   \event{r1}{\DR{\aLoc}{1}}{}
   \event{r2}{\DR{\aLoc}{2}}{right= of r1}
@@ -351,7 +383,7 @@ From the soundness and completeness of Hoare logic for sequential operational se
 \[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
 }
 
-\subsection{Validating single threaded optimizations}
+\subsection{Validating Single-Threaded Optimizations}
 We follow the terminology and presentation of section~7.1 of
 \citet{Dolan:2018:BDR:3192366.3192421}.  
 
@@ -538,12 +570,12 @@ from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
 Our semantics is complete for reasoning about full-thread optimizations of synchronization free programs.
 
 In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are
-restriction-free, composition-free (ie. single threaded), and
+restriction-free, composition-free (ie. single-threaded), and
 synchronization-free (ie. no acquire, release, fence).
 
 In order to develop the proof, 
 
-This closure permits us to  describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
+This closure permits us to  describe a normal form for the top-level pomsets that arise in single-threaded and synchronization free code.  
 \begin{definition}
 $\aPS$ is in normal form if:
 \begin{itemize}
@@ -561,7 +593,7 @@ $\aPS$ is in normal form if:
 \end{definition}
 In a normal form pomset, the successors of a write event (resp. the predecessors of a read) are related in the coherence order to the event.  Any two events with the same read label are separated by a write in the $\reco$ order. 
 
-It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level.  The normal forms determine the full semantics by the closure properties of the semantics.
+It suffices to consider normal forms when distinguishing single-threaded, synchronization free code at the top level.  The normal forms determine the full semantics by the closure properties of the semantics.
 
 \begin{lemma}\label{unrhd}
 Every top-level pomset of $\freadsat\sem{\aCmd}$ is a top-level pomset of $\freadsat\sem{\bCmd}$ if and only if 

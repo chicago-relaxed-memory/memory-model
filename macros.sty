@@ -1,8 +1,9 @@
+\newcommand{\coverEnd}{\mathsf{endCover}\guard}
 \newcommand{\aSubC}{\aSub}
 \newcommand{\notonce}{}
 \newcommand{\weakestmo}{\textsc{weak\-est\-mo}}
 \newcommand{\semold}[1]{\mathsf{old}\ifnotempty{#1}{\sem{#1}}}
-\newcommand{\aCtxt}{{\mathcal C}}
+\newcommand{\aCtxt}{\mathbb{D}}
 \newcommand{\aLocLoc}{\aLoc_{{loc}}}
 \newcommand{\aRead}{\aLoc_{r}}
 \newcommand{\aChanged}{\aLoc_{c}}
@@ -131,14 +132,14 @@
 \newcommand{\fdom}{\mathsf{dom}}
 \newcommand{\fcodom}{\mathsf{codom}}
 \newcommand{\semClosed}[1]{\closed\sem{#1}}
-\newcommand{\closed}{\textsf{closed}}
-\newcommand{\addRead}{\textsf{addRead}}
+\newcommand{\closed}{\mathsf{closed}}
+\newcommand{\addRead}{\mathsf{addRead}}
 \newcommand{\pLTL}{\textsf{PLTL}}
 \newcommand{\once}{\Diamond\mkern-10.1mu\text{-}\mkern4mu}
 \newcommand{\always}{\Box\mkern-8.8mu\text{-}\mkern3mu}
 \newcommand{\afo}{\phi}
 \newcommand{\bfo}{\psi}
-\newcommand{\mods}{\textsf{Models}}
+\newcommand{\mods}{\mathsf{Models}}
 
 \newcommand{\eqorder}{\sim}
 \newcommand{\suborder}{\sqsubseteq}
@@ -318,7 +319,7 @@
 \newcommand{\prefixsimp}{\mathbin{{\xRightarrow{{\mathsf{triv}}}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
-\newcommand{\relfilt}[1]{\textsf{cover}\ifnotempty{#1}{\,#1\guard}}
+\newcommand{\relfilt}[1]{\mathsf{cover}\ifnotempty{#1}{\,#1\guard}}
 \newcommand{\DOT}{\mathbin.}
 
 \newcommand{\aPS}{P}
@@ -358,7 +359,7 @@
 \newcommand{\brELSE}{\texttt{\}}\\\texttt{else}\,\texttt{\{}}
 \newcommand{\brELIF}[1]{\texttt{\}}\\\texttt{else}\,\IF{#1}}
 \newcommand{\FI}{\texttt{\}}}
-\newcommand{\PAR}{\,\mathbin{\texttt{|}\mkern-6mu\texttt{|}}\,}
+\newcommand{\PAR}{\,\mathbin{\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}}\,}
 \newcommand{\LPAR}{\,\mathbin{\rrceil}\,}
 \newcommand{\VAR}{\texttt{var}\,}
 \newcommand{\TOUCHED}{\texttt{touched}\,}

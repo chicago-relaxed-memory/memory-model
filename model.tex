@@ -1057,7 +1057,7 @@ includes both of the pomsets:
       \event{a}{r\EQ1\mathbin{\mid}\DW{x}{1}}{}
     \end{tikzinline}}%\;\;\cdots
 \end{align*}
-By using \!$\PAR$\! in the definition of write, it also includes:
+By using $\parallel$ in the definition of write, it also includes:
 % (where,
 % contrary to convention, we show disjoint events):
 \begin{gather*}
@@ -1067,7 +1067,7 @@ By using \!$\PAR$\! in the definition of write, it also includes:
 \end{gather*}
 An alternate definition using $\cup$ would exclude this pomset.
 
-Given that the conditional is defined using \!$\PAR$\!, the use of \!$\PAR$\!
+Given that the conditional is defined using $\parallel$, the use of $\parallel$
 in the definition of write is necessary to validate \emph{case analysis}:
 \begin{math}
   \sem{\aCmd}
@@ -1076,7 +1076,7 @@ in the definition of write is necessary to validate \emph{case analysis}:
 \end{math}
 
 
-The use of \!$\PAR$\! is neither necessary nor desirable for reads.
+The use of $\parallel$ is neither necessary nor desirable for reads.
 % : the read rule does not introduce read preconditions, and item 5a of
 % Definition \ref{def:prefix} ignores them.
 Whereas a write action introduces a precondition---satisfied
@@ -1579,7 +1579,8 @@ $(\DWRel{y}{1})$ results in $(1{=}1\mid \DW{z}{1})$.
 % tautology.
 By removing the read event, the outcome is
 allowed by our semantics, enabling efficient compilation to \armeight:
-\begin{gather*}
+\begin{gather}
+  \label{inlining}
   % \aReg\GETS x\SEMI
   % y\REL\GETS 1\SEMI
   % z\GETS y
@@ -1601,7 +1602,7 @@ allowed by our semantics, enabling efficient compilation to \armeight:
   \rf{a4}{b1}
   \rf[out=170,in=10]{b2}{a1}
     \end{tikzinline}}
-\end{gather*}
+\end{gather}
 In drawings, we include a ``non-event''---dashed border---to mark each use of
 a local rule.  
 
@@ -1664,7 +1665,7 @@ cannot write $0$ to $y$.
 \begin{definition}
   Let $(\relfilt{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
   $\aPS'\in\aPSS'$
-  when for every release $\aEv$ that does not write $\aLoc$, there is some $\bEv\le'\aEv$
+  when $\Event$ contains a write to $\aLoc$ and for every release $\aEv$ that does not write $\aLoc$, there is some $\bEv\le'\aEv$
   such that $\bEv$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLX$, let
   % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}

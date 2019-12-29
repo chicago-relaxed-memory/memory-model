@@ -5,10 +5,10 @@ A significant challenge for a software memory model is to relax order enough
 to allow efficient implementation without admitting anomalous
 behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
-\begin{align}
+\begin{gather}
   \label{oota1}
-  (y\GETS x \PAR r\GETS y\SEMI x\GETS r)
-  &&
+  (y\GETS x \!\PAR\! r\GETS y\SEMI x\GETS r)
+  \quad
   %\nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{rx}{\DR{x}{1}}{}
@@ -20,7 +20,7 @@ behaviors---called \emph{out of thin air} (\oota) in the literature
   \rf{wy}{ry}
   \rf[out=170,in=10]{wx}{rx}
     \end{tikzinline}}
-\end{align}
+\end{gather}
 Although Java does not allow \oota{} behaviors of \eqref{oota1},
 \citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
 behaviors of \eqref{lochbihler}, from \textsection\ref{sec:intro}.
