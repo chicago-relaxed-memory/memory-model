@@ -111,7 +111,7 @@ and also to include a substitution:
 $\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
 
 We maintain the invariant that if
-$\Event\cap\Sub\neq\emptyset$ and 
+$\notdisjoint{\Event}{\Sub}$ and 
 $\labelingAct(\aEv)=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$, 
 then
 there are $\beforeSub$ and $\afterSub$ such that $\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
@@ -243,16 +243,21 @@ direct definition difficult.
 
 Instead of a direct definition, we first construct the sequential composition
 \emph{without} coalescing events, then close the resulting set of pomsets to
-ensure the required properties.  Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$
-where $\aPS''\in\aPSS''$ if there are $\aPS'\in\PRE(\aPS'')$ and
-$\aPS^i\in\aPSS$ such $\Event' = \Event^i$, ${\le'}={\le^i}$,
-$\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
-$\bigvee_i \labelingForm^i(\aEv)$.
+ensure the required properties.
 
-The following definition include events from pomsets in $\aPSS^2$  in
-$\aPSS^1 \sequence \aPSS^2$ only when the pomset chosen from $\aPSS^1$ has an
-accepting state.  Since $\DISJUNCT$ does not perform prefix closure, we
-include $\aPSS^1$ in $\aPSS^1 \sequence \aPSS^2$ separately.
+Let $\DISJUNCT(\aPSS)$ be the least set that
+includes $\aPSS$ and that is closed w.r.t.~disjunction and prefix weakening.
+
+% Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$
+% where $\aPS''\in\aPSS''$ if there are $\aPS'\in\PRE(\aPS'')$ and
+% $\aPS^i\in\aPSS$ such $\Event' = \Event^i$, ${\le'}={\le^i}$,
+% $\labelingAct'=\labelingAct^i$, and $\labelingForm''(\aEv)$ implies
+% $\labelingForm'(\aEv)\cup\bigvee_i \labelingForm^i(\aEv)$.
+
+In the following definition, $\aPSS'$ is defined using the subset of
+$\aPSS^1$ that have an accepting state: $\labelingAct(\Event^1\cap\Sub)$ is only defined for
+$\{\aPS^1\in\aPSS^1\mid \notdisjoint{\Event^1}{\Sub}\}$.  To ensure prefix
+closure, we include $\aPSS^1$ before applying $\DISJUNCT$.
 % A simple inductive proof shows that for any pomset in $\aPS\in\sem{\aCmd}$, there is
 % extension $\aPS'\in\sem{\aCmd}$ with an accepting state, such that $\aPS\in\PRE(\aPS')$.
 
@@ -475,9 +480,9 @@ include $\aPSS^1$ in $\aPSS^1 \sequence \aPSS^2$ separately.
   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
   \begin{math}
     %\{\aPS^1{\in}\aPSS^1\mid \disjointsmall{\Event^1}{\Sub}\}
-    \aPSS^1
-    \allowbreak\cup
-    \DISJUNCT(\aPSS')
+    \DISJUNCT(\aPSS^1
+    \cup
+    \aPSS')
   \end{math}
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
   % $\cEv\in\Event^1\cap\Sub$,
