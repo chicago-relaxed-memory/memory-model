@@ -93,7 +93,7 @@ For example, every substitution subsumes $\SUBEMP$.
 
 \paragraph{Substitutions in the Data Model.}
 Let $\Sub$ be the set of all (explicit) substitutions.  We include
-substitutions as silent actions: $\Sub\subseteq\Int\subseteq\Act$.  In the context of a
+substitutions as actions: $\Sub\subseteq\Act$.  In the context of a
 pomset $\aPS$, we use $\Sub$ also to represent the set of substitution
 events:
 \begin{math}
@@ -848,8 +848,8 @@ The semantics is equivalent to that of the main text.
 \begin{proposition}
   \label{thm:seq}
   Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model},
-  extended with silent actions and fences, adopting the read actions of this
-  section---with the read substitution being $\SUBEMP$.
+  adopting the read actions of this section---with the read substitution
+  being $\SUBEMP$.
 \begin{displaymath}
   \semold{\aCmd} = \killS\sem{\aCmd}
 \end{displaymath}
