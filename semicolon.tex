@@ -580,8 +580,8 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 %   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
 \item[5b-f.] as in \textsection\ref{sec:model} and \textsection\ref{sec:variants},
 \item[5g.] if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
-\item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
-  $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
+% \item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
+%   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
 % \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
 %   $\aEv$ is a release that does not write $\aLoc$, then  some
 %   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
@@ -848,7 +848,7 @@ The semantics is equivalent to that of the main text.
 \begin{proposition}
   \label{thm:seq}
   Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model},
-  adopting the read actions of this section---with the read substitution
+  adopting the read actions of this section---the read substitution
   being $\SUBEMP$.
 \begin{displaymath}
   \semold{\aCmd} = \killS\sem{\aCmd}
