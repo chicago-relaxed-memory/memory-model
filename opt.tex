@@ -1,6 +1,60 @@
 \section{Single-Threaded Optimizations}
 \label{sec:opt}
 
+We argue that our model is fully flexible with respect to single-threaded
+optimizations by showing that it validates {\em all} valid transformations of
+a sequential program without synchronization into a ``linear'' sequential
+program.  To establish this, we develop a pomset semantics for pairs of
+formulae $\semRW{\aForm}{\bForm}$ and show a relation between $\sem{\aCmd}$
+and $\semRW{\aForm}{\bForm}$ for valid Hoare triples
+$\hoare{\aForm}{\aCmd}{\bForm}$.  We end this section with a discussion of
+specific optimizations, some of which include synchronization.
+
+\begin{math}
+  \semRW{\aForm}{\bForm}
+\end{math}
+
+
+sync free so every read, write or silent action has mode rlx.  No RMW.
+
+
+Use explicit silent actions.
+    To keep the presentation as simple as possible, we include neither address
+calculation nor \RMW{}s.  These extensions are straightforward, but
+notationally cumbersome.
+
+The results of this section hold for contexts of the example language
+given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+The results also hold for the more general contexts of
+\textsection\ref{sec:semicolon}, which includes full sequential composition:
+
+
+We refactor the syntax:
+\begin{align*}
+  \aCmd,\,\bCmd
+  \BNFDEF& \SKIP
+  \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
+  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
+  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aLoc^{\amode} 
+  \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
+  \\[-.5ex]
+  \BNFSEP&\aCmd \PAR \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc
+  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+  \\
+  \aCtxt,\,\bCtxt
+  \BNFDEF& \hole{}
+  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
+  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
+  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
+  \\[-.5ex]
+  \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+\end{align*}
+
 % 's concern arises from the similarity of this program
 % with the \oota\ litmus test that replaces the second thread with
 % Should register state from an unexecuted conditional be able to effect the
@@ -71,28 +125,38 @@
 
 
 As discussed after example \eqref{inlining}, our model {\em invalidates}
-thread inlining.  We argue that our model is fully flexible with respect to
-single-threaded optimizations by showing that it validates {\em all} valid
-transformation of a sequential program without synchronization into a
-``linear'' sequential program.
+thread inlining.
 
-A key technical tool is the connection of our
-semantics to traditional Hoare logic for sequential programs, that connects
-the thread-local order of our model to the dependencies captured by Hoare
-triples.  We illustrate concretely with several single-threaded optimizations
-including reordering of independent statements.
+
+In the \textsection\ref{sec:model}, 
+In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
+$\bForm$ represents a set of write actions, and $\aForm$ represents their
+preconditions.
+
+There we either had a precondition \emph{or} a read.  Here we extend our view
+of Hoare logic to capture the full semantics of a program, including its read
+actions.  As such, the preconditions correponsd to read events and the write
+actions are the writes that depend on them.
+programs 
+
+In this theorem, we consider Hoare triples over formulas as discussed in
+\textsection\ref{sec:model}.  
+We follow \citeauthor{gordonHoare}'s
+[\citeyear{gordonHoare}] presentation of Hoare logic.
 
 \paragraph*{Defining Valid Transformations.}
-We first make the semantics insensitive to reads that are never used.
+In Hoare logic, precondition strengthening validates
 
+In our semantics, reads have no side effects.  Thus, it should be sound to
+introduce irrelevant reads.  Yet, $\sem{r\GETS x\SEMI \aCmd}\neq
+\sem{\aCmd}$, even when $r$ does not appear in $\aCmd$.  To make
+such equations hold, we define $\readc(\aPSS)$ to saturate $\aPSS$ with
+reads.
 
-Let $\readc(\aPSS)$ be the smallest augmentation
-closed set containing $\aPSS$ that also satisfies closure under the inclusion
-of useless reads: if $\aPS \in \readc(\aPSS)$, then
-$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\uplus\{\bEv\}$,
-${\le'} \supseteq{\le}$,
-$\labeling'(\aEv) = \labeling(\aEv)$, and
-$\labelingAct'(\bEv) = \DR[\modeRLX]{\aLoc}{\aVal}$, for any $\aLoc$ and $\aVal$.
+Let $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there are
+$\aPS\in\aPSS$ and $D$ such that $\Event'= \Event'\uplus D$,
+${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
+$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
 % and to events with false preconditions.
 %Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
@@ -107,12 +171,52 @@ $\labelingAct'(\bEv) = \DR[\modeRLX]{\aLoc}{\aVal}$, for any $\aLoc$ and $\aVal$
 
 % Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
 
-%\begin{lemma}\label{freadssatcomp}[Compositionality of $\freadsat$]
-Let $\readc\sem{\aCmd} \subseteq \readc\sem{\aCmd'}$.  Then for any context $\aCtxt$:
+\begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
+  Let $\bCtxt$ be a context
+  % \footnote{%
+  %   The results of this section hold for contexts of the example language
+  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+  %   % \begin{math}
+  %   %   \begin{array}[t]{rcl}
+  %   %     \aCtxt,\,\bCtxt
+  %   %     &\BNFDEF& \hole{}
+  %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
+  %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
+  %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
+  %   %     \\[-.5ex]
+  %   %     &\BNFSEP&\aCtxt \PAR \bCmd
+  %   %     \BNFSEP \aCmd \PAR \bCtxt
+  %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
+  %   %     \\[-.5ex]
+  %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+  %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+  %   %   \end{array}
+  %   % \end{math}
+  %   The results of this section hold for contexts of the example language
+  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+  %   The results also hold for the more general contexts of
+  %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
+  %   \begin{displaymath}
+  %     \begin{array}[t]{rcl}
+  %       \aCtxt,\,\bCtxt
+  %       &\BNFDEF& \hole{}
+  %       \BNFSEP \aCtxt \SEMI \bCmd
+  %       \BNFSEP \aCmd \SEMI \bCtxt
+  %       \BNFSEP \aCtxt \PAR \bCmd
+  %       \BNFSEP \aCmd \PAR \bCtxt
+  %       \BNFSEP 
+  %       \\[-.5ex]
+  %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
+  %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+  %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+  %     \end{array}
+  %   \end{displaymath}}
+and $\readc\sem{\aCmd} \subseteq \readc\sem{\aCmd'}$:
 \begin{displaymath}
-  \readc\sem{\aCtxt\hole{\aCmd}} \subseteq \readc\sem{\aCtxt\hole{\aCmd'}}
+  \readc\sem{\bCtxt\hole{\aCmd}} \subseteq \readc\sem{\bCtxt\hole{\aCmd'}}
 \end{displaymath}
-%\begin{proof}
+\end{lemma}
+% \begin{proof}
 %The proof follows from the following observations.
 %\begin{itemize}
 %\item $\readc, \sem{}$ are monotone functions (for the inclusion order on 
@@ -132,9 +236,7 @@ program transformations.
 
 
 \paragraph{Relationship to Hoare Logic.}
-In this theorem, we consider Hoare triples over formulas as discussed in
-\textsection\ref{sec:model}.  We follow \citeauthor{gordonHoare}'s
-[\citeyear{gordonHoare}] presentation of Hoare logic.
+
 
 % In the hypothesis of this theorem, we consider valid state assignments
 % $\vec{\bLoc} =\vec{\aVal}$, to rule out conflicting assignments to the same
@@ -394,11 +496,11 @@ Certain transformations involving conditionals or adjacent operations on the sam
 %Suppose $\aExp=0$ is a tautology and $\cExp=\dExp$ is a tautology.   
 % Then the following hold.
  \begin{align*}
-\tag{Value expansion}
-  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+   \tag{Value expansion}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
   \sem{\aCmd}  \\
   \tag{Dead Code} 
-  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &\supseteq 
+  \sem{\IF{\FALSE}\THEN\aCmd\ELSE\bCmd\FI} &=
   \sem{\bCmd} \\
   \tag{Dead Store} 
   \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp} &\supseteq 

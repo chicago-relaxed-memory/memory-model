@@ -5,59 +5,32 @@ We extend the model to include additional
 features: fences, address calculation, and read-modify-write (\RMW). The
 proofs given later in the paper extend to include these features.  
 
-\paragraph{Silent Actions and Fences.}
+\paragraph{Fences.}
 
-For the actions of a data model, we require that there is a set
-$\Int\subseteq\Act$ such that
-$\Int\cap\fdom(\rreads)=\Int\cap\fdom(\rwrites)=\emptyset$.  We say $\aAct$
-is \emph{silent} if $\aAct\in\Int$.
-
-By definition, silent actions neither read nor write.
-
-To model the fencing behavior of local reads and writes, our example language
-includes silent actions of the form $\DFR{\amode}$ and $\DFW{\amode}$.  For
-$\amode\in\{\modeRA,\,\modeSC\}$, $\DFR{\amode}$ is an acquire, and
-$\DFW{\amode}$ is a release.  The fences with access mode $\modeRLX$ do
-nothing; we include them only to remove case analysis from the definitions.
-
-We also include syntactic fences of the form
-``$\FENCE^{\fmode} \SEMI \aCmd$.''  The semantics of syntactic fences
-is subtly different from the fencing behavior of
-$\modeRA$/$\modeSC$-accesses in C11.  Thus we include separate actions for syntactic
-fences: $\DFS{\fmode}$.  The \emph{syntactic fence mode}
+Syntactic fences
+``$\FENCE^{\fmode} \SEMI \aCmd$'' have corresponding  actions: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
 $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
 is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
-$\DFS{\modeREL}$ is a release. $\DFS{\modeACQ}$ is an acquire.
-$\DFS{\modeSC}$ is both a release and an acquire.
-
-To Definition \ref{def:prefix} of prefixing, add:
-\begin{enumerate}
-\item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
-  $\aEv \lt' \bEv$, and
-\item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
-  $\bEv \lt' \aEv$.
-\end{enumerate}
+$(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
+$(\DFS{\modeSC})$ is both a release and an acquire.
 \begin{align*}
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
   (\DFS{\fmode}) \prefix \sem{\aCmd}
-  \\
-  \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-  \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
-  \\[-.5ex] &
-  \mkern2mu\cup
-  \,\mathhl{(\DFR{\amode}) \;\prefix}\,\;
-  \sem{\aCmd}[\aLoc/\aReg]
-  \\
-  \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-  \;\;\textstyle\parallel_\aVal (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
-  \\[-.5ex] &
-  \mkern2mu\cup
-  \,\mathhl{(\DFW{\amode}) \;\prefix}\,\;
-  (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
 \end{align*}
+The semantics of syntactic fences
+is subtly different from the fencing behavior of
+$\modeRA$/$\modeSC$-accesses in C11. 
+The additional order of syntactic fences is captured by adding the following
+to Definition \ref{def:prefix} of \emph{prefixing}:
+\begin{enumerate}
+\item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
+  $\aEv \lt' \bEv$, and
+\item[5f.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
+  $\bEv \lt' \aEv$.
+\end{enumerate}
 
 Our semantics does not suffer the weaknesses of C11 fences, noted by
-\citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$-initialization
+\citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
 in these examples:
 \begin{gather*}
     x\GETS1
@@ -120,39 +93,180 @@ in these examples:
 The executions are disallowed, due to cycles.  It is a testament to the
 complexity of C11 that it allows these executions.
 
+% \paragraph{Silent Actions and Fences.}
+
+% For the actions of a data model, we require that there is a set
+% $\Int\subseteq\Act$ such that
+% $\Int\cap\fdom(\rreads)=\Int\cap\fdom(\rwrites)=\emptyset$.  We say $\aAct$
+% is \emph{silent} if $\aAct\in\Int$.
+
+% By definition, silent actions neither read nor write.
+
+% To model the fencing behavior of local reads and writes, our example language
+% includes silent actions for \emph{read fences} $(\DFR{\amode})$ and
+% \emph{write fences} $(\DFW[\aLoc]{\amode})$.  For modes $\modeRA$ and
+% $\modeSC$, read fences are acquires and write fences are releases.  As with
+% all actions, fences are ordered with respect to preceding acquired and
+% following releases.  For mode $\modeRLX$, the fences do nothing.  We
+% emphasize that \emph{write fences} are silent, and thus do not interfere with
+% \emph{write actions} when fulfilling a read.
+
+% For use in \textsection\ref{sec:opt}, we annotate write fences with the
+% location of the local write.  We extend the notion of \emph{conflict}
+% (Definition \ref{def:prefix}) to include write fence actions, thus ordering
+% $(\DFW[\aLoc]{\amode})$ with respect to reads and writes on
+% $\aLoc$\nofootnote{Using this version of write fences, one could rephrase the
+%   write rules to move cover filtering from silent local writes to explicit
+%   ``visible'' writes in Definition \ref{def:cover}---and the matching items
+%   in \textsection\ref{sec:variants} and Definition \ref{def:semi:seq}
+%   (6b). In this case, we would choose $(\relfilt{\aLoc} \aPSS)$ be the set
+%   $\aPSS'\subseteq\aPSS$ such that $\aPS'\in\aPSS'$ when for every
+%   $\cEv',\,\aEv'\in\Event'$, if $\labelingAct(\cEv')=(\DFW[\aLoc]{\amode})$,
+%   $\aEv'$ is a release, and $\cEv'\le\aEv'$, then there is some
+%   $\bEv'\in\Event'$ such that $\bEv$ (visibly) writes $\aLoc$ and
+%   $\cEv'\lt\bEv'\le\aEv'$.  This has the same effect, but results in a
+%   slightly different semantics. The choice between the two is arbitrary.}.
+% The additional order is harmless, since write fences do not interfere with
+% fulfillment.
+% % Finally, we also modify write fence actions so that they
+% % name the variable that was written: $\DFW[\aLoc]{\amode}$.  These new actions
+% % remain silent.  
+
+% We also include syntactic fences of the form
+% ``$\FENCE^{\fmode} \SEMI \aCmd$.''  The semantics of syntactic fences
+% is subtly different from the fencing behavior of
+% $\modeRA$/$\modeSC$-accesses in C11.  Thus we include separate actions for syntactic
+% fences: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
+% $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
+% is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
+% $(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
+% $(\DFS{\modeSC})$ is both a release and an acquire.
+
+% The additional order of syntactic fences is captured by adding the following
+% to Definition \ref{def:prefix} of \emph{prefixing}:
+% \begin{enumerate}
+% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
+%   $\aEv \lt' \bEv$, and
+% \item[5f.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
+%   $\bEv \lt' \aEv$.
+% \end{enumerate}
+% The semantic rules are:
+% \begin{align*}
+%   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
+%   (\DFS{\fmode}) \prefix \sem{\aCmd}
+%   \\
+%   \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+%   \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+%   \\[-.5ex] &
+%   \mkern2mu\cup
+%   \,\mathhl{(\DFR{\amode}) \;\prefix}\,\;
+%   \sem{\aCmd}[\aLoc/\aReg]
+%   \\
+%   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+%   \;\;\textstyle\parallel_\aVal (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+%   \\[-.5ex] &
+%   \mkern2mu\cup
+%   \,\mathhl{(\DFW[\aLoc]{\amode}) \;\prefix}\,\;
+%   (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
+% \end{align*}
+% Our semantics does not suffer the weaknesses of C11 fences, noted by
+% \citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
+% in these examples:
+% \begin{gather*}
+%     x\GETS1
+%     \PAR
+%     r\GETS x\SEMI   
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS y  
+%     \PAR
+%     y\GETS 1 \SEMI
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS x  
+%     \\[-.1ex]
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{b1}{\DR{x}{1}}{right=3em of a1}
+%   \event{b2}{\DFS{\modeSC}}{right=of b1}
+%   \po{b1}{b2}
+%   \event{b3}{\DR{y}{0}}{right=of b2}
+%   \po{b2}{b3}
+%   \event{c1}{\DW{y}{1}}{right=3em of b3}
+%   \event{c2}{\DFS{\modeSC}}{right=of c1}
+%   \po{c1}{c2}
+%   \event{c3}{\DR{x}{0}}{right=of c2}
+%   \po{c2}{c3}
+%   \wk{b3}{c1}
+%   \rf{a1}{b1}
+%   \wk[out=-170,in=-10]{c3}{a1}
+%     \end{tikzinline}}
+%   \\
+%     x\GETS1\SEMI   
+%     z\REL\GETS1\SEMI   
+%     \PAR
+%     r\ACQ\GETS z\SEMI   
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS y  
+%     \PAR
+%     y\GETS 1 \SEMI
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS x  
+%     \\[-.1ex]
+%   \hbox{\begin{tikzinline}[node distance=.7em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{a2}{\DWRel{z}{1}}{right=of a1}
+%   \po{a1}{a2}
+%   \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
+%   \event{b2}{\DFS{\modeSC}}{right=of b1}
+%   \po{b1}{b2}
+%   \event{b3}{\DR{y}{0}}{right=of b2}
+%   \po{b2}{b3}
+%   \event{c1}{\DW{y}{1}}{right=2em of b3}
+%   \event{c2}{\DFS{\modeSC}}{right=of c1}
+%   \po{c1}{c2}
+%   \event{c3}{\DR{x}{0}}{right=of c2}
+%   \po{c2}{c3}
+%   \wk{b3}{c1}
+%   \rf{a2}{b1}
+%   \wk[out=-170,in=-10]{c3}{a1}
+%     \end{tikzinline}}
+% \end{gather*}
+% The executions are disallowed, due to cycles.  It is a testament to the
+% complexity of C11 that it allows these executions.
+
 \paragraph{Address Calculation.}
 In the definition of a data model, remove the location set $\Loc$ and require
 that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$
 is a value.  Expressions may include neither memory locations nor the
 operator $\REF{\cExp}^{\amode}$.
 In our example language, we update the syntax of commands:
-\begingroup
-\allowdisplaybreaks
 \begin{gather*}
   \aCmd
   \BNFDEF \cdots
   \BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
   \BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
-  \\
-\begin{aligned}
+\end{gather*}
+For degenerate programs that include only constant references (every
+expression $\REF{\cExp}^\amode$ satisfies $\cExp=\cVal$, for some $\cVal$), the
+following semantics produces exactly the same executions as before.
+\begin{align*}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
   \textstyle\bigcup_{\cVal,\aVal}\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
-  \\[-.5ex] & \mkern2mu\cup
-  \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
-  \sem{\aCmd}[\REF{\cVal}/\aReg]
+  % \\[-.5ex] & \mkern2mu\cup
+  % \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
+  % \sem{\aCmd}[\REF{\cVal}/\aReg]
   \\
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
   \\[-1ex]
-  &\mkern-65mu\hbox to 0pt{$\begin{aligned}
+  &\mkern-68mu\hbox to 0pt{$\begin{aligned}
     &\textstyle\parallel_{\cVal,\aVal}\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
     \\[-.5ex]  \cup\!&
-    \textstyle\parallel_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFW{\amode}) \prefix
+    \textstyle\parallel_{\cVal\phantom{,\aVal}}\; %(\;\mathhl{\cExp=\cVal}\mid\DFW[\REF{\cVal}]{\amode}) \prefix
     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
   \end{aligned}$}
   % \\[-9.5ex]
   % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
   % \\[6ex]
-\end{aligned}
+\end{align*}
 % \begin{aligned}
 %   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
 %   \textstyle\bigcup_{\cVal,\aVal}\; (\cExp=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
@@ -169,8 +283,7 @@ In our example language, we update the syntax of commands:
 %     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
 %   \end{aligned}$}
 % \end{aligned}
-\end{gather*}
-\endgroup
+
 
 Let us revisit the discussion of the use of \!$\PAR$\!
 in Candidate~\ref{cand2.9}.
@@ -260,6 +373,16 @@ relates the two events of a successful \RMW.  Additionally, require that:
 \item If $\cEv$ and $\aEv$ both write $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
 \item If $\cEv$ and $\aEv$ both write $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
 \end{itemize}
+When selecting $\Event' \subseteq \Event$ in the definition of prefix
+(Definition~\ref{def:closure:properties}), we must ensure
+both downclosure---including
+$\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \bEv\le\aEv\}$---and \RMW\
+closure---including
+$\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \aEv\xrmw\bEv\}$.
+% ${\le'}={\le}\restrict{\Event'}$, 
+% ${\xrmw'}={\xrmw}\restrict{\Event'}$, and
+% ${\labeling'}={\labeling}\restrict{\Event'}$.  
+
 We elide the obvious and tedious semantic rules.
 
 % \begin{scope}

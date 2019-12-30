@@ -5,11 +5,11 @@ composition, building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and
 $\sem{\bCmd}$.  To simplify the definitions, we assume that each register is
 assigned at most once syntactically
 \cite{Rosen:1988:GVN:73560.73562}\nofootnote{One can remove this restriction
-  by defining conflict (Definition~\ref{def:prefix}) to include actions that
+  by defining conflict (Definition \ref{def:prefix}) to include actions that
   read into the same register; this includes order between reads in item 5b.
   In addition, let $\READS(\aPS)=\{\aEv\mid\aEv$ is a read into $\aReg$ and
   there is no $\aEv$ that reads into $\aReg$ such that $\dEv\le\aEv\}$.  For
-  Theorem~\ref{thm:seq} to hold, register conflict must then be included in
+  Theorem \ref{thm:seq} to hold, register conflict must then be included in
   $\semold{}$.}.  Since we exclude loops, this trivially ensures that each
 register is assigned at most once semantically.
 
@@ -91,37 +91,40 @@ For example, every substitution subsumes $\SUBEMP$.
 %   \end{cases}
 % \end{displaymath}
 
-\paragraph{Data Model for the Example Language.}
-We modify write fence actions so that they name the variable that was
-written: $\DFW[\aLoc]{\amode}$.  These new actions remain silent.  We extend
-the notion of \emph{conflict} (Definition~\ref{def:prefix}) to include the
-new write fence actions, thus ordering $\DFW[\aLoc]{\amode}$ w.r.t.~reads and
-writes on $\aLoc$.
-
+\paragraph{Substitutions in the Data Model.}
 Let $\Sub$ be the set of all (explicit) substitutions.  We include
-substitutions as silent actions: $\Sub\subseteq\Int$.
+substitutions as silent actions: $\Sub\subseteq\Int\subseteq\Act$.  In the context of a
+pomset $\aPS$, we use $\Sub$ also to represent the set of substitution
+events:
+\begin{math}
+  \{ \aEv\in\Event \mid \labelingAct(\aEv) \in \Sub \}.
+\end{math}
 % Alternatively, we
-% could extend the Definition~\ref{def:mmpomset} to include an optional
+% could extend the Definition \ref{def:mmpomset} to include an optional
 % substitution:
-Our pomsets will contain at most one substitution event.  We ignore order on
-this event, which represents a final state.
+Our pomsets will contain at most one substitution event, which is ordered
+after every other event.  In examples, we typically drop order into
+substitution actions, instead drawing them as accepting states.
 
 We also modify read actions both to name the register that was written
 and also to include a substitution:
 $\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
+We say $(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ reads \emph{into}
+$\aReg$.
+For any $\aAct$, we say that $\aAct$ \emph{read-substitutes} $\bSub$ if either
+$\aAct=(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ or $\aAct$ is not a read
+and $\bSub=\SUBEMP$.
 
-We maintain the invariant that if
-$\notdisjoint{\Event}{\Sub}$ and 
-$\labelingAct(\aEv)=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$, 
-then
-there are $\beforeSub$ and $\afterSub$ such that $\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
-$(\beforeSub\SUBSEQ\afterSub) = \labelingAct(\Event\cap\Sub)$.
+We modify Definition \ref{def:rf} to require that when $\aPS$ is
+\emph{$\aLoc$-closed}, every substitution in $\aPS$ is the identity on
+$\aLoc$: If $\labelingAct(\aEv)=\aSub$ or $\aEv$ read-substitutes $\aSub$,
+then $\aSub\SUBAPP\aLoc=\aLoc$.
 
 We lift the notion of subsumption from explicit substitutions to actions and
 pomsets in the obvious way: $\aAct$ subsumes $\bAct$ if either (1)
 $\aAct=\bAct$, (2) $\aAct=\aSub$, $\bAct=\bSub$ and $\aSub$ subsumes $\bSub$,
-or (3) $\aAct=\DRreg[\amode]{\aReg}{\aSub}{\aLoc}{\aVal}$,
-$\bAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$, and $\aSub$ subsumes
+or (3) $\aAct$ read-substitutes $\aSub$,
+$\bAct$ read-substitutes $\bSub$, and $\aSub$ subsumes
 $\bSub$.
 $\aPS'$ \emph{subsumes} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
 $\labelingForm'=\labelingForm$, and $\labelingAct'(\aEv)$
@@ -131,8 +134,23 @@ The semantics of programs is closed w.r.t.~\emph{reverse subsumption}: if
 $\aPS\in\sem{\aCmd}$ and $\aPS$ is subsumed by $\aPS'$, then
 $\aPS'\in\sem{\aCmd}$.
 
+Subsumption is dual to implication (Definition \ref{def:closure:properties}):
+Strong\-er preconditions impose a greater burden on the preceding code;
+stronger substitutions can better mitigate this burden in the code that
+follows.  In examples, we only show executions that are implication and
+augmentation minimal; similarly, we only show executions that are
+subsumption-maximal.
 
-We also define notation to lift sequential composition of substitutions into
+Subsumption-maximal pomsets that include an accepting state
+$\aSub=\labelingAct(\Event\cap\Sub)$ satisfy the invariant that when
+$\labelingAct(\aEv)=(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ there are
+$\beforeSub$ and $\afterSub$ such that
+$\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
+$(\beforeSub\SUBSEQ\afterSub) = \aSub$.
+
+
+
+We define notation to lift sequential composition of substitutions into
 read actions:
 \begin{itemize}
 \item Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when
@@ -147,24 +165,22 @@ read actions:
   $\aSub=\labelingAct(\Event\cap\Sub)$ and
   $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
 \end{itemize}
+
 \paragraph{Semantics of the Example Language.}
 
-To simplify the base cases, we define $\CLOSE{\aPS}$ to be the smallest set
-that includes $\aPS$ and is closed w.r.t.~prefixing, implication,
-augmentation, and reverse subsumption: Let $\aPS''\in\CLOSE{\aPS}$ if there
-is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$ implies $\aPS'$, (2) $\aPS''$ is an
-augmentation of $\aPS'$ and (3) $\aPS''$ is subsumed by $\aPS'$.
+We elide the definitions of conditional and location binding, which can be
+imported directly from \textsection\ref{sec:model}---using the modified
+definition of $\aLoc$-closure discussed above.
+ 
+To simplify the base cases, we use a literal notation for pomsets and define
+$\CLOSE{\aPS}$ to be the smallest set that includes $\aPS$ and is closed
+w.r.t.~prefixing, implication, augmentation, and reverse subsumption: Let
+$\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$
+implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3) $\aPS''$
+is subsumed by $\aPS'$.
 
-Also to simplify the base cases, we use a literal notation for
- pomsets, drawing substitution actions as accepting states.  
-% Only reads introduce
-% order.
-
-We elide two definitions that can be imported directly from
-\textsection\ref{sec:model}: The semantics of the conditional is unchanged.
-The semantics of location binding is changed only to require that when $\aPS$
-is \emph{$\aLoc$-closed} (Definition~\ref{def:rf}), every substitution
-$\aSub$ appearing in $\aPS$ satisfies $\aSub\SUBAPP\aLoc=\aLoc$.
+Let $\killS\aPSS$ be the set $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$ when
+$\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP$.
 %
 \begingroup
 \allowdisplaybreaks
@@ -180,6 +196,7 @@ $\aSub$ appearing in $\aPS$ satisfies $\aSub\SUBAPP\aLoc=\aLoc$.
   \CLOSE{\TIKZ{
       \event{a}{\DFS{\fmode}}{}
       \final{f}{\SUBEMP}{right=of a}
+      \po{a}{f}
     }} 
   \\
   \sem{\aReg\GETS\aLoc^\amode} & =
@@ -187,37 +204,45 @@ $\aSub$ appearing in $\aPS$ satisfies $\aSub\SUBAPP\aLoc=\aLoc$.
   \CLOSE{\TIKZ{
       \event{a}{\DRreg[\amode]{\aReg}{\SUB{\aLoc/\aReg}}{\aLoc}{\aVal}}{}
       \final{f}{\SUBEMP}{right=of a}
+      \po{a}{f}
     }}
-  \\[-.5ex] &
-  \mkern2mu\cup
-  \CLOSE{\TIKZ{
-      \event{a}{\DFR{\amode}}{}
-      \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
-    }}
+  % \\[-.5ex] &
+  % \mkern2mu\cup
+  % \CLOSE{\TIKZ{
+  %     \event{a}{\DFR{\amode}}{}
+  %     \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
+  %     \po{a}{f}
+  %   }}
   \\
   \sem{\aLoc^\amode\GETS\aExp} & =
   \textstyle\parallel_\aVal\;
   \CLOSE{\TIKZ{
       \event{a}{\aExp=\aVal \mid \DW[\amode]{\aLoc}{\aVal}}{}
       \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
+      \po{a}{f}
     }}
-  \\[-.5ex] &
-  \mkern2mu\cup
-  \CLOSE{\TIKZ{
-      \event{a}{\DFW[\aLoc]{\amode}}{}
-      \final{f}{\SUB{\aExp/\aLoc}}{right=of a}
-    }}
-  \end{aligned}
+  % \\[-.5ex] &
+  % \mkern2mu\cup
+  % \CLOSE{\TIKZ{
+  %     \event{a}{\DFW[\aLoc]{\amode}}{}
+  %     \final{f}{\SUB{\aExp/\aLoc}}{right=of a}
+  %     \po{a}{f}
+  %   }}
   \\
-  \begin{aligned}
-    \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
-    &
-    \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
-    \\
-    \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
-    &
-    \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
-  \end{aligned}
+  \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
+  \\
+  \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
+\end{aligned}
+  % \\
+  % \begin{aligned}
+  %   \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
+  %   &
+  %   \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
+  %   \\
+  %   \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
+  %   &
+  %   \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
+  % \end{aligned}
 \end{gather*}
 \endgroup
 To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
@@ -226,7 +251,7 @@ Due to the asymmetry,
 \begin{math}
   (r\GETS 1\PAR\SKIP)\SEMI x\GETS r
 \end{math}
-can write $x$, but
+can write $1$ to $x$, but
 \begin{math}
   (\SKIP\PAR r\GETS 1)\SEMI x\GETS r
 \end{math}
@@ -236,7 +261,7 @@ cannot.
 The most significant challenge is to define semantic sequencing.  The
 definition is complex, not only because of the bookkeeping required by
 explicit substitutions.  Unfortunately, \emph{disjunction} and \emph{prefix
-  weakening} (Definition~\ref{def:closure:properties}) do not come easily.
+  weakening} (Definition \ref{def:closure:properties}) do not come easily.
 
 Recall \eqref{alanAddress} from \textsection\ref{sec:variants}:
 \begin{math}
@@ -255,8 +280,24 @@ Instead of a direct definition, we first construct the sequential composition
 \emph{without} coalescing events, then close the resulting set of pomsets to
 ensure the required properties.
 
+There is also a challenge dealing with redundant write elimination:
+\begin{math}
+  \sem{x\GETS 1\SEMI x^\modeREL\GETS 2} 
+\end{math}
+should contain a pomset that includes only
+\begin{math}
+  (\DW[\modeRA]{x}{2}).
+\end{math}
+We achieve this using the same strategy: closing after the construction.
+
+Let $\cEv$ be an \emph{unused write} in $\aPS$ when it is a relaxed write to
+some $\aLoc$ such that (1) $\cEv$ fulfills no reads, (2) there is some
+$\bEv\gt\cEv$ that writes $\aLoc$, and (3) for every release $\aEv\gt\cEv$
+there is some $\aEv\gt\bEv\ge\cEv$ that writes $\aLoc$.
+
 Let $\DISJUNCT(\aPSS)$ be the least set that
-includes $\aPSS$ and that is closed w.r.t.~disjunction and prefix weakening.
+includes $\aPSS$ and that is closed w.r.t.~disjunction, prefix weakening, and
+unused write removal.
 
 % Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$
 % where $\aPS''\in\aPSS''$ if there are $\aPS'\in\PRE(\aPS'')$ and
@@ -538,11 +579,12 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
 %   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
 \item[5b-f.] as in \textsection\ref{sec:model} and \textsection\ref{sec:variants},
-\item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
+\item[5g.] if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
+\item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
-\item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
-  $\aEv$ is a release that does not write $\aLoc$, then  some
-  $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
+% \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
+%   $\aEv$ is a release that does not write $\aLoc$, then  some
+%   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
 % \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
 % \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
 % \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
@@ -576,14 +618,19 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 % \end{enumerate}
 
 The item numbers are chosen to match those of the corresponding clauses in
-\textsection\ref{sec:model}.  Item 5 is morally unchanged. 
- Items 4 and 6 are more complicated here:
+\textsection\ref{sec:model}.  Item 5 is morally unchanged.  We only add
+addition 5g, which requires that the accepting state be final (and therefore
+excluded from any prefix).
+Item 4 is more complicated here:
 % Item 2b ensures that order into the substitution $\cEv\in\Event^1$ is
 % preserved into any substitution in $\Event'$.
 In item 4a, the label of the accepting state is calculated differently from
 other states. Instead, items 4b and 4c collapse into a single item here.
-Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
-rule.  The requirement for a final write is imposed at top level---see below.
+% Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
+% rule\footnote{Because of this, we believe it is necessary to include silent
+% actions for local writes when giving a semantics for sequential
+% composition.}.
+The requirement for a final write is imposed at top level---see below.
 
 In item 4bc, note that the domain of $\aSubC$ is disjoint from the domain
 of $\SUBDRS{\aPS^1}$, although registers in the domain of $\aSubC$ may
@@ -703,7 +750,7 @@ precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
   \end{gathered}
 \end{gather*}
 This pomset candidate does not satisfy the \emph{compatibility} requirement
-of Definition~\ref{def:mmpomset}.  Note, however, that
+of Definition \ref{def:mmpomset}.  Note, however, that
 $\IF{r{=}s}\THEN y\GETS1\FI$ is shorthand for
 $\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI$, and thus we do have a valid pomset
 for this composition, even with this choice of read values:
@@ -798,19 +845,14 @@ and
 
 The semantics is equivalent to that of the main text.
 
-Let $\coverEnd\aPSS$ be the set $\aPSS'$, where $\aPS'\in\aPSS'$ when for
-every $\labelingAct'(\bEv)=\DFW[\aLoc]{\amode}$ there is some $\aEv\gt\bEv$
-that writes $\aLoc$.
-
 \begin{proposition}
   \label{thm:seq}
   Let $\semold{\aCmd}$ be the semantics of \textsection\ref{sec:model},
-  extended with silent actions and fences, adopting the write fences of this
-  section and the corresponding notion of \emph{conflict}.  Ignoring the
-  additional annotations on actions:
-\begin{math}
-  \semold{\aCmd} = \{ \aPS\in\coverEnd\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}.
-\end{math}
+  extended with silent actions and fences, adopting the read actions of this
+  section---with the read substitution being $\SUBEMP$.
+\begin{displaymath}
+  \semold{\aCmd} = \killS\sem{\aCmd}
+\end{displaymath}
 % \begin{align*}
 %   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
 %   \\
@@ -868,7 +910,7 @@ that writes $\aLoc$.
 %   \end{itemize}
 % \end{definition}
 % The axioms for $\gtN$ are adapted
-% from~\citet[A1--A3]{DBLP:journals/dc/Lamport86}.  
+% from \citet[A1--A3]{DBLP:journals/dc/Lamport86}.  
 
 % \begin{definition}
 %   A pomset \emph{coherent} if, when restricted to events that read or write
@@ -944,7 +986,7 @@ that writes $\aLoc$.
 % \subsection{Semantics of programs}
 % \label{sec:semi:semantics}
 
-% Semantics in Figure~\ref{fig:semi:programs}
+% Semantics in Figure \ref{fig:semi:programs}
 
 % We give the semantics using combinators over sets of pomsets, defined below.
 % Using $\aPSS$ to range over sets of pomsets, these are:

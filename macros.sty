@@ -1,9 +1,11 @@
+\newcommand{\semRW}[2]{\sem{#1\mid#2}}
 \newcommand{\coverEnd}{\mathsf{endCover}\guard}
 \newcommand{\aSubC}{\aSub}
 \newcommand{\notonce}{}
 \newcommand{\weakestmo}{\textsc{weak\-est\-mo}}
 \newcommand{\semold}[1]{\mathsf{old}\ifnotempty{#1}{\sem{#1}}}
-\newcommand{\aCtxt}{\mathbb{D}}
+\newcommand{\aCtxt}{\mathbb{C}}
+\newcommand{\bCtxt}{\mathbb{D}}
 \newcommand{\aLocLoc}{\aLoc_{{loc}}}
 \newcommand{\aRead}{\aLoc_{r}}
 \newcommand{\aChanged}{\aLoc_{c}}
@@ -29,7 +31,7 @@
 \newcommand{\PRE}{\mathsf{pre}}
 \newcommand{\CLOSE}[1]{\mathsf{close}\ifnotempty{#1}{\bigl(#1\bigr)}}
 \newcommand{\ORDER}{\lt'}%\lessdot}
-\newcommand{\killS}{\mathsf{kill}}
+\newcommand{\killS}{\mathsf{kill}\guard}
 \newcommand{\nofootnote}[1]{}
 
 \newcommand{\anexternal}{a }
@@ -137,8 +139,8 @@
 \newcommand{\pLTL}{\textsf{PLTL}}
 \newcommand{\once}{\Diamond\mkern-10.1mu\text{-}\mkern4mu}
 \newcommand{\always}{\Box\mkern-8.8mu\text{-}\mkern3mu}
-\newcommand{\afo}{\phi}
-\newcommand{\bfo}{\psi}
+\newcommand{\afo}{\varrho}
+\newcommand{\bfo}{\vartheta}
 \newcommand{\mods}{\mathsf{Models}}
 
 \newcommand{\eqorder}{\sim}
@@ -255,7 +257,8 @@
 \newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
-\newcommand{\DFS}[1]{\smash{\mathsf{F}_{\mathsf{S}}^{#1}}}
+\newcommand{\DFS}[1]{\smash{\mathsf{F}^{#1}}}
+% \newcommand{\DFS}[1]{\smash{\mathsf{F}_{\mathsf{S}}^{#1}}}
 \newcommand{\DFR}[1]{\smash{\mathsf{F}_{\mathsf{R}}^{#1}}}
 \newcommand{\DFW}[2][]{\smash{\mathsf{F}_{\mathsf{W#1}}^{#2}}}
 \newcommand{\iDR}[3][]{\tau\DR[#1]{#2}{#3}}
@@ -319,7 +322,7 @@
 \newcommand{\prefixsimp}{\mathbin{{\xRightarrow{{\mathsf{triv}}}}}}
 \newcommand{\sequence}{\mathbin;}
 \newcommand{\guard}{\mathbin\rhd}
-\newcommand{\relfilt}[1]{\mathsf{cover}\ifnotempty{#1}{\,#1\guard}}
+\newcommand{\relfilt}[2][\amode]{\mathsf{cover}\ifnotempty{#1}{^{#1}}\ifnotempty{#2}{\,#2\guard}}
 \newcommand{\DOT}{\mathbin.}
 
 \newcommand{\aPS}{P}
