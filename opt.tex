@@ -19,36 +19,47 @@ which include synchronization.
 %\paragraph{Pomsets for Precondition/Postcondition Pairs.}
 
 \begin{definition}
-  Let $\aPS\in\semRW{\aForm}{\bForm}$
+  Let $\aPS\in\semRW{\aForm\land\cForm}{\bForm}$
   %We say that $\aPS$ \emph{satisfies} precondition $\aForm$ and postcondition $\bForm$ (notation $\aPS\in\semRW{\aForm}{\bForm}$)
-  when it possible to satisfy:
+  when it possible to satisfy the following:
 
   Let $\aLocs$ be the set of locations such that $\aLoc\in\aLocs$ exactly
   when $\aForm$ depends on $\aLoc$.  For each $\aLoc\in\aLocs$, choose
   $\bEv_\aLoc\in\Event$ that reads $\aLoc$.
-  Let $\Event_\aLocs$ be the set of $\bEv_\aLoc$s.
+  Let $\bEvs_\aLocs=\{\bEv_\aLoc\mid\aLoc\in\aLocs\}$.
   Let $\aSub$ be the substitution generated % from $\aLocs$
   as follows:
   % For $\aLoc\in\aLocs$, 
   $\aLoc\aSub = \aVal$ exactly when $\bEv_\aLoc$ reads $\aVal$ from $\aLoc$.
 
-  Require that $\aForm\aSub$ be satisfiable.
-
   Let $\bLocs$ be the set of locations such that $\bLoc\in\bLocs$ exactly
   when $\bForm$ depends on $\bLoc$.  For each $\bLoc\in\bLocs$, choose
   $\aEv_\bLoc\in\Event$ that writes $\bLoc$.
-  Let $\Event_\bLocs$ be the set of $\bEv_\bLoc$s.
+  Let $\aEvs_\bLocs=\{\aEv_\bLoc\mid\bLoc\in\bLocs\}$.
   Let $\bSub$ be the substitution generated % from $\bLocs$
   as follows:
   % For $\bLoc\in\bLocs$, 
   $\bLoc\bSub = \aVal$ exactly when $\aEv_\bLoc$ writes $\aVal$ to $\bLoc$.
 
-  Require that $\bForm\bSub$ be satisfiable.
+  Require that $\aForm\aSub$ and $\bForm\bSub$ are satisfiable.
 
-  Require that if $\cEv\le\bEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\Event_\aLocs$.
+  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$.
+  
+  Require that if $\cEv\le\aEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\bEvs_\aLocs$.
 
-  Require that if $\bEv_\bLoc\le\cEv$ and $\cEv$ is a write, then $\cEv\in\Event_\bLocs$.
+  Require that if $\aEv_\bLoc\le\cEv$ and $\cEv$ is a write, then $\cEv\in\aEvs_\bLocs$.
 \end{definition}
+Pictorially, we have:
+\begin{tikzdisplay}[node distance=.1ex and 2em]
+  \event{r}{\bEvs_\aLocs}{}
+  \event{w2}{\cForm\mid\aEvs_\bLocs}{below right=of r}
+  \event{w1}{\cEvs_\bLocs}{above right=of w2}
+  \po{r}{w2}
+  \wk{w1}{w2}
+\end{tikzdisplay}
+Here, $\aEvs_\bLocs$ are the final writes to $\bLocs$, with precondition $\cForm$.
+$\cEvs_\bLocs$ are other writes to $\bLocs$, which must be ordered before $\aEvs_\bLocs$.
+$\bEvs_\aLocs$ are the reads that the writes depend upon.
 
 In Hoare logic, precondition strengthening validates read introduction in
 this interpretation.  In our semantics, reads have no side effects.  Thus, it
@@ -66,9 +77,78 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 \begin{theorem}
   Let $\aCmd$ be synchronization-free and sequential.  Then
   $\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
-  $\notdisjoint{\readsem{\aCmd}}{\semRW{\aForm}{\bForm}}$.
-\end{theorem}
+  $\notdisjoint{\semRW{\aForm}{\bForm}}{\readsem{\aCmd}}$.
+\begin{proof}
+  The proof proceeds by induction on the number of steps of derivation of the
+  proof of the Hoare triple.
 
+  We first consider the structural rules.  Precondition strengthening follows
+  from augmentation closure.  The proof that the structural rule of
+  disjunction:
+  \begin{displaymath}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
+  \end{displaymath}
+  holds  follows from closure of the semantics under disjuncts. The proof for the structural rule of conjunction:
+  \begin{displaymath}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
+  \end{displaymath}
+  follows from the fact that pomsets have only concurrency and no conflict.  
+
+  The remaining cases that use the rules for deducing Hoare triples by
+  structural induction on the command follow directly from the semantics.
+  The only subtleties are about the write rule: The semantics of write
+  prefixing performs an explicit $\parallel$-closure to restore closure under
+  disjunctive pomsets.
+\end{proof}
+\end{theorem}
+As a corollary, we have
+\begin{displaymath}
+  \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
+  \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
+\end{displaymath}
+
+We now describe sound transformations into the linear fragment of the
+language.
+
+A command $\aCmd$ is \emph{linear} for every $\aPS\in\sem{\aCmd}$, there is
+at most one read and at most one write on any location.  Intuitively, this
+means that the context is unable to interfere with the atomic execution of
+the command; dually, neither can the atomic execution of the command
+interfere with the context.  From an arbitrary command, it is a
+straightforward exercise to construct a linear command that is sequentially
+equivalent.
+
+We say that $\aCmd$ and $\bCmd$ \emph{satisfy the same Hoare triples} when
+$\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
+$\hoare{\aForm}{\bCmd}{\bForm}$, for every $\aForm$ and $\bForm$.
+
+\begin{corollary}\label{seqcompleteness}
+  Let $\aCmd$ and $\bCmd$ be synchronization-free and sequential.  Further,
+  let $\bCmd$ be linear.  Then $\aCmd$ and $\bCmd$ satisfy the same Hoare
+  triples exactly when $\readsem{\aCmd} \supseteq \readsem{\bCmd}$.
+  % \begin{align*}
+  %   & (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm}  \\
+  %   \Longrightarrow & \\
+  %   & \readsem{\bCmd} \subseteq \readsem{\aCmd}
+  % \end{align*}
+%   \begin{proof}
+%     The pomsets in the semantics of a linear sequential program fragment,
+%     such as $\sem{\bCmd}$, are generated by the augmentation closure of
+%     pomsets that have a special format that only include edges of the
+%     form: \begin{tikzdisplay}[node distance=1em]
+%       \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+%       \eventl{\aEv}{w}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+%       \po{r}{w}
+%     \end{tikzdisplay}
+%     where $\vec{\bLoc}\GETS \vec{\aLoc}$ has no conflicting assignments to the same variable, and where each $\aLoc$ appears in at most one write event. Thus, using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd}$ is completely determined by the Hoare triples satisfied by $\bCmd$.  
+%    
+%     By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $\bCmd$.  Using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd} \subseteq \fsat(\sem{\aCmd})$. 
+% \end{proof}
+\end{corollary}
+
+
+
+\clearpage
 sync free so every read, write or silent action has mode rlx.  No RMW.
 
 
@@ -479,29 +559,6 @@ whereas the right hand side does not.   For Write-Intro-Invalid, the left hand s
 \end{tikzdisplay}
 whereas the right hand side does not.
 
-
-A program fragment is ``linear'' if it does at most one read and at most one write on any location in any execution.  Intuitively, this means that the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  
-
-
-\begin{theorem}\label{seqcompleteness}
-Let $\aCmd$, $\bCmd$ be sequential and synchronization free programs.  Let $\bCmd$ be linear.  Then:
-\begin{align*}
-& (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm}  \\
-\Longrightarrow & \\
-& \readc{\sem{\bCmd}} \subseteq \readc{\sem{\aCmd}} 
-\end{align*}
-\begin{proof}
-The pomsets in the semantics of a linear sequential program fragment, such as $\sem{\bCmd}$, are generated by the augmentation closure of pomsets that have a special format that only include edges of the form: \begin{tikzdisplay}[node distance=1em]
-  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-  \eventl{\aEv}{w}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-  \po{r}{w}
-\end{tikzdisplay}
-where $\vec{\bLoc}\GETS \vec{\aLoc}$ has no conflicting assignments to the same variable, and where each $\aLoc$ appears in at most one write event. Thus, using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd}$ is completely determined by the Hoare triples satisfied by $\bCmd$.  
-
-By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $\bCmd$.  Using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd} \subseteq \fsat(\sem{\aCmd})$. 
-\end{proof}
-\end{theorem}
-Any sequential and synchronization free  program fragment is sequentially equivalent to a ``linear'' program fragment.  
 
 {\bf MOVE TO APPENDIX??.  
 
