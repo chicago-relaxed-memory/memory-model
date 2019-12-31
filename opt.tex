@@ -1,4 +1,3 @@
-\clearpage
 \section{Single-Threaded Optimizations}
 \label{sec:opt}
 
@@ -510,13 +509,12 @@ The left command is half of the \eqref{oota1} example from
 \textsection\ref{sec:logic}.  The right command is dubbed \rfub{}, for
 \emph{Register assignment From an Unexecuted Branch}.
 
-\citeauthor{BoehmOOTA} is troubled because in the context
-$x\GETS y \PAR \hole{}$, these programs have different behaviors.  Yet the
-\oota{} example on the left never writes $1$.  Why should the unexecuted
-branch change that?  As it turns out, both branches of the conditional in
-\rfub{} can execute, since the write to $x$ is independent of the read from
-$y$.  Considering just the two threads above, we have
-$\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
+\citeauthor{BoehmOOTA} observes that in the context $x\GETS y \PAR \hole{}$,
+these programs have different behaviors.  Yet the \oota{} example on the left
+never writes $1$.  Why should the unexecuted branch change that?  As it turns
+out, both branches of the conditional in \rfub{} can execute, since the write
+to $x$ is independent of the read from $y$.  Considering just the two threads
+above, we have $\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
 $\hoare{\TRUE}{\text{\oota}}{x=1}$.  As a result, it is expected that \rfub{}
 may have additional behaviors.  The change in the thread from \oota{} to
 \rfub{} is not a valid refinement under Hoare logic and thus it is not valid
