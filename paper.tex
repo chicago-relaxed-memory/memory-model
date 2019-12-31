@@ -1,3 +1,4 @@
+\RequirePackage{amssymb}  %% bizarre error previous def of Bbbk if after documentclass
 % at most 12 pages, % excluding references. 
 \documentclass[sigplan,10pt,
 review,anonymous,
@@ -99,15 +100,6 @@ review,anonymous,
 % \IEEEoverridecommandlockouts
 
 \usepackage{macros}
-\newcommand{\ignore}[1]{}
-\newcommand{\todo}[1]{{\color{red}\textbf{\{#1\}}}}
-\newcommand{\slt}{\vartriangleleft}
-\newcommand{\sle}{\trianglelefteq}
-\newcommand{\tvalpom}{modal pomset}
-\newcommand{\tsem}[1]{\llbracket#1\rrbracket_{{\bf M}}}
-\newcommand{\tsemsc}[1]{\llbracket#1\rrbracket_{{\bf MSC}}}
-\newcommand{\tsemClosed}[1]{\closed\tsem{#1}}
-\newcommand{\readc}{{\mathsf{read}}}
 
 \begin{document}
 
@@ -271,19 +263,19 @@ review,anonymous,
 %   \email{jriely@cs.depaul.edu}}
 % }
 
-\input{intro}
-\input{model}
-\input{variants}
-\input{logic}
-\input{short}
+% \input{intro}
+% \input{model}
+% \input{variants}
+% \input{logic}
+% \input{short}
 \input{opt}
-\input{outro}
+%\input{outro}
 \begin{small}
 \bibliography{bib}
 \end{small}
 \clearpage
 \appendix
-\input{semicolon}
+%\input{semicolon}
 %\input{appendix}
 
 \end{document}

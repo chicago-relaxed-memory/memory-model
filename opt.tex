@@ -1,23 +1,73 @@
+\clearpage
 \section{Single-Threaded Optimizations}
 \label{sec:opt}
 
 We argue that our model is fully flexible with respect to single-threaded
-optimizations by showing that it validates {\em all} valid transformations of
-a sequential program without synchronization into a ``linear'' sequential
-program.  To establish this, we develop a pomset semantics for pairs of
-formulae $\semRW{\aForm}{\bForm}$ and show a relation between $\sem{\aCmd}$
-and $\semRW{\aForm}{\bForm}$ for valid Hoare triples
-$\hoare{\aForm}{\aCmd}{\bForm}$.  We end this section with a discussion of
-specific optimizations, some of which include synchronization.
+optimizations of synchronization-free programs, as long as the
+optimizations do not introduce new writes or ``relevant'' reads.  To do so, we
+first isolate a ``linear'' fragment of our language that ensure these
+restrictions.  We then show the soundness of {\em all} transformations of
+synchronization-free sequential programs into this fragment.  We use Hoare
+logic to establish the result, developing a pomset semantics for pairs of
+formulae $\semRW{\aForm}{\bForm}$ and showing a relation between
+$\sem{\aCmd}$ and $\semRW{\aForm}{\bForm}$ for valid Hoare triples
+$\hoare{\aForm}{\aCmd}{\bForm}$.
+%
+We end this section with a discussion of specific optimizations, some of
+which include synchronization.
 
-\paragraph{Pomsets for Precondition/Postcondition Pairs}
+%\paragraph{Pomsets for Precondition/Postcondition Pairs.}
 
-Let
-\begin{math}
-  \aPS\in\semRW{\aForm}{\bForm}
-\end{math}
-when
+\begin{definition}
+  Let $\aPS\in\semRW{\aForm}{\bForm}$
+  %We say that $\aPS$ \emph{satisfies} precondition $\aForm$ and postcondition $\bForm$ (notation $\aPS\in\semRW{\aForm}{\bForm}$)
+  when it possible to satisfy:
 
+  Let $\aLocs$ be the set of locations such that $\aLoc\in\aLocs$ exactly
+  when $\aForm$ depends on $\aLoc$.  For each $\aLoc\in\aLocs$, choose
+  $\bEv_\aLoc\in\Event$ that reads $\aLoc$.
+  Let $\Event_\aLocs$ be the set of $\bEv_\aLoc$s.
+  Let $\aSub$ be the substitution generated % from $\aLocs$
+  as follows:
+  % For $\aLoc\in\aLocs$, 
+  $\aLoc\aSub = \aVal$ exactly when $\bEv_\aLoc$ reads $\aVal$ from $\aLoc$.
+
+  Require that $\aForm\aSub$ be satisfiable.
+
+  Let $\bLocs$ be the set of locations such that $\bLoc\in\bLocs$ exactly
+  when $\bForm$ depends on $\bLoc$.  For each $\bLoc\in\bLocs$, choose
+  $\aEv_\bLoc\in\Event$ that writes $\bLoc$.
+  Let $\Event_\bLocs$ be the set of $\bEv_\bLoc$s.
+  Let $\bSub$ be the substitution generated % from $\bLocs$
+  as follows:
+  % For $\bLoc\in\bLocs$, 
+  $\bLoc\bSub = \aVal$ exactly when $\aEv_\bLoc$ writes $\aVal$ to $\bLoc$.
+
+  Require that $\bForm\bSub$ be satisfiable.
+
+  Require that if $\cEv\le\bEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\Event_\aLocs$.
+
+  Require that if $\bEv_\bLoc\le\cEv$ and $\cEv$ is a write, then $\cEv\in\Event_\bLocs$.
+\end{definition}
+
+In Hoare logic, precondition strengthening validates read introduction in
+this interpretation.  In our semantics, reads have no side effects.  Thus, it
+should be sound to introduce irrelevant reads.  Yet,
+$\sem{r\GETS x\SEMI \aCmd}\neq \sem{\aCmd}$, even when $r$ does not appear in
+$\aCmd$.  To make such equations hold, we define $\readc(\aPSS)$ to saturate
+$\aPSS$ with reads.
+
+Let $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there are
+$\aPS\in\aPSS$ and $D$ such that $\Event'= \Event'\uplus D$,
+${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
+$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
+$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+
+\begin{theorem}
+  Let $\aCmd$ be synchronization-free and sequential.  Then
+  $\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
+  $\notdisjoint{\readsem{\aCmd}}{\semRW{\aForm}{\bForm}}$.
+\end{theorem}
 
 sync free so every read, write or silent action has mode rlx.  No RMW.
 
@@ -149,18 +199,6 @@ We follow \citeauthor{gordonHoare}'s
 [\citeyear{gordonHoare}] presentation of Hoare logic.
 
 \paragraph*{Defining Valid Transformations.}
-In Hoare logic, precondition strengthening validates
-
-In our semantics, reads have no side effects.  Thus, it should be sound to
-introduce irrelevant reads.  Yet, $\sem{r\GETS x\SEMI \aCmd}\neq
-\sem{\aCmd}$, even when $r$ does not appear in $\aCmd$.  To make
-such equations hold, we define $\readc(\aPSS)$ to saturate $\aPSS$ with
-reads.
-
-Let $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there are
-$\aPS\in\aPSS$ and $D$ such that $\Event'= \Event'\uplus D$,
-${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
-$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
 % and to events with false preconditions.
 %Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
