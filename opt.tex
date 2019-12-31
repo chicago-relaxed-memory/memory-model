@@ -505,10 +505,9 @@ As discussed in \textsection\ref{sec:model}, thread inlining is also invalid.
   \not\supseteq
   \sem{r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI \SEMI x\GETS r}
 \end{gather*}
-The left command is half of the \eqref{oota1} example from
-\textsection\ref{sec:logic}.  The right command is dubbed \rfub{}, for
+The left command is half of the \oota{} example from
+\textsection\ref{sec:logic} \eqref{oota1}.  The right command is dubbed \rfub{}, for
 \emph{Register assignment From an Unexecuted Branch}.
-
 \citeauthor{BoehmOOTA} observes that in the context $x\GETS y \PAR \hole{}$,
 these programs have different behaviors.  Yet the \oota{} example on the left
 never writes $1$.  Why should the unexecuted branch change that?  As it turns
