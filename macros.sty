@@ -581,6 +581,10 @@
 \NewDocumentCommand \ob {O{} m O{} m} {\draw[ob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ob}$}  (#4);}
 \newcommand{\rob}{\ensuremath{\mathrel{\textcolor{blue}{\textsf{ob}}}}}%
 \newcommand{\xob}{\xarrowtikz{ob}{ob}}%
+\tikzstyle{obi} = [-latex,color=blue,thick]
+\NewDocumentCommand \obi {O{} m O{} m} {\draw[obi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ob'}$}  (#4);}
+\newcommand{\robi}{\ensuremath{\mathrel{\textcolor{blue}{\textsf{ob'}}}}}%
+\newcommand{\xobi}{\xarrowtikz{obi}{ob'}}%
 
 % \tikzstyle{ird} = [-latex,thick,color=green!50!black,]
 % \NewDocumentCommand \ird {O{} m O{} m} {\draw[ird,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ird}$}  (#4);}
@@ -614,6 +618,14 @@
 \NewDocumentCommand \bob {O{} m O{} m} {\draw[bob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{bob}$}  (#4);}
 \newcommand{\rbob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{bob}}}}}%
 \newcommand{\xbob}{\xarrowtikz{bob}{bob}}%
+\tikzstyle{lob} = [-latex,thick,color=cyan!90!black,]
+\NewDocumentCommand \lob {O{} m O{} m} {\draw[lob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{lob}$}  (#4);}
+\newcommand{\rlob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{lob}}}}}%
+\newcommand{\xlob}{\xarrowtikz{lob}{lob}}%
+\tikzstyle{dobi} = [-latex,thick,color=cyan!90!black,]
+\NewDocumentCommand \dobi {O{} m O{} m} {\draw[dobi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{dob'}$}  (#4);}
+\newcommand{\rdobi}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{dob'}}}}}%
+\newcommand{\xdobi}{\xarrowtikz{dobi}{dob'}}%
 \tikzstyle{aob} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \aob {O{} m O{} m} {\draw[aob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{aob}$}  (#4);}
 \newcommand{\raob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\textsf{aob}}}}}%

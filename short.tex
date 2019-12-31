@@ -6,11 +6,23 @@ only at top level and there are no location declarations.  Using the
 translation strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}, we show
 that any \emph{consistent} \armeight{} execution graph for this sublanguage
 can be considered a top-level execution of our semantics.  Consistency is
-defined by \citet{DBLP:journals/pacmpl/PulteFDFSS18}.
-The key step is constructing the order for the derived pomset candidate: We
+defined by \citet{DBLP:journals/pacmpl/PulteFDFSS18}.  The key step is
+constructing the order for the derived pomset candidate.  We would like to
 take ${\gtN} = ({\rob} \cup {\reco})^*$, where $\rob$ is the \armeight{}
 acyclicity relation, and ${\reco}$ is the \armeight{} extended coherence
 order, as discussed after Definition~\ref{def:rf}.
+
+The definition is complicated by \armeight's \emph{internal reads}, manifest
+in ${\rrfi}$, which relates reads to writes that are fulfilled by the same
+thread.  \armeight{} drops $\rob$-order \emph{into} an internal read.  As
+discussed in \textsection\ref{sec:model}, however, our semantics drops pomset
+order \emph{out of} an internal read.  To accommodate this, we drop these
+dependencies from the \armeight{} \emph{dependency order before} ($\rdob$)
+relation.  Let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
+$\bEv\notin\fcodom(\rrfi)$.  Let $\robi$ be defined as for $\rob$, simply
+replacing $\rdob$ with $\rdobi$.
+
+For pomset order, we then take ${\gtN}=({\reco}\cup{\rrfi}\cup{\robi})^*$.
 
 We prove the following theorem in \textsection\ref{sec:arm:proof}.
 \begin{theorem}
