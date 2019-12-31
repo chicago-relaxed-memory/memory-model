@@ -188,8 +188,11 @@ $\hoare{\aForm}{\aCmd'}{\bForm}$, for every $\aForm$ and $\bForm$.
 
 \begin{corollary}\label{seqcompleteness}
   Let $\aCmd$ and $\aCmd'$ be synchronization-free and sequential.  Further,
-  let $\aCmd'$ be linear.  Then $\aCmd$ and $\aCmd'$ satisfy the same Hoare
-  triples if and only if $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
+  let $\aCmd'$ be linear.
+  % Then $\aCmd$ and $\aCmd'$ satisfy the same Hoare
+  % triples if and only if $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
+  If $\aCmd$ and $\aCmd'$ satisfy the same Hoare
+  triples then $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
   % \begin{align*}
   %   & (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm}  \\
   %   \Longrightarrow & \\
