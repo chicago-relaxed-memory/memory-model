@@ -47,7 +47,7 @@ which include synchronization.
   
   Require that if $\cEv\le\aEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\bEvs_\aLocs$.
 
-  Require that if $\aEv_\bLoc\le\cEv$ and $\cEv$ is a write, then $\cEv\in\aEvs_\bLocs$.
+  Require that if $\aEv_\bLoc\le\cEv$ and $\cEv$ is a write to $\bLocs$, then $\cEv\in\aEvs_\bLocs$.
 \end{definition}
 Pictorially, we have:
 \begin{tikzdisplay}[node distance=.1ex and 2em]
@@ -112,8 +112,8 @@ language.
 
 A command $\aCmd$ is \emph{linear} for every $\aPS\in\sem{\aCmd}$, there is
 at most one read and at most one write on any location.  Intuitively, this
-means that the context is unable to interfere with the atomic execution of
-the command; dually, neither can the atomic execution of the command
+means that the context around $\aCmd$ is unable to interfere with the atomic
+execution of $\aCmd$; dually, neither can the atomic execution of $\aCmd$
 interfere with the context.  From an arbitrary command, it is a
 straightforward exercise to construct a linear command that is sequentially
 equivalent.
