@@ -10,9 +10,13 @@ and $\semRW{\aForm}{\bForm}$ for valid Hoare triples
 $\hoare{\aForm}{\aCmd}{\bForm}$.  We end this section with a discussion of
 specific optimizations, some of which include synchronization.
 
+\paragraph{Pomsets for Precondition/Postcondition Pairs}
+
+Let
 \begin{math}
-  \semRW{\aForm}{\bForm}
+  \aPS\in\semRW{\aForm}{\bForm}
 \end{math}
+when
 
 
 sync free so every read, write or silent action has mode rlx.  No RMW.
