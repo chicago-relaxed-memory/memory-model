@@ -73,7 +73,7 @@ For example, in $\hoare{\TRUE}{x\GETS1\SEMI x\GETS2}{x{=}2}$, the postcondition
 does not hold for the prefix $x\GETS1$.  As a result, we also define
 $\readc(\aPSS)$ to restrict attention to maximal executions.  A pomset
 $\aPS\in\aPSS$ is \emph{maximal} if there is no $\aPS'\in\aPSS$ such that
-$\aPS\in\PRE(\aPS')$.
+$\aPS$ is a proper prefix of $\aPS'$.
 
 
 Let $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
