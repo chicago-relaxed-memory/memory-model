@@ -101,7 +101,7 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
   disjunctive pomsets.
 \end{proof}
 \end{theorem}
-As a corollary, we have
+As a corollary, we have that if $\bigwedge_{i\in I}\aForm_i$:
 \begin{displaymath}
   \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
   \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
@@ -124,8 +124,8 @@ $\hoare{\aForm}{\bCmd}{\bForm}$, for every $\aForm$ and $\bForm$.
 
 \begin{corollary}\label{seqcompleteness}
   Let $\aCmd$ and $\bCmd$ be synchronization-free and sequential.  Further,
-  let $\bCmd$ be linear.  Then $\aCmd$ and $\bCmd$ satisfy the same Hoare
-  triples exactly when $\readsem{\aCmd} \supseteq \readsem{\bCmd}$.
+  let $\bCmd$ be linear.  If $\aCmd$ and $\bCmd$ satisfy the same Hoare
+  triples then $\readsem{\aCmd} \supseteq \readsem{\bCmd}$.
   % \begin{align*}
   %   & (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm}  \\
   %   \Longrightarrow & \\
