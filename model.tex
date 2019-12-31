@@ -1770,11 +1770,13 @@ relaxed write elimination:
   Let $(\relfilt[\modeRLX]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
   $\aPS'\in\aPSS'$
   when %$\Event$ contains a write to $\aLoc$ and
+  there is some $\cEv'\in\Event'$ that writes $\aLoc$ and
   for every release $\aEv'\in\Event'$, %that does not write $\aLoc$,
   there is some $\bEv'\in\Event'$ 
   such that $\bEv' \le\aEv'$ and $\bEv'$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLX$, let
-
-  Let $(\relfilt[\modeRA]{\aLoc} \aPSS)=(\relfilt[\modeSC]{\aLoc} \aPSS)=\emptyset$.
+  %
+  %Let $(\relfilt[\modeRA]{\aLoc} \aPSS)=(\relfilt[\modeSC]{\aLoc} \aPSS)=\emptyset$.
+  Let $(\relfilt[\amode]{\aLoc} \aPSS)=\emptyset$ when $\amode\neq\modeRLX$.
   % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}
     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =

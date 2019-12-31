@@ -7,16 +7,16 @@ optimizations of synchronization-free programs, as long as the
 optimizations do not introduce new writes or ``relevant'' reads.  To do so, we
 first isolate a ``linear'' fragment of our language that ensure these
 restrictions.  We then show the soundness of {\em all} transformations of
-synchronization-free sequential programs into this fragment.  We use Hoare
-logic to establish the result, developing a pomset semantics for pairs of
-formulae $\semRW{\aForm}{\bForm}$ and showing a relation between
-$\sem{\aCmd}$ and $\semRW{\aForm}{\bForm}$ for valid Hoare triples
-$\hoare{\aForm}{\aCmd}{\bForm}$.
+synchronization-free sequential programs into this fragment.  
 %
 We end this section with a discussion of specific optimizations, some of
-which include synchronization.
+which relax the linearity assumption and include synchronization.
 
-%\paragraph{Pomsets for Precondition/Postcondition Pairs.}
+\paragraph{Pomsets for Hoare Logic.}
+We use Hoare logic to establish the soundness of transformations, developing
+a pomset semantics for pairs of formulae $\semRW{\aForm}{\bForm}$ and showing
+a relation between $\sem{\aCmd}$ and $\semRW{\aForm}{\bForm}$ for valid Hoare
+triples $\hoare{\aForm}{\aCmd}{\bForm}$.
 
 \begin{definition}
   Let $\aPS\in\semRW{\aForm\land\cForm}{\bForm}$
@@ -96,20 +96,18 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
   The remaining cases that use the rules for deducing Hoare triples by
   structural induction on the command follow directly from the semantics.
-  The only subtleties are about the write rule: The semantics of write
-  prefixing performs an explicit $\parallel$-closure to restore closure under
-  disjunctive pomsets.
+  The only subtleties are in the write rule, which uses $\parallel$ to ensure
+  disjunction closure.
 \end{proof}
 \end{theorem}
-As a corollary, we have that if $\bigwedge_{i\in I}\aForm_i$ is satisfiable:
-\begin{displaymath}
-  \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
-  \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
-\end{displaymath}
-
-We now describe sound transformations into the linear fragment of the
-language.
-
+\begin{corollary}
+  If $\bigwedge_{i\in I}\aForm_i$ is satisfiable:
+  \begin{displaymath}
+    \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
+    \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
+  \end{displaymath}
+\end{corollary}
+\paragraph{Linearity.}
 A command $\aCmd$ is \emph{linear} for every $\aPS\in\sem{\aCmd}$, there is
 at most one read and at most one write on any location.  Intuitively, this
 means that the context around $\aCmd$ is unable to interfere with the atomic
@@ -146,9 +144,62 @@ $\hoare{\aForm}{\bCmd}{\bForm}$, for every $\aForm$ and $\bForm$.
 % \end{proof}
 \end{corollary}
 
+\paragraph{Sound Transformation.}
+
+\begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
+  Let $\bCtxt$ be a context
+  % \footnote{%
+  %   The results of this section hold for contexts of the example language
+  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+  %   % \begin{math}
+  %   %   \begin{array}[t]{rcl}
+  %   %     \aCtxt,\,\bCtxt
+  %   %     &\BNFDEF& \hole{}
+  %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
+  %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
+  %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
+  %   %     \\[-.5ex]
+  %   %     &\BNFSEP&\aCtxt \PAR \bCmd
+  %   %     \BNFSEP \aCmd \PAR \bCtxt
+  %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
+  %   %     \\[-.5ex]
+  %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+  %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+  %   %   \end{array}
+  %   % \end{math}
+  %   The results of this section hold for contexts of the example language
+  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+  %   The results also hold for the more general contexts of
+  %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
+  %   \begin{displaymath}
+  %     \begin{array}[t]{rcl}
+  %       \aCtxt,\,\bCtxt
+  %       &\BNFDEF& \hole{}
+  %       \BNFSEP \aCtxt \SEMI \bCmd
+  %       \BNFSEP \aCmd \SEMI \bCtxt
+  %       \BNFSEP \aCtxt \PAR \bCmd
+  %       \BNFSEP \aCmd \PAR \bCtxt
+  %       \BNFSEP 
+  %       \\[-.5ex]
+  %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
+  %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+  %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+  %     \end{array}
+  %   \end{displaymath}}
+and $\readc\sem{\aCmd} \subseteq \readc\sem{\aCmd'}$:
+\begin{displaymath}
+  \readc\sem{\bCtxt\hole{\aCmd}} \subseteq \readc\sem{\bCtxt\hole{\aCmd'}}
+\end{displaymath}
+\end{lemma}
+This compositionality principle justifies the following definition of valid
+program transformations.
+\begin{definition}
+  A program fragment $\aCmd$ can be validly transformed into $\aCmd'$ if
+  $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$.
+\end{definition}
 
 
-\clearpage
+
 sync free so every read, write or silent action has mode rlx.  No RMW.
 
 
@@ -278,162 +329,6 @@ In this theorem, we consider Hoare triples over formulas as discussed in
 We follow \citeauthor{gordonHoare}'s
 [\citeyear{gordonHoare}] presentation of Hoare logic.
 
-\paragraph*{Defining Valid Transformations.}
-
-% and to events with false preconditions.
-%Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-%there is $\aPS\in\aPSS$ such that:
-%$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}
-% \textand \labelingAct(\aEv)\;\text{is external}\}$,
-%${\le'} = {\le}\restrict{\Event'}$,
-%${\gtN'} = {\gtN}\restrict{\Event'}$.
-%and ${\labeling'} = {\labeling}\restrict{\Event'}$.
-
-
-
-% Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
-
-\begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
-  Let $\bCtxt$ be a context
-  % \footnote{%
-  %   The results of this section hold for contexts of the example language
-  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-  %   % \begin{math}
-  %   %   \begin{array}[t]{rcl}
-  %   %     \aCtxt,\,\bCtxt
-  %   %     &\BNFDEF& \hole{}
-  %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
-  %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
-  %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
-  %   %     \\[-.5ex]
-  %   %     &\BNFSEP&\aCtxt \PAR \bCmd
-  %   %     \BNFSEP \aCmd \PAR \bCtxt
-  %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
-  %   %     \\[-.5ex]
-  %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-  %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-  %   %   \end{array}
-  %   % \end{math}
-  %   The results of this section hold for contexts of the example language
-  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-  %   The results also hold for the more general contexts of
-  %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
-  %   \begin{displaymath}
-  %     \begin{array}[t]{rcl}
-  %       \aCtxt,\,\bCtxt
-  %       &\BNFDEF& \hole{}
-  %       \BNFSEP \aCtxt \SEMI \bCmd
-  %       \BNFSEP \aCmd \SEMI \bCtxt
-  %       \BNFSEP \aCtxt \PAR \bCmd
-  %       \BNFSEP \aCmd \PAR \bCtxt
-  %       \BNFSEP 
-  %       \\[-.5ex]
-  %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
-  %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-  %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-  %     \end{array}
-  %   \end{displaymath}}
-and $\readc\sem{\aCmd} \subseteq \readc\sem{\aCmd'}$:
-\begin{displaymath}
-  \readc\sem{\bCtxt\hole{\aCmd}} \subseteq \readc\sem{\bCtxt\hole{\aCmd'}}
-\end{displaymath}
-\end{lemma}
-% \begin{proof}
-%The proof follows from the following observations.
-%\begin{itemize}
-%\item $\readc, \sem{}$ are monotone functions (for the inclusion order on 
-%sets of pomsets). 
-%\item The definitions of the combinators in section~\ref{sec:semantics} 
-%do not enforce any order relationships on the internal (read and write) 
-%events, permitting them to be deleted freely.
-%\end{itemize}
-%\end{proof}
-%\end{lemma}
-This compositionality principle justifies the following definition of valid
-program transformations.
-\begin{definition}
-  A program fragment $\aCmd$ can be validly transformed into $\aCmd'$ if
-  $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$.
-\end{definition}
-
-
-\paragraph{Relationship to Hoare Logic.}
-
-
-% In the hypothesis of this theorem, we consider valid state assignments
-% $\vec{\bLoc} =\vec{\aVal}$, to rule out conflicting assignments to the same
-% location.
-\begin{theorem}\label{hoareGen}
-  Let $\aCmd$ be a command without either synchronization or parallelism.
-  For all $i=1, \ldots m$, let
-  $\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^i_n$ be a valid state.
-
-  The following Hoare triples are valid for all $i=1, \ldots m$:
-\begin{displaymath}
-  \hoare{\aForm_i\land\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^n}{\aCmd}{\aLoc_i=\bVal_i}  
-\end{displaymath}
-if and only if, $\readc\sem{\aCmd}$ contains a pomset  that includes for all $i=1, \ldots, m$
-\begin{tikzdisplay}[node distance=1em]
-  \event{r}{\smash{\vec{\bForm_i}}\mid\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}}{}
-  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc_i}{\bVal_i}}{below right=of r}
-  \event{w1}{\vec{\cForm}\mid\DW{\aLoc_i}{\vec{\dVal}}}{above right=of w2}
-  \po{r}{w2}
-  \wk{w1}{w2}
-\end{tikzdisplay}
-where $\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}$ are all the events that precede
-$\aEv$, $\DW{\aLoc_i}{\bVal_i}$ is the maximum write on $\aLoc_i$, and
-$\DW{\aLoc_i}{\vec{\dVal_i}}$ are all the other writes on $\aLoc_i$, marked
-here as internal writes.
-\begin{proof}
-  The proof proceeds by induction on the number of steps of derivation of the
-  proof of the Hoare triple.
-
-  We first consider the structural rules.  Precondition strengthening follows
-  from augmentation closure.  The proof that the structural rule of
-  disjunction:
-  \begin{displaymath}
-    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
-  \end{displaymath}
-  holds  follows from closure of the semantics under disjuncts. The proof for the structural rule of conjunction:
-  \begin{displaymath}
-    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
-  \end{displaymath}
-  follows from the fact that pomsets have only concurrency and no conflict.  
-
-  The remaining cases that use the rules for deducing Hoare triples by
-  structural induction on the command follow straightforwardly from the
-  semantics.  The only subtleties are about the write rule.  First, the write
-  prefixing rule permits all non-maximum writes to be made internal, so as to
-  fit the format of the statement of the theorem.  Secondly, the semantics of
-  write prefixing performs an explicit closure to restore closure under
-  disjunctive pomsets.
-\end{proof}
-\end{theorem}
-
-
-
-% \begin{theorem}
-% Let $\aCmd$ be a command without either synchronization or parallelism, such that
-% $\sem{\aCmd}$ contains an execution that includes
-% \begin{tikzdisplay}[node distance=1em]
-%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
-%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-%   \wk{w1}{w2}
-%   \po{r}{w2}
-% \end{tikzdisplay}
-% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
-% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
-% Then the following Hoare triple is valid:
-% \begin{displaymath}
-%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
-% \end{displaymath}
-% \begin{proof}
-% The proof proceeds by structural induction on the command. 
-% \end{proof}
-% \end{theorem}
-
-
 \paragraph*{Examples.}
 We illustrate with a few examples.
 $\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds, as seen by the execution:
@@ -560,29 +455,29 @@ whereas the right hand side does not.   For Write-Intro-Invalid, the left hand s
 whereas the right hand side does not.
 
 
-{\bf MOVE TO APPENDIX??.  
+% {\bf MOVE TO APPENDIX??.  
 
-Given $\aCmd$, define 
-$\linV{\aCmd}$ as follows.
-\begin{definition}
-With each shared variable $\aLoc$, we associate a thread local variable $\aLocLoc$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
+% Given $\aCmd$, define 
+% $\linV{\aCmd}$ as follows.
+% \begin{definition}
+% With each shared variable $\aLoc$, we associate a thread local variable $\aLocLoc$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
 
-\begin{align*}
-\linV{\aCmd}= & \VAR\vec{\aLocLoc} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
-& \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
-& \aCmd' \SEMI   \\
-& \overline{\IF \aChanged\  \aLoc= \aLocLoc}
-\end{align*}
-where:
-$\aCmd'$ is derived from $\aCmd$ by replacing:
-\begin{itemize}
-\item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF {(\aChanged \lor\ \aRead)} \THEN\  \aReg= \aLocLoc \ELSE\  \aReg= \aLoc \SEMI \FI $,
-\item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocLoc = \aExp$
-\end{itemize}
-\end{definition}
-From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce for any $\aForm, \bForm$: 
-\[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
-}
+% \begin{align*}
+% \linV{\aCmd}= & \VAR\vec{\aLocLoc} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
+% & \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
+% & \aCmd' \SEMI   \\
+% & \overline{\IF \aChanged\  \aLoc= \aLocLoc}
+% \end{align*}
+% where:
+% $\aCmd'$ is derived from $\aCmd$ by replacing:
+% \begin{itemize}
+% \item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF {(\aChanged \lor\ \aRead)} \THEN\  \aReg= \aLocLoc \ELSE\  \aReg= \aLoc \SEMI \FI $,
+% \item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocLoc = \aExp$
+% \end{itemize}
+% \end{definition}
+% From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce for any $\aForm, \bForm$: 
+% \[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
+% }
 
 \subsection{Validating Single-Threaded Optimizations}
 We follow the terminology and presentation of section~7.1 of
