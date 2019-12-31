@@ -348,18 +348,18 @@ By disjunction closure, the semantics validates case analysis:
   \sem{\aCmd}
 \end{gather*}
 Appealing directly to the semantics, we can establish general properties for
-dead code elimination \eqref{DC}, redundant load \eqref{RL2}, store
-forwarding \eqref{SF2}, and roach-motel reorderings:
+dead code elimination \eqref{DC}, redundant load \eqref{RLp}, store
+forwarding \eqref{SFp}, and roach-motel reorderings:
 \begin{align*}
   \taglabel{DC}
   \sem{\IF{\FALSE}\THEN\aCmd\ELSE\bCmd\FI} &=
   \sem{\bCmd}
   \\
-  \taglabel{RL2}
+  \taglabelp{RL}
   \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
   \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
   \\
-  \taglabel{SF2} 
+  \taglabelp{SF} 
   \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
   \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
   \\
