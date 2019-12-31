@@ -19,6 +19,7 @@ a relation between $\sem{\aCmd}$ and $\semRW{\aForm}{\bForm}$ for valid Hoare
 triples $\hoare{\aForm}{\aCmd}{\bForm}$.
 
 \begin{definition}
+  \label{def:prepost}
   Let $\aPS\in\semRW{\aForm\land\cForm}{\bForm}$
   %We say that $\aPS$ \emph{satisfies} precondition $\aForm$ and postcondition $\bForm$ (notation $\aPS\in\semRW{\aForm}{\bForm}$)
   when it possible to satisfy the following:
@@ -75,6 +76,7 @@ $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
 $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
 \begin{theorem}
+  \label{thm:hoare}
   Let $\aCmd$ be synchronization-free and sequential.  Then
   $\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
   $\notdisjoint{\semRW{\aForm}{\bForm}}{\readsem{\aCmd}}$.
@@ -100,6 +102,61 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
   disjunction closure.
 \end{proof}
 \end{theorem}
+To illustrate multiple writes consider:
+\begin{gather*}
+  \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{w1}{\DW{x}{1}}{}
+      \event{w2}{\DW{x}{2}}{right=of w1}
+      \wk{w1}{w2}
+    \end{tikzinline}}
+\end{gather*}
+Preconditions can be placed in $\aForm$ or $\cForm$ in
+Definition~\ref{def:prepost}, resulting in different pomsets:
+\begin{gather*}
+  \hoare{x=1}{y \GETS x}{y=1}
+  \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{r}{\DR{x}{1}}{}
+        \event{w}{\DW{y}{1}}{right=of r}
+        \po{r}{w}
+      \end{tikzinline}}
+    \qquad\qquad
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{r}{\DR{x}{1}}{}
+        \event{w}{x=1 \mid \DW{y}{1}}{right=1ex of r}
+      \end{tikzinline}}
+\end{gather*}
+Control dependencies are calculated correctly:
+\begin{gather*}
+  \hoare{\TRUE}{\IF{x} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} 
+  \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{r}{\DR{x}{1}}{}
+        \event{w}{\DW{y}{1}}{right=1ex of r}
+      \end{tikzinline}}
+\end{gather*}
+% In contrast, in a semantics that forbids load buffering, where the best that one can prove is
+% $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
+% $.
+
+For any compatible set of preconditions, we can always find a single pomset
+that includes all of the required writes.
+\begin{gather*}
+  \hoare{x_1=1}{y_1 \GETS x_1}{y_1=1}
+  \qquad
+  \hoare{x_2=1}{y_2 \GETS x_2}{y_2=1}
+  \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{rx}{\DR{x_1}{1}}{}
+        \event{wy}{\DW{y_1}{1}}{right=of rx}
+        \event{ru}{\DR{x_2}{1}}{right=1ex of wy}
+        \event{wv}{\DW{y_2}{1}}{right=of ru}
+        \rf{rx}{wy}
+        \rf{ru}{wv}
+      \end{tikzinline}}
+\end{gather*}
 \begin{corollary}
   If $\bigwedge_{i\in I}\aForm_i$ is satisfiable:
   \begin{displaymath}
@@ -107,6 +164,7 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
     \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
   \end{displaymath}
 \end{corollary}
+
 \paragraph{Linearity.}
 A command $\aCmd$ is \emph{linear} for every $\aPS\in\sem{\aCmd}$, there is
 at most one read and at most one write on any location.  Intuitively, this
@@ -116,14 +174,14 @@ interfere with the context.  From an arbitrary command, it is a
 straightforward exercise to construct a linear command that is sequentially
 equivalent.
 
-We say that $\aCmd$ and $\bCmd$ \emph{satisfy the same Hoare triples} when
+We say that $\aCmd$ and $\aCmd'$ \emph{satisfy the same Hoare triples} when
 $\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
-$\hoare{\aForm}{\bCmd}{\bForm}$, for every $\aForm$ and $\bForm$.
+$\hoare{\aForm}{\aCmd'}{\bForm}$, for every $\aForm$ and $\bForm$.
 
 \begin{corollary}\label{seqcompleteness}
-  Let $\aCmd$ and $\bCmd$ be synchronization-free and sequential.  Further,
-  let $\bCmd$ be linear.  If $\aCmd$ and $\bCmd$ satisfy the same Hoare
-  triples then $\readsem{\aCmd} \supseteq \readsem{\bCmd}$.
+  Let $\aCmd$ and $\aCmd'$ be synchronization-free and sequential.  Further,
+  let $\aCmd'$ be linear.  If $\aCmd$ and $\aCmd'$ satisfy the same Hoare
+  triples then $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
   % \begin{align*}
   %   & (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm}  \\
   %   \Longrightarrow & \\
@@ -144,7 +202,45 @@ $\hoare{\aForm}{\bCmd}{\bForm}$, for every $\aForm$ and $\bForm$.
 % \end{proof}
 \end{corollary}
 
-\paragraph{Sound Transformation.}
+\paragraph{Valid Transformations.}
+\ When $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$, we say that $\aCmd'$ is
+a \emph{valid transformation} of $\aCmd$.
+
+To enable reasoning about program fragments, transformation validity must be
+preserved by \emph{contexts}.  In \textsection\ref{sec:model}, we defined the
+semantics by prefixing one action at a time.  This helps to make the
+semantics understandable, but it also creates impoverished contexts.
+
+To allow for richer contexts, we appeal to the alternate presentation of the
+language given in \textsection\ref{sec:semicolon}.  We refactor the syntax
+of commands and define contexts:
+\begin{align*}
+  \aCmd,\,\bCmd
+  \BNFDEF& \SKIP
+  \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
+  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
+  % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
+  % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
+  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
+  \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
+  \\[-.5ex]
+  \BNFSEP&\aCmd \PAR \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+  \\
+  \aCtxt,\,\bCtxt
+  \BNFDEF& \hole{}
+  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
+  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
+  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
+  \\[-.5ex]
+  \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+\end{align*}
+
 
 \begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
   Let $\bCtxt$ be a context
@@ -186,368 +282,89 @@ $\hoare{\aForm}{\bCmd}{\bForm}$, for every $\aForm$ and $\bForm$.
   %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
   %     \end{array}
   %   \end{displaymath}}
-and $\readc\sem{\aCmd} \subseteq \readc\sem{\aCmd'}$:
+and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
 \begin{displaymath}
-  \readc\sem{\bCtxt\hole{\aCmd}} \subseteq \readc\sem{\bCtxt\hole{\aCmd'}}
+  \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
 \end{displaymath}
 \end{lemma}
-This compositionality principle justifies the following definition of valid
-program transformations.
-\begin{definition}
-  A program fragment $\aCmd$ can be validly transformed into $\aCmd'$ if
-  $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$.
-\end{definition}
 
+To discuss valid transformations without getting lost in notation, we present
+them using simple locations, rather than calculated addresses.  The extension
+is simple: For address expressions $\REF{\cExp}$ and $\REF{\dExp}$, replace
+$\aLoc=\bLoc$ by provable equality of $\cExp$ and $\dExp$, and
+$\aLoc\neq\bLoc$ by provable inequality.  Operations on
+sets can be defined similarly.
+%
+Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 
-
-sync free so every read, write or silent action has mode rlx.  No RMW.
-
-
-Use explicit silent actions.
-    To keep the presentation as simple as possible, we include neither address
-calculation nor \RMW{}s.  These extensions are straightforward, but
-notationally cumbersome.
-
-The results of this section hold for contexts of the example language
-given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-The results also hold for the more general contexts of
-\textsection\ref{sec:semicolon}, which includes full sequential composition:
-
-
-We refactor the syntax:
+Theorem \ref{thm:hoare} immediately validates peephole optimizations, such as
+redundant load \eqref{RL}, store forwarding \eqref{SF}, dead store \eqref{DS},
+and independent reorderings:
 \begin{align*}
-  \aCmd,\,\bCmd
-  \BNFDEF& \SKIP
-  \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
-  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
-  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aLoc^{\amode} 
-  \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
-  \\[-.5ex]
-  \BNFSEP&\aCmd \PAR \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc
-  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+  \taglabel{RL}
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc} &\supseteq 
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg}
   \\
-  \aCtxt,\,\bCtxt
-  \BNFDEF& \hole{}
-  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
-  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
-  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
-  \\[-.5ex]
-  \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-\end{align*}
-
-% 's concern arises from the similarity of this program
-% with the \oota\ litmus test that replaces the second thread with
-% Should register state from an unexecuted conditional be able to effect the
-% outcome of an execution \cite{BoehmOOTA}.  We answer ``yes.''
-% %, such as \rfub1: as \rfub (Read From Unexecuted Branch).
-% %\citeauthor{BoehmOOTA}'s \rfub1 example can be written in our language as:
-
-% The program writes $1$ to $x$ in both branches of the conditional.  Further,
-% the writes to $z$ and $x$ in the then-branch of the conditional are
-% independent.  Therefore, it is sensible for a compiler to hoist the write to
-% $x$ out of the conditional.  In our semantics, there is no dependency from
-% the read of $y$ to the write to $x$
-% The execution in question is:
-% \begin{displaymathsmall}
-%   \begin{tikzcenter}[node distance=1em]
-%     \event{a1}{\DR{x}{1}}{}
-%     \event{a2}{\DW{y}{1}}{right=of a1}
-%     \po{a1}{a2}
-%   \end{tikzcenter}
-%   \Bigm\|
-%   (\DR{y}{1})
-%   \prefix
-%   \left(
-%     \begin{tikzcenter}[node distance=.5em]
-%       \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
-%       \event{b2}{\DW{x}{1}}{right=of b1}
-%     \end{tikzcenter}
-%     % \begin{tikzcenter}[node distance=.5em]
-%     %   \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
-%     %   \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{right=of b1}
-%     % \end{tikzcenter}
-%     % \biggm\|
-%     % \begin{tikzcenter}[node distance=1em]
-%     %   \event{c1}{r\EQ1\mid\DW{x}{1}}{}
-%     % \end{tikzcenter}
-%   \right)
-% \end{displaymathsmall}
-% With an internal read of $y$, we have:
-% \begin{displaymathsmall}
-%   \begin{tikzcenter}[node distance=1em]
-%     \event{a1}{\DR{x}{1}}{}
-%     \event{a2}{\DW{y}{1}}{right=of a1}
-%     \po{a1}{a2}
-%   \end{tikzcenter}
-%   \Bigm\|
-%     \begin{tikzcenter}[node distance=1em]
-%       \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
-%       \event{b2}{\DW{x}{1}}{right=of b1}
-%     \end{tikzcenter}
-% \end{displaymathsmall}
-% but the precondition $y\NOTEQ1$ cannot be satisfied locally.
-% With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
-% case, the predicate becomes $1\NOTEQ 1$. 
-% \begin{displaymathsmall}
-%   \begin{tikzcenter}[node distance=1em]
-%     \event{a1}{\DR{x}{1}}{}
-%     \event{a2}{\DW{y}{1}}{right=of a1}
-%     \po{a1}{a2}
-%   \end{tikzcenter}
-%   \Bigm\|  
-%     \begin{tikzcenter}[node distance=1em]
-%       \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
-%       \event{b2}{\DW{x}{1}}{right=of b1}
-%       \event{b0}{\DR{y}{1}}{left=of b1}
-%       \po{b0}{b1}
-%     \end{tikzcenter}
-% \end{displaymathsmall}
-
-
-As discussed after example \eqref{inlining}, our model {\em invalidates}
-thread inlining.
-
-
-In the \textsection\ref{sec:model}, 
-In mapping the Hoare triple $\hoare{\aForm}{\aCmd}{\bForm}$ to our semantics,
-$\bForm$ represents a set of write actions, and $\aForm$ represents their
-preconditions.
-
-There we either had a precondition \emph{or} a read.  Here we extend our view
-of Hoare logic to capture the full semantics of a program, including its read
-actions.  As such, the preconditions correponsd to read events and the write
-actions are the writes that depend on them.
-programs 
-
-In this theorem, we consider Hoare triples over formulas as discussed in
-\textsection\ref{sec:model}.  
-We follow \citeauthor{gordonHoare}'s
-[\citeyear{gordonHoare}] presentation of Hoare logic.
-
-\paragraph*{Examples.}
-We illustrate with a few examples.
-$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds, as seen by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \internal{w1}{\DW{x}{1}}{}
- \event{w2}{\DW{x}{2}}{right=of w1}
-\wk{w1}{w2}
-\end{tikzdisplay}
-
-The two pomsets corresponding to the triple $\hoare{x=1}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1\FI}{y=1}$ illustrate the two ways to satisfy preconditions in the above theorem.
-\begin{displaymathsmall}
-\mbox{Internal: }
-\begin{tikzcenter}
-\event{w}{x=1 \mid \DW{y}{1}}{}
-\end{tikzcenter}
-\qquad \qquad
-\mbox{External: }
-\begin{tikzcenter}
-\event{r}{\DR{x}{1}}{}
-\event{w}{\DW{y}{1}}{right=of r}
-\po{r}{w}
-\end{tikzcenter}
-\end{displaymathsmall}
-
-$\hoare{\TRUE}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} $ holds, as seen by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{w}{\DW{y}{1}}{}
- \event{r}{\DR{x}{v}}{right=of w}
-\end{tikzdisplay}
-In contrast, in a semantics that forbids load buffering, where the best that one can prove is
-$\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
-$.
-
-Let $\aCmd = r \GETS x_1 \SEMI \IF{r=1} \THEN y_1 \GETS 1 \FI \SEMI s \GETS x_2 \SEMI \IF{s=1} \THEN y_2 \GETS 1 \FI$.  Then:
-$\hoare{x_1=1}{\aCmd}{y_1=1}$ and
-$\hoare{x_2=1}{\aCmd}{y_2=1}$
-hold, as seen by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{rx}{\DR{x_1}{1}}{}
- \event{wy}{\DW{y_1}{1}}{right=of rx}
- \event{ru}{\DR{x_2}{1}}{right=of wy}
-\event{wv}{\DW{y_2}{1}}{right=of ru}
- \rf{rx}{wy}
- \rf{ru}{wv}
-\end{tikzdisplay}
-
-
-Let $\aCmd$ be the right thread in \eqref{rfub}.
-\begin{align*}
-  \aCmd = r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
-\end{align*}
-Then, $\hoare{\TRUE}{\aCmd}{x=1} $ and $\hoare{y \neq 1}{\bCmd}{z=1}$.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $1$ to $x$, as seen by the execution:
-\begin{tikzdisplay}[node distance=1em]
- \event{ry}{\DR{y}{1}}{}
- \event{wa}{\DW{z}{1}}{right=of ry}
- \event{wx}{\DW{x}{1}}{right=of wa}
- \rf{ry}{wa}
-\end{tikzdisplay}
-% Consider a fragment from example~\eqref{rfub}.
-% \begin{align*}
-% \bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
-% \end{align*}
-% Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$, as seen by the execution:
-% \begin{tikzdisplay}[node distance=1em]
-%  \event{ry}{\DR{y}{41}}{}
-%  \event{wx}{\DW{x}{42}}{right=of ry}
-%  \event{wa}{\DW{a}{1}}{below=of rx}
-%  \rf{ry}{wa}
-% \end{tikzdisplay}
-Consider the
-following, where all locations are initialized to $0$.  In \textsection\ref{sec:logic} we provide machinery to prove that \oota{} is
-incapable of writing $1$.  The question is whether this should be possible
-for \rfub, which changes \oota{} only to include a \emph{Register assignment
-  From an Unexecuted Branch} \cite{BoehmOOTA}:?  
-\begin{align*}
-  \label{oota}  \tag{\textsc{oota}}
-  y\GETS x
-  \PAR&
-  r\GETS y\SEMI
-  x\GETS r
+  \taglabel{SF}
+  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc} &\supseteq 
+  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp}
   \\
-  \tag{\rfub1}
-  \label{rfub}
-  y\GETS x
-  \PAR&
-  r\GETS y\SEMI
-  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
-\end{align*}
-%and the following \emph{Out Of Thin Air} litmus test:
-The change in the second
-thread from \oota{} to \rfub{} is not a valid refinement under Hoare logic:
-\rfub{} validates the triple $\hoare{\TRUE}{\aCmd}{x=1}$, but \oota{} does
-not.  As a result, it is expected that \rfub{} may have additional behaviors.
-
-
-\paragraph{Nonlinear Programs.}
-
-It is invalid to introduce new reads or writes.  For example, 
-\begin{align*}
-  %\tag{Read-Intro-Invalid}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
-    \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI} &\not\subseteq
-  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
-  \\
-  % \tag{Write-Intro-Invalid}
-  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd} &\not\subseteq
-  \sem{\aLoc \GETS 1 \SEMI \aCmd} 
-\end{align*}
-
-In the first example above, the left hand side contains the pomset:
-\begin{tikzdisplay}[node distance=1em]
-  \event{r1}{\DR{\aLoc}{1}}{}
-  \event{r2}{\DR{\aLoc}{2}}{right= of r1}
-  \event{w}{\DW{\cLoc}{1}} {below=of r1}
-  \po{r1}{w}
-  \po{r2}{w}
-\end{tikzdisplay}
-whereas the right hand side does not.   For Write-Intro-Invalid, the left hand side contains the pomset:
-\begin{tikzdisplay}
-  \event{w1}{\DW{\aLoc}{1}}{}
-  \event{w2}{\DW{\aLoc}{1}}{right= of w1}
-  \po{w1}{w2}
-\end{tikzdisplay}
-whereas the right hand side does not.
-
-
-% {\bf MOVE TO APPENDIX??.  
-
-% Given $\aCmd$, define 
-% $\linV{\aCmd}$ as follows.
-% \begin{definition}
-% With each shared variable $\aLoc$, we associate a thread local variable $\aLocLoc$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
-
-% \begin{align*}
-% \linV{\aCmd}= & \VAR\vec{\aLocLoc} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
-% & \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
-% & \aCmd' \SEMI   \\
-% & \overline{\IF \aChanged\  \aLoc= \aLocLoc}
-% \end{align*}
-% where:
-% $\aCmd'$ is derived from $\aCmd$ by replacing:
-% \begin{itemize}
-% \item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF {(\aChanged \lor\ \aRead)} \THEN\  \aReg= \aLocLoc \ELSE\  \aReg= \aLoc \SEMI \FI $,
-% \item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocLoc = \aExp$
-% \end{itemize}
-% \end{definition}
-% From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce for any $\aForm, \bForm$: 
-% \[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
-% }
-
-\subsection{Validating Single-Threaded Optimizations}
-We follow the terminology and presentation of section~7.1 of
-\citet{Dolan:2018:BDR:3192366.3192421}.  
-
-%\paragraph*{Peephole optimizations. } 
-Certain transformations involving conditionals or adjacent operations on the same location are permissible. 
- 
-%\begin{lemma}
-%Suppose $\aExp=0$ is a tautology and $\cExp=\dExp$ is a tautology.   
-% Then the following hold.
- \begin{align*}
-   \tag{Value expansion}
-  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
-  \sem{\aCmd}  \\
-  \tag{Dead Code} 
-  \sem{\IF{\FALSE}\THEN\aCmd\ELSE\bCmd\FI} &=
-  \sem{\bCmd} \\
-  \tag{Dead Store} 
+  \taglabel{DS}
   \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp} &\supseteq 
-  \sem{\aLoc \GETS \bExp}\\    
-  \tag{Redundant load}
-  \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
-  \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]} \\
-  \tag{Store forwarding} 
-  \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
-  \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}
+  \sem{\aLoc \GETS \bExp}    
+  \\
+  \taglabel{WW}
+  \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp} &%\text{if } \aLoc{\neq}\bLoc
+  \\
+  \taglabel{RR}
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc} &=
+  \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc} &%\text{if } \aLoc{\neq}\bLoc
+  \\
+  \taglabel{RW}
+  \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc} &%\text{if } \aLoc{\neq}\bLoc
 \end{align*}
-% \begin{align*}
-% \tag{Value expansion}
-%  \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
-%  \fsat\sem{\aCmd}  \\
-%  \tag{Dead Code} 
-%  \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &\supseteq 
- % \fsat\sem{\bCmd} \\
- % \tag{Dead Store} 
- % \fsat\sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp 
-%\SEMI \aCmd} &\supseteq 
- % \fsat\sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}\\    
- % \tag{Redundant load}
- % \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}  \SEMI 
-%\aCmd} &\supseteq
- % \sem{\aReg \GETS \REF{\cExp} \SEMI \aCmd[\aReg/\bReg]} \\
- % \tag{Store forwarding} 
- % \sem{\REF{\cExp} \GETS \aExp \SEMI \bReg \GETS \REF{\dExp} \SEMI 
-%\aCmd} &\supseteq \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/
-%\bReg]}
-% \end{align*}
-%\end{lemma}
+The last three equations require that the names on the two sides of the
+semicolon are disjoint.  In \eqref{RW}, for example, we require
+$\disjoint{\free(\aReg \GETS \aLoc)}{\free(\bLoc  \GETS \bExp)}$.
 
-  
-%\paragraph*{Reorderings of independent statements}
-Certain reorderings involving adjacent operations on the distinct locations
-are also permissible. 
-% $\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads from $\aLoc$ in $\aCmd$.  
-%\begin{lemma}%[Reorderings]
-Suppose  $\aCmd,\bCmd$ are synchronization-free and sequential.   Then:
+By induction on the length of the pomsets in $\aCmd$, we can use the
+reorderings to establish, more generally that when $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
+\begin{gather*}
+  \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
+\end{gather*}
+By disjunction closure, the semantics validates case analysis:
+\begin{gather*}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} =
+  \sem{\aCmd}
+\end{gather*}
+Appealing directly to the semantics, we can establish general properties for
+dead code elimination \eqref{DC}, redundant load \eqref{RL2}, store
+forwarding \eqref{SF2}, and roach-motel reorderings:
 \begin{align*}
-\tag{Independent Reordering}
-\sem{\aCmd \SEMI \bCmd} &= \sem{\bCmd \SEMI \aCmd} \\
-& \free(\aCmd) \cap \free(\bCmd) = \emptyset \\
-\tag{Acq}
-    \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
-    \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd} \\
-&\textif \aLoc\notin\free(\aCmd) \textand \bReg\notin\free(\aCmd) \\
-\tag{Rel}
-    \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
-    \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp } \\
-&\textif \aLoc\notin\free(\aCmd) \textand \free(\aExp) \cap \free(\aCmd) = \emptyset 
+  \taglabel{DC}
+  \sem{\IF{\FALSE}\THEN\aCmd\ELSE\bCmd\FI} &=
+  \sem{\bCmd}
+  \\
+  \taglabel{RL2}
+  \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
+  \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
+  \\
+  \taglabel{SF2} 
+  \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
+  \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
+  \\
+  \taglabel{A}
+  \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
+  \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
+  \\
+  \taglabel{R}
+  \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
+  \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
 \end{align*}
+The last two inclusions again require that the names on the two sides of the
+semicolon are disjoint.
 % Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
 %reorderings hold.
 %  \begin{align*}
@@ -619,26 +436,26 @@ Suppose  $\aCmd,\bCmd$ are synchronization-free and sequential.   Then:
 %\end{proof}
 %\end{lemma}
 
-\paragraph*{Compiler optimizations.} Reordering and peephole optimizations
-can be combined to describe common compiler optimizations.  We illustrate
-using common subexpression elimination,
-following~\citet{Dolan:2018:BDR:3192366.3192421}:
-Consider the command 
-\begin{math}
-  (\aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2)
-\end{math}
-where $\aCmd$ is independent of $\aReg$.  Reordering yields
-\begin{math}
-  (\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2),
-\end{math}
-followed by redundant load to yield
-\begin{math}
-  (\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg).
-\end{math}
+% \paragraph*{Compiler optimizations.} Reordering and peephole optimizations
+% can be combined to describe common compiler optimizations.  We illustrate
+% using common subexpression elimination,
+% following~\citet{Dolan:2018:BDR:3192366.3192421}:
+% Consider the command 
+% \begin{math}
+%   (\aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2)
+% \end{math}
+% where $\aCmd$ is independent of $\aReg$.  Reordering yields
+% \begin{math}
+%   (\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2),
+% \end{math}
+% followed by redundant load to yield
+% \begin{math}
+%   (\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg).
+% \end{math}
 
-Similarly, the treatment of loop-invariant code motion, dead-store
-elimination and constant propagation
-from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
+% Similarly, the treatment of loop-invariant code motion, dead-store
+% elimination and constant propagation
+% from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
 
 % Since our model is more generous about permitted reorderings, we 
 % permit optimizations that they forbid.  Consider:
@@ -656,6 +473,103 @@ from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
 %  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS %
 %\cLoc).
 %\end{math}
+
+
+
+\paragraph{Invalid Transformations.}
+It is invalid to introduce new reads or writes.  For example:
+\begin{align*}
+  %\tag{Read-Intro-Invalid}
+  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
+  &\not\supseteq
+  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
+  \\
+  % \tag{Write-Intro-Invalid}
+  \sem{\aLoc \GETS 1 \SEMI \aCmd} 
+  &\not\supseteq
+  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd}
+\end{align*}
+As discussed in \textsection\ref{sec:model}, thread inlining is also invalid.
+
+\citet{BoehmOOTA} considers the following programs:
+\begin{gather*}
+  \sem{r\GETS y\SEMI x\GETS r}
+  \not\supseteq
+  \sem{r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI \SEMI x\GETS r}
+\end{gather*}
+
+Let $\aCmd$ be the right thread in \eqref{rfub}.
+\begin{align*}
+  \aCmd = r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
+\end{align*}
+Then, $\hoare{\TRUE}{\aCmd}{x=1} $ and $\hoare{y \neq 1}{\bCmd}{z=1}$.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $1$ to $x$, as seen by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{ry}{\DR{y}{1}}{}
+ \event{wa}{\DW{z}{1}}{right=of ry}
+ \event{wx}{\DW{x}{1}}{right=of wa}
+ \rf{ry}{wa}
+\end{tikzdisplay}
+% Consider a fragment from example~\eqref{rfub}.
+% \begin{align*}
+% \bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+% \end{align*}
+% Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$, as seen by the execution:
+% \begin{tikzdisplay}[node distance=1em]
+%  \event{ry}{\DR{y}{41}}{}
+%  \event{wx}{\DW{x}{42}}{right=of ry}
+%  \event{wa}{\DW{a}{1}}{below=of rx}
+%  \rf{ry}{wa}
+% \end{tikzdisplay}
+Consider the
+following, where all locations are initialized to $0$.  In \textsection\ref{sec:logic} we provide machinery to prove that \oota{} is
+incapable of writing $1$.  The question is whether this should be possible
+for \rfub, which changes \oota{} only to include a \emph{Register assignment
+  From an Unexecuted Branch} \cite{BoehmOOTA}:?  
+\begin{align*}
+  \label{oota}  \tag{\textsc{oota}}
+  y\GETS x
+  \PAR&
+  r\GETS y\SEMI
+  x\GETS r
+  \\
+  \tag{\rfub1}
+  \label{rfub}
+  y\GETS x
+  \PAR&
+  r\GETS y\SEMI
+  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
+\end{align*}
+%and the following \emph{Out Of Thin Air} litmus test:
+The change in the second
+thread from \oota{} to \rfub{} is not a valid refinement under Hoare logic:
+\rfub{} validates the triple $\hoare{\TRUE}{\aCmd}{x=1}$, but \oota{} does
+not.  As a result, it is expected that \rfub{} may have additional behaviors.
+
+
+
+% {\bf MOVE TO APPENDIX??.  
+
+% Given $\aCmd$, define 
+% $\linV{\aCmd}$ as follows.
+% \begin{definition}
+% With each shared variable $\aLoc$, we associate a thread local variable $\aLocLoc$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
+
+% \begin{align*}
+% \linV{\aCmd}= & \VAR\vec{\aLocLoc} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
+% & \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
+% & \aCmd' \SEMI   \\
+% & \overline{\IF \aChanged\  \aLoc= \aLocLoc}
+% \end{align*}
+% where:
+% $\aCmd'$ is derived from $\aCmd$ by replacing:
+% \begin{itemize}
+% \item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF {(\aChanged \lor\ \aRead)} \THEN\  \aReg= \aLocLoc \ELSE\  \aReg= \aLoc \SEMI \FI $,
+% \item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocLoc = \aExp$
+% \end{itemize}
+% \end{definition}
+% From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce for any $\aForm, \bForm$: 
+% \[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
+% }
 
 \endinput 
 

@@ -1,0 +1,629 @@
+\section{Single Threaded Optimizations}
+\label{sec:opt}
+
+% 's concern arises from the similarity of this program
+% with the \oota\ litmus test that replaces the second thread with
+% Should register state from an unexecuted conditional be able to effect the
+% outcome of an execution \cite{BoehmOOTA}.  We answer ``yes.''
+% %, such as \rfub1: as \rfub (Read From Unexecuted Branch).
+% %\citeauthor{BoehmOOTA}'s \rfub1 example can be written in our language as:
+
+% The program writes $1$ to $x$ in both branches of the conditional.  Further,
+% the writes to $z$ and $x$ in the then-branch of the conditional are
+% independent.  Therefore, it is sensible for a compiler to hoist the write to
+% $x$ out of the conditional.  In our semantics, there is no dependency from
+% the read of $y$ to the write to $x$
+% The execution in question is:
+% \begin{displaymathsmall}
+%   \begin{tikzcenter}[node distance=1em]
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DW{y}{1}}{right=of a1}
+%     \po{a1}{a2}
+%   \end{tikzcenter}
+%   \Bigm\|
+%   (\DR{y}{1})
+%   \prefix
+%   \left(
+%     \begin{tikzcenter}[node distance=.5em]
+%       \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
+%       \event{b2}{\DW{x}{1}}{right=of b1}
+%     \end{tikzcenter}
+%     % \begin{tikzcenter}[node distance=.5em]
+%     %   \event{b1}{r\NOTEQ1\mid\DW{z}{1}}{}
+%     %   \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{right=of b1}
+%     % \end{tikzcenter}
+%     % \biggm\|
+%     % \begin{tikzcenter}[node distance=1em]
+%     %   \event{c1}{r\EQ1\mid\DW{x}{1}}{}
+%     % \end{tikzcenter}
+%   \right)
+% \end{displaymathsmall}
+% With an internal read of $y$, we have:
+% \begin{displaymathsmall}
+%   \begin{tikzcenter}[node distance=1em]
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DW{y}{1}}{right=of a1}
+%     \po{a1}{a2}
+%   \end{tikzcenter}
+%   \Bigm\|
+%     \begin{tikzcenter}[node distance=1em]
+%       \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
+%       \event{b2}{\DW{x}{1}}{right=of b1}
+%     \end{tikzcenter}
+% \end{displaymathsmall}
+% but the precondition $y\NOTEQ1$ cannot be satisfied locally.
+% With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
+% case, the predicate becomes $1\NOTEQ 1$. 
+% \begin{displaymathsmall}
+%   \begin{tikzcenter}[node distance=1em]
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DW{y}{1}}{right=of a1}
+%     \po{a1}{a2}
+%   \end{tikzcenter}
+%   \Bigm\|  
+%     \begin{tikzcenter}[node distance=1em]
+%       \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
+%       \event{b2}{\DW{x}{1}}{right=of b1}
+%       \event{b0}{\DR{y}{1}}{left=of b1}
+%       \po{b0}{b1}
+%     \end{tikzcenter}
+% \end{displaymathsmall}
+
+
+As we have seen already, our model {\em invalidates} thread inlining.  We argue that our model is fully flexible with respect to single threaded optimizations by showing that it validates {\em all} valid transformation of a sequential program without synchronization into a ``linear'' sequential program.   A key technical tool is the connection of our semantics to traditional Hoare logic for sequential programs, that connects the thread-local order of our model to the dependencies captured by Hoare triples.  We illustrate  concretely with several 
+single threaded optimizations including reordering of independent statements.  
+
+\paragraph*{Defining valid transformations}
+We first make the semantics insensitive to
+reads that are never used.
+
+
+Let $\readc(\aPSS)$ be the smallest augmentation
+closed set containing $\aPSS$ that also satisfies closure under the inclusion
+of useless reads: if $\aPS \in \readc(\aPSS)$, then
+$\aPS' \in \readc(\aPSS)$, where $\Event'= \Event\cup\{\aEv\}$,
+$\aEv \not \in \Event$, ${\le'} ={\le}$,
+${\labeling'} \restrict \Event = {\labeling}$, and
+$\labeling'(\aEv) = \DR{\aLoc}{\aVal}$ for any $\aLoc$ and $\aVal$.
+
+% and to events with false preconditions.
+%Let $\fsat(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+%there is $\aPS\in\aPSS$ such that:
+%$\Event' = \{\aEv \in \Event\mid \labelingForm(\aEv)\;\text{is satisfiable}
+% \textand \labelingAct(\aEv)\;\text{is external}\}$,
+%${\le'} = {\le}\restrict{\Event'}$,
+%${\gtN'} = {\gtN}\restrict{\Event'}$.
+%and ${\labeling'} = {\labeling}\restrict{\Event'}$.
+
+
+
+% Let $\freadsat(\aPSS)= \readc(\fsat(\aPSS))$.
+
+%\begin{lemma}\label{freadssatcomp}[Compositionality of $\freadsat$]
+Let $\readc(\sem{\aCmd}) \subseteq \readc(\sem{\bCmd})$.  Then for any program context $\aCtxt\hole{}$
+\[ \readc(\sem{\aCtxt\hole{\aCmd}}) \subseteq \readc(\sem{\aCtxt\hole{\bCmd}}) \]
+%\begin{proof}
+%The proof follows from the following observations.
+%\begin{itemize}
+%\item $\readc, \sem{}$ are monotone functions (for the inclusion order on 
+%sets of pomsets). 
+%\item The definitions of the combinators in section~\ref{sec:semantics} 
+%do not enforce any order relationships on the internal (read and write) 
+%events, permitting them to be deleted freely.
+%\end{itemize}
+%\end{proof}
+%\end{lemma}
+This compositionality principle justifies the following definition of valid program transformations. 
+\begin{definition}
+A program fragment $\aCmd$ can be validly transformed into $\bCmd$ if  $\readc(\sem{\aCmd}) \supseteq  \readc(\sem{\bCmd})$.
+\end{definition}
+
+
+\subsection{Relationship to Hoare logic}
+In this theorem, we consider Hoare triples over formulas as per as per \textsection\ref{sec:data}.  We follow the treatment of Hoare logic as laid out in~\citet{gordonHoare}.  
+
+In the hypothesis of this theorem, we consider valid state assignments $\vec{\bLoc} =\vec{\aVal}$, to rule out conflicting assignments to the same location.  
+\begin{theorem}\label{hoareGen}
+Let $\aCmd$ be a command without either synchronization or parallelism.   For all $i=1, \ldots m$, let $\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^i_n$ be a valid state. 
+
+The following Hoare triples are valid for all $i=1, \ldots m$:
+\begin{displaymath}
+  \hoare{\aForm_i\land\bLoc^1_i=\aVal^1_i\land\cdots\land\bLoc^n_i=\aVal^n}{\aCmd}{\aLoc_i=\bVal_i}  
+\end{displaymath}
+if and only if, $\readc\sem{\aCmd}$ contains a pomset  that includes for all $i=1, \ldots, m$
+\begin{tikzdisplay}[node distance=1em]
+  \event{r}{\smash{\vec{\bForm_i}}\mid\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}}{}
+  \internal{w1}{\vec{\cForm}\mid\DW{\aLoc_i}{\vec{\dVal}}}{right=4em of r}
+  \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc_i}{\bVal_i}}{below right=of r}
+  \po{r}{w2}
+  \wk{w1}{w2}
+\end{tikzdisplay}
+where $\DR{\vec{\bLoc_i}}{\vec{\aVal_i}}$ are all the events that precede $\aEv$, $\DW{\aLoc_i}{\bVal_i}$ is the maximum write on $\aLoc_i$,  and
+$\DW{\aLoc_i}{\vec{\dVal_i}}$ are all the other writes on $\aLoc_i$, marked here as internal writes.
+\begin{proof}
+The proof proceeds by induction on the number of steps of derivation of the proof of the Hoare triple.  
+
+We first consider the structural rules.  Precondition strengthening follows from augmentation closure.    
+The proof that the structural rule of disjunction:
+\[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
+\]
+holds  follows from closure of the semantics under disjuncts. The proof for the structural rule of conjunction:
+\[ \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
+\]
+follows from the fact that pomsets have only concurrency and no conflict.  
+
+The remaining cases that use the rules for deducing Hoare triples by structural induction on the command follow straightforwardly from the semantics.    The only subtleties are about the write rule.  First, the write prefixing rule permits all non-maximum writes to be made internal, so as to fit the format of the statement of the theorem.  Secondly, the semantics of write prefixing performs  an explicit closure to restore closure under disjunctive pomsets.    
+\end{proof}
+\end{theorem}
+
+
+
+% \begin{theorem}
+% Let $\aCmd$ be a command without either synchronization or parallelism, such that
+% $\sem{\aCmd}$ contains an execution that includes
+% \begin{tikzdisplay}[node distance=1em]
+%   \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+%   \event{w1}{\vec{\cForm}\mid\DW{\aLoc}{\vec{\dVal}}}{right=4em of r}
+%   \eventl{\aEv}{w2}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+%   \wk{w1}{w2}
+%   \po{r}{w2}
+% \end{tikzdisplay}
+% where $\DR{\vec{\bLoc}}{\vec{\aVal}}$ are all the events that precede $\aEv$ and
+% $\DW{\aLoc}{\vec{\dVal}}$ are all the writes on $\aLoc$.
+% Then the following Hoare triple is valid:
+% \begin{displaymath}
+%   \hoare{\aForm\land\bLoc_1=\aVal_1\land\cdots\land\bLoc_n=\aVal_n}{\aCmd}{\aLoc=\bVal}  
+% \end{displaymath}
+% \begin{proof}
+% The proof proceeds by structural induction on the command. 
+% \end{proof}
+% \end{theorem}
+
+
+We illustrate with a few examples.
+$\hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2} $ holds, as seen by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \internal{w1}{\DW{x}{1}}{}
+ \event{w2}{\DW{x}{2}}{right=of w1}
+\wk{w1}{w2}
+\end{tikzdisplay}
+
+The two pomsets corresponding to the triple $\hoare{x=1}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1\FI}{y=1}$ illustrate the two ways to satisfy preconditions in the above theorem.
+\begin{displaymathsmall}
+\mbox{Internal: }
+\begin{tikzcenter}
+\event{w}{x=1 \mid \DW{y}{1}}{}
+\end{tikzcenter}
+\qquad \qquad
+\mbox{External: }
+\begin{tikzcenter}
+\event{r}{\DR{x}{1}}{}
+\event{w}{\DW{y}{1}}{right=of r}
+\po{r}{w}
+\end{tikzcenter}
+\end{displaymathsmall}
+
+$\hoare{\TRUE}{r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} $ holds, as seen by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{w}{\DW{y}{1}}{}
+ \event{r}{\DR{x}{v}}{right=of w}
+\end{tikzdisplay}
+In contrast, in a semantics that forbids load buffering, where the best that one can prove is
+$\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
+$.
+
+Let $\aCmd = r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \FI \SEMI s \GETS u \SEMI \IF{s=1} \THEN v \GETS 1 \FI$.  Then:
+$ \hoare{x=1}{\aCmd}{y=1}$ and
+$ \hoare{u=1}{\aCmd}{v=1}$
+hold, as seen by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{rx}{\DR{x}{1}}{}
+ \event{ru}{\DR{u}{1}}{right=of rx}
+ \event{wy}{\DW{y}{1}}{below=of rx}
+\event{wv}{\DW{u}{1}}{below=of ru}
+ \rf{rx}{wy}
+ \rf{ru}{wv}
+\end{tikzdisplay}
+
+
+Consider a fragment from example~\eqref{rfub}.
+\begin{align*}
+\bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
+\end{align*}
+Then, $\hoare{\TRUE}{\bCmd}{x=42} $ and $\hoare{y \neq 42}{\bCmd}{a= 1} $.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $42$ to $x$, as seen by the execution:
+\begin{tikzdisplay}[node distance=1em]
+ \event{ry}{\DR{y}{41}}{}
+ \event{wx}{\DW{x}{42}}{right=of ry}
+ \event{wa}{\DW{a}{1}}{below=of rx}
+ \rf{ry}{wa}
+\end{tikzdisplay}
+Consider the
+following, where all locations are initialized to $0$.  In \textsection\ref{sec:logic} we provide machinery to prove that \oota{} is
+incapable of writing $1$.  The question is whether this should be possible
+for \rfub, which changes \oota{} only to include a \emph{Register assignment
+  From an Unexecuted Branch} \cite{BoehmOOTA}:?  
+\begin{align*}
+  \label{oota}  \tag{\textsc{oota}}
+  y\GETS x
+  \PAR&
+  r\GETS y\SEMI
+  x\GETS r
+  \\
+  \tag{\rfub1}
+  \label{rfub}
+  y\GETS x
+  \PAR&
+  r\GETS y\SEMI
+  \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
+\end{align*}
+%and the following \emph{Out Of Thin Air} litmus test:
+The change in the second
+thread from \oota{} to \rfub{} is not a valid refinement under Hoare logic:
+\rfub{} validates the triple $\hoare{\TRUE}{\aCmd}{x=1}$, but \oota{} does
+not.  As a result, it is expected that \rfub{} may have additional behaviors.
+
+
+\paragraph{``Linear'' programs.}
+
+It is invalid to introduce new reads or writes.  For example, 
+\begin{align*}
+    \tag{Read-Intro-Invalid}
+\sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI 
+\IF{\aReg != \bReg} \THEN \cLoc \GETS 1} &\not\subseteq
+  \sem{\aReg \GETS \REF{\cExp} \SEMI \IF{\aReg != \bReg} \cLoc \GETS 1} \\
+    \tag{Write-Intro-Invalid}
+\sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd} &\not\subseteq
+  \sem{\aLoc \GETS 1 \SEMI \aCmd} \\
+\end{align*}
+
+For Read-Intro-Invalid, the left hand side contains the pomset:
+\begin{tikzdisplay}[node distance=1em]
+  \event{r1}{\DR{\aLoc}{1}}{}
+  \event{r2}{\DR{\aLoc}{2}}{right= of r1}
+  \event{w}{\DW{\cLoc}{1}} {below=of r1}
+  \po{r1}{w}
+  \po{r2}{w}
+\end{tikzdisplay}
+whereas the right hand side does not.   For Write-Intro-Invalid, the left hand side contains the pomset:
+\begin{tikzdisplay}
+  \event{w1}{\DW{\aLoc}{1}}{}
+  \event{w2}{\DW{\aLoc}{1}}{right= of w1}
+  \po{w1}{w2}
+\end{tikzdisplay}
+whereas the right hand side does not.
+
+
+A program fragment is ``linear'' if it does at most one read and at most one write on any location in any execution.  Intuitively, this means that the context is unable to interfere with the atomic execution of the command; dually, neither can the atomic execution of the command interfere with the context.  
+
+
+\begin{theorem}\label{seqcompleteness}
+Let $\aCmd$, $\bCmd$ be sequential and synchronization free programs.  Let $\bCmd$ be linear.  Then:
+\begin{align*}
+& (\forall \aForm,\bForm) \ \hoare{\aForm}{\aCmd}{\bForm} \Longleftrightarrow \hoare{\aForm}{\bCmd}{\bForm}  \\
+\Longrightarrow & \\
+& \readc{\sem{\bCmd}} \subseteq \readc{\sem{\aCmd}} 
+\end{align*}
+\begin{proof}
+The pomsets in the semantics of a linear sequential program fragment, such as $\sem{\bCmd}$, are generated by the augmentation closure of pomsets that have a special format that only include edges of the form: \begin{tikzdisplay}[node distance=1em]
+  \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+  \eventl{\aEv}{w}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+  \po{r}{w}
+\end{tikzdisplay}
+where $\vec{\bLoc}\GETS \vec{\aLoc}$ has no conflicting assignments to the same variable, and where each $\aLoc$ appears in at most one write event. Thus, using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd}$ is completely determined by the Hoare triples satisfied by $\bCmd$.  
+
+By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $\bCmd$.  Using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd} \subseteq \fsat(\sem{\aCmd})$. 
+\end{proof}
+\end{theorem}
+Any sequential and synchronization free  program fragment is sequentially equivalent to a ``linear'' program fragment.  
+
+{\bf MOVE TO APPENDIX??.  
+
+Given $\aCmd$, define 
+$\linV{\aCmd}$ as follows.
+\begin{definition}
+With each shared variable $\aLoc$, we associate a thread local variable $\aLocLoc$ and two boolean variables $\aRead,\aChanged$ that will be local to the program fragment.  
+
+\begin{align*}
+\linV{\aCmd}= & \VAR\vec{\aLocLoc} \SEMI \VAR \vec{\aRead} \SEMI \VAR \vec{\aChanged} \SEMI  \\
+& \vec{\aRead} =\vec{0} \SEMI \vec{\aChanged} = \vec{0} \SEMI \\
+& \aCmd' \SEMI   \\
+& \overline{\IF \aChanged\  \aLoc= \aLocLoc}
+\end{align*}
+where:
+$\aCmd'$ is derived from $\aCmd$ by replacing:
+\begin{itemize}
+\item  each read $\aReg = \aLoc$ by $\aRead = 1 \SEMI \IF {(\aChanged \lor\ \aRead)} \THEN\  \aReg= \aLocLoc \ELSE\  \aReg= \aLoc \SEMI \FI $,
+\item each write $\aLoc = \aExp$ by $\aChanged =1 \SEMI \aLocLoc = \aExp$
+\end{itemize}
+\end{definition}
+From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce for any $\aForm, \bForm$: 
+\[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
+}
+
+\subsection{Validating single threaded optimizations}
+We follow the terminology and presentation of section~7.1 of
+\citet{Dolan:2018:BDR:3192366.3192421}.  
+
+%\paragraph*{Peephole optimizations. } 
+Certain transformations involving conditionals or adjacent operations on the same location are permissible. 
+ 
+%\begin{lemma}
+%Suppose $\aExp=0$ is a tautology and $\cExp=\dExp$ is a tautology.   
+% Then the following hold.
+ \begin{align*}
+\tag{Value expansion}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+  \sem{\aCmd}  \\
+  \tag{Dead Code} 
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &\supseteq 
+  \sem{\bCmd} \\
+  \tag{Dead Store} 
+  \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp} &\supseteq 
+  \sem{\aLoc \GETS \bExp}\\    
+  \tag{Redundant load}
+  \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
+  \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]} \\
+  \tag{Store forwarding} 
+  \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
+  \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}
+\end{align*}
+% \begin{align*}
+% \tag{Value expansion}
+%  \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+%  \fsat\sem{\aCmd}  \\
+%  \tag{Dead Code} 
+%  \fsat\sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &\supseteq 
+ % \fsat\sem{\bCmd} \\
+ % \tag{Dead Store} 
+ % \fsat\sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp 
+%\SEMI \aCmd} &\supseteq 
+ % \fsat\sem{\REF{\dExp} \GETS \bExp \SEMI \aCmd}\\    
+ % \tag{Redundant load}
+ % \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}  \SEMI 
+%\aCmd} &\supseteq
+ % \sem{\aReg \GETS \REF{\cExp} \SEMI \aCmd[\aReg/\bReg]} \\
+ % \tag{Store forwarding} 
+ % \sem{\REF{\cExp} \GETS \aExp \SEMI \bReg \GETS \REF{\dExp} \SEMI 
+%\aCmd} &\supseteq \sem{\REF{\cExp} \GETS \aExp \SEMI \aCmd[\aExp/
+%\bReg]}
+% \end{align*}
+%\end{lemma}
+
+  
+%\paragraph*{Reorderings of independent statements}
+Certain reorderings involving adjacent operations on the distinct locations
+are also permissible. 
+% $\aLoc$ and $\aCmd$ are independent if there are no writes to $\aLoc$ or reads from $\aLoc$ in $\aCmd$.  
+%\begin{lemma}%[Reorderings]
+Suppose  $\aCmd,\bCmd$ are synchronization-free and sequential.   Then:
+\begin{align*}
+\tag{Independent Reordering}
+\sem{\aCmd \SEMI \bCmd} &= \sem{\bCmd \SEMI \aCmd} \\
+& \free(\aCmd) \cap \free(\bCmd) = \emptyset \\
+\tag{Acq}
+    \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
+    \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd} \\
+&\textif \aLoc\notin\free(\aCmd) \textand \bReg\notin\free(\aCmd) \\
+\tag{Rel}
+    \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
+    \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp } \\
+&\textif \aLoc\notin\free(\aCmd) \textand \free(\aExp) \cap \free(\aCmd) = \emptyset 
+\end{align*}
+% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
+%reorderings hold.
+%  \begin{align*}
+% \begin{align*}
+%    \tag{R-R}
+%    \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} 
+%\SEMI \aCmd} &=
+%    \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd}
+%    &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+ %   \\
+ %   \tag{R-W}
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
+%\SEMI \aCmd} &=
+%    \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd}
+%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%    \\
+ %   \tag{W-W}
+ %   \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI 
+%\aCmd} &=
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI 
+%\aCmd}
+%  \end{align*}
+% \begin{proof}
+% The semantics of sequential composition $\aCmd \SEMI \bCmd$, where 
+% the only enforced $\lt$ relationships come from conflict on locations or 
+%release or acquire actions.    The roach-motel reorderings that increase 
+%the scope of synchronization are valid because the pomsets in the 
+%semantics of the right hand sides are augmentations of a pomset on the 
+%left hand side. 
+%\end{proof}
+%\end{lemma}
+
+
+% \begin{lemma}%[Reorderings]
+% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
+%reorderings hold.
+ % \begin{align*}
+%    \tag{R-Acq}
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ 
+%\SEMI \aCmd} &\supseteq
+ %   \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd}
+% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+ %   \\
+ %   \tag{W-Acq} 
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ 
+%\SEMI\aCmd} &\supseteq
+%    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp 
+%\SEMI \aCmd} 
+%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+ %   \\
+% \tag{Rel-R} 
+%\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd} &\supseteq
+ %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp 
+%\SEMI \aCmd}
+%   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+ %   \\
+ %   \tag{Rel-W}
+ %   \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp 
+%\SEMI \aCmd}
+%  \end{align*}
+%\begin{proof}
+%The proof follows from noticing that the pomsets in the semantics of the 
+%right hand sides are augmentations of a pomset on the left hand side.  
+%\end{proof}
+%\end{lemma}
+
+\paragraph*{Compiler optimizations.} Reordering and peephole optimizations
+can be combined to describe common compiler optimizations.  We illustrate
+using common subexpression elimination,
+following~\citet{Dolan:2018:BDR:3192366.3192421}:
+Consider the command 
+\begin{math}
+  (\aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2)
+\end{math}
+where $\aCmd$ is independent of $\aReg$.  Reordering yields
+\begin{math}
+  (\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2),
+\end{math}
+followed by redundant load to yield
+\begin{math}
+  (\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg).
+\end{math}
+
+Similarly, the treatment of loop-invariant code motion, dead-store
+elimination and constant propagation
+from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
+
+% Since our model is more generous about permitted reorderings, we 
+% permit optimizations that they forbid.  Consider:
+%\begin{math}
+ % (\aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS 
+%\aReg).
+%\end{math}
+%Reordering, permitted by us, but forbidden by them, yields
+%\begin{math}
+%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS 
+%\cLoc),
+%\end{math}
+%followed by the valid elimination of redundant load
+%\begin{math}
+%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS %
+%\cLoc).
+%\end{math}
+
+\endinput 
+
+
+
+
+\subsection{Full abstraction for synchronization free threads}
+Our semantics is complete for reasoning about full-thread optimizations of synchronization free programs.
+
+In the rest of this section, we only consider commands $\aCmd,\bCmd$ that are
+restriction-free, composition-free (ie. single threaded), and
+synchronization-free (ie. no acquire, release, fence).
+
+In order to develop the proof, 
+
+This closure permits us to  describe a normal form for the top-level pomsets that arise in single threaded and synchronization free code.  
+\begin{definition}
+$\aPS$ is in normal form if:
+\begin{itemize}
+% \item All preconditions on events are tautologies.
+\item If $\bEv \lt \aEv$ and  $\bEv$ is a write, then $\aEv$ is a write or read on the same variable.
+\item If $\bEv \lt \aEv$ and  $\aEv$ is a read, then $\bEv$ is a write on the same variable. 
+    
+% \item $\aEv \gtN \bEv$ only if $ \aEv\ (\lt \cup \reco)^{\star} \  \bEv$.
+\item If $\aEv, \aEv'$ have the same read action label, then there exists a write $\bEv$ on the same location such that $\aEv \gtN \bEv \gtN \aEv'$.
+%\item  If $\aEv, \aEv'$ have the same write action label, then 
+%there exists a event $\bEv$ on the same location as $\aEv$ such 
+%that  $\bEv$ has a different action label and $\aEv \gtN \bEv \gtN 
+%\aEv'$.
+\end{itemize}
+\end{definition}
+In a normal form pomset, the successors of a write event (resp. the predecessors of a read) are related in the coherence order to the event.  Any two events with the same read label are separated by a write in the $\reco$ order. 
+
+It suffices to consider normal forms when distinguishing single threaded, synchronization free code at the top level.  The normal forms determine the full semantics by the closure properties of the semantics.
+
+\begin{lemma}\label{unrhd}
+Every top-level pomset of $\freadsat\sem{\aCmd}$ is a top-level pomset of $\freadsat\sem{\bCmd}$ if and only if 
+every top-level normal form pomset of $\freadsat\sem{\aCmd}$ is a top-level normal form pomset of $\freadsat\sem{\bCmd}$.
+\begin{proof}
+The proof proceeds by induction on structure.  The key case is prefixing.  The only edges $\lt$-edges out of writes  and into read actions enforced by prefixing are $\reco$ edges.  Read prefixing permits the reuse of events to ensure that distinct read events not separated by $\reco$ have distinct read labels.  
+\end{proof}
+\end{lemma}
+
+We develop testers for top-level pomsets in normal form.  We  follow~\citet{Plotkin:1997:TSP:266557.266600}, albeit in a concrete form appropriate to our setting.   
+
+Let $\aPS$ be a top-level pomset in normal form with events $\aEv_1, \ldots,
+\aEv_n$.  For all $i$, we assume a new location $b_i$.    Let $\freshaval$ be a fresh value that does not occur in $\aPS$.  
+
+Let $\vec{\bEv}$ be all  the predecessors of $\aEv_i$ in $\lt$. Let $\vec{c}$ be the corresponding sub vector of $b_i$'s. 
+\begin{itemize}
+\item 
+If $\aEv_i$ has label $\DR{\aLoc}{\aVal}$, we define a program $\testP{\aPS}{i}$ as follows:  
+\[
+  \testP{\aPS}{i} = (
+  % \vec{\aReg} \GETS \vec{c}  \SEMI
+  \IF{\vec{c}=\vec{1}} \THEN x \GETS \aVal \SEMI  \FENCE \SEMI b_i \GETS 1 \FI)
+\]
+\item 
+If $\aEv_i$ has label $\DW{\aLoc}{\aVal}$, we define a program $\testP{\aPS}{i}$ as follows:
+\[
+  \testP{\aPS}{i} = (
+  % \vec{\aReg} \GETS \vec{c}  \SEMI
+  \IF{\vec{c}=\vec{1}} \THEN %\aReg = \aLoc \SEMI
+  \IF{\aLoc = \aVal} \THEN \aLoc = \freshaval \SEMI \FENCE \SEMI b_i \GETS 1  \FI \FI)
+\]
+\end{itemize}
+$\testP{\aPS}{i}$ is as expected, matching the reads (resp. writes) in $\aPS$ by writes (resp. reads).  The fresh value is used to flush out prior writes and reset to see fresh writes.    
+
+\begin{definition}[Tester for $\aPS$]\label{testAPS} 
+The tester context for $\aPS$, $\testP{\aPS}{}\hole{}$ is 
+\[
+b \GETS b_{1} \land  \cdots \land b_{n}
+\PAR  \testP{\aPS}{1} 
+\PAR   \cdots 
+\PAR  \testP{\aPS}{n} 
+\PAR \hole{}
+\]
+\end{definition}
+The constraints of the normal form ensure that if the labels of any two events are the same, then one is a predecessor of the other. 
+
+\begin{lemma}\label{tester}
+$\sem{\testP{\aPS}{}\hole{\aCmd}}$  has a pomset that sets $b$ to $1$ iff $\aPS \in \freadsat\sem{\aCmd}$.
+\begin{proof}
+It suffices to prove that there is a pomset that sets $b$ to $1$ in
+ $\freadsat\sem{b \GETS b_{1} \land  \cdots \land b_{n}
+\PAR  \testP{\aPS}{1} 
+\PAR   \cdots 
+\PAR  \testP{\aPS}{n}} \parallel \bPS$ iff $\aPS$ is an augmentation of $\bPS$. 
+
+We prove by induction on $\lt$ that $\testP{\aPS}{i}\hole{\aCmd}$  sets $b_i$ to $1$ iff the event $\aEv_i$ is enabled. Result follows.
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+  Let $\aCmd_1$ and $\aCmd_2$ be restriction-free, composition-free and
+  synchronization free.  Then all top-level pomsets of
+  $\freadsat\sem{\aCmd_1}$ are also pomsets of $\freadsat\sem{\aCmd_2}$ if
+  and only if for all parallel contexts $\bCmd$, all top-level pomsets of
+  $\freadsat\sem{\aCmd_1 \PAR \bCmd}$ are also pomsets of
+  $\freadsat\sem{\aCmd_2 \PAR \bCmd}$
+\begin{proof}
+  The forward implication follows from the compositionality of the semantics.
+
+  For the converse, pick a top level pomset in normal form in
+  $\aPS \in \freadsat\sem{\aCmd_1} \setminus \freadsat\sem{\aCmd_2} $.  The
+  required context is given by the tester context $\testP{\aPS}{}\hole{}$.
+ \end{proof}
+\end{theorem}
+
+The full abstraction theorem applies only to full threads.  The reason for this limited statement is that our impoverished language does not permit  parallel composition to be used freely as the continuation in arbitrary sequential contexts.  A full abstraction theorem that applies also to commands can be achieved with these richer distinguishing contexts.  

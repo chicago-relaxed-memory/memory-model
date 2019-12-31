@@ -17,20 +17,22 @@ We refactor the syntax:
 \begin{align*}
   \aCmd,\,\bCmd
   \BNFDEF& \SKIP
-  \BNFSEP \FENCE^{\fmode}
-  \BNFSEP \aReg\GETS\aExp
-  \BNFSEP \aReg\GETS\aLoc^{\amode} 
-  \BNFSEP \aLoc^{\amode}\GETS\aExp
+  \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
+  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
+  % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
+  % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
+  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
+  \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
   \\[-.5ex]
   \BNFSEP&\aCmd \PAR \bCmd
-  \BNFSEP\aCmd \SEMI \bCmd
-  \BNFSEP \VAR\aLoc
-  \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+  \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
+  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
 % Without loss of generality,
-To keep the presentation as simple as possible, we include neither address
-calculation nor \RMW{}s.  These extensions are straightforward, but
-notationally cumbersome.
+% To keep the presentation as simple as possible, we include neither address
+% calculation nor \RMW{}s.  These extensions are straightforward, but
+% notationally cumbersome.
 
 \paragraph{Explicit Substitutions.}
 Let $\aEExp$ range over \emph{extended expressions}, which may include memory
@@ -199,13 +201,21 @@ $\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP
       \po{a}{f}
     }} 
   \\
-  \sem{\aReg\GETS\aLoc^\amode} & =
-  \textstyle\bigcup_\aVal\;
+  \sem{\aReg\GETS\REF{\cExp}^\amode} & =
+  \textstyle\bigcup_{\cVal,\aVal}\;
   \CLOSE{\TIKZ{
-      \event{a}{\DRreg[\amode]{\aReg}{\SUB{\aLoc/\aReg}}{\aLoc}{\aVal}}{}
+      \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\SUB{\REF{\cVal}/\aReg}}{\REF{\cVal}}{\aVal}}{}
       \final{f}{\SUBEMP}{right=of a}
       \po{a}{f}
     }}
+  % \\
+  % \sem{\aReg\GETS\aLoc^\amode} & =
+  % \textstyle\bigcup_\aVal\;
+  % \CLOSE{\TIKZ{
+  %     \event{a}{\DRreg[\amode]{\aReg}{\SUB{\aLoc/\aReg}}{\aLoc}{\aVal}}{}
+  %     \final{f}{\SUBEMP}{right=of a}
+  %     \po{a}{f}
+  %   }}
   % \\[-.5ex] &
   % \mkern2mu\cup
   % \CLOSE{\TIKZ{
@@ -214,13 +224,21 @@ $\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP
   %     \po{a}{f}
   %   }}
   \\
-  \sem{\aLoc^\amode\GETS\aExp} & =
-  \textstyle\parallel_\aVal\;
+  \sem{\REF{\cExp}^\amode\GETS\aExp} & =
+  \;\;\textstyle\parallel_{\cVal,\aVal}\;
   \CLOSE{\TIKZ{
-      \event{a}{\aExp=\aVal \mid \DW[\amode]{\aLoc}{\aVal}}{}
-      \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
+      \event{a}{\cExp=\cVal\land\aExp=\aVal \mid \DW[\amode]{\REF{\cVal}}{\aVal}}{}
+      \final{f}{\SUB{\aExp/\REF{\cVal}}}{right=of a}
       \po{a}{f}
     }}
+  % \\
+  % \sem{\aLoc^\amode\GETS\aExp} & =
+  % \;\;\textstyle\parallel_\aVal
+  % \CLOSE{\TIKZ{
+  %     \event{a}{\aExp=\aVal \mid \DW[\amode]{\aLoc}{\aVal}}{}
+  %     \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
+  %     \po{a}{f}
+  %   }}
   % \\[-.5ex] &
   % \mkern2mu\cup
   % \CLOSE{\TIKZ{
