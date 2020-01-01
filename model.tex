@@ -1311,6 +1311,57 @@ value for $x$:
 Since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, this pomset does not satisfy the
 requirements to fulfill the read.
 
+Our model of coherence is similar to that of
+\citet{Dolan:2018:BDR:3192366.3192421}.  Since reads are not ordered by 5b,
+we {allow} the following, which C11 forbids:
+\begin{gather*}
+  x\GETS1\SEMI x\GETS 2
+  \PAR
+  y\GETS x \SEMI z\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DW{x}{2}}{right=of a}
+      \po{a}{b}
+      \event{c}{\DR{x}{2}}{right=2em of b}
+      \event{d}{\DW{y}{2}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{x}{1}}{right=of d}
+      \event{f}{\DW{z}{1}}{right=of e}
+      \po{e}{f}
+      \rf{b}{c}
+      \rf[out=10,in=170]{a}{e}
+    \end{tikzinline}}
+\end{gather*}
+Conversely, we {forbid} the following, which Java allows:
+\begin{gather*}
+  x\GETS1\SEMI y^\modeRA\GETS 1
+  \PAR
+  x\GETS 2\SEMI
+  r\GETS y^\modeSC \SEMI 
+  r\GETS x \SEMI 
+  r\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
+      \po{a}{b}
+      \event{c}{\DW{x}{2}}{below=of a}
+      \event{d}{\DR[\modeSC]{y}{1}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{x}{2}}{right=of d}
+      \po{d}{e}
+      \event{f}{\DR{x}{1}}{right=of e}
+      \po[out=10,in=170]{d}{f}
+      \rf{b}{d}
+      %\rf[out=-10,in=-170]{c}{e}
+      \wk{a}{c}
+      %\rf[out=15,in=150]{a}{f}
+      \wk[out=-165,in=-15]{f}{c}
+    \end{tikzinline}}
+\end{gather*}
+The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required by fulfillment.
+
 
 %This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
 Items 5d ensures that program order between SC operations is always

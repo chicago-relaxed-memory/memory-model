@@ -85,8 +85,6 @@ $\labeling'(\aEv) = \labeling(\aEv)$, and for every $\bEv\in D$ there are
 $\aLoc$ and $\aVal$ such that
 $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
-That that if $\aPSS'\subseteq\aPSS$, then $\readc(\aPSS')\subseteq \readc(\aPSS)$.
-
 \begin{theorem}
   \label{thm:hoare}
   Let $\aCmd$ be synchronization-free and sequential.  Then
@@ -309,7 +307,9 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 
 Theorem \ref{thm:hoare} immediately validates peephole optimizations, such as
 redundant load \eqref{RL}, store forwarding \eqref{SF}, dead store \eqref{DS},
-and independent reorderings:
+and independent reorderings.  Using the semantics directly, we can prove
+these properties without using $\readc$.
+Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 \begin{align*}
   \taglabel{RL}
   \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc} &\supseteq 
@@ -336,9 +336,36 @@ and independent reorderings:
   \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc} &%\text{if } \aLoc{\neq}\bLoc
 \end{align*}
 \eqref{RR} requires either $\aReg\neq\bReg$ or $\aLoc=\bLoc$.  \eqref{WW} and
-\eqref{RW} require that two sides of the semicolon be disjoint; for example,
-\eqref{RW} requires
-$\disjoint{\free(\aReg \GETS \aLoc)}{\free(\bLoc \GETS \bExp)}$.
+\eqref{RW} require that two sides of the semicolon have disjoint ids; for example,
+\eqref{RW} requires $\disjoint{\free(\aReg \GETS \aLoc)}{\free(\bLoc \GETS \bExp)}$.
+\eqref{RL} and \eqref{SF} follow from prefix closure.
+\eqref{SF} follows from the write elimination allowed in Definition \ref{def:cover}.
+
+Since reads are unordered in our model, read optimizations are not limited by
+the power of aliasing analysis, as they are with stronger models of coherence
+\cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  Composing \eqref{RR} and
+\eqref{RL}, for $\aReg_2\neq\bReg$ we have:
+\begin{displaymath}
+  \sem{r_1\GETS \aLoc \SEMI
+  s\GETS \bLoc \SEMI  
+  r_2\GETS \aLoc}
+  \supseteq
+  \sem{r_1\GETS \aLoc \SEMI
+  s\GETS \bLoc \SEMI  
+  r_2\GETS r_1}
+\end{displaymath}
+This holds regardless of whether $\aLoc=\bLoc$.
+% \begin{displaymathsmall}
+%   \sem{r_1\GETS \REF{\aExp} \SEMI
+%   s\GETS \REF{\bExp} \SEMI  
+%   r_2\GETS \REF{\aExp}}
+%   \supseteq
+%   \sem{r_1\GETS \REF{\aExp} \SEMI
+%   s\GETS \REF{\bExp} \SEMI  
+%   r_2\GETS r_1}
+% \end{displaymathsmall}
+% This holds regardless of whether $\aExp=\bExp$.
+
 
 By induction on the length of the pomsets in $\aCmd$, we can use the
 reorderings to establish, more generally, that when $\aCmd$ and $\bCmd$ are
@@ -346,18 +373,20 @@ assignment sequences and $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
 \begin{gather*}
   \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
 \end{gather*}
-Appealing directly to the semantics, we can establish general properties for
-redundant load \eqref{RLp}, store forwarding \eqref{SFp}, and roach-motel
-\eqref{A}, \eqref{R}:
+% Appealing directly to the semantics, we can establish general properties for
+% redundant load \eqref{RLp}, store forwarding \eqref{SFp}, and roach-motel
+% \eqref{A}, \eqref{R}:
+The semantics also validates roach-motel reorderings.  Let $\aCmd$ be
+synchronization-free, with disjoint ids as before:
 \begin{align*}
-  \taglabelp{RL}
-  \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
-  \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
-  \\
-  \taglabelp{SF} 
-  \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
-  \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
-  \\
+  % \taglabelp{RL}
+  % \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
+  % \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
+  % \\
+  % \taglabelp{SF} 
+  % \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
+  % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
+  % \\
   \taglabel{A}
   \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
   \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
@@ -366,9 +395,12 @@ redundant load \eqref{RLp}, store forwarding \eqref{SFp}, and roach-motel
   \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
   \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
 \end{align*}
-\eqref{A} and \eqref{R} require disjoint names, as in \eqref{WW} and
-\eqref{RW}; in addition, these rules require that $\aCmd$ is
-synchronization-free.
+% Again, we suppose that $\aCmd$ is an assignment sequence and disjoint
+% identifiers.
+% \eqref{A} and \eqref{R} require
+% disjoint names, as in \eqref{WW} and
+% \eqref{RW}. In addition, \eqref{A} and \eqref{R} require that $\aCmd$ is
+% synchronization-free.
 
 As expected, sequential and parallel composition commute with conditionals
 and location binding, and conditionals and location binding commute with each
@@ -544,21 +576,6 @@ These are distinguished by the context:
 With weaker notions of coherence
 \cite{Manson:2005:JMM:1047659.1040336, Dolan:2018:BDR:3192366.3192421}, these
 commands are indistinguishable.
-
-Given the coherence of our model, read optimizations may be limited by the power
-of aliasing analysis, as they are in C11 \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If a
-compiler can neither prove nor disprove $\aExp=\bExp$, then
-\begin{math}
-  r_1\GETS \REF{\aExp} \SEMI
-  s\GETS \REF{\bExp} \SEMI  
-  r_2\GETS \REF{\aExp}
-\end{math}
-cannot be optimized to
-\begin{math}
-  r_1\GETS \REF{\aExp} \SEMI
-  s\GETS \REF{\bExp} \SEMI  
-  r_2\GETS r_1.
-\end{math}
 
 Thread inlining is invalid (see \textsection\ref{sec:model}):
 \begin{math}
