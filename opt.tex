@@ -212,7 +212,7 @@ $\hoare{\aForm}{\aCmd'}{\bForm}$, for every $\aForm$ and $\bForm$.
 % \end{proof}
 \end{corollary}
 
-\paragraph{Valid Transformations.}
+\paragraph{Valid Rewrites.}
 \ When $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$, we say that $\aCmd'$ is
 a \emph{valid transformation} of $\aCmd$.
 
@@ -341,13 +341,13 @@ and independent reorderings:
 $\disjoint{\free(\aReg \GETS \aLoc)}{\free(\bLoc \GETS \bExp)}$.
 
 By induction on the length of the pomsets in $\aCmd$, we can use the
-reorderings to establish, more generally that when $\aCmd$ and $\bCmd$ are
+reorderings to establish, more generally, that when $\aCmd$ and $\bCmd$ are
 assignment sequences and $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
 \begin{gather*}
   \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
 \end{gather*}
 Appealing directly to the semantics, we can establish general properties for
-redundant load \eqref{RLp}, store forwarding \eqref{SFp}, roach-motel
+redundant load \eqref{RLp}, store forwarding \eqref{SFp}, and roach-motel
 \eqref{A}, \eqref{R}:
 \begin{align*}
   \taglabelp{RL}
@@ -514,19 +514,51 @@ disjunction closure in the semantics.
 
 
 
-\paragraph{Invalid Transformations.}
-It is invalid to introduce new reads or writes.  For example:
+\paragraph{Invalid Rewrites.}
+Relevant read introduction is invalid:
 \begin{align*}
   %\tag{Read-Intro-Invalid}
   \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
   &\not\supseteq
   \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
-  \\
-  % \tag{Write-Intro-Invalid}
+\end{align*}
+These are distinguished by the context
+\begin{math}
+  \hole{} \PAR x\GETS1\PAR x\GETS2.
+\end{math}
+
+Write introduction is invalid, even for equal values:
+\begin{align*}
   \sem{\aLoc \GETS 1 \SEMI \aCmd} 
   &\not\supseteq
   \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd}
 \end{align*}
+These are distinguished by the context:
+\begin{displaymath}
+  \hole{} \PAR
+  r\GETS x \SEMI
+  x\GETS2 \SEMI
+  s\GETS x\SEMI
+  \IF{\aReg {=} \aReg} \THEN \cLoc \GETS 1 \FI
+\end{displaymath}
+In models with weaker notions of coherence
+\cite{Manson:2005:JMM:1047659.1040336, Dolan:2018:BDR:3192366.3192421}, these
+commands may be indistinguishable.
+
+Given that our model has coherence, read optimizations may be limited by the power
+of aliasing analysis \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If a
+compiler can neither prove nor disprove $\aExp=\bExp$, then
+\begin{math}
+  r_1\GETS \REF{\aExp} \SEMI
+  s\GETS \REF{\bExp} \SEMI  
+  r_2\GETS \REF{\aExp}
+\end{math}
+cannot be optimized to
+\begin{math}
+  r_1\GETS \REF{\aExp} \SEMI
+  s\GETS \REF{\bExp} \SEMI  
+  r_2\GETS r_1.
+\end{math}
 
 Thread inlining is invalid (see \textsection\ref{sec:model}):
 \begin{math}
@@ -534,6 +566,31 @@ Thread inlining is invalid (see \textsection\ref{sec:model}):
   \not\supseteq
   \sem{\aCmd \SEMI \bCmd}.
 \end{math}
+
+
+% // p and q might be aliased
+% int i = p
+% // concurrent write to p.x by another thread
+% int j = q 
+% int k = p
+
+% Since p and q only might be aliased, but are not definitely aliased, then the
+% use of q cannot be optimized away (if it were known that p and q pointed to
+% the same object, then it would be legal to replace the assignments to j and k
+% with assignments of the value of i). Consider the case where p and q are in
+% fact aliased, and another thread writes to the memory location for p/q
+% between the first use of p and the use of q; the use of q will see the
+% new value. It will be illegal for the second use of p (stored into k) to
+% get the same value as was stored into i. However, a fairly standard compiler
+% optimization would involve eliminating the getfield for k and replacing it
+% with a reuse of the value stored into i. Un- fortunately, that optimization
+% is illegal in any language that requires Coherence.
+
+% One way to think of it is that since a read of a memory location may cause
+% the thread to become aware of a write by another thread, it must be treated
+% in the compiler as a possible write.
+
+
 
 \citet{BoehmOOTA} considers the following programs:
 \begin{gather*}
