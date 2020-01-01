@@ -1311,7 +1311,87 @@ value for $x$:
 Since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, this pomset does not satisfy the
 requirements to fulfill the read.
 
-Our model of coherence is similar to that of
+
+%This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
+Items 5d ensures that program order between SC operations is always
+preserved.  Combined with the requirements for fulfillment, this is
+sufficient to establish that programs with only SC access have only SC
+executions; for example, execution \eqref{SB} is banned when all accesses are
+$\modeSC$.  It is also immediate that SC actions can be totally ordered.
+Just as SC access in \armeight{} is simplified by \mca, it is simplified here by
+the use of a single partial order.
+% \begin{gather*}
+%   x\GETS0\SEMI x\GETS1\SEMI\aReg\GETS y
+%   \PAR
+%   y\GETS0\SEMI y\GETS1\SEMI \aReg\GETS x
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{wx0}{\DW{x}{0}}{}
+%       \event{wy0}{\DW{y}{0}}{below=of wx0}
+%       \event{wx}{\DW{x}{1}}{right=of wx0}
+%       \event{wy}{\DW{y}{1}}{right=of wy0}
+%       \event{ry}{\DR{y}{0}}{right=of wx}
+%       \event{rx}{\DR{x}{0}}{right=of wy}
+%       \wk{wx0}{wx}
+%       \wk{wy0}{wy}
+%       \po{wy}{rx}
+%       \po{wx}{ry}
+%       \rf{wy0}{ry}
+%       \rf{wx0}{rx}
+%       \wk{ry}{wy}
+%       \wk{rx}{wx}
+%       % \po{rx}{wy}
+%     \end{tikzinline}}
+% \end{gather*}
+Our model forbids the
+following, which C11 allows 
+\citep[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
+\begin{gather*}
+  r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
+  \PAR
+  % y\GETS0\SEMI
+  x^\modeSC\GETS2 \SEMI y\GETS1
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DR{y}{1}}{}
+      \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
+      \po{a}{b}
+      \event{bb}{\DR{x}{2}}{right=of b}
+      \po{b}{bb}
+      % \event{c}{\DW{y}{0}}{right=2em of bb}
+      % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
+      % \po{c}{d}
+      \event{d}{\DW[\modeSC]{x}{2}}{right=2em of bb}
+      \event{e}{\DW{y}{1}}{right=of d}
+      \po{d}{e}
+      %\rf[out=170,in=10]{d}{bb}
+      \rf{d}{bb}
+      \rf[out=-170,in=-10]{e}{a}
+      \wk[in=165,out=15]{b}{d}
+    \end{tikzinline}}
+\end{gather*}
+The order from $(\DW{x}{1})$ to $(\DW{x}{2})$ is required to fulfill $(\DR{x}{2})$. %by fulfillment.
+
+
+We relax program order on non-SC accesses in order to allow the outcome
+of executions such as \eqref{SB}.
+Order is relaxed between reads, between writes to different
+locations, and from a read to an independent write:
+\begin{gather*}
+  \aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wy1}{\DW{y}{1}}{}
+      \event{rx1}{\DR{x}{1}}{left=of wy1}
+    \end{tikzinline}}
+\end{gather*}
+Let $\aCmd$ be the program above.  The existence of this pomset is justified
+by the triple
+$\hoare{\TRUE}{\aCmd}{y=1}$.
+
+Unordered actions can be scheduled freely.
+
+As a result, our model of coherence is similar to that of
 \citet{Dolan:2018:BDR:3192366.3192421}.  Since reads are not ordered by 5b,
 we {allow} the following, which C11 forbids:
 \begin{gather*}
@@ -1360,58 +1440,7 @@ Conversely, we {forbid} the following, which Java allows:
       \wk[out=-165,in=-15]{f}{c}
     \end{tikzinline}}
 \end{gather*}
-The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required by fulfillment.
-
-
-%This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
-Items 5d ensures that program order between SC operations is always
-preserved.  Combined with the requirements for fulfillment, this is
-sufficient to establish that programs with only SC access have only SC
-executions; for example, execution \eqref{SB} is banned when all accesses are
-$\modeSC$.  It is also immediate that SC actions can be totally ordered.
-Just as SC access in \armeight{} is simplified by \mca, it is simplified here by
-the use of a single partial order.
-% \begin{gather*}
-%   x\GETS0\SEMI x\GETS1\SEMI\aReg\GETS y
-%   \PAR
-%   y\GETS0\SEMI y\GETS1\SEMI \aReg\GETS x
-%   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
-%       \event{wx0}{\DW{x}{0}}{}
-%       \event{wy0}{\DW{y}{0}}{below=of wx0}
-%       \event{wx}{\DW{x}{1}}{right=of wx0}
-%       \event{wy}{\DW{y}{1}}{right=of wy0}
-%       \event{ry}{\DR{y}{0}}{right=of wx}
-%       \event{rx}{\DR{x}{0}}{right=of wy}
-%       \wk{wx0}{wx}
-%       \wk{wy0}{wy}
-%       \po{wy}{rx}
-%       \po{wx}{ry}
-%       \rf{wy0}{ry}
-%       \rf{wx0}{rx}
-%       \wk{ry}{wy}
-%       \wk{rx}{wx}
-%       % \po{rx}{wy}
-%     \end{tikzinline}}
-% \end{gather*}
-
-We relax program order on non-SC accesses in order to allow the outcome
-of executions such as \eqref{SB}.
-Order is relaxed between reads, between writes to different
-locations, and from a read to an independent write:
-\begin{gather*}
-  \aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wy1}{\DW{y}{1}}{}
-      \event{rx1}{\DR{x}{1}}{left=of wy1}
-    \end{tikzinline}}
-\end{gather*}
-Let $\aCmd$ be the program above.  The existence of this pomset is justified
-by the triple
-$\hoare{\TRUE}{\aCmd}{y=1}$.
-
-Unordered actions can be scheduled freely.
+The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required to fulfill $(\DR{x}{1})$. %by fulfillment.
 
 % Program order is only imposed from read to write when the precondition of
 % the write is weakened.  Thus we have:
