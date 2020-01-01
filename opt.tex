@@ -541,12 +541,12 @@ These are distinguished by the context:
   s\GETS x\SEMI
   \IF{\aReg {=} \aReg} \THEN \cLoc \GETS 1 \FI
 \end{displaymath}
-In models with weaker notions of coherence
+With weaker notions of coherence
 \cite{Manson:2005:JMM:1047659.1040336, Dolan:2018:BDR:3192366.3192421}, these
-commands may be indistinguishable.
+commands are indistinguishable.
 
-Given that our model has coherence, read optimizations may be limited by the power
-of aliasing analysis \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If a
+Given the coherence of our model, read optimizations may be limited by the power
+of aliasing analysis, as they are in C11 \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If a
 compiler can neither prove nor disprove $\aExp=\bExp$, then
 \begin{math}
   r_1\GETS \REF{\aExp} \SEMI
