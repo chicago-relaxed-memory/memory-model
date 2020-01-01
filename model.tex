@@ -233,7 +233,9 @@ We elide the $\modeRLX$-mode annotation in examples.
 % \end{align*}
 %The syntax of statements is as follows.
 
-In the main paper, we define the language by prefixing individual reads and writes.  In
+We also include the action $\SUBEMP$, which denotes termination.
+
+We define the language by prefixing individual reads and writes.  In
 \textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
 full sequential composition of the form $(\aCmd\SEMI\bCmd)$.
 \begin{align*}
@@ -292,10 +294,11 @@ Our model is based on \emph{partially ordered multisets}
     $\labelingForm(\bEv)$, and
   \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
   \end{itemize}
+  A pomset is \emph{completed} if $\exists\aEv.\;\labelingAct(\aEv)=\SUBEMP$ and $\forall\bEv.\;\bEv\le\aEv$.
 \end{definition}
 % From $\labeling$, we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$.
 
-We refer to ``memory model pomsets'' as \emph{pomsets} or \emph{executions}.
+We also refer {pomsets} as \emph{executions}.
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$, eliding
 $\aForm$ when it is a tautology.
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
@@ -482,12 +485,16 @@ ${\le'} = {\le}$,
 %${\gtN'} = {\gtN}$,
 and
 $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
+
+Let $\aPS\in\SKIPPS$ when
+$\Event = \{ \aEv \}$ and
+$\labelingAct(\aEv) = \SUBEMP$.
 \begin{align*}
   \sem{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
   \sem{\aCmd}[\aExp/\aReg] 
   &  
   \sem{\SKIP} & \eqdef
-  \{ \emptyset \}
+  \SKIPPS
 \end{align*}
 \end{definition}
 
@@ -687,7 +694,9 @@ for address calculation, which is required by realistic memory allocators.
   when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$
   such that
 $\Event' = \Event^1 \cup \Event^2$,
-${\le'}\supseteq{\le^1}\cup{\le^2}$, and for all $\aEv\in\Event'$,
+${\le'}\supseteq{\le^1}\cup{\le^2}$,
+there is at most one $\aEv$ such that $\labelingAct(\aEv)=\SUBEMP$,
+and for all $\aEv\in\Event'$,
 either:
 %   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
 % when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
@@ -1258,6 +1267,7 @@ Definition \ref{def:pre-sc} such that:
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
 \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
+\item[5e.] if $\labelingAct(\aEv)=\SUBEMP$ then $\dEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
 \end{enumerate}
@@ -1343,9 +1353,8 @@ the use of a single partial order.
 %       % \po{rx}{wy}
 %     \end{tikzinline}}
 % \end{gather*}
-Our model forbids the
-following, which C11 allows 
-\citep[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
+
+Unlike \citep[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}, our model allows:
 \begin{gather*}
   r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
   \PAR
@@ -1363,14 +1372,13 @@ following, which C11 allows
       % \po{c}{d}
       \event{d}{\DW[\modeSC]{x}{2}}{right=2em of bb}
       \event{e}{\DW{y}{1}}{right=of d}
-      \po{d}{e}
       %\rf[out=170,in=10]{d}{bb}
       \rf{d}{bb}
       \rf[out=-170,in=-10]{e}{a}
       \wk[in=165,out=15]{b}{d}
     \end{tikzinline}}
 \end{gather*}
-The order from $(\DW{x}{1})$ to $(\DW{x}{2})$ is required to fulfill $(\DR{x}{2})$. %by fulfillment.
+Note that there is no order from $\DW[\modeSC]{x}{2}$ to $\DW{y}{1}$.
 
 
 We relax program order on non-SC accesses in order to allow the outcome

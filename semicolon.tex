@@ -263,6 +263,7 @@ $\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP
   % \end{aligned}
 \end{gather*}
 \endgroup
+\textcolor{red}{make sure end marker at end in par}
 To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
 choosing to keep the substitution on the left.
 Due to the asymmetry,
@@ -596,8 +597,8 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
 %   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
-\item[5b-f.] as in \textsection\ref{sec:model} and \textsection\ref{sec:variants},
-\item[5g.] if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
+\item[5b-f.] as in \textsection\ref{sec:model} and
+  \textsection\ref{sec:variants}, generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
 % \item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
 %   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
 % \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
@@ -871,6 +872,7 @@ The semantics is equivalent to that of the main text.
 \begin{displaymath}
   \semold{\aCmd} = \killS\sem{\aCmd}
 \end{displaymath}
+\textcolor{red}{can keep end marker}
 % \begin{align*}
 %   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
 %   \\

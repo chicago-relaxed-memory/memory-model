@@ -31,58 +31,58 @@ We prove the following theorem in \textsection\ref{sec:arm:proof}.
   is a top-level memory model pomset.
 \end{theorem}
 
-weakestmo:
-\begin{verbatim}
-Rsc ldar
-Wsc stlr
-\end{verbatim}
-Comparison to C11 from
-\cite[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
-\begin{verbatim}
-volatile read:   dmb ld; ldar R, [x]
-volatile write:  L: ldaxr; stlxr; cbnz L; dmb st
-\end{verbatim}
-The second difference is that our atomic writes have stronger semantics,
-which is why we use atomic exchanges instead of stlr on ARMv8. Consider the
-following, using an atomic (SC atomic) location x and a nonatomic (relaxed)
-location y
-\begin{gather*}
-  r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
-  \PAR
-  % y\GETS0\SEMI
-  x^\modeSC\GETS2 \SEMI y\GETS1
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DR{y}{1}}{}
-      \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
-      \po{a}{b}
-      \event{bb}{\DR{x}{2}}{right=of b}
-      \po{b}{bb}
-      % \event{c}{\DW{y}{0}}{right=2em of bb}
-      % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
-      % \po{c}{d}
-      \event{d}{\DW[\modeSC]{x}{2}}{right=2em of bb}
-      \event{e}{\DW{y}{1}}{right=of d}
-      \po{d}{e}
-      %\rf[out=170,in=10]{d}{bb}
-      \rf{d}{bb}
-      \rf[out=-170,in=-10]{e}{a}
-      \wk[in=165,out=15]{b}{d}
-    \end{tikzinline}}
-\end{gather*}
-In our model, if x = 2 afterwards, then r = 0. This is clear from the
-operational semantics: the step r = y must precede x = 1,which must precede x
-= 2 and y = 1. However, in C++ the outcome x = 2 and r = 1 is possible. In C++, SC
-atomic events are totally ordered, so r = y must happen-before x = 1, which
-must precede in the SC ordering x = 2, which must happen-before y =
-1. However, these two orderings do not compose, and in particular r = y does
-not happen-before y = 1, and it is permissible for r = y to read-from y = 1.
+% weakestmo:
+% \begin{verbatim}
+% Rsc ldar
+% Wsc stlr
+% \end{verbatim}
+% Comparison to C11 from
+% \cite[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
+% \begin{verbatim}
+% volatile read:   dmb ld; ldar R, [x]
+% volatile write:  L: ldaxr; stlxr; cbnz L; dmb st
+% \end{verbatim}
+% The second difference is that our atomic writes have stronger semantics,
+% which is why we use atomic exchanges instead of stlr on ARMv8. Consider the
+% following, using an atomic (SC atomic) location x and a nonatomic (relaxed)
+% location y
+% \begin{gather*}
+%   r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
+%   \PAR
+%   % y\GETS0\SEMI
+%   x^\modeSC\GETS2 \SEMI y\GETS1
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{a}{\DR{y}{1}}{}
+%       \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
+%       \po{a}{b}
+%       \event{bb}{\DR{x}{2}}{right=of b}
+%       \po{b}{bb}
+%       % \event{c}{\DW{y}{0}}{right=2em of bb}
+%       % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
+%       % \po{c}{d}
+%       \event{d}{\DW[\modeSC]{x}{2}}{right=2em of bb}
+%       \event{e}{\DW{y}{1}}{right=of d}
+%       \po{d}{e}
+%       %\rf[out=170,in=10]{d}{bb}
+%       \rf{d}{bb}
+%       \rf[out=-170,in=-10]{e}{a}
+%       \wk[in=165,out=15]{b}{d}
+%     \end{tikzinline}}
+% \end{gather*}
+% In our model, if x = 2 afterwards, then r = 0. This is clear from the
+% operational semantics: the step r = y must precede x = 1,which must precede x
+% = 2 and y = 1. However, in C++ the outcome x = 2 and r = 1 is possible. In C++, SC
+% atomic events are totally ordered, so r = y must happen-before x = 1, which
+% must precede in the SC ordering x = 2, which must happen-before y =
+% 1. However, these two orderings do not compose, and in particular r = y does
+% not happen-before y = 1, and it is permissible for r = y to read-from y = 1.
 
-This behaviour cannot be explained operationally without either allowing
-reads to read from future writes, or allowing atomic locations to contain
-multiple or incoherent values, so it is not permitted in our simple
-operational model. However, this means that we must choose an alternative
-compilation scheme on ARMv8 and similar architectures.
+% This behaviour cannot be explained operationally without either allowing
+% reads to read from future writes, or allowing atomic locations to contain
+% multiple or incoherent values, so it is not permitted in our simple
+% operational model. However, this means that we must choose an alternative
+% compilation scheme on ARMv8 and similar architectures.
 
 
 \section{Data Race Free Executions are Sequentially Consistent}

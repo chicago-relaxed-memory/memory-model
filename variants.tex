@@ -23,9 +23,9 @@ $\modeRA$/$\modeSC$-accesses in C11.
 The additional order of syntactic fences is captured by adding the following
 to Definition \ref{def:prefix} of \emph{prefixing}:
 \begin{enumerate}
-\item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
+\item[5f.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
   $\aEv \lt' \bEv$, and
-\item[5f.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
+\item[5g.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}
 
