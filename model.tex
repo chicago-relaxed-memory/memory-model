@@ -343,7 +343,7 @@ $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
 The ordering relation, $\le$, represents \emph{causality}.
 The fourth requirement of the definition ensures \emph{causal strengthening:} formulae do not
-weaken over time, as measured by $\le$.  
+weaken over time, as measured by $\le$.
 
 The last requirement ensures \emph{compatibility:} a pomset represents a
 single execution.  For complete programs, we can restrict attention to events
@@ -410,7 +410,12 @@ are closed with respect to \emph{augmentation}, \emph{prefixing},
 % %   % $\labelingAct'=\labelingAct$, and  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
 % %   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
 % % \end{definition}
- We visualize pomsets as directed graphs.
+
+Each pomset in the semantics of a program has at most one termination event,
+which is ordered after all other events.  By causal strengthening, its
+postcondition must therefore imply the postcondition of all other events.
+
+We visualize pomsets as directed graphs.
 %where the nodes are drawn from $\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is drawn as an edge.
 % We often elide events with disjoint
 % preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
