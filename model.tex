@@ -416,8 +416,9 @@ are closed with respect to \emph{augmentation}, \emph{prefixing},
 % preconditions---$\aForm$ and $\bForm$ are \emph{disjoint} if
 % $\aForm \land \bForm$ is unsatisfiable.  For example, we typically drop
 % unsatisfiable events.
- In examples, we draw pomsets that are augmentation-minimal and
- implication\hyp{}minimal.  For example, the semantics of
+ In examples, we draw pomsets that are \emph{completed}, \emph{augmentation\hyp{}minimal} and
+ \emph{implication\hyp{}minimal}.  We elide the uninteresting termination
+ event.  For example, the semantics of
 \begin{math}
   \VAR\aLoc\SEMI(
   x\GETS 0\SEMI
@@ -696,8 +697,9 @@ for address calculation, which is required by realistic memory allocators.
   when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$
   such that
 $\Event' = \Event^1 \cup \Event^2$,
+$\Event^1$ is completed exactly when $\Event^2$ is completed,
+there is at most one termination in $\Event'$,
 ${\le'}\supseteq{\le^1}\cup{\le^2}$,
-there is at most one $\aEv$ such that $\labelingAct(\aEv)=\DSTOP$,
 and for all $\aEv\in\Event'$,
 either:
 %   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
@@ -763,6 +765,9 @@ program also includes:
 \end{gather*}
 Coalesced events inherit order from both sides.
 
+The definition requires that if $\aPS'\in(\aPS^1 \parallel \aPS^2)$ is completed,
+then both $\aPS^1$ and $\aPS^2$ are completed, and further, the completed event
+\emph{must} coalesce in $\aPS'$.
 % The definition ensures $\Event'$ is downclosed w.r.t.~each $\Event^i$.
 % Thus, if
 % $\aPSS^1$ and $\aPSS^2$ contain:
@@ -1269,7 +1274,7 @@ Definition \ref{def:pre-sc} such that:
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
 \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
-\item[5e.] if $\labelingAct(\aEv)=\DSTOP$ then $\dEv\lt'\aEv$.
+\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
 \end{enumerate}

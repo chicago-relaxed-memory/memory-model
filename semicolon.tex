@@ -95,7 +95,11 @@ For example, every substitution subsumes $\SUBEMP$.
 
 \paragraph{Substitutions in the Data Model.}
 Let $\Sub$ be the set of all (explicit) substitutions.  We include
-substitutions as actions: $\Sub\subseteq\Act$.  In the context of a
+substitutions as actions: $\Sub\subseteq\Act$.  All substitution actions are
+\emph{termination} actions.  For comparison with the semantics of
+\textsection\ref{sec:model}, we identify $\SUBEMP$ and $\DSTOP$.
+
+In the context of a
 pomset $\aPS$, we use $\Sub$ also to represent the set of substitution
 events:
 \begin{math}
@@ -104,29 +108,31 @@ events:
 % Alternatively, we
 % could extend the Definition \ref{def:mmpomset} to include an optional
 % substitution:
-Our pomsets will contain at most one substitution event, which is ordered
-after every other event.  In examples, we typically drop order into
+Recall that our pomsets contain at most one termination event, which is ordered
+after every other event.  
+In examples, we typically drop order into
 substitution actions, instead drawing them as accepting states.
 
-We also modify read actions both to name the register that was written
+We modify read actions both to name the register that was written
 and also to include a substitution:
 $\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
 We say $(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ reads \emph{into}
 $\aReg$.
-For any $\aAct$, we say that $\aAct$ \emph{read-substitutes} $\bSub$ if either
-$\aAct=(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ or $\aAct$ is not a read
-and $\bSub=\SUBEMP$.
+
+We say that $\aAct$ \emph{substitutes} $\aSub$ if either
+$\aAct=\aSub$, $\aAct=(\DRreg[\amode]{\aReg}{\aSub}{\aLoc}{\aVal})$, or
+$\aAct$ is neither a read nor a termination and $\aSub=\SUBEMP$.
 
 We modify Definition \ref{def:rf} to require that when $\aPS$ is
 \emph{$\aLoc$-closed}, every substitution in $\aPS$ is the identity on
-$\aLoc$: If $\labelingAct(\aEv)=\aSub$ or $\aEv$ read-substitutes $\aSub$,
-then $\aSub\SUBAPP\aLoc=\aLoc$.
+$\aLoc$: If $\aEv$ substitutes $\aSub$ then $\aSub\SUBAPP\aLoc=\aLoc$.
 
 We lift the notion of subsumption from explicit substitutions to actions and
-pomsets in the obvious way: $\aAct$ subsumes $\bAct$ if either (1)
-$\aAct=\bAct$, (2) $\aAct=\aSub$, $\bAct=\bSub$ and $\aSub$ subsumes $\bSub$,
-or (3) $\aAct$ read-substitutes $\aSub$,
-$\bAct$ read-substitutes $\bSub$, and $\aSub$ subsumes
+pomsets in the obvious way: $\aAct$ subsumes $\bAct$ if 
+%either (1) $\aAct=\bAct$, (2) $\aAct=\aSub$, $\bAct=\bSub$ and $\aSub$
+%subsumes $\bSub$, or (3)
+$\aAct$ substitutes $\aSub$,
+$\bAct$ substitutes $\bSub$, and $\aSub$ subsumes
 $\bSub$.
 $\aPS'$ \emph{subsumes} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
 $\labelingForm'=\labelingForm$, and $\labelingAct'(\aEv)$
@@ -143,12 +149,12 @@ follows.  In examples, we only show executions that are implication and
 augmentation minimal; similarly, we only show executions that are
 subsumption-maximal.
 
-Subsumption-maximal pomsets that include an accepting state
-$\aSub=\labelingAct(\Event\cap\Sub)$ satisfy the invariant that when
-$\labelingAct(\aEv)=(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ there are
+Suppose $\aPS$ is a completed, subsumption-maximal pomset.  Then
+$\labelingAct(\Event\cap\Sub)$ is defined, and all reads satisfy the invariant:
+if $\labelingAct(\aEv)=(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ then there are
 $\beforeSub$ and $\afterSub$ such that
 $\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
-$(\beforeSub\SUBSEQ\afterSub) = \aSub$.
+$(\beforeSub\SUBSEQ\afterSub) = \labelingAct(\Event\cap\Sub)$.
 
 
 
@@ -170,20 +176,32 @@ read actions:
 
 \paragraph{Semantics of the Example Language.}
 
-We elide the definitions of conditional and location binding, which can be
-imported directly from \textsection\ref{sec:model}---using the modified
-definition of $\aLoc$-closure discussed above.
- 
+We elide the definitions of parallel composition, conditional and location
+binding, which can be imported directly from
+\textsection\ref{sec:model}---using the modified definition of
+$\aLoc$-closure discussed above.
+
+Note that when coalescing reads or termination events using \!$\PAR$\!,
+the substitutions must be identical.  Using reverse subsumption closure, this
+is always possible; further it guarantees that the resulting substitution is subsumed by
+the substitutions on either side.  Thus, register state is only preserved
+after composition if it is shared on both sides.
+For example,
+\begin{math}
+  (r\GETS 1\PAR r\GETS 1)\SEMI x\GETS r
+\end{math}
+can write $1$ to $x$, but
+\begin{math}
+  (r\GETS 1\PAR \SKIP)\SEMI x\GETS r
+\end{math}
+cannot.
+
 To simplify the base cases, we use a literal notation for pomsets and define
 $\CLOSE{\aPS}$ to be the smallest set that includes $\aPS$ and is closed
 w.r.t.~prefixing, implication, augmentation, and reverse subsumption: Let
 $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$
 implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3) $\aPS''$
 is subsumed by $\aPS'$.
-
-Let $\killS\aPSS$ be the set $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$ when
-$\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP$.
-%
 \begingroup
 \allowdisplaybreaks
 \begin{gather*}
@@ -248,8 +266,8 @@ $\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP
   %   }}
   \\
   \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
-  \\
-  \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
+  % \\
+  % \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel\sem{\bCmd}
 \end{aligned}
   % \\
   % \begin{aligned}
@@ -263,19 +281,6 @@ $\disjoint{\Event'}{\Sub}$ and every $\aEv'\in\Event'$ read-substitutes $\SUBEMP
   % \end{aligned}
 \end{gather*}
 \endgroup
-\textcolor{red}{make sure end marker at end in par}
-To ensure a unique accepting state, we break the symmetry of \!$\PAR$\!,
-choosing to keep the substitution on the left.
-Due to the asymmetry,
-\begin{math}
-  (r\GETS 1\PAR\SKIP)\SEMI x\GETS r
-\end{math}
-can write $1$ to $x$, but
-\begin{math}
-  (\SKIP\PAR r\GETS 1)\SEMI x\GETS r
-\end{math}
-cannot.
-
 
 The most significant challenge is to define semantic sequencing.  The
 definition is complex, not only because of the bookkeeping required by
@@ -597,8 +602,8 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
 %   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
-\item[5b-f.] as in \textsection\ref{sec:model} and
-  \textsection\ref{sec:variants}, generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
+\item[5b-f.] as before (see \textsection\ref{sec:model} and
+  \textsection\ref{sec:variants}). %generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
 % \item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
 %   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
 % \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
@@ -863,6 +868,8 @@ and
 
 
 The semantics is equivalent to that of the main text.
+Let $\killS\aPSS$ be the set $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$
+every $\aEv'\in\Event'$ substitutes $\SUBEMP$.
 
 \begin{proposition}
   \label{thm:seq}
@@ -872,7 +879,6 @@ The semantics is equivalent to that of the main text.
 \begin{displaymath}
   \semold{\aCmd} = \killS\sem{\aCmd}
 \end{displaymath}
-\textcolor{red}{can keep end marker}
 % \begin{align*}
 %   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
 %   \\
