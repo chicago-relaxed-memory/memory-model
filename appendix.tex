@@ -1,12 +1,18 @@
 \section{Proof of compilation for ARMv8}
 \label{sec:arm:proof}
 
-In this section, we develop the proof of correctness of compilation to \armeight.  In order to ease readability, we reproduce the definitions from the main text. 
+In this section, we develop the proof of correctness of compilation to \armeight.  
 
+Our language can be translated to ARM following
+  \citet{DBLP:journals/pacmpl/PodkopaevLV19}, thus using \texttt{ldr} for relaxed read, \texttt{ldar} for $\modeRA$/$\modeSC$ reads are acquires, \texttt{str} for relaxed write, and \texttt{stlr} for $\modeRA$/$\modeSC$ writes.    $\FENCE$ instruction can be
+  translated to \texttt{dmb.sy}, since it has release-acquire semantics.
+  Acquire fences map to \texttt{dmb.ld}, and release fences to
+  \texttt{dmb.sy} --- \texttt{dmb.st} does not provide order to prior
+  reads.
 
+Relative to the ARM specification, we have removed loops, and read-modify-write (RMW) operations.  The implementation of RMW operations follows \citet{DBLP:journals/pacmpl/PodkopaevLV19}.    We only omit it because a systematic treatment includes a loop to account for the possible failure of the RMW operation.  
 
-Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
-transitive closure and $R^*$ denotes reflexive and transitive closure.  Given relations $R$ and $S$, $R;S$ denotes composition.
+Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes transitive closure and $R^*$ denotes reflexive and transitive closure.  Given relations $R$ and $S$, $R;S$ denotes composition.
 
 
 The ARMv8 model is described using the following relations.
@@ -164,8 +170,8 @@ We show that $\aPS$ is a top-level pomset, reasoning as follows.
 
 \subsection{Proof that  $({\robi} \cup {\reco})^*$ is irreflexive. }
 
-\paragraph*{Proof of lemma~\ref{extendob}. } 
 
+\begin{lemma}\label{extendob}
 Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
 
 \begin{proof}
@@ -231,6 +237,7 @@ Since $\aEv$ is not a read, $\aEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv'$.  Result 
 
 \end{itemize}
 \end{proof}
+\end{lemma}
 
 
 We now turn to proving that $({\robi} \cup {\reco})^*$ is acyclic.  
@@ -368,14 +375,15 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \begin{itemize}
 \item ${\sle'}\supseteq{\sle}$.
 
-\item Item \ref{pre-read}b changes to: if $\aEv$ is a write then either $\cEv\slt'\aEv$
-    or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+% \item Item 5b changes to: if $\aEv$ is a write then either $\cEv\slt'\aEv$
+% or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
 
+\item 5b changes to: if $\bEv$ and $\aEv$ are \external actions in conflict, then $\bEv \gtN' \aEv$,
 % \item Item \ref{pre-coherence} changes to:
 %  if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
 %     then $\cEv \gtN' \aEv$,
 
-\item Item \ref{pre-sync} changes to: if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \slt' \aEv$.
+\item Item 5a, 5c, 5d, 5e 5c change to impose $\slt$ order: eg. if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \slt' \aEv$.
 \end{itemize}
 \end{itemize}
 
