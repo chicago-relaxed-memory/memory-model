@@ -1,6 +1,12 @@
 \section{Other Related Work}\label{sec:ldrf}
-We briefly survey related work not already discussed in
-\textsection\ref{sec:intro}-\ref{sec:logic}.
+We survey related work not discussed in
+\textsection\ref{sec:intro}-\ref{sec:logic} and \textsection\ref{sec:outro}.
+
+A memory consistency model for a shared-memory multiprocessor defines the
+values that a read may return.  For a survey of hardware models, see
+\citep{AlglaveThesis}. For software models, see
+\citep{DBLP:journals/toplas/Lochbihler13,DBLP:phd/ethos/Batty15}.  For an
+attempt to bridge the two, see \citep{DBLP:journals/pacmpl/PodkopaevLV19}.
 
 \citet{2019-sp} introduced the notion of pomsets with preconditions.  They
 studied \emph{micro\hyp{}architecture}---specifically, speculative execution.
@@ -21,16 +27,12 @@ True concurrency techniques have been applied to relaxed memory by
 \citet{DBLP:conf/cgo/ChakrabortyV17}.  See
 \citet{DBLP:journals/lmcs/JeffreyR19} for a discussion.
 
-There is also a rich literature using transformations on SC execution to
-model relaxed memory:
+There is also a rich literature on the use of transformations over SC
+executions to model relaxed memory:
 
 \citet{Saraswat:2007:TMM:1229428.1229469}
 aimed to describe a \jmm-like model this way.  \drfsc\ holds, but \citet{SP} 
 discovered that it permits \oota\ behavior.
-
-\citet{DBLP:conf/esop/FerreiraFS10} described a relaxed memory model as being
-parametrized by available program transformations.  They showed \drfsc, but do not
-study \oota, relate to concrete models, or demonstrate compilation results.
 
 \citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, a model whose only
 permitted reordering is of a relaxed write with a following relaxed read.
@@ -39,13 +41,12 @@ design, it is designed as a restriction of the \jmm\ that invalidates several
 compiler optimizations.
 
 \citet{DBLP:conf/fm/LahavV16} characterized \tso\ as being derived by
-considering Write-Read (\textsc{wr}) reordering and Read-After-Write (\textsc{raw})
-elimination.  They also showed that the release acquires of C11 are less
-expressive than considering \textsc{wr}, \textsc{raw} and thread-inlining.  Our paper is
-inspired by their implicit challenge: ``Some memory models can be defined via
-transformations.  But there is more to weak memory than transformations.''
-
-\citet{}
+considering Write-Read (\textsf{WR}) reordering and Read-After-Write
+(\textsf{RAW}) elimination.  They also showed that the release acquires of
+C11 are less expressive than considering \textsf{WR} and \textsf{raw}
+together with thread-inlining.  Our paper is inspired by their implicit
+challenge: ``Some memory models can be defined via transformations.  But
+there is more to weak memory than transformations.''
 
 % \paragraph{Modeling the Invalidation of Load Buffering.} 
 
@@ -158,127 +159,153 @@ transformations.  But there is more to weak memory than transformations.''
 \section{Conclusions}
 \label{sec:outro}
 
-A memory consistency model for a shared-memory multiprocessor defines the
-values that a read may return.  There has been extensive research on hardware
-and software memory models. \citet{DBLP:journals/pacmpl/PodkopaevLV19}
-provided formal foundations to bridge the gap between the two.
-\citet{AlglaveThesis} provided a historical and conceptual perspective on
-hardware memory models.
-
-This paper focusses on software memory models.  For a survey and history of
-the Java Memory Model, see \citep{DBLP:journals/toplas/Lochbihler13}; for a
-survey and history of C11, see \citep{DBLP:phd/ethos/Batty15}.
-
-
-We have already discussed related work in context earlier in the paper.
-Here, we discuss in more detail the relationship with the most closely
-related work.
-
-
-\subsection{Revisiting \oota}
-\citet{DBLP:conf/esop/BattyMNPS15} describe the problem of thin-air
-executions. \citet{BoehmOOTA} revisits community discussions on ``\oota''
-like examples.  We classify the models on the basis of their behavior on
-three examples: \eqref{oota1}, \eqref{alan} and \eqref{rfub}.
-\begin{itemize}
-\item RC11\cite{DBLP:conf/pldi/LahavVKHD17}, \jmm\ 
-  \cite{Manson:2005:JMM:1047659.1040336} and the related models of
-  \citet{DBLP:conf/esop/JagadeesanPR10} and \citet{DBLP:conf/popl/KangHLVD17}
-  forbid only \eqref{oota1}.
-\item The model of this paper forbids \eqref{oota1} and \eqref{alan}.
-\item Forbidding load buffering as per
-  \citep{Dolan:2018:BDR:3192366.3192421,BoehmOOTA} forbids all three
-  examples.  RC11\cite{DBLP:conf/pldi/LahavVKHD17} also forbids all three
-  examples.
-\end{itemize}
-
-One of our novel contributions to this line of research is the desideratum of
-compositional reasoning of safety properties. The presence of such
-compositional reasoning suffices to remove the undesirable effects of \oota,
-eg. type safety.  And while \oota\ in a model is an elusive creature, and
-hence hard to prove or disprove, the support of a model for a compositional
-proof principle is objectively provable or falsifiable.
-
-
-\textsc{weakestmo} \cite{DBLP:journals/pacmpl/ChakrabortyV19, DBLP:journals/corr/abs-1911-06567}.
-
-loop unrolling and sequential composition are a challenge when register can be
-used more than once in an execution.
-
-A memory consistency model for a shared-memory multiprocessor defines the
-values that a read may return.  For a survey of hardware models, see
-\citep{AlglaveThesis}. For software models, see
-\citep{DBLP:journals/toplas/Lochbihler13,DBLP:phd/ethos/Batty15}.  For an
-attempt to bridge the two, see \citep{DBLP:journals/pacmpl/PodkopaevLV19}.
-
 We have defined a relaxed memory model, using standard tools from the
 semantics and demonstrated that it satisfies the fundamental criterion for
 software memory models, namely ``the memory model must strike a balance
 between ease-of-use for programmers and implementation flexibility for system
 designers.''
 
-One key lesson we draw is that any software relaxed memory model should
-support the cyclical composition proof rule of
-\citet{Abadi:1993:CS:151646.151649} for temporal properties.  We posit that all
-the benefits of \oota, such as typing guarantees, can be derived from this
-principle. 
+We have made two substantial contributions.
 
-We conclude with a suggestion for the consideration of programming language
-designers.  The semantics of a programming language should support a clear
-and executable prescription of dependency in a program.  Such a specification
-provides a nice interface between the language user and the compiler writer,
-and a clear bridge from the compiler writer to architectures.
+In \textsection\ref{sec:opt}, we formalized a connection between Hoare logic
+and the sequential fragment of our language, allowing us to make a general
+statement about transformations.  We present a solution to a problem that has
+been open since \citet{DBLP:conf/ecoop/SevcikA08} discovered that several
+sequential program transformations are invalid in the Java Memory Model
+\citet{Manson:2005:JMM:1047659.1040336},
 
-Our current paper is to be viewed as a step towards this goal.  We will
-explore developing an executable specification based on these ideas in future
-work.
+In \textsection\ref{sec:logic}, we proposed a cyclical proof rule for
+parallel composition of temporal properties in style of
+\citet{Abadi:1993:CS:151646.151649}.  This provides an objectively
+falsifiable alternative to the notion of \emph{out of thin air} (\oota)
+execution, which has been famously difficult to prove or disprove
+\cite{DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.
 
-A memory consistency model for a shared-memory multiprocessor defines the
-values that a read may return.  For a survey of hardware models, see
-\citep{AlglaveThesis}. For software models, see
-\citep{DBLP:journals/toplas/Lochbihler13,DBLP:phd/ethos/Batty15}.  For an
-attempt to bridge the two, see \citep{DBLP:journals/pacmpl/PodkopaevLV19}.
+These contributions rest on semantics that supports a simple, executable
+prescription of \emph{essential dependencies}.  This specification provides a
+clear interface between the language user and the compiler writer, and a
+clear bridge from the compiler writer to computer architecture.
 
-Use of MCA can be separated out to develop a model for weaker architectures
-and distributed systems such as PPC.
+We presented a denotational semantics using pomsets with preconditions.  The
+model may also be expressible in the operational framework of
+\citet{DBLP:conf/esop/FerreiraFS10}, which parameterizes a standard SC
+operational semantics with respect to a set of program transformations.
 
-The central challenge in software models is to relax order enough to allow
-efficient implementation without admitting anomalous behaviors---called
-\emph{out of thin air} \oota\ in the literature
-\cite{DBLP:conf/esop/BattyMNPS15,BoehmOOTA}---such as
-\citeauthor{DBLP:journals/toplas/Lochbihler13}'s type unsafety example.
+Ours is the first language-level model to incorporate \emph{multi-copy
+  atomicity} (\mca).  However, our main contributions do not depend on \mca.
+It is possible to apply our ideas to stronger models, and to weaker ones.
+For stronger models
+\cite{Boehm:2014:OGA:2618128.2618134,Dolan:2018:BDR:3192366.3192421}, it is
+likely sufficient to require more order in the pomset.  To compile
+efficiently to weaker architectures, such as \ppc\ and \armseven, it is
+appears necessary to use a model with more than one ordering relation.
 
-One of our contributions is to articulate the goal of compositional reasoning
-using safety properties, which suffices to forbid anomalous behavior.  \oota\
-is a famously elusive creature, and thus is hence hard to prove or disprove.
-Support of a model for a compositional proof principle, instead, is
-objectively provable or falsifiable.
+The logic we presented in \textsection\ref{sec:logic} is only strong enough
+to prove a few examples.  \citet{DBLP:conf/esop/SvendsenPDLV18} presented a
+different a logic, capable of showing that the following program cannot write
+2:
+% Some \oota\ examples can be proven if we extend the
+% logic with value quantification---we leave the details to future work.
+% Consider \cite[(\textsc{rng})]{DBLP:conf/esop/SvendsenPDLV18}:
+\begin{gather*}
+  % \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI %\\[-.5ex]
+  \begin{aligned}
+    ( y\GETS x+1
+    \PAR
+    x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1em]
+        \event{rx}{\DR{x}{1}}{}
+        \event{wy}{\DW{y}{2}}{right=of rx}
+        \po{rx}{wy}
+        \event{ry}{\DR{y}{1}}{right=3em of wy}
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \po{ry}{wx}
+        % \rf{wy}{ry}
+        \rf[out=170,in=10]{wx}{rx}
+      \end{tikzinline}}
+  \end{aligned}
+  % \\
+  % \hbox{$
+  %   \begin{gathered}
+  %     [\forall u,v.\;(\once\DW{y}{u} \land \once\DW{y}{v}) \Rightarrow ((u \EQ v) \vee (u \EQ 0) \vee (v \EQ 0))]
+  %     \\[-.5ex]
+  %     \land [\DW{x}{1} \Rightarrow \once\DR{y}{1}]
+  %     \land [\DW{y}{2} \Rightarrow \once\DR{x}{1}]
+  %     % \land [\DW{z}{2} \Rightarrow \once\DR{y}{2}]
+  %   \end{gathered}$}
+\end{gather*}
+%   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
+%   (
+%     y\GETS x+1\SEMI z \GETS y
+%   \PAR
+%     x\GETS y
+%     %   )
+% \end{displaymath}
+% \begin{scope}
+%   \small
+%   \begin{gather*}
+%     [(\once\DW{y}{v_1} \land \once\DW{y}{v_2}) \Rightarrow ((v_1 = v_2) \vee (v_1 = 0) \vee (v_2 = 0))] \land\\[-.5ex]
+%     [\once\DW{x}{1} \Rightarrow \once\DR{y}{1}] \land [\once\DW{y}{2}
+%     \Rightarrow \once\DR{x}{1}] \land [\once\DW{z}{2} \Rightarrow
+%     \once\DR{y}{2}]
+%   \end{gather*}
+% \end{scope}
+The attempted execution is disallowed since there is no write to fulfill
+$\DR{y}{1}$.   This example require the ability to reason about values.
+% Closing $x$ and $y$ and using the last two conjuncts in the
+% invariant above:
+% % last conjunct, we have
+% % \begin{math}
+% %   % \once\DW{z}{2} \Rightarrow \once\DR{y}{2}
+% %   % \once\DW{z}{2} \Rightarrow \once\DW{y}{2}
+% %   \DW{y}{2} \Rightarrow \once\DR{x}{1}.
+% % \end{math}
+% % Closing $x$, we then have
+% \begin{math}
+%   % \once\DW{z}{2} \Rightarrow \once\DW{x}{1}
+%   \DW{y}{2} \Rightarrow \once\DW{y}{1}.
+% \end{math}
+% From the first conjunct, we then derive
+% \begin{math}
+%   \DW{y}{2} \Rightarrow \FALSE,
+% \end{math}
+% as required.
+As another example, the following outcome is allowed by the promising
+semantics \cite{DBLP:conf/popl/KangHLVD17}, but not in \weakestmo{}
+\cite[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19} nor in our semantics, due
+to the cycle:
+\begin{gather*}
+  \label{weakestmo}
+  x\GETS 2\SEMI
+  \IF{x\NOTEQ2}\THEN y\GETS 1 \FI
+  \PAR
+  x\GETS 1\SEMI
+  r\GETS x\SEMI
+  \IF{y}\THEN x\GETS 3 \FI
+  \\\nonumber
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx2}{\DW{x}{2}}{}
+  \event{rx3}{\DR{x}{3}}{right=of wx2}
+  \event{wy1}{\DW{y}{1}}{right=of rx3}
+  \po{rx3}{wy1}
+  \event{wx1}{\DW{x}{1}}{right=2em of wy1}
+  \event{rx2}{\DR{x}{2}}{right=of wx1}
+  \wk{wx1}{rx2}
+  \event{ry1}{\DR{y}{1}}{right=of rx2}
+  \event{wx3}{\DW{x}{3}}{right=of ry1}
+  \po{ry1}{wx3}
+  \wk[in=165,out=15]{rx2}{wx3}
+  \rf[in=-170,out=-10]{wy1}{ry1}
+  \rf[in=170,out=10]{wx2}{rx2}
+  \rf[out=-170,in=-10]{wx3}{rx3}
+  \wk[out=-170,in=-10]{wx1}{wx2}
+  \wk{wx2}{rx3}
+    \end{tikzinline}}
+\end{gather*}
+This example requires a logic with modalities to deal with intervening writes
+and coherence.
 
-Our work strikes an unusual balance: Unlike Java and related models
-\cite{Manson:2005:JMM:1047659.1040336,DBLP:conf/esop/JagadeesanPR10,DBLP:conf/popl/KangHLVD17},
-we support compositional reasoning for safety properties
-(\textsection\ref{sec:logic}).  Unlike models that invalidate load buffering
-\cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/pldi/LahavVKHD17},
-we do not require fences for relaxed access on \mca\ architectures, such as
-\armeight.
 
-Optimizations and hoare logic!
-
-Our approach follows several attempts to solve the problem within the
-framework of true concurrency
-\cite{DBLP:conf/lics/JeffreyR16,Pichon-Pharabod:2016:CSR:2837614.2837616,DBLP:conf/esop/CenciarelliKS07}.
-
-
-
-
-% We have already discussed related work in context earlier in the paper.
-% Here, we discuss in more detail the relationship with the most closely
-% related work.
-
-
-
-
-
+\endinput
 
 \section{Conclusions}
 We have defined a relaxed memory model, using standard tools from the
@@ -305,6 +332,7 @@ work.
  
 
 
+\endinput
 \section{SCRAPS}
 
 Some \oota\ examples can be proven if we extend the logic with value
