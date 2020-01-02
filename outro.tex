@@ -36,9 +36,9 @@ discovered that it permits \oota\ behavior.
 
 \citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, a model whose only
 permitted reordering is of a relaxed write with a following relaxed read.
-The paper develops an axiomatic and studies effects on compilation.  By
-design, it is designed as a restriction of the \jmm\ that invalidates several
-compiler optimizations.
+The paper develops an axiomatic and studies effects on compilation.  It is
+designed as a restriction of the \jmm\ that compiles efficiently to \tso, but
+requires fencing on other architectures.
 
 \citet{DBLP:conf/fm/LahavV16} characterized \tso\ as being derived by
 considering Write-Read (\textsf{WR}) reordering and Read-After-Write
@@ -169,20 +169,20 @@ We have made two substantial contributions.
 
 In \textsection\ref{sec:opt}, we formalized a connection between Hoare logic
 and the sequential fragment of our language, allowing us to make a general
-statement about transformations.  We present a solution to a problem that has
-been open since \citet{DBLP:conf/ecoop/SevcikA08} discovered that several
-sequential program transformations are invalid in the Java Memory Model
-\citet{Manson:2005:JMM:1047659.1040336},
+statement about transformations.  Thus, we present a solution to a problem that has
+been open since \citet{DBLP:conf/ecoop/SevcikA08} discovered that several sequential
+compiler optimizations are invalid in the Java Memory Model
+\cite{Manson:2005:JMM:1047659.1040336}.
 
 In \textsection\ref{sec:logic}, we proposed a cyclical proof rule for
-parallel composition of temporal properties in style of
+parallel composition of temporal properties in the style of
 \citet{Abadi:1993:CS:151646.151649}.  This provides an objectively
 falsifiable alternative to the notion of \emph{out of thin air} (\oota)
 execution, which has been famously difficult to prove or disprove
 \cite{DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.
 
-These contributions rest on semantics that supports a simple, executable
-prescription of \emph{essential dependencies}.  This specification provides a
+These contributions rest on a semantics that supports a simple, executable
+prescription of \emph{essential dependencies}.  This provides a
 clear interface between the language user and the compiler writer, and a
 clear bridge from the compiler writer to computer architecture.
 
@@ -250,7 +250,7 @@ different a logic, capable of showing that the following program cannot write
 %   \end{gather*}
 % \end{scope}
 The attempted execution is disallowed since there is no write to fulfill
-$\DR{y}{1}$.   This example require the ability to reason about values.
+$\DR{y}{1}$.   This example requires the ability to reason about values.
 % Closing $x$ and $y$ and using the last two conjuncts in the
 % invariant above:
 % % last conjunct, we have
