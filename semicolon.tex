@@ -121,7 +121,7 @@ $\aReg$.
 
 We say that $\aAct$ \emph{substitutes} $\aSub$ if either
 $\aAct=\aSub$, $\aAct=(\DRreg[\amode]{\aReg}{\aSub}{\aLoc}{\aVal})$, or
-$\aAct$ is neither a read nor a termination and $\aSub=\SUBEMP$.
+$\aSub=\SUBEMP$ and $\aAct$ is neither a termination nor a read.
 
 We modify Definition \ref{def:rf} to require that when $\aPS$ is
 \emph{$\aLoc$-closed}, every substitution in $\aPS$ is the identity on
@@ -602,8 +602,7 @@ Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.
 %   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
 %   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
 %   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
-\item[5b-f.] as before (see \textsection\ref{sec:model} and
-  \textsection\ref{sec:variants}). %generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
+\item[5b-f.] as before (see \textsection\ref{sec:model}-\ref{sec:variants}). %generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
 % \item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
 %   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
 % \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
