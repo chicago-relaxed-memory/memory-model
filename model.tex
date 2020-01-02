@@ -233,7 +233,7 @@ We elide the $\modeRLX$-mode annotation in examples.
 % \end{align*}
 %The syntax of statements is as follows.
 
-We also include the action $\SUBEMP$, which denotes termination.
+We also include a \emph{termination} action: $(\DSTOP)$.
 
 We define the language by prefixing individual reads and writes.  In
 \textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
@@ -294,7 +294,7 @@ Our model is based on \emph{partially ordered multisets}
     $\labelingForm(\bEv)$, and
   \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
   \end{itemize}
-  A pomset is \emph{completed} if $\exists\aEv.\;\labelingAct(\aEv)=\SUBEMP$ and $\forall\bEv.\;\bEv\le\aEv$.
+  % A pomset is \emph{completed} if $\exists\aEv.\;\labelingAct(\aEv)=\DSTOP$. % and $\forall\bEv.\;\bEv\le\aEv$.
 \end{definition}
 % From $\labeling$, we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$.
 
@@ -305,10 +305,12 @@ We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
 We identify pomsets up to isomorphism. %We write the empty pomset as $\emptypomset$.
 
 We lift terminology from logical formulae and actions to events, saying, for example,
-that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable. % ,
-% and that $\aEv$ is an acquire when $\labelingAct(\aEv)$ is an acquire.
+that $\aEv$ is unsatisfiable if $\labelingForm(\aEv)$ is unsatisfiable,
+and that $\aEv$ is a termination when $\labelingAct(\aEv)$ is a termination.
 We often elide explicit universal quantifiers in phrases such as
 ``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
+
+A pomset is \emph{completed} if contains a termination. %$\exists\aEv.\;\labelingAct(\aEv)=\DSTOP$. % and $\forall\bEv.\;\bEv\le\aEv$.
 
 The formula associated with an event is a \emph{precondition}.
 The following commands gives rise to the pomset below them, capturing data
@@ -486,15 +488,15 @@ ${\le'} = {\le}$,
 and
 $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
 
-Let $\aPS\in\SKIPPS$ when
+Let $\aPS\in\stopPS$ when
 $\Event = \{ \aEv \}$ and
-$\labelingAct(\aEv) = \SUBEMP$.
+$\labelingAct(\aEv) = \DSTOP$.
 \begin{align*}
   \sem{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
   \sem{\aCmd}[\aExp/\aReg] 
   &  
   \sem{\SKIP} & \eqdef
-  \SKIPPS
+  \stopPS
 \end{align*}
 \end{definition}
 
@@ -695,7 +697,7 @@ for address calculation, which is required by realistic memory allocators.
   such that
 $\Event' = \Event^1 \cup \Event^2$,
 ${\le'}\supseteq{\le^1}\cup{\le^2}$,
-there is at most one $\aEv$ such that $\labelingAct(\aEv)=\SUBEMP$,
+there is at most one $\aEv$ such that $\labelingAct(\aEv)=\DSTOP$,
 and for all $\aEv\in\Event'$,
 either:
 %   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
@@ -1267,7 +1269,7 @@ Definition \ref{def:pre-sc} such that:
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
 \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
-\item[5e.] if $\labelingAct(\aEv)=\SUBEMP$ then $\dEv\lt'\aEv$.
+\item[5e.] if $\labelingAct(\aEv)=\DSTOP$ then $\dEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
 \end{enumerate}
@@ -1479,9 +1481,9 @@ precondition of the write via 4b, as on the left hand side of
 Item 4b \emph{allows} a precondition to weaken, but does not \emph{require} it.
 Item 5a only requires order when the precondition weakens.
 Thus, no order is required in: % the following execution:
-\begin{gather}
+\begin{gather*}
   \aCmd=r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
-  \label{ex555}
+  %\label{ex555}
   \\
   \nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
@@ -1489,7 +1491,7 @@ Thus, no order is required in: % the following execution:
       \event{rx1}{\DR{x}{1}}{left=of wy1}
       % \po{rx1}{wy1}
     \end{tikzinline}}
-\end{gather}
+\end{gather*}
 Let $\aCmd$ be the program above.  The existence of this pomset is justified
 by the triple $\hoare{x\geq0}{\aCmd}{y=1}$, rather than by the value of the read
 action.  Nonetheless, item 4b requires that the value of the read action must

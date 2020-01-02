@@ -19,9 +19,30 @@ thread.  \armeight{} drops $\rob$-order \emph{into} an internal read.  As
 discussed in \textsection\ref{sec:model}, however, our semantics drops pomset
 order \emph{out of} an internal read.  To accommodate this, we drop these
 dependencies from the \armeight{} \emph{dependency order before} ($\rdob$)
-relation.  Let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
-$\bEv\notin\fcodom(\rrfi)$.  Let $\robi$ be defined as for $\rob$, simply
-replacing $\rdob$ with $\rdobi$.
+relation.
+%
+The relation ${\rdobi}$ is defined from ${\rdob}$ by restricting the order
+into and out of a read that is in the codomain of the $\rrfi$ relation. More
+formally, let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
+$\bEv\notin\fcodom(\rrfi), \aEv \notin\fcodom(\rrfi)$.
+%
+% Let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
+% $\bEv\notin\fcodom(\rrfi)$.
+%
+Let $\robi$ be defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
+
+% The definition is complicated by \armeight's \emph{internal reads}, manifest
+% in ${\rrfi}$, which relates reads to writes that are fulfilled by the same
+% thread.  \armeight{} drops $\rob$-order \emph{into} an internal read.  As
+% discussed in \textsection\ref{sec:model}, however, our semantics drops pomset
+% order \emph{out of} an internal read.  To accommodate this, 
+% we define ${\robi}$ from ${\rob}$ by restricting the order into and out of an
+% read that is in the codomain of the $\rrfi$ relation.  Formally, we drop
+% these dependencies from the \armeight{} \emph{dependency order before}
+% ($\rdob$) relation: let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
+% $\bEv\notin\fcodom(\rrfi), \aEv \notin\fcodom(\rrfi)$.  Then $\robi$ be
+% defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
+
 
 For pomset order, we then take ${\gtN}=({\reco}\cup{\robi})^*$.
 

@@ -308,16 +308,16 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 Theorem \ref{thm:hoare} immediately validates peephole optimizations, such as
 redundant load \eqref{RL}, store forwarding \eqref{SF}, dead store \eqref{DS},
 and independent reorderings.  Using the semantics directly, we can prove
-these properties without using $\readc$.
+other properties without using $\readc$.
 Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 \begin{align*}
   \taglabel{RL}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc} &\supseteq 
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg}
+  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc} &\supseteq 
+  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg}
   \\
   \taglabel{SF}
-  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc} &\supseteq 
-  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp}
+  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc} &\supseteq 
+  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp}
   \\
   \taglabel{DS}
   \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp} &\supseteq 
@@ -338,7 +338,7 @@ Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)
 \eqref{RR} requires either $\aReg\neq\bReg$ or $\aLoc=\bLoc$.  \eqref{WW} and
 \eqref{RW} require that two sides of the semicolon have disjoint ids; for example,
 \eqref{RW} requires $\disjoint{\free(\aReg \GETS \aLoc)}{\free(\bLoc \GETS \bExp)}$.
-\eqref{RL} and \eqref{SF} follow from prefix closure.
+\eqref{RL} and \eqref{SF} follow from read closure.
 \eqref{SF} follows from the write elimination allowed in Definition \ref{def:cover}.
 
 Since reads are unordered in our model, read optimizations are not limited by
@@ -346,11 +346,11 @@ the power of aliasing analysis, as they are with stronger models of coherence
 \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  Composing \eqref{RR} and
 \eqref{RL}, for $\aReg_2\neq\bReg$ we have:
 \begin{displaymath}
-  \sem{r_1\GETS \aLoc \SEMI
+  \readsem{r_1\GETS \aLoc \SEMI
   s\GETS \bLoc \SEMI  
   r_2\GETS \aLoc}
   \supseteq
-  \sem{r_1\GETS \aLoc \SEMI
+  \readsem{r_1\GETS \aLoc \SEMI
   s\GETS \bLoc \SEMI  
   r_2\GETS r_1}
 \end{displaymath}
