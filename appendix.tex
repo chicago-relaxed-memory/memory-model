@@ -1,3 +1,311 @@
+\section{Proof of compilation for ARMv8}
+\label{sec:arm:proof}
+
+In this section, we develop the proof of correctness of compilation to \armeight.  In order to ease readability, we reproduce the definitions from the main text. 
+
+
+
+Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
+transitive closure and $R^*$ denotes reflexive and transitive closure.  Given relations $R$ and $S$, $R;S$ denotes composition.
+
+
+The ARMv8 model is described using the following relations.
+\begin{itemize}
+\item $\IDR$, $\IDW$, $\IDAcq$, $\IDRel$: identity on reads, writes, acquires
+  and releases.
+% \item $\IDR$ identity on reads
+% \item $\IDW$: identity on writes
+% \item $\IDAcq$: identity on acquires
+% \item $\IDRel$: identity on releases
+\item $\IDLoc$: relates any two events that touch the same location.
+\item $\rpox$: program order.
+\item $\rdata$, $\rctrl$, $\raddr$: data, control and address dependencies.
+\item $\rrfx$: reads-from. $\rrfx^{-1}$ relates each read to a matching write
+  on the same location.
+\item $\rco$: coherence, which is a total order on the writes to a single
+  location.
+\item ${\rfr}\eqdef{\rco};\rrfx^{-1}$: from-read, which relates reads to
+  subsequent writes.
+\end{itemize}
+For any relation, the cross-thread subrelation is denoted by appending $e$;
+the intra-thread subrelation is denoted by appending $i$.  For example,
+${\rrfe}\eqdef{\rrfx}\setminus{\rpox}$ and ${\rrfi}\eqdef{\rrfx}\cap{\rpox}$.
+The subrelation restriction attention to actions on the same location is
+given by appending $\mathsf{loc}$.  For example, ${\rpoloc}\eqdef{\rpox}\cap{\IDLoc}$.
+
+The ARMv8 model defines the following relations.
+In our presentation, we have elided rules concerning fences and RMW operations.
+\begin{align*}
+  \tag{Extended coherence}
+  {\reco} &\eqdef {\rrf} \cup {\rfr} \cup {\rco}
+  \\
+  \tag{Observed externally}
+  {\robs} &\eqdef \smash{
+    {\rrfe} \cup {\rfre} \cup {\rcoe}
+  }
+  \\
+  \tag{Dependency order}
+  {\rdob} &\eqdef \smash{({\raddr}\cup{\rdata}); {\rrfi}^?}
+  \\[-1ex]
+  &\cup \smash{({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?}
+  \\[-1ex]
+  &\cup \smash{{\raddr}; {\rpox}; {\IDW}}
+  \\
+  \tag{Barrier order}
+  {\rbob} &\eqdef\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?
+  }
+  \\
+  \tag{Acyclic order}
+  {\rob} &\eqdef\smash{
+    ({\robs} \cup {\rdob} \cup {\rbob})^+
+  }
+\end{align*}
+\begin{definition}
+  An RMW-free and fence-free execution is \emph{ARM-consistent} if
+  \begin{align*}&
+    \tag{\textsc{$\rrfx$-completeness}}\label{rf-comp}
+    \fcodom(\rrfx)=\fdom(\rreads)
+    \\[-1ex]&
+    \tag{\textsc{$\rco$-totality}}\label{co-tot}
+    \text{For every location $\aLoc$, $\rco$ totally orders the writes of $\aLoc$}  
+    \\[-1ex]&
+    \tag{\textsc{sc-per-loc}}\label{sc-per-loc}
+    {\rpoloc} \cup {\rrfx} \cup {\rfr} \cup {\rco}\;\text{is acyclic}
+    \\[-1ex]&
+    \tag{\textsc{external}}\label{external}
+    {\rob}\;\text{is acyclic}
+  \end{align*}
+\end{definition}
+
+% Use these to refer to the rules in text:
+%\ref{rf-comp} 
+%\ref{co-tot}
+%\ref{sc-per-loc}
+%\ref{external}
+
+
+Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
+$\aEv\in\fcodom(\mathsf{po}\cap \mathsf{rf})$.    
+
+% We are going to translate internal reads of execution graphs into 
+% internal reads of the semantics.  
+
+From $G$ we construct a candidate pomset $\aPS$ as follows:
+\begin{itemize}
+\item $\Event= \textsf{E}$,
+% \item $\labelingAct(\aEv)=\tau \mathsf{lab}(e)$, if $\aEv$ is a % relaxed internal read, 
+\item $\labelingAct(\aEv)=\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
+  internal read,
+\item $\labelingForm(\aEv)=\TRUE$,
+\item ${\gtN}=({\reco}\cup{\robi})^*$.
+\end{itemize}
+The relation ${\robi}$ is defined from ${\rob}$ by restricting the order into and out of an read that is in
+the codomain of the $\rrfi$ relation.  More formally, let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
+$\bEv\notin\fcodom(\rrfi), \aEv \notin\fcodom(\rrfi)$.  
+
+Let $\robi$ be defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
+
+% considering the definition of $\rob$ without $\rrfi$, ie.:
+% \begin{align*}
+ %  \tag{Dependency order}
+%   {\rdob} &\eqdef\smash{
+ %    ({\raddr}\cup{\rdata});
+ %    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+ %    \cup {\raddr}; {\rpox}; {\IDW}
+ %  }
+ %  \\
+ %  \tag{Barrier order}
+ %  {\rbob} &\eqdef\smash{
+ %    {\IDAcq}; {\rpox}
+ %    \cup {\rpox};{\IDRel}; {\rcoi}^?
+ %  }
+ %  \\
+ %  \tag{Acyclic order}
+ % %  {\rob} &\eqdef\smash{
+ %   ({\robs} \cup {\rdob} \cup {\rbob})^+
+  % }
+% \end{align*}
+
+
+We show that $\aPS$ is a top-level pomset, reasoning as follows.
+% We establish the criteria for a top-level memory-model pomset:
+\begin{itemize}
+%\item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is 
+%acyclic.
+% \item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
+% \item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  Proved below.
+% \item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
+%   $\cEv \gtN \aEv$. By construction.
+% \end{itemize}
+
+% Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
+% \begin{itemize}
+\item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
+  $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
+% \item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
+%   read or write $\aLoc$, $\gtN$ forms a partial order.
+% \end{itemize}
+
+% Finally, we establish the criteria for a top-level pomset
+% (Definition~\ref{def:x-closed}).
+% \begin{itemize}
+%\item $\aEv$ is location independent. Trivial, since every formula 
+% is $\TRUE$.
+\item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
+  \begin{itemize}
+  \item $\bEv \lt \aEv$,  
+  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
+  \item if $\cEv$ writes to $\aLoc$
+    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}    
+\end{itemize}
+
+\subsection{Proof that  $({\robi} \cup {\reco})^*$ is irreflexive. }
+
+\paragraph*{Proof of lemma~\ref{extendob}. } 
+
+Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
+
+\begin{proof}
+If $\bEv'$ is an acquire,  or $\aEv$ is an release, or $\aEv'$ is a release, result is immediate.
+
+We next consider the case where $\aEv$ is a read.  In this case,  $\bEv$ is a write.  Since $\bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv$, there is a write $\bEv_1$ such that $ \bEv \xcoe\ \bEv_1 \ \xrfe\ \aEv' $.  So, $\bEv \xob \aEv$ and result follows in this case. 
+
+
+So, it suffices to prove the following assuming that $\bEv'$ is not an acquire and $\aEv'$ is not a release and $\aEv$ is not a release or a read and $\aEv, \bEv$ are distinct.
+\begin{itemize}
+\item If $\bEv'\ (\xob\cap \xpox)  \ \bEv(\xeco\cap\xpox)\aEv$ then $\bEv'\xob\aEv$.
+\item If $\bEv\ (\xeco\cap\xpox) \ \aEv(\xob\cap\xpox)\aEv'$ then $\bEv\xob\aEv'$.
+\end{itemize}
+
+
+We first prove that if $\bEv'\ (\xob \cap \xpox) \ \bEv\ (\xeco \cap \xpox) \ \aEv$ then $\bEv'\xob\aEv$.   Proof proceeds by cases on the witness for $\bEv'\ (\xob\cap \xpox) \ \bEv$. 
+\begin{itemize}
+\item  If $\bEv' \xbob  \bEv$, then: 
+\[ \bEv'\ (\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
+  }
+\bEv
+\]
+Since $\bEv'$ is not an acquire, $\bEv' ({\rpox};{\IDRel}; {\rcoi}^?) \bEv$, so $\bEv$ is a write.  Since $\aEv$ is not a read,  $\bEv \xcoi\ \aEv$. Thus, result follows.
+
+\item If $\bEv' \xdob  \bEv$, then: 
+\[ \bEv'\ 
+\smash{
+    ( ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW}
+  } \
+\bEv
+\]
+So, $\bEv$ is a write.  Since $\aEv$ is also a write, we deduce that 
+\[ \bEv'\ 
+\smash{
+    ( ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
+    \cup {\raddr}; {\rpox}; {\IDW}
+  } \
+\aEv
+\]
+\end{itemize}
+
+
+We next prove  that if $\bEv\ (\xeco \cap \xpox) \ \aEv\ (\xob\cap \xpox) \ \aEv'$ then $\bEv\xob\aEv'$, under the assumptions that  $\aEv'$ is not a release and $\aEv$ is not a release or a read and $\aEv, \bEv$ are distinct.
+
+
+ Proof proceeds by cases on the witness for $\aEv (\xob\cap \xpox) \aEv'$.  
+
+\begin{itemize}
+\item  If $\aEv \xbob  \aEv'$, then: 
+\[ \aEv\ (\smash{
+    {\IDAcq}; {\rpox}
+    \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
+  }
+\aEv'
+\]
+Since $\aEv$ is not a read, $\aEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv'$.  Result follows since  $\bEv \xpox\ \aEv$.
+
+
+\item If $\aEv \xdob  \aEv'$, then $\aEv$ is a read.  
+
+\end{itemize}
+\end{proof}
+
+
+We now turn to proving that $({\robi} \cup {\reco})^*$ is acyclic.  
+
+It suffices to consider possible cycles in $({\robi} \cup {\reco})^*$ that do not involve the read events fulfilled by $\rrfi$.    This is because the read events that are fulfilled by $\rrfi$ have the following properties:
+\begin{itemize}
+\item Any in-edge into the event factors through an in-edge from an acquire or the fulfilling write to the read
+\item Any out-edge from the event factors through an out-edge to a release
+\end{itemize}
+Thus, if there is a cycle involving a read event fulfilled by $\rrfi$, there is also a cycle without such a read event. 
+
+
+{\em In the rest of this section, we only consider events that are not read events fulfilled by $\rrfi$.}
+
+\begin{lemma}\label{obeco1}
+If $\bEv\xobi\aEv$ then $\lnot(\aEv\xeco\bEv)$.
+
+\begin{proof}
+
+Proof by contradiction.  Let 
+\[  \aEv \xeco \bEv \xobi \aEv  \]
+
+At least one of $\aEv,\bEv$ is a write.  So, if $\aEv \not\xpox \bEv$, then $\aEv \xob \bEv$, and we have a cycle in $\xob$.  
+
+So, we conclude that $\aEv \xpox \bEv$
+
+Since $\bEv \xobi \aEv$, there exists $\bEv \not\xpox \cEv$, $\bEv (\xeco \cap \xobi)  \cEv$, $\cEv \xobi \aEv$.
+
+We reason by cases.
+\begin{itemize}
+\item If $\cEv$ is a write or $\aEv$ is a write,  $\cEv \xeco \aEv$ and we have an $\xeco$ cycle.
+
+\item Otherwise, $\aEv$ is a read, $\bEv$ is a write. 
+
+Let $\bEv \xobi \cEv_0 \xobi \cEv_1 \ldots \cEv_n \xobi \aEv$ be the witness.   If $\cEv_n \xpox \aEv$, then $\cEv_n \xobi \bEv$ and we have an $\xob$ cycle.
+
+So, $\cEv_n \not\xpox \aEv$.  Thus, $\cEv_n$ is the write fulfilling $\aEv$. So, we deduce: $\cEv_n \xeco \aEv$ and $\bEv \xeco \cEv_n$ yielding an $\xeco$ cycle.
+\end{itemize}
+
+\end{proof}
+\end{lemma}
+
+\begin{lemma}\label{obeco2}
+$({\robi} \cup {\reco})^*$ is irrreflexive.
+\end{lemma}
+\begin{proof}
+The simple case that $\robi; \reco$ is irreflexive is proved above.  The full proof is by contradiction.  
+
+Let $n \geq 1$ be  such that:
+\begin{align*} 
+&\aEv^0_0 \xobi \aEv^0_1 \xeco \bEv^0_0 \xobi \bEv^0_1  \\
+(\xeco \cap \xobi) &  \   \aEv^1_0 \xobi \aEv^1_1 \xeco \bEv^1_0 \xobi \bEv^1_1 \\
+(\xeco \cap \xobi) & \ \ldots \\
+& \ldots \bEv^n_1 \\
+ (\xeco \cap \xobi) & \  \aEv^0_0
+\end{align*}
+where  for all $i$, we have:
+\[ \aEv^i_0 \xpox \aEv^i_1 (\xeco \cap \xpox) \bEv^i_0 \xpox \bEv^i_1\] and 
+\[ \neg (\bEv^i_1 \xpox \aEv^{(i+1) \mod n}_0 ) \]
+with the proviso that we have chosen the cycle with the minimum number of events.  
+
+For any $i$, if $\aEv^i_0 \not= \aEv^i_1$ or $\bEv^i_0 \xpox \bEv^i_1$, via lemma~\ref{extendob}, we deduce that $\aEv^i_0  \xob \bEv^i_1$, contradicting minimality of number of events in cycle.  
+
+So, we can assume that $n \geq 1$ is such that:
+\begin{align*} 
+&\ \aEv^0 \xeco  \bEv^0 \\
+(\xeco \cap \xob) &  \   \aEv^1  \xeco \bEv^1 \\
+(\xeco \cap \xob) & \ \ldots \\
+& \ldots \bEv^n \\
+ (\xeco \cap \xob) & \ \aEv^0
+\end{align*}
+which is a contradiction since it is a cycle in $\xeco$. 
+% and since at least one of $\aEv^i ,\bEv^i$ is a write for all $i$. 
+\end{proof}
+
 
 \section{Modal pomsets}
 In order to perform a sharper analysis of dependency, we present an alternate
@@ -307,313 +615,8 @@ Let $\bEv$ be the matching write for $\aEv_{(i+1)\mod n}$. If $\bEv_i \in \bPS$b
 
 We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and read $\aEv_{(i+1)\mod n}$ and write $\aEv'_i$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to a value from $\bPS$.  $\dPS$  is derived adding the modified read yielded by lemma~\ref{inputen} to $\bPS$.  Result follows by induction hypothesis since $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\lt, \reco$,  $\cPS$ has a race, and $\size(\dPS) = \size(\bPS) + 1$. 
 
-\section{Proof of compilation for ARMv8}
-\label{sec:arm:proof}
-
-In this section, we develop the proof of correctness of compilation to \armeight.  In order to ease readability, we reproduce the definitions from the main text. 
 
 
-
-Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
-transitive closure and $R^*$ denotes reflexive and transitive closure.  Given relations $R$ and $S$, $R;S$ denotes composition.
-
-
-The ARMv8 model is described using the following relations.
-\begin{itemize}
-\item $\IDR$, $\IDW$, $\IDAcq$, $\IDRel$: identity on reads, writes, acquires
-  and releases.
-% \item $\IDR$ identity on reads
-% \item $\IDW$: identity on writes
-% \item $\IDAcq$: identity on acquires
-% \item $\IDRel$: identity on releases
-\item $\IDLoc$: relates any two events that touch the same location.
-\item $\rpox$: program order.
-\item $\rdata$, $\rctrl$, $\raddr$: data, control and address dependencies.
-\item $\rrfx$: reads-from. $\rrfx^{-1}$ relates each read to a matching write
-  on the same location.
-\item $\rco$: coherence, which is a total order on the writes to a single
-  location.
-\item ${\rfr}\eqdef{\rco};\rrfx^{-1}$: from-read, which relates reads to
-  subsequent writes.
-\end{itemize}
-For any relation, the cross-thread subrelation is denoted by appending $e$;
-the intra-thread subrelation is denoted by appending $i$.  For example,
-${\rrfe}\eqdef{\rrfx}\setminus{\rpox}$ and ${\rrfi}\eqdef{\rrfx}\cap{\rpox}$.
-The subrelation restriction attention to actions on the same location is
-given by appending $\mathsf{loc}$.  For example, ${\rpoloc}\eqdef{\rpox}\cap{\IDLoc}$.
-
-The ARMv8 model defines the following relations.
-In our presentation, we have elided rules concerning fences and RMW operations.
-\begin{align*}
-  \tag{Extended coherence}
-  {\reco} &\eqdef {\rrf} \cup {\rfr} \cup {\rco}
-  \\
-  \tag{Observed externally}
-  {\robs} &\eqdef \smash{
-    {\rrfe} \cup {\rfre} \cup {\rcoe}
-  }
-  \\
-  \tag{Dependency order}
-  {\rdob} &\eqdef\smash{
-    ({\raddr}\cup{\rdata}); {\rrfi}^?
-    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-    \cup {\raddr}; {\rpox}; {\IDW}
-  }
-  \\
-  \tag{Barrier order}
-  {\rbob} &\eqdef\smash{
-    {\IDAcq}; {\rpox}
-    \cup {\rpox};{\IDRel}; {\rcoi}^?
-  }
-  \\
-  \tag{Acyclic order}
-  {\rob} &\eqdef\smash{
-    ({\robs} \cup {\rdob} \cup {\rbob})^+
-  }
-\end{align*}
-\begin{definition}
-  An RMW-free and fence-free execution is \emph{ARM-consistent} if
-  \begin{align*}&
-    \tag{\textsc{$\rrfx$-completeness}}\label{rf-comp}
-    \fcodom(\rrfx)=\fdom(\rreads)
-    \\[-1ex]&
-    \tag{\textsc{$\rco$-totality}}\label{co-tot}
-    \text{For every location $\aLoc$, $\rco$ totally orders the writes of $\aLoc$}  
-    \\[-1ex]&
-    \tag{\textsc{sc-per-loc}}\label{sc-per-loc}
-    {\rpoloc} \cup {\rrfx} \cup {\rfr} \cup {\rco}\;\text{is acyclic}
-    \\[-1ex]&
-    \tag{\textsc{external}}\label{external}
-    {\rob}\;\text{is acyclic}
-  \end{align*}
-\end{definition}
-
-% Use these to refer to the rules in text:
-%\ref{rf-comp} 
-%\ref{co-tot}
-%\ref{sc-per-loc}
-%\ref{external}
-
-
-Given an execution graph $G$, we say that $\aEv$ is an \emph{internal read} if
-$\aEv\in\fcodom(\mathsf{po}\cap \mathsf{rf})$.    
-
-% We are going to translate internal reads of execution graphs into 
-% internal reads of the semantics.  
-
-From $G$ we construct a candidate pomset $\aPS$ as follows:
-\begin{itemize}
-\item $\Event= \textsf{E}$,
-% \item $\labelingAct(\aEv)=\tau \mathsf{lab}(e)$, if $\aEv$ is a % relaxed internal read, 
-\item $\labelingAct(\aEv)=\mathsf{lab}(e)$, if $\aEv$ is not a relaxed
-  internal read,
-\item $\labelingForm(\aEv)=\TRUE$,
-\item ${\gtN}=({\reco}\cup{\robi})^*$.
-\end{itemize}
-The relation ${\robi}$ is defined from ${\rob}$ by restricting the order into and out of an read that is in
-the codomain of the $\rrfi$ relation.  More formally, let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
-$\bEv\notin\fcodom(\rrfi), \aEv \notin\fcodom(\rrfi)$.  
-
-Let $\robi$ be defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
-
-% considering the definition of $\rob$ without $\rrfi$, ie.:
-% \begin{align*}
- %  \tag{Dependency order}
-%   {\rdob} &\eqdef\smash{
- %    ({\raddr}\cup{\rdata});
- %    \cup ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
- %    \cup {\raddr}; {\rpox}; {\IDW}
- %  }
- %  \\
- %  \tag{Barrier order}
- %  {\rbob} &\eqdef\smash{
- %    {\IDAcq}; {\rpox}
- %    \cup {\rpox};{\IDRel}; {\rcoi}^?
- %  }
- %  \\
- %  \tag{Acyclic order}
- % %  {\rob} &\eqdef\smash{
- %   ({\robs} \cup {\rdob} \cup {\rbob})^+
-  % }
-% \end{align*}
-
-
-We show that $\aPS$ is a top-level pomset, reasoning as follows.
-% We establish the criteria for a top-level memory-model pomset:
-\begin{itemize}
-%\item ${\le}$ is a partial order.  This holds since $G.{\rar}$ is 
-%acyclic.
-% \item If $\bEv \le \aEv$ then $\bEv \gtN \aEv$.  By construction.
-% \item If $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then $\bEv = \aEv$.  Proved below.
-% \item If $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$ then
-%   $\cEv \gtN \aEv$. By construction.
-% \end{itemize}
-
-% Next, we establish the criteria for a 3-valued pomset with preconditions (Definition~\ref{def:3pre}).
-% \begin{itemize}
-\item $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$ whenever
-  $\bEv\le\aEv$.   Trivial, since every formula is $\TRUE$.
-% \item $\aPS$ is $\aLoc$-coherent; that is, when restricted to events that
-%   read or write $\aLoc$, $\gtN$ forms a partial order.
-% \end{itemize}
-
-% Finally, we establish the criteria for a top-level pomset
-% (Definition~\ref{def:x-closed}).
-% \begin{itemize}
-%\item $\aEv$ is location independent. Trivial, since every formula 
-% is $\TRUE$.
-\item If $\aEv$ reads $\aVal$ from $\aLoc$, then there is some $\bEv$ such that
-  \begin{itemize}
-  \item $\bEv \lt \aEv$,  
-  \item $\bEv$ writes $\aVal$ to $\aLoc$, and
-  \item if $\cEv$ writes to $\aLoc$
-    then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}    
-\end{itemize}
-
-\subsection{Proof that  $({\robi} \cup {\reco})^*$ is irreflexive. }
-
-\paragraph*{Proof of lemma~\ref{extendob}. } 
-
-Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
-
-\begin{proof}
-If $\bEv'$ is an acquire,  or $\aEv$ is an release, or $\aEv'$ is a release, result is immediate.
-
-We next consider the case where $\aEv$ is a read.  In this case,  $\bEv$ is a write.  Since $\bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv$, there is a write $\bEv_1$ such that $ \bEv \xcoe\ \bEv_1 \ \xrfe\ \aEv' $.  So, $\bEv \xob \aEv$ and result follows in this case. 
-
-
-So, it suffices to prove the following assuming that $\bEv'$ is not an acquire and $\aEv'$ is not a release and $\aEv$ is not a release or a read and $\aEv, \bEv$ are distinct.
-\begin{itemize}
-\item If $\bEv'\ (\xob\cap \xpox)  \ \bEv(\xeco\cap\xpox)\aEv$ then $\bEv'\xob\aEv$.
-\item If $\bEv\ (\xeco\cap\xpox) \ \aEv(\xob\cap\xpox)\aEv'$ then $\bEv\xob\aEv'$.
-\end{itemize}
-
-
-We first prove that if $\bEv'\ (\xob \cap \xpox) \ \bEv\ (\xeco \cap \xpox) \ \aEv$ then $\bEv'\xob\aEv$.   Proof proceeds by cases on the witness for $\bEv'\ (\xob\cap \xpox) \ \bEv$. 
-\begin{itemize}
-\item  If $\bEv' \xbob  \bEv$, then: 
-\[ \bEv'\ (\smash{
-    {\IDAcq}; {\rpox}
-    \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
-  }
-\bEv
-\]
-Since $\bEv'$ is not an acquire, $\bEv' ({\rpox};{\IDRel}; {\rcoi}^?) \bEv$, so $\bEv$ is a write.  Since $\aEv$ is not a read,  $\bEv \xcoi\ \aEv$. Thus, result follows.
-
-\item If $\bEv' \xdob  \bEv$, then: 
-\[ \bEv'\ 
-\smash{
-    ( ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-    \cup {\raddr}; {\rpox}; {\IDW}
-  } \
-\bEv
-\]
-So, $\bEv$ is a write.  Since $\aEv$ is also a write, we deduce that 
-\[ \bEv'\ 
-\smash{
-    ( ({\rctrl}\cup{\rdata}); {\IDW}; {\rcoi}^?
-    \cup {\raddr}; {\rpox}; {\IDW}
-  } \
-\aEv
-\]
-\end{itemize}
-
-
-We next prove  that if $\bEv\ (\xeco \cap \xpox) \ \aEv\ (\xob\cap \xpox) \ \aEv'$ then $\bEv\xob\aEv'$, under the assumptions that  $\aEv'$ is not a release and $\aEv$ is not a release or a read and $\aEv, \bEv$ are distinct.
-
-
- Proof proceeds by cases on the witness for $\aEv (\xob\cap \xpox) \aEv'$.  
-
-\begin{itemize}
-\item  If $\aEv \xbob  \aEv'$, then: 
-\[ \aEv\ (\smash{
-    {\IDAcq}; {\rpox}
-    \cup {\rpox};{\IDRel}; {\rcoi}^?) \ 
-  }
-\aEv'
-\]
-Since $\aEv$ is not a read, $\aEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv'$.  Result follows since  $\bEv \xpox\ \aEv$.
-
-
-\item If $\aEv \xdob  \aEv'$, then $\aEv$ is a read.  
-
-\end{itemize}
-\end{proof}
-
-
-We now turn to proving that $({\robi} \cup {\reco})^*$ is acyclic.  
-
-It suffices to consider possible cycles in $({\robi} \cup {\reco})^*$ that do not involve the read events fulfilled by $\rrfi$.    This is because the read events that are fulfilled by $\rrfi$ have the following properties:
-\begin{itemize}
-\item Any in-edge into the event factors through an in-edge from an acquire or the fulfilling write to the read
-\item Any out-edge from the event factors through an out-edge to a release
-\end{itemize}
-Thus, if there is a cycle involving a read event fulfilled by $\rrfi$, there is also a cycle without such a read event. 
-
-
-{\em In the rest of this section, we only consider events that are not read events fulfilled by $\rrfi$.}
-
-\begin{lemma}\label{obeco1}
-If $\bEv\xobi\aEv$ then $\lnot(\aEv\xeco\bEv)$.
-
-\begin{proof}
-
-Proof by contradiction.  Let 
-\[  \aEv \xeco \bEv \xobi \aEv  \]
-
-At least one of $\aEv,\bEv$ is a write.  So, if $\aEv \not\xpox \bEv$, then $\aEv \xob \bEv$, and we have a cycle in $\xob$.  
-
-So, we conclude that $\aEv \xpox \bEv$
-
-Since $\bEv \xobi \aEv$, there exists $\bEv \not\xpox \cEv$, $\bEv (\xeco \cap \xobi)  \cEv$, $\cEv \xobi \aEv$.
-
-We reason by cases.
-\begin{itemize}
-\item If $\cEv$ is a write or $\aEv$ is a write,  $\cEv \xeco \aEv$ and we have an $\xeco$ cycle.
-
-\item Otherwise, $\aEv$ is a read, $\bEv$ is a write. 
-
-Let $\bEv \xobi \cEv_0 \xobi \cEv_1 \ldots \cEv_n \xobi \aEv$ be the witness.   If $\cEv_n \xpox \aEv$, then $\cEv_n \xobi \bEv$ and we have an $\xob$ cycle.
-
-So, $\cEv_n \not\xpox \aEv$.  Thus, $\cEv_n$ is the write fulfilling $\aEv$. So, we deduce: $\cEv_n \xeco \aEv$ and $\bEv \xeco \cEv_n$ yielding an $\xeco$ cycle.
-\end{itemize}
-
-\end{proof}
-\end{lemma}
-
-\begin{lemma}\label{obeco2}
-$({\robi} \cup {\reco})^*$ is irrreflexive.
-\end{lemma}
-\begin{proof}
-The simple case that $\robi; \reco$ is irreflexive is proved above.  The full proof is by contradiction.  
-
-Let $n \geq 1$ be  such that:
-\begin{align*} 
-&\aEv^0_0 \xobi \aEv^0_1 \xeco \bEv^0_0 \xobi \bEv^0_1  \\
-(\xeco \cap \xobi) &  \   \aEv^1_0 \xobi \aEv^1_1 \xeco \bEv^1_0 \xobi \bEv^1_1 \\
-(\xeco \cap \xobi) & \ \ldots \\
-& \ldots \bEv^n_1 \\
- (\xeco \cap \xobi) & \  \aEv^0_0
-\end{align*}
-where  for all $i$, we have:
-\[ \aEv^i_0 \xpox \aEv^i_1 (\xeco \cap \xpox) \bEv^i_0 \xpox \bEv^i_1\] and 
-\[ \neg (\bEv^i_1 \xpox \aEv^{(i+1) \mod n}_0 ) \]
-with the proviso that we have chosen the cycle with the minimum number of events.  
-
-For any $i$, if $\aEv^i_0 \not= \aEv^i_1$ or $\bEv^i_0 \xpox \bEv^i_1$, via lemma~\ref{extendob}, we deduce that $\aEv^i_0  \xob \bEv^i_1$, contradicting minimality of number of events in cycle.  
-
-So, we can assume that $n \geq 1$ is such that:
-\begin{align*} 
-&\ \aEv^0 \xeco  \bEv^0 \\
-(\xeco \cap \xob) &  \   \aEv^1  \xeco \bEv^1 \\
-(\xeco \cap \xob) & \ \ldots \\
-& \ldots \bEv^n \\
- (\xeco \cap \xob) & \ \aEv^0
-\end{align*}
-which is a contradiction since it is a cycle in $\xeco$. 
-% and since at least one of $\aEv^i ,\bEv^i$ is a write for all $i$. 
-\end{proof}
 
 \endinput 
 
