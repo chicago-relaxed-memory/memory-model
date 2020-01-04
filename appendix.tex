@@ -281,7 +281,7 @@ So, $\cEv_n \not\xpox \aEv$.  Thus, $\cEv_n$ is the write fulfilling $\aEv$. So,
 \end{lemma}
 
 \begin{lemma}\label{obeco2}
-$({\robi} \cup {\reco})^*$ is irrreflexive.
+$({\robi} \cup {\reco})^*$ is irreflexive.
 \end{lemma}
 \begin{proof}
 The simple case that $\robi; \reco$ is irreflexive is proved above.  The full proof is by contradiction.  
@@ -394,7 +394,7 @@ We use $\tsem{\aCmd}$ to stand for the \tvalpom\ semantics of $\aCmd$.
 Recall that \emph{generators} in the pomset semantics are pomsets that are minimal with respect to augmentation and implication.  These generators are induced by pomsets  that are minimal with respect to augmentation and implication in the \tvalpom\ semantics  in the following sense.  
 
 $(\Event, {\gtN},\labeling)$ is a generator for $\sem{\aCmd}$ 
-if there exists  $(\Event, \slt, {\gtN},\labeling) \in \tsem{\aCmd}$ minimal wrt augmentation and implication, and  $\gtN = (\sle \cup \reco)^{*}$.
+if there exists  $(\Event, \slt, {\gtN},\labeling) \in \tsem{\aCmd}$ minimal w.r.t.~augmentation and implication, and  $\gtN = (\sle \cup \reco)^{*}$.
 
 Furthermore, any strong order that is outside of program order must be induced by a reads-from.  In the two-thread case, we can state the latter
 property as follows: suppose $\aEv$ and $\bEv$ are not related by program
@@ -421,7 +421,7 @@ Let $(\aPS \after \aEv) = {\{ \bEv\in\Event \mid \aEv \le \bEv
   \}}$ be the set of events that follow $\aEv$ in $\aPS$.
 \end{definition}
 
-The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (wrt $\reco$), even while  the races with existing independent writes are maintained.   A canonical example to keep in mind for this lemma is the program:
+The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (w.r.t.~$\reco$), even while  the races with existing independent writes are maintained.   A canonical example to keep in mind for this lemma is the program:
 \begin{align*}
   (y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1)
   \PAR
@@ -465,8 +465,8 @@ Then, there exists $\bPS \in \tsem{\aCmd}$ such that:
 %\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
 %(\aPS \after \aEv))$ and $(\bPS \after \aEv')$.
 \item $\aEv'$ reads from $\aLoc$, with matching write event $\bEv'$, such that $\bEv' \xeco \bEv$ in $\bPS$
-\item The restriction of $\sle$  in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS \after \aEv)$ agrees with the the restriction of $\sle$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS \after \aEv)$  in  $\bPS$.  
-\item The restriction of $\le$  in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS \after \aEv)$ agrees with the the restriction of $\le$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS \after \aEv)$  in  $\bPS$.  
+\item The restriction of $\sle$  in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS \after \aEv)$ agrees with the restriction of $\sle$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS \after \aEv)$  in  $\bPS$.  
+\item The restriction of $\le$  in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS \after \aEv)$ agrees with the restriction of $\le$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS \after \aEv)$  in  $\bPS$.  
 \end{itemize}
 \end{lemma}
 \begin{proof}
@@ -516,7 +516,7 @@ Let $\bEv \in \aPS$ be a write on $\aLoc$.
 Let $\aEv \in \aPS$ read from $\aLoc$ such that $\aEv \xeco \bEv$ and $\neg(\aEv \slt \bEv)$.  Then, there exists $\bPS \in \tsem{\aCmd}$ such that:
 \begin{itemize}
 \item $\aEv' \in \bPS \setminus \aPS$ reads from $\aLoc$, with matching write $\bEv$.
-\item The restriction of $\sle$ in $\aPS$ to $\Event_{\aPS} \setminus (\aPS\ \after\ \aEv)$ agrees with the the restriction of $\sle$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS\ \after\ \aEv)$.  
+\item The restriction of $\sle$ in $\aPS$ to $\Event_{\aPS} \setminus (\aPS\ \after\ \aEv)$ agrees with the restriction of $\sle$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS\ \after\ \aEv)$.  
 \end{itemize}
 \end{lemma}
 \begin{proof}
@@ -547,7 +547,7 @@ The lemma constructs the execution:
 Let $\aPS \in \tsem{\aCmd}$ be a top level pomset.  Let $\bEv, \aEv$ be a writes to $\aLoc$ such that:
 \begin{itemize}
 \item $\bEv\gtN \aEv$  
-\item forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\cEv \slt \aEv)$ and $\neg(\cEv \xpox \aEv)$
+\item for all writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\cEv \slt \aEv)$ and $\neg(\cEv \xpox \aEv)$
 \end{itemize}
 
 Then, there exists $\bPS \in \tsem{\aCmd}$ such that $\Event_{\aPS} = \Event_{\bPS}$, $\sle_{\aPS} = \sle_{\bPS}$, and 
@@ -559,8 +559,8 @@ We show how to interchange $\aEv, \bEv$ adjacent in $\gtN$, ie. we assume that  
 Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can build $\bPS$ while satisfying the constraints between $\slt,\gtN$.  We list the changes below.
 \begin{itemize}
 \item $\aEv \gtN \bEv$ in $\bPS$
-\item Forall reads $\cEv$ matched to $\aEv$, change from $\bEv \gtN \cEv$ in $\aPS$ to $\cEv \gtN \bEv$ in $\bPS$
-\item Forall reads $\cEv$ matched to $\bEv$, change from $\cEv \gtN \aEv$ in $\aPS$ to $\aEv \gtN \cEv$ in $\bPS$
+\item For all reads $\cEv$ matched to $\aEv$, change from $\bEv \gtN \cEv$ in $\aPS$ to $\cEv \gtN \bEv$ in $\bPS$
+\item For all reads $\cEv$ matched to $\bEv$, change from $\cEv \gtN \aEv$ in $\aPS$ to $\aEv \gtN \cEv$ in $\bPS$
 \end{itemize}
 
 \end{proof}
@@ -604,14 +604,14 @@ The required theorem follows by setting $\bPS$ to be the empty pomset.
 
 For the base case, $\bPS = |\aPS|$.  In this case, $\aPS$ is the required witness.
 
-Otherwise, consider a maximal sequential prefix, extending $\bPS$, wrt to all of  $\rpox,\reco,\slt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
+Otherwise, consider a maximal sequential prefix, extending $\bPS$, w.r.t.~all of  $\rpox,\reco,\slt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
 
-If not, $\bPS$ is already maximal.  Consider the set of all events in $\aPS \setminus \bPS$ that are minimal wrt $\rhb$.  In particular, these events will also be minimal wrt $\rpox$.  
+If not, $\bPS$ is already maximal.  Consider the set of all events in $\aPS \setminus \bPS$ that are minimal w.r.t.~$\rhb$.  In particular, these events will also be minimal w.r.t.~$\rpox$.  
 
 If one of these events, say $\aEv$  is a write, we proceed as follows.   Using $\rhb$-minimality of $\aEv$, we deduce $\rpox$ minimality of $\aEv$.  Using the generator properties, we deduce that $\aEv$ is $\slt$-minimal .  Using lemma~\ref{removerw}, we build $\aPS_1$ from $\aPS$ without changing $\bPS$ to ensure that there are is no read $\bEv \in \aPS_1 \setminus \bPS$ such that $\bEv \xeco \aEv$.  Using lemma~\ref{cohww}, we build $\aPS_2$ from $\aPS_1$ without changing $\bPS$ to ensure that there are is no write $\bEv \in \aPS_2 \setminus \bPS$ such that $\bEv \xeco \aEv$.  Thus, $\aEv$ is $\reco$-minimal in $\aPS_2 \setminus \bPS$.  Result follows from induction hypothesis by considering $(\aPS_2,\bPS_1)$ where $\bPS_1$ is got from $\bPS$ by adding $\aEv$.  
 
 
-So, we can assume that  all events in $\aPS \setminus \bPS$, say $\aEv_0, \ldots, \aEv_n$  that are minimal wrt $\rhb$ are reads, and we have  events 
+So, we can assume that  all events in $\aPS \setminus \bPS$, say $\aEv_0, \ldots, \aEv_n$  that are minimal w.r.t.~$\rhb$ are reads, and we have  events 
 $\aEv'_0, \aEv'_1, \ldots, \aEv'_n, \aEv_0$ such that:
 \[
 \begin{array}{lrl}
