@@ -108,7 +108,7 @@ there is more to weak memory than transformations.''
 % \end{displaymath}
 % In their model, one can deduce that $w$ must be assigned $1$, despite the
 % past race on $y$, concurrent race on $z$ and future race on $x$.
-% % In their model, one can reason sequentially about the the assignment to $w$
+% % In their model, one can reason sequentially about the  assignment to $w$
 % % and deduce that $x=1$ implies $z= 1$ despite the concurrent races on $u$, and
 % % the past and future races on $y$, where past and future are stated with
 % % respect to the assignment to $w$.
@@ -132,7 +132,7 @@ there is more to weak memory than transformations.''
 % \item Modify item \ref{pre-read}b in the definition of prefixing to require
 %   order from a read to subsequent write.  Item \ref{pre-read}b$'$ becomes: if
 %   $\aEv$ is a write then $\cEv\lt'\aEv$.  In \ref{pre-read}b$'$ we removed
-%   the ``or or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
+%   the ``or  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 % \end{itemize}
 
 % While \citet{Dolan:2018:BDR:3192366.3192421} already describes DRF and the
@@ -159,8 +159,8 @@ there is more to weak memory than transformations.''
 \section{Conclusions}
 \label{sec:outro}
 
-We have defined a relaxed memory model, using standard tools from the
-semantics and demonstrated that it satisfies the fundamental criterion for
+We have defined a relaxed memory model, using standard tools from mathematics,
+and demonstrated that it satisfies the fundamental criterion for
 software memory models, namely ``the memory model must strike a balance
 between ease-of-use for programmers and implementation flexibility for system
 designers.''
@@ -194,10 +194,10 @@ operational semantics with respect to a set of program transformations.
 Ours is the first language-level model to incorporate \emph{multi-copy
   atomicity} (\mca).  However, our main contributions do not depend on \mca.
 It is possible to apply our ideas to stronger models, and to weaker ones.
-For stronger models
-\cite{Boehm:2014:OGA:2618128.2618134,Dolan:2018:BDR:3192366.3192421}, it is
+For stronger models,
+such as \citet{Boehm:2014:OGA:2618128.2618134} and \citet{Dolan:2018:BDR:3192366.3192421}, it is
 likely sufficient to require more order in the pomset.  To compile
-efficiently to weaker architectures, such as \ppc\ and \armseven, it is
+efficiently to weaker architectures, such as \ppc\ and \armseven, it 
 appears necessary to use a model with more than one ordering relation.
 
 The logic we presented in \textsection\ref{sec:logic} is only strong enough
@@ -250,7 +250,7 @@ different a logic, capable of showing that the following program cannot write
 %   \end{gather*}
 % \end{scope}
 The attempted execution is disallowed since there is no write to fulfill
-$\DR{y}{1}$.   This example requires the ability to reason about values.
+$(\DR{y}{1})$.   This example requires the ability to reason about values.
 % Closing $x$ and $y$ and using the last two conjuncts in the
 % invariant above:
 % % last conjunct, we have
@@ -301,8 +301,9 @@ to the cycle:
   \wk{wx2}{rx3}
     \end{tikzinline}}
 \end{gather*}
-This example requires a logic with modalities to deal with intervening writes
-and coherence.
+Is not possible for the left thread to read $3$ for $x$ when the right thread
+reads $2$.  Proving this may require a logic with modalities to deal with
+intervening writes and coherence.
 
 
 \endinput

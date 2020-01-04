@@ -1,4 +1,5 @@
-The fundamental problem in the study of relaxed memory is to simultaneously achieve efficient implementability and thread-compositional reasoning.  We define such a relaxed memory model for C11, building on simple and traditional mathematical  foundations that are well understood at LICS.   We show that the model (1) satisfies the \drfsc\ criterion, (2)
-compiles to Intel and ARM microprocessors %\mca\ hardware
-without requiring extra fences on relaxed operations, (3)
-supports all reasonable sequential compiler optimizations, and (4) supports compositional reasoning for temporal safety properties.
+The fundamental problem in the study of relaxed memory is to simultaneously achieve efficient implementability and thread-compositional reasoning.  We define a model for C11-style concurrency that meets these goals, building on simple and traditional mathematical  foundations that are well understood at LICS.   We show that the model
+(1) supports compositional reasoning for temporal safety properties,
+(2) supports all reasonable sequential compiler optimizations, 
+(3) satisfies the \drfsc\ criterion, and
+(4) compiles to Intel and ARM microprocessors without requiring extra fences on relaxed operations.

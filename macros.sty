@@ -6,7 +6,7 @@
     \dagger\dagger\or
     \ddagger\ddagger\else\@ctrerr\fi}}
 
-\newcommand{\DSTOP}{\checkmark} 
+\newcommand{\DSTOP}[1][]{\checkmark_{#1}} 
 \newcommand{\stopPS}{\textsf{STOP}}
 \newcommand{\taglabel}[1]{\tag{$\mathsf{#1}$}\label{#1}}
 \newcommand{\taglabelp}[1]{\tag{$\mathsf{#1}'$}\label{#1p}}
@@ -38,7 +38,7 @@
 
 \newcommand{\READS}{\mathsf{reads}}
 \newcommand{\drs}{\mathsf{mdrs}}
-\newcommand{\SUBDRS}[1]{\rho}%_{#1}}
+\newcommand{\SUBDRS}[1]{\mathcal{R}({#1})}
 \newcommand{\DISJUNCT}{\mathsf{dpw}}
 \newcommand{\aLocReg}{\varkappa}
 \newcommand{\bLocReg}{\varkappa'}
@@ -242,15 +242,15 @@
 
 \newcommand{\Val}{\mathcal{V}}
 \newcommand{\aVal}{v}
-\newcommand{\bVal}{w}
+%\newcommand{\bVal}{w}
 \newcommand{\cVal}{\ell}
-\newcommand{\dVal}{u}
+%\newcommand{\dVal}{u}
 
 \newcommand{\Exp}{\mathcal{M}}
 \newcommand{\aExp}{M}
 \newcommand{\bExp}{N}
 \newcommand{\cExp}{L}
-\newcommand{\dExp}{K}
+%\newcommand{\dExp}{K}
 \newcommand{\aEExp}{\mathbb{M}}
 \newcommand{\bEExp}{\mathbb{N}}
 
@@ -338,6 +338,7 @@
 \newcommand{\labeling}{\lambda}
 \newcommand{\labelingForm}{\Formulae}%\lambda_{\Formulae}}
 \newcommand{\labelingAct}{\Act}%\lambda_{\Act}}
+\newcommand{\labelingSub}{\Sub}%\lambda_{\Act}}
 
 \newcommand{\RF}{\mathsf{RF}}
 
@@ -358,6 +359,7 @@
 \newcommand{\bPS}{Q}
 \newcommand{\bPSS}{\mathcal{Q}}
 
+\newcommand{\Term}{\mathsf{Term}}
 \newcommand{\SC}{\mathsf{SC}}
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
 \newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\SC}}

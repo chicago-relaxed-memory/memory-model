@@ -47,11 +47,11 @@ Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 A \emph{data model} consists of:
 \begin{itemize}
 \item a set of \emph{values} $\Val$, ranged over by
-  $\aVal$, $\bVal$, $\dVal$ and $\cVal$,
+  $\aVal$ and $\cVal$,
 \item a set of \emph{registers} $\Reg$, ranged over by
   $\aReg$ and $\bReg$,
 \item a set of \emph{expressions} $\Exp$, ranged over by
-  $\aExp$, $\bExp$, $\cExp$ and $\dExp$,
+  $\aExp$, $\bExp$, and $\cExp$, % and $\dExp$,
 \item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
   $\bLoc$, 
 \item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$, and
@@ -82,7 +82,7 @@ We require that data models satisfy the following:
 \item there is a relation $\vDash$ between formulae.
 \end{itemize}
 
-We use expressions as formulas, coercing $\aExp$ to $\aExp\neq 0$.
+We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 
 For the actions of a data model, we require that
 % \begin{itemize}
@@ -90,9 +90,13 @@ For the actions of a data model, we require that
   there are partial functions $\rreads$ and
   $\rwrites: \Act \fun (\Loc \times \Val)$, and
 %\item
-  there are sets $\Acq$ and $\Rel$ and $\SC \subseteq\Act$ such that
-  $\SC\cap\rreads\subseteq\Acq$ and
-  $\SC\cap\rwrites\subseteq\Rel$. %, and
+  there are subsets of $\Act$: $\Acq$, $\Rel$, $\SC$, and $\Term$.
+  % such that
+  % $\SC\cap\fdom(\rreads)\subseteq\Acq$,
+  % $\SC\cap\fdom(\rwrites)\subseteq\Rel$,
+  % and
+  % $\disjoint{\Term}{(\Acq\cup\Rel\cup\SC\cup\fdom(\rreads)\cup\fdom(\rwrites))}$.
+  % , and
 % \item there is a function $\finternalize: \Act \fun \Act$ that
 %   satisfies the restrictions given below.
 %\end{itemize}
@@ -108,12 +112,22 @@ For the actions of a data model, we require that
 %
   We say that $\aAct$ is a \emph{read} if $\aAct\in\fdom(\rreads)$, a
   \emph{write} if $\aAct\in\fdom(\rwrites)$, an \emph{acquire} if
-  $\aAct\in\Acq$, a \emph{release} if $\aAct\in\Rel$, and \emph{SC} if
+  $\aAct\in\Acq$, a \emph{release} if $\aAct\in\Rel$, a \emph{termination} if
+  $\aAct\in\Term$,  and \emph{SC} if
   $\aAct\in\SC$.  Note that these are \emph{not} disjoint.
 % % We say that $\aAct$ is a
 % % \emph{synchronization} if it is either a release or an acquire.
 When $\rreads(\aAct) = (\aLoc,\aVal)$, we say that $\aAct$ \emph{reads}
 $\aVal$ \emph{from} $\aLoc$, and similarly for writes.
+
+We require that every SC read is an acquire, and every SC write is a release.
+% $\SC\cap\fdom(\rreads)\subseteq\Acq$,
+% $\SC\cap\fdom(\rwrites)\subseteq\Rel$,
+% and
+We also require that termination events do not read or write, and are not
+acquiring, releasing, or SC.
+%$\disjoint{\Term}{(\Acq\cup\Rel\cup\SC\cup\fdom(\rreads)\cup\fdom(\rwrites))}$.
+
 
 % The actions listed above are \emph{external}.  Each external action has a
 % corresponding \emph{internal} action, denoted by prefixing $\tau$.  Internal
@@ -191,6 +205,7 @@ $\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
 
 \paragraph{Example Language.}
 Our example language includes actions of the form
+$(\DSTOP)$, which is a termination,
 $(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads}  $\aVal$ from
 $\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
 $\aLoc$.
@@ -233,7 +248,6 @@ We elide the $\modeRLX$-mode annotation in examples.
 % \end{align*}
 %The syntax of statements is as follows.
 
-We also include a \emph{termination} action: $(\DSTOP)$.
 
 We define the language by prefixing individual reads and writes.  In
 \textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
@@ -310,8 +324,9 @@ and that $\aEv$ is a \emph{termination} when $\labelingAct(\aEv)$ is a terminati
 We often elide explicit universal quantifiers in phrases such as
 ``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 
-We expect each pomset to have at most one termination event.
-A pomset is \emph{completed} if it contains a termination. %$\exists\aEv.\;\labelingAct(\aEv)=\DSTOP$. % and $\forall\bEv.\;\bEv\le\aEv$.
+We expect each pomset to have at most one termination event, which is ordered
+after all other events.  A pomset is \emph{completed} if it contains a
+termination. %$\exists\aEv.\;\labelingAct(\aEv)=\DSTOP$. % and $\forall\bEv.\;\bEv\le\aEv$.
 
 The formula associated with an event is a \emph{precondition}.
 The following commands gives rise to the pomset below them, capturing data
@@ -520,7 +535,8 @@ $\labelingAct(\aEv) = \DSTOP$.
   \end{itemize}
 
   A pomset is \emph{$\aLoc$-closed} if every \external read on $\aLoc$ is fulfilled,
-  and every event is independent of $\aLoc$.
+  and every formula is independent of $\aLoc$.
+
   A pomset is \emph{top-level} if it is $\aLoc$-closed for every location
   $\aLoc$.
   
@@ -693,6 +709,7 @@ for address calculation, which is required by realistic memory allocators.
 
 %\paragraph{Composition, Concurrency and Conditional.}
 \begin{definition}
+  \label{def:par}
   % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
   % $\Event' \subseteq \Event^1 \cup \Event^2$,
   % $\bigwedge_{\aEv\in\Event'}\labelingForm(\aEv)$ is satisfiable, and for
@@ -1029,9 +1046,8 @@ Item 1 introduces a new event.  Item 2 ensures that no order is removed from old
 events. Item 3 describes the label of the new event, which must imply
 $\aForm$. Item 4 describes the labels of old events, as discussed below.
 Item 5 ensures that program order is included for the new event.
-
 %\vspace{-2ex}
-\begin{candidate}\ \vspace{-1ex}
+\begin{candidate} %\ \vspace{-1ex}
   \label{cand2.9}
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}
@@ -1285,8 +1301,8 @@ Definition \ref{def:pre-sc} such that:
 %   is location independent.
 \end{enumerate}
 \end{definition}
-\vspace{-2ex}
-\begin{candidate}\ \vspace{-1ex}
+%\vspace{-2ex}
+\begin{candidate}%\ \vspace{-1ex}
   \label{cand:sc}
     \begin{align*}
     % \tag{$\dagger$}\label{sc-read}

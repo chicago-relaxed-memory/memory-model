@@ -2,7 +2,8 @@
 \label{sec:semicolon}
 We provide an alternative semantics that supports full sequential
 composition, building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and
-$\sem{\bCmd}$.  To simplify the definitions, we assume that each register is
+$\sem{\bCmd}$.  To simplify the definitions, we assume, without loss of
+generality, that each register is
 assigned at most once syntactically
 \cite{Rosen:1988:GVN:73560.73562}\nofootnote{One can remove this restriction
   by defining conflict (Definition \ref{def:prefix}) to include actions that
@@ -19,8 +20,6 @@ We refactor the syntax:
   \BNFDEF& \SKIP
   \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
-  % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
-  % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
   \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
   \\[-.5ex]
@@ -29,11 +28,6 @@ We refactor the syntax:
   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
-% Without loss of generality,
-% To keep the presentation as simple as possible, we include neither address
-% calculation nor \RMW{}s.  These extensions are straightforward, but
-% notationally cumbersome.
-
 \paragraph{Explicit Substitutions.}
 Let $\aEExp$ range over \emph{extended expressions}, which may include memory
 locations.  We introduce explicit substitutions over extended expressions,
@@ -41,7 +35,7 @@ following the conventions of \citet{DBLP:conf/icalp/RitterP97}:
 \begin{gather*}
   \aLocReg\BNFDEF \aLoc \BNFSEP \aReg
   \qquad\quad
-  \aSub,\,\bSub,\, \SUBDRS{\dEvs} %\beforeSub,\,\afterSub
+  \aSub,\,\bSub,\, \SUBDRS{\dEvs} 
   \BNFDEF \SUBEMP \BNFSEP \SUBPAR{\aSub}{\aEExp/\aLocReg}
   \BNFSEP \aSub\SUBSEQ\aSub'
 \end{gather*}
@@ -56,14 +50,7 @@ homomorphic over the syntax of formulae. For the basis,
 \end{math}
 is $\aEExp$ if $\bLocReg=\aLocReg$ and is $\aSub \SUBAPP\aLocReg$ otherwise.
 
-%and $\SUBPAR{\SUBPAR{\aSub}{\bEExp/\aLocReg}}{\aEExp/\aLocReg}$ as $\SUBPAR{\aSub}{\aEExp/\aLocReg}$.
-
 Sequencing is defined so that
-% \begin{math}
-%   \aSub\SUBSEQ\SUBPAR{\bSub}{\aEExp/\aLocReg}
-%   = 
-%   \SUBPAR{\aSub\SUBSEQ\bSub}{\aSub\SUBAPP\aEExp/\aLocReg}
-% \end{math}
 \begin{math}
   \aSub\SUBSEQ\SUB{\aEExp/\aLocReg}
   \allowbreak= 
@@ -77,115 +64,82 @@ and
 We say that $\aSub$ \emph{subsumes} $\bSub$ if for every $\aLocReg$, either
 $\bSub\SUBAPP\aLocReg=\aSub\SUBAPP\aLocReg$ or $\bSub\SUBAPP\aLocReg=\aLocReg$.
 For example, every substitution subsumes $\SUBEMP$.
-% Goal:
-% \begin{math}
-%   (\aForm\aSub)\bSub =
-%   \aForm(\aSub;\bSub)
-% \end{math}
-% Pure substitution: $\fdom(\aSub)$ disjoint $\fcodom(\aSub)$.
-% Pure substitutions are idempotent.
-% $\aSub$ and $\bSub$ are composable if $\fdom(\aSub)$ disjoint $\fcodom(\bSub)$
-% \begin{displaymath}
-%   (\aSub;\bSub)(x) =
-%   \begin{cases}
-%     \aSub(\bSub(x)) & \text{if } x \in \fdom(\bSub)\\
-%     \aSub(x) & \text{otherwise}
-%   \end{cases}
-% \end{displaymath}
 
-\paragraph{Substitutions in the Data Model.}
-Let $\Sub$ be the set of all (explicit) substitutions.  We include
-substitutions as actions: $\Sub\subseteq\Act$.  All substitution actions are
-\emph{termination} actions.  For comparison with the semantics of
-\textsection\ref{sec:model}, we identify $\SUBEMP$ and $\DSTOP$.
+We say that $\aSub$ is \emph{independent of $\aLoc$} if $\aSub\SUBAPP\aLoc=\aLoc$.
 
-In the context of a
-pomset $\aPS$, we use $\Sub$ also to represent the set of substitution
-events:
-\begin{math}
-  \{ \aEv\in\Event \mid \labelingAct(\aEv) \in \Sub \}.
-\end{math}
-% Alternatively, we
-% could extend the Definition \ref{def:mmpomset} to include an optional
-% substitution:
-Recall that our pomsets contain at most one termination event, which is ordered
-after every other event.  
-In examples, we typically drop order into
-substitution actions, instead drawing them as accepting states.
+Let $\Sub$ be the set of all (explicit) substitutions.
 
-We modify read actions both to name the register that was written
-and also to include a substitution:
-$\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
-We say $(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ reads \emph{into}
-$\aReg$.
+\paragraph{Substitutions in the Model.}\
 
-We say that $\aAct$ \emph{substitutes} $\aSub$ if either
-$\aAct=\aSub$, $\aAct=(\DRreg[\amode]{\aReg}{\aSub}{\aLoc}{\aVal})$, or
-$\aSub=\SUBEMP$ and $\aAct$ is neither a termination nor a read.
+Definition~\ref{def:mmpomset} of \emph{memory model pomset} changes so that
+$\labeling: \Event \fun (\Formulae\times\Act\times\Sub)$, from which we
+derive the additional function $\labelingSub:\Event\fun\Sub$.
 
-We modify Definition \ref{def:rf} to require that when $\aPS$ is
-\emph{$\aLoc$-closed}, every substitution in $\aPS$ is the identity on
-$\aLoc$: If $\aEv$ substitutes $\aSub$ then $\aSub\SUBAPP\aLoc=\aLoc$.
+In examples, we write the substitution as a subscript of the action on an
+event.  We elide the identity substitution.
 
-We lift the notion of subsumption from explicit substitutions to actions and
-pomsets in the obvious way: $\aAct$ subsumes $\bAct$ if 
-%either (1) $\aAct=\bAct$, (2) $\aAct=\aSub$, $\bAct=\bSub$ and $\aSub$
-%subsumes $\bSub$, or (3)
-$\aAct$ substitutes $\aSub$,
-$\bAct$ substitutes $\bSub$, and $\aSub$ subsumes
-$\bSub$.
-$\aPS'$ \emph{subsumes} $\aPS$ if $\Event'=\Event$, ${\le'}={\le}$,
-$\labelingForm'=\labelingForm$, and $\labelingAct'(\aEv)$
-subsumes $\labelingAct(\aEv)$. 
+As a notational convenience, let $\labelingSub(\aPS)$ return the substitution
+of the termination event in $\aPS$, if one exists.  
+
+We ignore substitutions, except on read events and termination events.  In
+the definition of sequential composition, read substitutions are used to
+calculate dependencies, as in item 5a of Definition \ref{def:prefix}.  The
+terminal substitutions in $\aPSS^1$ are composed with the substitutions in
+$\aPSS^2$ when calculating $(\aPSS^1\sequence\aPSS^2)$, and symmetrically.
+
+Definition \ref{def:closure:properties} of relations between pomsets is
+extended to include subsumption: $\aPS'$ \emph{subsumes} $\aPS$ if
+$\Event'=\Event$, ${\le'}={\le}$, $\labelingForm'=\labelingForm$, and
+$\labelingAct'=\labelingAct$ and $\labelingSub'(\aEv)$ subsumes
+$\labelingSub(\aEv)$.
 
 The semantics of programs is closed w.r.t.~\emph{reverse subsumption}: if
 $\aPS\in\sem{\aCmd}$ and $\aPS$ is subsumed by $\aPS'$, then
 $\aPS'\in\sem{\aCmd}$.
 
-Subsumption is dual to implication (Definition \ref{def:closure:properties}):
+Subsumption is dual to implication:
 Strong\-er preconditions impose a greater burden on the preceding code;
 stronger substitutions can better mitigate this burden in the code that
 follows.  In examples, we only show executions that are implication and
 augmentation minimal; similarly, we only show executions that are
 subsumption-maximal.
 
-Suppose $\aPS$ is a completed, subsumption-maximal pomset.  Then
-$\labelingAct(\Event\cap\Sub)$ is defined, and all reads satisfy the invariant:
-if $\labelingAct(\aEv)=(\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal})$ then there are
-$\beforeSub$ and $\afterSub$ such that
-$\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
-$(\beforeSub\SUBSEQ\afterSub) = \labelingAct(\Event\cap\Sub)$.
+The semantics satisfies the following invariant: If $\aPS$ is
+subsumption\hyp{}maximal and $\labelingSub(\aPS)$ is defined, then for every
+$\aEv$ that reads $\aLoc$ into $\aReg$, there are $\beforeSub$ and
+$\afterSub$ such that
+$\labelingSub(\aEv)=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
+$(\beforeSub\SUBSEQ\afterSub) = \labelingSub(\aPS)$.
 
+We also update the the partial function $\rreads$  from the data model so
+that $\rreads:\Act\fun(\Reg \times \Loc \times \Val)$.
+When $\rreads(\aAct) = (\aReg,\aLoc,\aVal)$, we say that $\aAct$ \emph{reads}
+$\aVal$ \emph{from} $\aLoc$ \emph{into} $\aReg$.
 
+Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
+from the reads of $\aPS$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
+if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
 
-We define notation to lift sequential composition of substitutions into
-read actions:
-\begin{itemize}
-\item Let $\aAct$ \emph{before} $\aPS$ be $\aAct$ when
-  $\disjoint{\Event}{\Sub}$ or $\aAct$ is not a read, and
-  $\DRreg[\amode]{\aReg}{(\bSub\SUBSEQ\aSub)}{\aLoc}{\aVal}$ when
-  $\aSub=\labelingAct(\Event\cap\Sub)$ and
-  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
-\item 
-  Let $\aAct$ \emph{after} $\aPS$ be $\aAct$ when $\disjoint{\Event}{\Sub}$
-  or $\aAct$ is not a read, and
-  $\DRreg[\amode]{\aReg}{(\aSub\SUBSEQ\bSub)}{\aLoc}{\aVal}$ when
-  $\aSub=\labelingAct(\Event\cap\Sub)$ and
-  $\aAct=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$.
-\end{itemize}
+\paragraph{Semantics of the Example Language.}\
 
-\paragraph{Semantics of the Example Language.}
+As concrete syntax for read actions, we write
+$(\DRreg[\amode]{\aReg}{}{\aLoc}{\aVal})$.
 
-We elide the definitions of parallel composition, conditional and location
-binding, which can be imported directly from
-\textsection\ref{sec:model}---using the modified definition of
-$\aLoc$-closure discussed above.
+Definition \ref{def:rf} of \emph{$\aLoc$-closed} changes to require that
+every substitution is independent of $\aLoc$.
 
-Note that when coalescing reads or termination events using \!$\PAR$\!,
-the substitutions must be identical.  Using reverse subsumption closure, this
-is always possible; further it guarantees that the resulting substitution is subsumed by
-the substitutions on either side.  Thus, register state is only preserved
-after composition if it is shared on both sides.
+Definition \ref{def:par} of $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$ changes
+to additionally require that for all $\aEv\in\Event'$, either:
+\begin{align*}
+  &\labelingSub'(\aEv) \text{ is subsumed by both } \labelingSub^1(\aEv) \textand \labelingSub^2(\aEv),\\[-1ex]
+  &\labelingSub'(\aEv) \text{ is subsumed by } \labelingSub^1(\aEv) \textand \aEv \not\in \Event^2,\; \textor\\[-1ex]
+  &\labelingSub'(\aEv) \text{ is subsumed by } \labelingSub^2(\aEv) \textand \aEv \not\in \Event^1.
+\end{align*}
+
+Parallel composition, conditional and location binding are otherwise
+unchanged from \textsection\ref{sec:model}.
+
+Note that only shared register state is preserved by parallel composition.
 For example,
 \begin{math}
   (r\GETS 1\PAR r\GETS 1)\SEMI x\GETS r
@@ -198,16 +152,18 @@ cannot.
 
 To simplify the base cases, we use a literal notation for pomsets and define
 $\CLOSE{\aPS}$ to be the smallest set that includes $\aPS$ and is closed
-w.r.t.~prefixing, implication, augmentation, and reverse subsumption: Let
-$\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$
-implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3) $\aPS''$
-is subsumed by $\aPS'$.
+w.r.t.~prefixing, implication, augmentation, and reverse subsumption.
+We draw termination events as accepting states, dropping the termination action $(\DSTOP)$.
+% : Let
+% $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$
+% implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3) $\aPS''$
+% is subsumed by $\aPS'$.
 \begingroup
 \allowdisplaybreaks
 \begin{gather*}
   \begin{aligned}
   \sem{\SKIP} & \eqdef
-  \CLOSE{\TIKZ{\final{f}{\SUBEMP}{}}}
+  \CLOSE{\TIKZ{\final{f}{}{}}}
   \\  
   \sem{\aReg\GETS\aExp} & \eqdef
   \CLOSE{\TIKZ{\final{f}{\SUB{\aExp/\aReg}}{}}}
@@ -215,7 +171,7 @@ is subsumed by $\aPS'$.
   \sem{\FENCE^{\fmode}} & =
   \CLOSE{\TIKZ{
       \event{a}{\DFS{\fmode}}{}
-      \final{f}{\SUBEMP}{right=of a}
+      \final{f}{}{right=of a}
       \po{a}{f}
     }} 
   \\
@@ -223,25 +179,10 @@ is subsumed by $\aPS'$.
   \textstyle\bigcup_{\cVal,\aVal}\;
   \CLOSE{\TIKZ{
       \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\SUB{\REF{\cVal}/\aReg}}{\REF{\cVal}}{\aVal}}{}
-      \final{f}{\SUBEMP}{right=of a}
+      \final{f}{}{right=of a}
       \po{a}{f}
     }}
-  % \\
-  % \sem{\aReg\GETS\aLoc^\amode} & =
-  % \textstyle\bigcup_\aVal\;
-  % \CLOSE{\TIKZ{
-  %     \event{a}{\DRreg[\amode]{\aReg}{\SUB{\aLoc/\aReg}}{\aLoc}{\aVal}}{}
-  %     \final{f}{\SUBEMP}{right=of a}
-  %     \po{a}{f}
-  %   }}
-  % \\[-.5ex] &
-  % \mkern2mu\cup
-  % \CLOSE{\TIKZ{
-  %     \event{a}{\DFR{\amode}}{}
-  %     \final{f}{\SUB{\aLoc/\aReg}}{right=of a}
-  %     \po{a}{f}
-  %   }}
-  \\
+                                \\
   \sem{\REF{\cExp}^\amode\GETS\aExp} & =
   \;\;\textstyle\parallel_{\cVal,\aVal}\;
   \CLOSE{\TIKZ{
@@ -249,43 +190,15 @@ is subsumed by $\aPS'$.
       \final{f}{\SUB{\aExp/\REF{\cVal}}}{right=of a}
       \po{a}{f}
     }}
-  % \\
-  % \sem{\aLoc^\amode\GETS\aExp} & =
-  % \;\;\textstyle\parallel_\aVal
-  % \CLOSE{\TIKZ{
-  %     \event{a}{\aExp=\aVal \mid \DW[\amode]{\aLoc}{\aVal}}{}
-  %     \final{f}{\aExp=\aVal \mid \SUB{\aExp/\aLoc}}{right=of a}
-  %     \po{a}{f}
-  %   }}
-  % \\[-.5ex] &
-  % \mkern2mu\cup
-  % \CLOSE{\TIKZ{
-  %     \event{a}{\DFW[\aLoc]{\amode}}{}
-  %     \final{f}{\SUB{\aExp/\aLoc}}{right=of a}
-  %     \po{a}{f}
-  %   }}
-  \\
+                                \\
   \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
-  % \\
-  % \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel\sem{\bCmd}
-\end{aligned}
-  % \\
-  % \begin{aligned}
-  %   \sem{\aCmd \PAR \bCmd} &= \sem{\aCmd} \parallel \killS\sem{\bCmd}
-  %   &
-  %   \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
-  %   \\
-  %   \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
-  %   &
-  %   \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
-  % \end{aligned}
-\end{gather*}
+    \end{aligned}
+  \end{gather*}
 \endgroup
 
-The most significant challenge is to define semantic sequencing.  The
-definition is complex, not only because of the bookkeeping required by
-explicit substitutions.  Unfortunately, \emph{disjunction} and \emph{prefix
-  weakening} (Definition \ref{def:closure:properties}) do not come easily.
+The most significant challenge is defining sequential composition.
+Unfortunately, \emph{disjunction} and \emph{prefix weakening} (Definition
+\ref{def:closure:properties}) do not come easily.
 
 Recall \eqref{alanAddress} from \textsection\ref{sec:variants}:
 \begin{math}
@@ -319,350 +232,55 @@ some $\aLoc$ such that (1) $\cEv$ fulfills no reads, (2) there is some
 $\bEv\gt\cEv$ that writes $\aLoc$, and (3) for every release $\aEv\gt\cEv$
 there is some $\aEv\gt\bEv\ge\cEv$ that writes $\aLoc$.
 
-Let $\DISJUNCT(\aPSS)$ be the least set that
-includes $\aPSS$ and that is closed w.r.t.~disjunction, prefix weakening, and
-unused write removal.
-
-% Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$
-% where $\aPS''\in\aPSS''$ if there are $\aPS'\in\PRE(\aPS'')$ and
-% $\aPS^i\in\aPSS$ such $\Event' = \Event^i$, ${\le'}={\le^i}$,
-% $\labelingAct'=\labelingAct^i$, and $\labelingForm''(\aEv)$ implies
-% $\labelingForm'(\aEv)\cup\bigvee_i \labelingForm^i(\aEv)$.
-
-In the following definition, $\aPSS'$ is defined using the subset of
-$\aPSS^1$ that have an accepting state: $\labelingAct(\Event^1\cap\Sub)$ is only defined for
-$\{\aPS^1\in\aPSS^1\mid \notdisjoint{\Event^1}{\Sub}\}$.  To ensure prefix
-closure, we include $\aPSS^1$ before applying $\DISJUNCT$.
-% A simple inductive proof shows that for any pomset in $\aPS\in\sem{\aCmd}$, there is
-% extension $\aPS'\in\sem{\aCmd}$ with an accepting state, such that $\aPS\in\PRE(\aPS')$.
-
-% We give the definition as two cases: (1) We include all the
-% pomsets in $\aPSS^1$\!\!.  (2) We include composed pomsets for every $\aPS^1$
-% with an accepting state.
-
-% \begin{gather*}
-%   \begin{aligned}
-%     \killS(\aPS)&=\{ \aEv\in\Event \mid \labelingAct(\aEv)\notin\Sub \}
-%     &
-%     \killS(\aPSS)&=\{\aPS\restrict{\killS(\aPS)} \mid \aPS\in\aPSS \}
-%   \end{aligned}
-% \end{gather*}
-
-% Relative to the previous definitions, the base cases are handled as follows:
-% \begin{itemize}
-% \item $\sem{\SKIP}$ introduces the identity substitution,
-% \item $\sem{\aLoc\GETS\aExp}$ introduces $\SUB{\aExp/\aLoc}$,
-% \item $\sem{\aReg\GETS\aExp}$ introduces $\SUB{\aExp/\aReg}$,
-% \item $\sem{\aReg\GETS\aLoc}$, local rule, introduces $\SUB{\aLoc/\aReg}$,
-% \item $\sem{\aReg\GETS\aLoc}$, nonlocal rule, introduces
-%   $(\DR{\aLoc}{\aVal}) \lt \SUB{\aVal/\aReg}$.
-% \end{itemize}
-% Base cases:
-% \begin{align*}
-%   \sem{\SKIP}
-%   =&
-%   \TIKZ{\final{f}{}{}} 
-%   \\
-%   \sem{\aLoc\GETS\aExp}
-%   =&
-%   \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
-%   \\
-%   \sem{\aReg\GETS\aLoc}
-%   =&
-%   \TIKZ{\final{f}{\aLoc/\aReg}{}}
-%   \cup
-%   \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
-% \end{align*}
-
-
-% Here's the def for prefixing:
-% \begin{enumerate}
-% \item[1.] $\Event' = \Event \uplus \{\bEv\}$,
-% \item[2.] ${\le'}\supseteq{\le}$,
-% \item[3a.] $\labelingAct'(\bEv) = \aAct$,
-% \item[3b.] $\labelingForm'(\bEv)$ implies $\aForm$,
-% \item[4a.] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-% \item[4c.] if $\bEv$ does not \externally read then $\labelingForm'(\aEv)$
-%   implies $\labelingForm(\aEv)$, 
-% \item[5a.] if $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and
-%   $\aEv$ writes, then $\bEv\lt'\aEv$,
-% \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
-%   $\bEv\lt'\aEv$,
-% \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then
-%   $\bEv \lt' \aEv$,
-% \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
-%   $\bEv \lt' \aEv$, 
-% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
-%   $\aEv \lt' \bEv$,
-% \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
-%   $\bEv \lt' \aEv$, and
-% \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
-%   is location independent.
-% \end{enumerate}
-
-
-% \begin{definition}
-%   \label{def:semi:seq}
-%   % Let $\READS(\aPS)$ be the set $\dEvs\subseteq\Event$ where
-%   % $\aEv\in\dEvs$ when $\aEv$ is a read of some $\aLoc$, and
-%   % there is no $\dEv>\aEv$ that reads from $\aLoc$.
-
-%   % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
-%   % $\dEvs\subseteq\Event$,
-%   % all $\aEv\in\dEvs$ are reads, and
-%   % if $\aEv\in\dEvs$ reads from $\aLoc$ then
-%   % (1) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
-%   % (2) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
-
-%   Let $\dEvs$ be a \emph{maximal disjoint read set} of $\aPS$  when 
-%   (1) $\dEvs\subseteq\Event$,
-%   (2) all $\aEv\in\dEvs$ are reads,
-%   (3) if $\aEv\in\Event$ reads from $\aLoc$ then some $\dEv\in\dEvs$ reads from $\aLoc$, and
-%   (4) if $\aEv\in\dEvs$ reads from $\aLoc$ then
-%   (4a) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
-%   (4b) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
-
-%   Let $\drs(\aPS)$ be the set of maximal disjoint read sets of $\aPS$.
-
-%   Let $\SUBDRS{\dEvs}$ be the substitution such
-%   that $\SUBDRS{\dEvs}\SUBAPP\aLoc$ is $\aVal$ if some
-%   $\dEv\in\SUBDRS{\dEvs}$ reads $\aVal$ from $\aLoc$, and is $\aLoc$
-%   otherwise---where $\dEvs\in\drs(\aPS)$.
-  
-%   Let $\DISJUNCT(\aPSS)$ be the set $\aPSS''$ where $\aPS''\in\aPSS''$ if
-%   there are $\aPS'\in\PRE(\aPS'')$ and $\aPS^i\in\aPSS$ such
-%   $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
-%   $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
-  
-%   % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
-%   % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
-%   % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
-%   % $\bigvee_i \labelingForm^i(\aEv)$.
-
-%   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
-%   $\{\aPS^1\in\aPSS^1\mid \disjoint{\Event^1}{\Sub}\}\cup \DISJUNCT(\aPSS')$
-%   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
-%   $\cEv\in\Event^1\cap\Sub$,
-%   $\aSub=\labelingAct^1(\cEv)$, 
-%   and $\aPS^2\in\aPSS^2$
-%   such that the following hold.
-%   Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.  
-%   % For each $\aEv$, let $B_\aEv\subseteq\Event^1$ be a set of
-%   % reads such that no two events read the same variable, and let $\aSub_\aEv$ be
-%   % the associated substitution.
-% \begin{enumerate}
-% \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
-% \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
-% %\item[2b.] if $\bEv\le\cEv$ then $\bEv\le'\aEv$, for $\aEv\in\Event^2\cap\Sub$,
-% \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
-% \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
-% \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-% \item[4a2.] $\labelingAct'(\aEv) =  \aSub\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
-% % \item[4b.] if $\dEv\in\READS(\aPS^1)$ reads $\aVal$ from $\aLoc$, there is
-% %   some $\bSub$ such that
-% %   $\labelingForm'(\aEv)$ implies
-% %   $\SUBPAR{\bSub}{\aVal/\aLoc}\SUBAPP(\aSub\SUBAPP\labelingAct^2(\aEv))$,
-% \item[4bc.] if
-%   $\dEvs\in\drs(\aPS^1)$ then $\labelingForm'(\aEv)$ implies
-%   $\SUBDRS{\dEvs} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$, 
-% % \item[4c.] 
-% %   %if $\READS(\aPS^1)=\emptyset$
-% %   if $\emptyset\in\drs(\aPS^1)$
-% %   then $\labelingForm'(\aEv)$ implies
-% %   $\labelingForm(\aEv)$,   
-% \item[5a.] if $\aEv$ writes, there is some $\dEvs\in\READS(\aPS^1)$
-%   such that when $\dEv\in\dEvs$, either $\dEv\le'\aEv$ or
-%   $\dEv$ reads $\aLoc$ and $\labelingForm'(\aEv)$ implies  
-%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aLoc} \SUBAPP (\aSub\SUBAPP\labelingForm^2(\aEv))$,
-% % \item[----]  
-% %  for every $\dEvs\in\drs(\aPS^1)$, either
-% %   \begin{itemize}
-% %   \item[4c]
-% %     $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
-% %     if $\labelingForm'(\aEv)$ implies
-% %     $\aSub\SUBAPP\labelingForm^2(\aEv)$ and $\aEv$ writes,
-% %     then for some $\dEvs\in\drs(\aPS^1)$ and every $\dEv\in \dEvs$,
-% %     $\dEv\ORDER\aEv$, or
-% %   \item[5a] if $\labelingForm'(\aEv)$ implies
-% %     $\aSub\SUBAPP\labelingForm^2(\aEv)$ and $\aEv$ writes,
-% %     then for some $\dEvs\in\drs(\aPS^1)$ and every $\dEv\in \dEvs$,
-% %     $\dEv\ORDER\aEv$,    
-% %   \end{itemize}
-% \item[5b-f.] as before,
-% % \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict, then
-% %   $\bEv\ORDER\aEv$,
-% % \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then
-% %   $\bEv \ORDER \aEv$,
-% % \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
-% %   $\bEv \ORDER \aEv$, 
-% % \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
-% %   $\aEv \ORDER \bEv$,
-% % \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
-% %   $\bEv \ORDER \aEv$, 
-% \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
-%   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
-% \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
-%   $\aEv$ is a release that does not write $\aLoc$, then  some
-%   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
-% \end{enumerate}
-% \end{definition}
-
+Finally, there is a challenge in calculating the preconditions for the events
+of $\aPSS^2$ in $\aPSS^1\sequence\aPSS^2$ when terminal event of $\aPSS^1$ is
+missing, and symmetrically.  Again, we use the same strategy: We compute
+sequential composition using completed executions, then prefix close.
 
 \begin{definition}
   \label{def:semi:seq}
-  
-%Let $\READS(\aPS)=\{\aEv\mid\aEv \text{ is a read}\}$.
-%For $\dEvs\subseteq \READS(\aPS)$, let $\SUBDRS{\dEvs}$ be the derived
-
-  % if
-%   $\labelingAct^1(\bEv)
-%   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$, where if
-%   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
-
-% Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
-% from the reads of $\aPS$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
-% if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
-
-  % Let $\dEvs$ be a \emph{disjoint read set} of $\aPS$  when 
-  % $\dEvs\subseteq\Event$,
-  % all $\aEv\in\dEvs$ are reads, and
-  % if $\aEv\in\dEvs$ reads from $\aLoc$ then
-  % (1) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
-  % (2) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
-
-  % Let $\dEvs$ be a \emph{maximal disjoint read set} of $\aPS$  when 
-  % (1) $\dEvs\subseteq\Event$,
-  % (2) all $\aEv\in\dEvs$ are reads,
-  % (3) if $\aEv\in\Event$ reads from $\aLoc$ then some $\dEv\in\dEvs$ reads from $\aLoc$, and
-  % (4) if $\aEv\in\dEvs$ reads from $\aLoc$ then
-  % (4a) if $\dEv\in\dEvs$ reads from $\aLoc$ then $\dEv=\aEv$, and
-  % (4b) if $\dEv\in\Event$ reads from $\aLoc$ then $\aEv\not\le\dEv$.
-
-  % Let $\drs(\aPS)$ be the set of maximal disjoint read sets of $\aPS$.
-
-  % Let $\SUBDRS{\dEvs}$ be the substitution such
-  % that $\SUBDRS{\dEvs}\SUBAPP\aLoc$ is $\aVal$ if some
-  % $\dEv\in\SUBDRS{\dEvs}$ reads $\aVal$ from $\aLoc$, and is $\aLoc$
-  % otherwise---where $\dEvs\in\drs(\aPS)$.
-  
-  % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ if there is some
-  % $\aPS'\in\PRE(\aPS'')$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
-  % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
-  % $\bigvee_i \labelingForm^i(\aEv)$.
+  Let $\DISJUNCT(\aPSS)$ be the least set that
+  includes $\aPSS$ and that is closed w.r.t.~disjunction, prefixing, prefix weakening, and
+  unused write removal.                  
 
   Let $(\aPSS^1 \sequence \aPSS^2)$ be the set
   \begin{math}
-    %\{\aPS^1{\in}\aPSS^1\mid \disjointsmall{\Event^1}{\Sub}\}
-    \DISJUNCT(\aPSS^1
-    \cup
-    \aPSS')
+    \DISJUNCT(\aPSS')
   \end{math}
   where $\aPS'\in\aPSS'$ when there are $\aPS^1 \in \aPSS^1$,
-  % $\cEv\in\Event^1\cap\Sub$,
-  % $\aSubC=\labelingAct^1(\cEv)$, 
-  $\aSubC=\labelingAct(\Event^1\cap\Sub)$, 
-  %$\dEvs=\READS(\aPS^1)$,
   and $\aPS^2\in\aPSS^2$
   such that the following hold.
 
-Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
-from the reads of $\aPS^1$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
-if some $\bEv\in\Event^1$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
-
-Let $\bEv$ range over $\Event^1\setminus\Sub$, and $\aEv$ range over $\Event^2$.  
-
-  % For each $\aEv$, let $B_\aEv\subseteq\Event^1$ be a set of
-  % reads such that no two events read the same variable, and let $\aSub_\aEv$ be
-  % the associated substitution.
-
+Let $\bEv$ range over $\Event^1$.  Let $\aEv$ range over $\Event^2$.  
+      
 \begin{enumerate}
-\item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
+\item[1.] $\Event' = \Event^2 \uplus \{\bEv\in\Event^1\mid\labelingAct(\bEv)\neq\DSTOP\}$,
 \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
-\item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ before $\aPS^2$,
-% \item[3a1.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$ %, for $\bEv\in\Event^1\setminus\READS(\aPS^1)$,
-% \item[3a2.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)
-%   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$,
-%   if
-%   $\labelingAct^1(\bEv)
-%   =\DRreg[\amode]{\aReg}{\beforeSub}{\aLoc}{\aVal}$, where if
-%   $\aEv\in\Event^2\cap\Sub$ then $\aSub=\labelingAct^2(\aEv)$ otherwise $\aSub=\SUBEMP$,
+\item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
-\item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$  after $\aPS^1$,  for $\aEv\in\Event^2\setminus\Sub$,
-\item[4a2.] $\labelingAct'(\aEv) = \aSubC\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
+\item[3c.] $\labelingSub'(\bEv)$ is subsumed by $\labelingSub^1(\bEv)\SUBSEQ \labelingSub(\aPS^2)$,
+\item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,
+\item[4a2.] $\labelingSub'(\aEv)$ is subsumed by $\labelingSub(\aPS^1)\SUBSEQ\labelingSub^2(\aEv)$,
 \item[4bc.] $\labelingForm'(\aEv)$ implies
-  $(\SUBDRS{\aPS^1} \SUBSEQ \aSubC)\SUBAPP\labelingForm^2(\aEv)$, 
-\item[5a.] if $\aEv$ writes and
-  $\bEv=\DRreg[\amode]{\aReg}{\bSub}{\aLoc}{\aVal}$
-  then either $\bEv\le'\aEv$ or
-  $\labelingForm'(\aEv)$ implies  
-  $(\SUBDRS{\aPS^1}\SUBSEQ \bSub)\SUBAPP\labelingForm^2(\aEv)$,
-% \item[old5a.] if $\aEv$ writes 
-%   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
-%   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
-%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
+  $(\SUBDRS{\aPS^1} \SUBSEQ \labelingSub(\aPS^1))\SUBAPP\labelingForm^2(\aEv)$, 
+\item[5a.] if $\bEv$ is a read and $\aEv$ is a write,
+  then either $\bEv\le'\aEv$ or $\labelingForm'(\aEv)$ implies $(\SUBDRS{\aPS^1}\SUBSEQ \labelingSub^1(\bEv))\SUBAPP\labelingForm^2(\aEv)$,
 \item[5b-f.] as before (see \textsection\ref{sec:model}-\ref{sec:variants}). %generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
-% \item[6.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
-%   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
-% \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
-%   $\aEv$ is a release that does not write $\aLoc$, then  some
-%   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
-% \item[1.] $\Event' = \Event^1\setminus\Sub \uplus \Event^2$,
-% \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
-% \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
-% \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
-% \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\setminus\Sub$,
-% \item[4a2.] $\labelingAct'(\aEv) =  \aSubC\SUBSEQ\labelingAct^2(\aEv)$,  for $\aEv\in\Event^2\cap\Sub$, 
-% \item[4bc.] $\labelingForm'(\aEv)$ implies
-%   $(\SUBDRS{\dEvs} \SUBSEQ \aSubC)\SUBAPP\labelingForm^2(\aEv)$, 
-% \item[5a.] if $\aEv$ writes 
-%   and $\dEv\in\dEvs$, then either $\dEv\le'\aEv$ or
-%   $\dEv$ reads from $\aLoc$ into $\aReg$ and $\labelingForm'(\aEv)$ implies  
-%   $\SUBPAR{\SUBDRS{\dEvs}}{\aLoc/\aReg} \SUBAPP (\aSubC\SUBAPP\labelingForm^2(\aEv))$,
-% \item[5b-f.] as before,
-% \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
-%   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and
-% \item[6b.] if $\labelingAct(\bEv)=\DFW[\aLoc]{\amode}$, $\bEv\le\aEv$, and
-%   $\aEv$ is a release that does not write $\aLoc$, then  some
-%   $\dEv$ writes $\aLoc$ and $\bEv\le'\dEv\le'\aEv$. %such that $\dEv$ %(explicitly)
 \end{enumerate}
 \end{definition}
 
-
-% \begin{enumerate}
-% \item[4b.] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-% \item[4c.] if $\bEv$ does not \externally read then
-%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
-% \item[5a.] if %$\bEv$ \externally reads and
-%   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
-%   $\bEv\lt'\aEv$,
-% \end{enumerate}
-
 The item numbers are chosen to match those of the corresponding clauses in
-\textsection\ref{sec:model}.  Item 5 is morally unchanged.  We only add
-addition 5g, which requires that the accepting state be final (and therefore
-excluded from any prefix).
-Item 4 is more complicated here:
-% Item 2b ensures that order into the substitution $\cEv\in\Event^1$ is
-% preserved into any substitution in $\Event'$.
-In item 4a, the label of the accepting state is calculated differently from
-other states. Instead, items 4b and 4c collapse into a single item here.
-% Item 6b is necessary to ensure the effect of $\relfilt{}$ in the local write
-% rule\footnote{Because of this, we believe it is necessary to include silent
-% actions for local writes when giving a semantics for sequential
-% composition.}.
-The requirement for a final write is imposed at top level---see below.
+\textsection\ref{sec:model}.  Item 5 is morally unchanged.  
+Items 4b and 4c collapse into a single item here.
 
-In item 4bc, note that the domain of $\aSubC$ is disjoint from the domain
-of $\SUBDRS{\aPS^1}$, although registers in the domain of $\aSubC$ may
+In item 4bc, note that the domain of $\labelingSub(\aPS^1)$ is disjoint from the domain
+of $\SUBDRS{\aPS^1}$, although registers in the domain of $\labelingSub(\aPS^1)$ may
 appear in the expressions in the codomain of $\SUBDRS{\aPS^1}$.
 
-In item 5a, recall that $\bSub=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
+In item 5a, recall that $\labelingSub^1(\bEv)=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
 $(\beforeSub\SUBSEQ\afterSub) = \aSub$.
 Note that
-$\SUBDRS{\aPS^1}\SUBSEQ \bSub$ is insensitive to the value assigned to $\aReg$ by
+$\SUBDRS{\aPS^1}\SUBSEQ \labelingSub^1(\bEv)$ is insensitive to the value assigned to $\aReg$ by
 $\SUBDRS{\aPS^1}$.
 
 As a simple example, consider the following:
@@ -703,28 +321,7 @@ As a simple example, consider the following:
       \end{tikzinline}}
   \end{gathered}
   \\
-  % \begin{gathered}
-  %   r\GETS y\SEMI x\GETS r
-  %   \\[-1ex]
-  %   \hbox{\begin{tikzinline}[node distance=1em]
-  %       \event{a}{\DRreg{r}{}{y}{1}}{}
-  %       \event{b}{\DW{x}{1}}{right=of a}
-  %       \final{f}{\SUB{y/r, 1/x}}{right=of b}
-  %       \po{a}{b}
-  %     \end{tikzinline}}
-  % \end{gathered}
-  % \qquad
-  % \begin{gathered}
-  %   s\GETS x
-  %   \\[-1ex]
-  %   \hbox{\begin{tikzinline}[node distance=1em]
-  %     \event{c}{\DFR{}}{}
-  %     \final{f}{\SUB{x/s}}{right=of c}
-  %     \po{c}{f}
-  %     \end{tikzinline}}
-  % \end{gathered}
-  % \\
-  \begin{gathered}
+                                            \begin{gathered}
     r\GETS y\SEMI x\GETS r \SEMI s\GETS x \SEMI z\GETS s
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
@@ -739,8 +336,8 @@ As a simple example, consider the following:
   \end{gathered}
 \end{gather*}
 
-To see the need for parallel substitution of all register values via $\SUBDRS{}$ in 4bc, consider that the
-precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
+To see the need for parallel substitution of all register values via $\SUBDRS{\aPS^1}$ in 4bc, consider that the
+precondition of $(\DW{y}{1})$ must be $\FALSE$ after composing:
 \begin{gather*}
   \begin{gathered}
     r\GETS x\SEMI s\GETS z
@@ -773,9 +370,9 @@ precondition of $\DW{y}{1}$ must be $\FALSE$ after composing:
   \end{gathered}
 \end{gather*}
 This pomset candidate does not satisfy the \emph{compatibility} requirement
-of Definition \ref{def:mmpomset}.  Note, however, that
-$\IF{r{=}s}\THEN y\GETS1\FI$ is shorthand for
-$\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI$, and thus we do have a valid pomset
+of Definition \ref{def:mmpomset}.  However, note that
+$(\IF{r{=}s}\THEN y\GETS1\FI)$ is shorthand for
+$(\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI)$, and thus we do have a valid pomset
 for this composition, even with this choice of read values:
 \begin{gather*}
   \begin{gathered}
@@ -806,7 +403,6 @@ for this composition, even with this choice of read values:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
-
 
 The see the need for substitutions on read actions, used in 5a, consider the
 following, where
@@ -849,7 +445,6 @@ $\bSub=\SUB{0/x,\allowbreak x/r,\allowbreak {-}2/x}$:
   \end{gathered}
 \end{gather*}
 
-
 The semantics validates expected equations, such as
 \begin{math}
   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} =
@@ -865,11 +460,10 @@ and
   \sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd}.
 \end{math}
 
-
 The semantics is equivalent to that of the main text.
 
 Let $\killS\aPSS$ be the set $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$
-every $\aEv'\in\Event'$ substitutes $\SUBEMP$.
+if $\labelingSub(\aEv')=\SUBEMP$, for every $\aEv'\in\Event'$.
 
 \begin{proposition}
   \label{thm:seq}
@@ -879,231 +473,5 @@ every $\aEv'\in\Event'$ substitutes $\SUBEMP$.
 \begin{displaymath}
   \semold{\aCmd} = \killS\sem{\aCmd}
 \end{displaymath}
-% \begin{align*}
-%   \semold{\aCmd} &= \{ \aPS\in\sem{\aCmd} \mid \disjoint{\Event}{\Sub}\}
-%   \\
-%   \sem{\aCmd_1\SEMI\aCmd_2}\sequence\sem{\aCmd_3} &= \sem{\aCmd_1}\sequence\sem{\aCmd_2\SEMI\aCmd_3}
-%   \\
-%   \hbox{\small$\sem{\IF{\aExp} \THEN \aCmd_1 \ELSE \aCmd_2\FI}\sequence\sem{\bCmd}$} &= 
-%   \hbox{\small$\sem{\IF{\aExp} \THEN \aCmd_1 \SEMI\bCmd\ELSE \aCmd_2\SEMI\bCmd\FI}$}
-% \end{align*}
 \end{proposition}
-
-
-
-
-
-% \begin{comment}
-% Plan: 
-%   a.  Define pom1; pom2  for pomsets
-%   b.  [| C1 ; C2 |] = cup { pom1; pom2 | pom1 in C1, pom2 in C2}
-
-% Def:
-%    pom1; pom2
-%              cup_L  L prefix pom2 
-%              where L is a  linearization of pom1
-% \end{comment}
-
-% \section{Variations}
-
-% \citet{2019-sp} define \emph{3-valued pomsets with preconditions} to model
-% security flaws that arise from speculative evaluation in computer
-% microarchitecture (such as Spectre \cite{DBLP:journals/corr/abs-1801-01203}).
-% \begin{definition}
-%   %\label{def:3valued}
-%   A \emph{3-valued pomset with preconditions} is a tuple
-%   $(\Event, {\le}, {\gtN}, \labeling)$, such that
-%   \begin{itemize}
-%   \item $\Event$ is a set of \emph{states},
-%   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-%   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, and
-%   \item ${\gtN} \subseteq (\Event\times\Event)$ such that:
-%     \begin{itemize}
-%     \item\label{5a} if $\bEv \le \aEv$ then $\bEv \gtN \aEv$, \hfill
-%       (Inclusion)
-%     \item\label{5b} if $\bEv \le \aEv$ and $\aEv \gtN \bEv$ then
-%       $\bEv = \aEv$, and \hfill (Consistency)
-%     \item\label{5c} if $\cEv \le \bEv \gtN \aEv$ or $\cEv \gtN \bEv \le \aEv$
-%       then $\cEv \gtN \aEv$.  \hfill (Semi-transitivity)
-%     \end{itemize}
-%   \end{itemize}
-
-%   A \emph{(memory model) pomset} is a 3-valued pomset with preconditions,
-%   such that
-%   \begin{itemize}
-%   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-%     $\labelingForm(\bEv)$, and \hfill (Causal-strengthening)
-%   \end{itemize}
-% \end{definition}
-% The axioms for $\gtN$ are adapted
-% from \citet[A1--A3]{DBLP:journals/dc/Lamport86}.  
-
-% \begin{definition}
-%   A pomset \emph{coherent} if, when restricted to events that read or write
-%   any single location $\aLoc$, $\gtN$ forms a partial order.
-% \end{definition}
-
-% \begin{figure}
-% \begin{eqnarray*}
-%   \sem{\SKIP}
-%   & = & \TIKZ{\final{f}{}{}} 
-%   \\
-%   \sem{\aLoc\GETS\aExp}
-%   & = & \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\aExp=\aVal\mid\DW\aLoc\aVal)}{}\final{f}{\aExp/\aLoc}{right=of a}}
-%   \\
-%   \sem{\aReg\GETS\aLoc}
-%   & = &
-%   \TIKZ{\final{f}{\aLoc/\aReg}{}}
-%   \cup
-%   \textstyle\bigcup_\aVal\; \TIKZ{\event{a}{(\DR\aLoc\aVal)}{}\final{f}{\aLoc/\aReg}{right=of a}\po{a}{f}}
-%   \\
-%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-%   & = & \bigl((\aExp \neq 0) \guard \sem{\aCmd}\bigr) \parallel \bigl((\aExp=0) \guard \sem{\bCmd}\bigr)
-%   \\
-%   \sem{\aCmd \SEQ \bCmd}
-%   & = & \sem{\aCmd} \sequence \sem{\bCmd}
-%   \\
-%   \sem{\aCmd \PAR \bCmd}
-%   & = & \sem{\aCmd}\fork \parallel \sem{\bCmd}
-%   \\
-%   \sem{\VAR\aLoc\SEMI \aCmd}
-%   & = & \nu \aLoc \DOT \sem{\aCmd}
-% \end{eqnarray*}
-% \caption{Semantics of a concurrent shared-memory language}
-% \label{fig:semi:programs}
-% \end{figure}
-
-% \section{Sequential Composition}
-% \label{sec:semi:model}
-% \subsection{Data models}
-% \label{sec:semi:preliminaries}
-
-% A \emph{data model} consists of:
-% \begin{itemize}
-% \item a set of \emph{substitutions} $\Sub$, ranged over by
-%   $\aSub$ and $\bSub$,
-% \end{itemize}
-% % Let $\LR=\Loc\cup\Reg$, be the set of \emph{locations}, ranged over by
-% % $\aLR$.  Let $\Sub=\LR\partialfun\Exp$ be the set of \emph{substitutions},
-% % ranged over by $\aSub$ and $\bSub$.
-% Let $\aActSub$ and $\bActSub$ range over $(\Act\cup\Sub)$.
-% % The empty substitution is written as $[\,]$.
-
-% We require that data models satisfy the following:
-% \begin{itemize}
-% \item substitutions include at least $[\aLoc/\aReg]$ and $[\aExp/\aLoc]$,
-% \item substitutions are closed under composition,
-% \end{itemize}
-% % By composition, it follows that substitutions must include $[\aExp/\aReg]$
-% % which is equal to $[\aLoc/\aReg][\aExp/\aLoc]$.
-
-% \subsection{Modal pomsets}
-% \label{sec:semi:pomsets}
-
-% We fix the alphabet $\Alphabet=(\Formulae\times(\Act\cup\Sub))$.  With this
-% alphabet, the labeling of a pomset determines two disjoint sets of events.
-% We refer to those that map to actions $\Sub$ as \emph{final}, and those that
-% map to substitutions $\Act$ as \emph{nonfinal}.
-% When we need to distinguish these, we let the set of events
-% $\Event=\EAct\uplus\ESub$, where $\EAct$ denotes the nonfinal events 
-% and $\ESub$ denotes the final events.
-
-% We write pairs in $(\Formulae\times(\Act\cup\Sub))$ as $(\aForm \mid \aActSub)$.
-% \subsection{Semantics of programs}
-% \label{sec:semi:semantics}
-
-% Semantics in Figure \ref{fig:semi:programs}
-
-% We give the semantics using combinators over sets of pomsets, defined below.
-% Using $\aPSS$ to range over sets of pomsets, these are:
-% \begin{itemize}
-% \item \emph{forking} $\aPSS\fork$, which removes final states from
-%   $\aPSS$, 
-% \item \emph{sequencing} $\aPSS_1\sequence\aPSS_2$, which prepends
-%   $\aPSS_1$ to $\aPSS_2$, calculating dependencies between the two.
-% \end{itemize}
-
-% Forking is %and substitution each perform
-% a simple transformation on each pomset
-% in a set of pomsets.
-
-% \begin{definition}
-% Let $\aPSS\fork$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
-% there is $\aPS\in\aPSS$ such that:
-% $\Event' = \EAct$,
-% $\labeling'\subseteq\labeling$,
-% $\aEv\le'\bEv$ whenever $\aEv\le\bEv$, and
-% $\aEv\gtN'\bEv$ whenever $\aEv\gtN\bEv$.
-% \end{definition}
-
-% \subsection{Sequencing}
-% \begin{definition}
-%   \label{def:semi:seq}
-%   Let $\aPS' \in (\aPSS_1 \sequence \aPSS_2)$ whenever there are
-%   $\aPS_1 \in \aPSS_1$ and $\aPS_{\cEv}\in\aPSS_2$, for every
-%   $\cEv\in\ESub_1$, such that:
-% \begin{itemize}
-% \item $\Event' = \EAct_1 \cup \bigcup_{\cEv}\Event_{\cEv}$,
-% \item if $\bEv \le_1 \aEv$ or $\bEv\le_{\cEv} \aEv$ then $\bEv \le' \aEv$,
-% \item if $\bEv \gtN_1 \aEv$ or $\bEv\gtN_{\cEv} \aEv$ then $\bEv \gtN' \aEv$,
-% \item if $\bEv\in\EAct_1$ then $\labeling'(\bEv) = \labeling_1(\bEv)$, and
-% \item if $\labeling_1(\bEv) = (\dontcare \mid \aAct)$ and
-%   $\labeling_{\cEv}(\aEv) = (\bForm \mid \bAct)$ then:
-%   \begin{itemize}
-%   \item if $\aAct$ is an acquire or $\bAct$ is a release then $\bEv \lt' \aEv$,
-%   \item if $\aAct$ is an acquire then $\bForm$ is independent of every $\bLoc$,
-%   \item either $\aAct$ and $\bAct$ are provably separable, or both are reads, or
-%     $\bEv \gtN' \aEv$, and
-%   \item if $\aAct$ and $\bAct$ conflict
-%     then $\bEv \gtN' \aEv$, and
-%   \end{itemize}
-% \item 
-%   if
-%   $\labeling_1(\cEv) = (\dontcare \mid \aSub)$, and
-%   $\labeling_{\cEv}(\aEv) = (\bForm \mid \bActSub)$ then
-%   $\labeling'(\aEv) = (\bForm' \mid \bActSub\aSub)$ where:
-%   \begin{itemize}
-%   \item $\bForm'$ implies
-%     $\lor\{\aForm\mid\bEv\in\ESub_1 \land \aEv\in\aPS\!_{\bEv}
-%     \land \labeling_1(\bEv)=(\aForm{\mid}\dontcare)\}$,
-%   \item $\bForm'$ implies $\bForm\aSub$, and
-%   \item either $\bForm'$ implies $\bForm$ or $\bEv\lt_1\cEv$ implies $\bEv\lt'\aEv$.
-%     %$\bEv\in\EAct_1$ such that.
-%   \end{itemize}
-% \end{itemize}
-% \end{definition}
-
-
-% \begin{comment}
-% The first constraint ensures that events are ordered before a release and
-% after an acquire.  The second constraint ensures that thread-local reads do
-% not cross acquire fences.
  
-% The second constraint prevents bad executions like the following:
-%    x=1; rel; acq; if (x) {y=1};  ||  acq; x=0; rel; 
-% where the second thread is interleaved between the rel and acq of the first.
-
-% Note that you cannot require that $\bForm'$ is independent of every $\bLoc$
-% because then it's not augment closed.
-% \end{comment}
-
-
-% % To see that we need $[\aExp/\aLoc]$ in the rule for write, rather than $[\aVal/\aLoc]$
-% % consider example:
-% % \begin{verbatim}
-% % r=y; if (r) {x=r} else {x=r}; s=x; if (r==s) {z=1}
-% % \end{verbatim}
-% % or simplified:
-% % \begin{verbatim}
-% % r=y;x=r;s=x; if(s==r){z=1}
-% % \end{verbatim}
-% % If you read 37 for $y$, then the predicate on \texttt{Wz1} before the
-% % read is either $r=r$ or $v=r$, where $v=37$, for example.  In one case you
-% % get a dependency and in the other you do not.
-
-
-
-% Local Variables:
-% mode: latex
-% TeX-master: "paper"
-% End:
