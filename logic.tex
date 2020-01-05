@@ -177,7 +177,7 @@ consider the special case with a single invariant.
 
 \begin{proposition}%[Composition]
   Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
-  augmentation\hyp{}closed.%\footnote{$\aPS'$ is an augmentation of $\aPS$ if
+  augmentation\hyp{}closed. %\footnote{$\aPS'$ is an augmentation of $\aPS$ if
  %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
  %   implies $\aEv\gtN'\bEv$, and
  %   % $\labeling'(\aEv)=\labeling(\aEv)$
@@ -385,8 +385,9 @@ Simplifying:
 \end{math}
 as required.
 
-Many examples are superficially similar, but can write $a$ without cycles.
+Many examples are superficially similar, but in fact have fewer dependencies.
 In the following, $\DW{x}{1}$ is independent of $\DR{y}{1}$.
+We discuss another such example at the end of \textsection\ref{sec:opt}.
 \begin{gather*}
     y\GETS x
   \PAR
@@ -404,7 +405,6 @@ In the following, $\DW{x}{1}$ is independent of $\DR{y}{1}$.
   \po[out=-15,in=-165]{ry}{wa}
     \end{tikzinline}}
 \end{gather*}
-
 
 % \endinput
 

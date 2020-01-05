@@ -235,7 +235,7 @@ The executions are disallowed, due to cycles.
 % complexity of C11 that it allows these executions.
 
 \paragraph{Address Calculation.}
-In the definition of a data model, remove the location set $\Loc$ and require
+In the definition of a data model, require
 that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$
 is a value.  Expressions may include neither memory locations nor the
 operator $\REF{\cExp}^{\amode}$.
@@ -371,8 +371,8 @@ In Definition \ref{def:mmpomset}, require that a \emph{(memory model) pomset}
 be a tuple $(\Event, {\le}, \labeling, \xrmw)$, where ${\xrmw}\subseteq{\le}$
 relates the two events of a successful \RMW.  Additionally, require that:
 \begin{itemize}
-\item If $\cEv$ and $\aEv$ both write $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
-\item If $\cEv$ and $\aEv$ both write $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
+\item If $\cEv$, $\aEv$ write the same $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
+\item If $\cEv$, $\aEv$ write the same $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
 \end{itemize}
 When selecting $\Event' \subseteq \Event$ in the definition of prefix
 (Definition~\ref{def:closure:properties}), we must ensure

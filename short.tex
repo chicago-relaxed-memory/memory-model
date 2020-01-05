@@ -10,7 +10,7 @@ defined by \citet{DBLP:journals/pacmpl/PulteFDFSS18}.  The key step is
 constructing the order for the derived pomset candidate.  We would like to
 take ${\gtN} = ({\rob} \cup {\reco})^*$, where $\rob$ is the \armeight{}
 acyclicity relation, and ${\reco}$ is the \armeight{} extended coherence
-order, as discussed after Definition~\ref{def:rf}, but this does not quite
+order, as discussed after Definition~\ref{def:rf}.  But this does not quite
 work.
 
 The definition is complicated by \armeight's \emph{internal reads}, manifest
@@ -44,7 +44,7 @@ Let $\robi$ be defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
 % defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
 
 
-For pomset order, we then take ${\gtN}=({\reco}\cup{\robi})^*$.
+For pomset order, we then take ${\gtN}=({\robi}\cup{\reco})^*$.
 
 We prove the following theorem in \textsection\ref{sec:arm:proof}.
 \begin{theorem}
@@ -126,13 +126,12 @@ it is stable with respect to augmentation.
 
 Let a \emph{generator} for $\aCmd$ be a top-level pomset that is minimal with
 respect to augmentation and implication.  Let $\semsc{\aCmd}$ be the
-executions as defined in Candidate~\ref{cand:sc} of
-\textsection\ref{sec:model}.
+executions as defined in Candidate~\ref{cand:sc}. % of \textsection\ref{sec:model}.
 
 We prove the following theorem in \textsection\ref{drfproof}.
 \begin{theorem}
   Let $\aPS$ be a generator for $\aCmd$.
-  (a) If $\aPS$ does not have a data race, $\aPS \in \semsc{\aCmd}$.
+  (a) If $\aPS$ does not have a data race, then $\aPS \in \semsc{\aCmd}$.
   (b) If $\aPS$ has a data race, then there is some
     $\aPS'\in \semsc{\aCmd}$ that also has a data race.
 \end{theorem}
