@@ -1,0 +1,59 @@
+V1.
+
+1. Def 2.1 
+     * Add coherence requirement.  
+         Any conflicting actions on a location are ordered
+     * If a precondition phi depends on x, it is treated
+         as a read of x for above purposes
+
+2. x-closed:
+   substitute(x,P) = replace every (phi|e)  by phi[x|->v],
+                                           W x v is visible for x at (phi|e)                                                          
+  x-Closed(Ps) 
+       = { substitute(x,P) | P in Ps,
+                             every read on x is fulfilled in substitute(x,P), 
+                             every event is independent of x substitute(x,P)}
+
+3. No other changes.
+
+
+================================================================================
+V0.
+
+1. Def 2.1 
+     * Add coherence requirement.  
+         Any conflicting actions on a location are ordered
+     * If a precondition phi depends on x, it is treated
+         as a read of x for above purposes
+
+2. Prefixing
+
+   Def 2.10
+          Drop 3b,4b,4c,5a
+
+   Def: A filter x=v  |> P ensures that the events (phi | e) are such that  phi ==> phi[x/v] 
+
+   Def: [r=x; C] = cup_v cup_phi ((phi|  R x v ) ==> (x=v |> [C](x/r)) 
+   Def: [x=M; C] as before
+
+3. Parallel: 
+        (force the two sides to have no unresolved precond
+         so parallels cannot share registers with each other
+         parallel child is a separate sequential context
+         all assumptions validated for top level parallel)
+   
+   Using || for current sem definition
+   [| C1 || C2 |] = true |> [| C1 |] || true |> [| C2 |]
+
+4. Sequential composition.
+
+      Drop subs on reads
+      Drop 5a
+
+x-closed:
+   substitute(x,P) = replace every (phi|e)  by phi[x|->v],
+                                           W x v is visible for x at (phi|e)                                                          
+x-Closed(calP) 
+       = { substitute(x,P) | every read on x is fulfilled, 
+                             every event is independent of x}
+
