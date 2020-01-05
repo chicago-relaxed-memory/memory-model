@@ -2,17 +2,19 @@
 \label{sec:semicolon}
 We provide an alternative semantics that supports full sequential
 composition, building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and
-$\sem{\bCmd}$.  To simplify the definitions, we assume, without loss of
-generality, that each register is
-assigned at most once syntactically
-\cite{Rosen:1988:GVN:73560.73562}\nofootnote{One can remove this restriction
-  by defining conflict (Definition \ref{def:prefix}) to include actions that
-  read into the same register; this includes order between reads in item 5b.
-  In addition, let $\READS(\aPS)=\{\aEv\mid\aEv$ is a read into $\aReg$ and
-  there is no $\aEv$ that reads into $\aReg$ such that $\dEv\le\aEv\}$.  For
-  Theorem \ref{thm:seq} to hold, register conflict must then be included in
-  $\semold{}$.}.  Since we exclude loops, this trivially ensures that each
-register is assigned at most once semantically.
+$\sem{\bCmd}$.  To simplify the definitions\footnote{This restriction can be
+  removed as follows. Separate registers into two categories: those used for
+  direct assignment ($\aReg\GETS\aExp$) and those used for reads
+  ($\aReg\GETS \REF{\cExp}^{\amode}$).  When constructing a pomset, define
+  \emph{program order} $(\xpox)$ in the obvious way.  Let $\bEv$ be
+  \emph{visible} if it reads into some $\aReg$ and there is no $\aEv$ that
+  reads into $\aReg$ such that $\bEv\xpox\aEv$.  Let $\SUBDRS{\aPS}$ be
+  derived from visible reads (rather than all reads).  In item 5a of
+  Definition \ref{def:semi:seq}, only consider events, $\bEv$, that are
+  visible reads.}, we assume, without loss of generality
+\cite{Rosen:1988:GVN:73560.73562}, that each register is assigned at most
+once syntactically.  Since we exclude loops and functions, this trivially
+ensures that each register is assigned at most once per pomset.
 
 We refactor the syntax:
 \begin{align*}
@@ -35,7 +37,7 @@ following the conventions of \citet{DBLP:conf/icalp/RitterP97}:
 \begin{gather*}
   \aLocReg\BNFDEF \aLoc \BNFSEP \aReg
   \qquad\quad
-  \aSub,\,\bSub,\, \SUBDRS{\dEvs} 
+  \aSub,\,\bSub %,\, \SUBDRS{\dEvs} 
   \BNFDEF \SUBEMP \BNFSEP \SUBPAR{\aSub}{\aEExp/\aLocReg}
   \BNFSEP \aSub\SUBSEQ\aSub'
 \end{gather*}
@@ -71,12 +73,13 @@ Let $\Sub$ be the set of all (explicit) substitutions.
 
 \paragraph{Substitutions in the Model.}\
 
-Definition~\ref{def:mmpomset} of \emph{memory model pomset} changes so that
+Change Definition~\ref{def:mmpomset}, of \emph{memory model pomset}, so that
 $\labeling: \Event \fun (\Formulae\times\Act\times\Sub)$, from which we
 derive the additional function $\labelingSub:\Event\fun\Sub$.
 
-In examples, we write the substitution as a subscript of the action on an
-event.  We elide the identity substitution.
+We write triples in $(\Formulae\times\Act\times\Sub)$ as
+$(\aForm \mid \aAct\mid \aSub)$, eliding $\aForm$ when it is a tautology and
+eliding $\aSub$ when it is the identity substitution.
 
 As a notational convenience, let $\labelingSub(\aPS)$ return the substitution
 of the termination event in $\aPS$, if one exists.  
@@ -87,8 +90,8 @@ calculate dependencies, as in item 5a of Definition \ref{def:prefix}.  The
 terminal substitutions in $\aPSS^1$ are composed with the substitutions in
 $\aPSS^2$ when calculating $(\aPSS^1\sequence\aPSS^2)$, and symmetrically.
 
-Definition \ref{def:closure:properties} of relations between pomsets is
-extended to include subsumption: $\aPS'$ \emph{subsumes} $\aPS$ if
+Extend Definition \ref{def:closure:properties}, of relations between pomsets,
+to include subsumption: $\aPS'$ \emph{subsumes} $\aPS$ if
 $\Event'=\Event$, ${\le'}={\le}$, $\labelingForm'=\labelingForm$, and
 $\labelingAct'=\labelingAct$ and $\labelingSub'(\aEv)$ subsumes
 $\labelingSub(\aEv)$.
@@ -97,38 +100,38 @@ The semantics of programs is closed w.r.t.~\emph{reverse subsumption}: if
 $\aPS\in\sem{\aCmd}$ and $\aPS$ is subsumed by $\aPS'$, then
 $\aPS'\in\sem{\aCmd}$.
 
-Subsumption is dual to implication:
-Strong\-er preconditions impose a greater burden on the preceding code;
-stronger substitutions can better mitigate this burden in the code that
-follows.  In examples, we only show executions that are implication and
-augmentation minimal; similarly, we only show executions that are
-subsumption-maximal.
+Subsumption is dual to implication: Strong\-er preconditions impose a greater
+burden on the preceding code; stronger substitutions can better mitigate this
+burden in following code.  In examples, we only show executions that are
+implication and augmentation minimal; similarly, we only show executions that
+are subsumption-maximal.
+
+Change the partial function $\rreads$, from the data model, so that
+$\rreads:\Act\fun(\Reg \times \Loc \times \Val)$.  When
+$\rreads(\aAct) = (\aReg,\aLoc,\aVal)$, we say that $\aAct$ \emph{reads}
+$\aVal$ \emph{from} $\aLoc$ \emph{into} $\aReg$.
 
 The semantics satisfies the following invariant: If $\aPS$ is
 subsumption\hyp{}maximal and $\labelingSub(\aPS)$ is defined, then for every
 $\aEv$ that reads $\aLoc$ into $\aReg$, there are $\beforeSub$ and
 $\afterSub$ such that
-$\labelingSub(\aEv)=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
-$(\beforeSub\SUBSEQ\afterSub) = \labelingSub(\aPS)$.
+$\labelingSub(\aPS) = (\beforeSub\SUBSEQ\afterSub)$ and
+$\labelingSub(\aEv)= (\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub)$.
 
-We also update the the partial function $\rreads$  from the data model so
-that $\rreads:\Act\fun(\Reg \times \Loc \times \Val)$.
-When $\rreads(\aAct) = (\aReg,\aLoc,\aVal)$, we say that $\aAct$ \emph{reads}
-$\aVal$ \emph{from} $\aLoc$ \emph{into} $\aReg$.
-
-Let $\SUBDRS{\aPS}$ be a substitution of values for registers that is derived
-from the reads of $\aPS$ as follows: $\SUBDRS{\aPS}\SUBAPP\aReg$ is $\aVal$
-if some $\aEv$ reads $\aVal$ into $\aReg$, and is $\aReg$ otherwise.
+Let $\SUBDRS{\aPS}$ be the substitution of values for registers that is
+derived from the reads of $\aPS$ as follows:
+$\SUBDRS{\aPS}\SUBAPP\aReg=\aVal$ if some event in $\aPS$ reads $\aVal$ into
+$\aReg$, and $\SUBDRS{\aPS}\SUBAPP\aReg=\aReg$ otherwise.
 
 \paragraph{Semantics of the Example Language.}\
 
 As concrete syntax for read actions, we write
-$(\DRreg[\amode]{\aReg}{}{\aLoc}{\aVal})$.
+$(\DRreg[\amode]{\aReg}{\aLoc}{\aVal})$.
 
-Definition \ref{def:rf} of \emph{$\aLoc$-closed} changes to require that
+Change Definition \ref{def:rf}, of \emph{$\aLoc$-closed}, to require that
 every substitution is independent of $\aLoc$.
 
-Definition \ref{def:par} of $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$ changes
+Change Definition \ref{def:par}, of $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$,
 to additionally require that for all $\aEv\in\Event'$, either:
 \begin{align*}
   &\labelingSub'(\aEv) \text{ is subsumed by both } \labelingSub^1(\aEv) \textand \labelingSub^2(\aEv),\\[-1ex]
@@ -178,7 +181,7 @@ We draw termination events as accepting states, dropping the termination action 
   \sem{\aReg\GETS\REF{\cExp}^\amode} & =
   \textstyle\bigcup_{\cVal,\aVal}\;
   \CLOSE{\TIKZ{
-      \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\SUB{\REF{\cVal}/\aReg}}{\REF{\cVal}}{\aVal}}{}
+      \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\REF{\cVal}}{\aVal}\mid \SUB{\REF{\cVal}/\aReg}}{}
       \final{f}{}{right=of a}
       \po{a}{f}
     }}
@@ -195,6 +198,10 @@ We draw termination events as accepting states, dropping the termination action 
     \end{aligned}
   \end{gather*}
 \endgroup
+
+Whereas a write introduces the substitution $\SUB{\aExp/\REF{\cVal}}$ on
+the terminal event, a read introduces the substitution
+$\SUB{\REF{\cVal}/\aReg}$ on the read event itself.
 
 The most significant challenge is defining sequential composition.
 Unfortunately, \emph{disjunction} and \emph{prefix weakening} (Definition
@@ -219,11 +226,11 @@ ensure the required properties.
 
 There is also a challenge dealing with redundant write elimination:
 \begin{math}
-  \sem{x\GETS 1\SEMI x^\modeREL\GETS 2} 
+  \sem{x\GETS 1\SEMI x\GETS 2} 
 \end{math}
 should contain a pomset that includes only
 \begin{math}
-  (\DW[\modeRA]{x}{2}).
+  (\DW{x}{2}).
 \end{math}
 We achieve this using the same strategy: closing after the construction.
 
@@ -233,7 +240,7 @@ $\bEv\gt\cEv$ that writes $\aLoc$, and (3) for every release $\aEv\gt\cEv$
 there is some $\aEv\gt\bEv\ge\cEv$ that writes $\aLoc$.
 
 Finally, there is a challenge in calculating the preconditions for the events
-of $\aPSS^2$ in $\aPSS^1\sequence\aPSS^2$ when terminal event of $\aPSS^1$ is
+of $\aPSS^2$ in $(\aPSS^1\sequence\aPSS^2)$ when terminal event of $\aPSS^1$ is
 missing, and symmetrically.  Again, we use the same strategy: We compute
 sequential composition using completed executions, then prefix close.
 
@@ -254,7 +261,7 @@ sequential composition using completed executions, then prefix close.
 Let $\bEv$ range over $\Event^1$.  Let $\aEv$ range over $\Event^2$.  
       
 \begin{enumerate}
-\item[1.] $\Event' = \Event^2 \uplus \{\bEv\in\Event^1\mid\labelingAct(\bEv)\neq\DSTOP\}$,
+\item[1.] $\Event' = \Event^2 \uplus \{\bEv\in\Event^1\mid\bEv\text{ is not a termination}\}$,
 \item[2.] ${\le'}\supseteq{\le^1}\cup{\le^2}$, 
 \item[3a.] $\labelingAct'(\bEv) = \labelingAct^1(\bEv)$,
 \item[3b.] $\labelingForm'(\bEv)$ implies $\labelingForm^1(\bEv)$,
@@ -262,35 +269,39 @@ Let $\bEv$ range over $\Event^1$.  Let $\aEv$ range over $\Event^2$.
 \item[4a1.] $\labelingAct'(\aEv) = \labelingAct^2(\aEv)$,
 \item[4a2.] $\labelingSub'(\aEv)$ is subsumed by $\labelingSub(\aPS^1)\SUBSEQ\labelingSub^2(\aEv)$,
 \item[4bc.] $\labelingForm'(\aEv)$ implies
-  $(\SUBDRS{\aPS^1} \SUBSEQ \labelingSub(\aPS^1))\SUBAPP\labelingForm^2(\aEv)$, 
+  $\SUBDRS{\aPS^1} \SUBAPP \bigl(\labelingSub(\aPS^1)\SUBAPP\labelingForm^2(\aEv)\bigr)$, 
 \item[5a.] if $\bEv$ is a read and $\aEv$ is a write,
-  then either $\bEv\le'\aEv$ or $\labelingForm'(\aEv)$ implies $(\SUBDRS{\aPS^1}\SUBSEQ \labelingSub^1(\bEv))\SUBAPP\labelingForm^2(\aEv)$,
+  then either $\bEv\le'\aEv$ or $\labelingForm'(\aEv)$ implies $\SUBDRS{\aPS^1}\SUBAPP \bigl(\labelingSub^1(\bEv)\SUBAPP\labelingForm^2(\aEv)\bigr)$,
 \item[5b-f.] as before (see \textsection\ref{sec:model}-\ref{sec:variants}). %generalizing 5e: if $\aEv\in\Sub$ then $\dEv\le'\aEv$,
 \end{enumerate}
 \end{definition}
 
 The item numbers are chosen to match those of the corresponding clauses in
-\textsection\ref{sec:model}.  Item 5 is morally unchanged.  
-Items 4b and 4c collapse into a single item here.
+\textsection\ref{sec:model}.  
 
-In item 4bc, note that the domain of $\labelingSub(\aPS^1)$ is disjoint from the domain
+Items 4b and 4c collapse into a single item here.
+In 4bc, note that the domain of $\labelingSub(\aPS^1)$ is disjoint from the domain
 of $\SUBDRS{\aPS^1}$, although registers in the domain of $\labelingSub(\aPS^1)$ may
 appear in the expressions in the codomain of $\SUBDRS{\aPS^1}$.
 
-In item 5a, recall that $\labelingSub^1(\bEv)=\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub$ and
-$(\beforeSub\SUBSEQ\afterSub) = \aSub$.
+Item 5 is morally unchanged.  
+In 5a, recall that
+$\labelingSub(\aPS) = (\beforeSub\SUBSEQ\afterSub)$ and
+$\labelingSub(\aEv)= (\beforeSub\SUBSEQ\SUB{\aLoc/\aReg}\SUBSEQ\afterSub)$.
 Note that
 $\SUBDRS{\aPS^1}\SUBSEQ \labelingSub^1(\bEv)$ is insensitive to the value assigned to $\aReg$ by
 $\SUBDRS{\aPS^1}$.
 
 As a simple example, consider the following:
+\begingroup
+\allowdisplaybreaks
 \begin{gather*}
   \begin{gathered}
     r\GETS y
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{\DRreg{r}{\SUB{y/r}}{y}{1}}{}
-      \final{f}{\SUBEMP}{below=of a}
+      \event{a}{\DRreg{r}{y}{1} \mid \SUB{y/r}}{}
+      \final{f}{}{below=of a}
       \end{tikzinline}}
   \end{gathered}
   \qquad
@@ -321,11 +332,11 @@ As a simple example, consider the following:
       \end{tikzinline}}
   \end{gathered}
   \\
-                                            \begin{gathered}
+  \begin{gathered}
     r\GETS y\SEMI x\GETS r \SEMI s\GETS x \SEMI z\GETS s
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{\DRreg{r}{\SUB{y/r, r/x, x/s, s/z}}{y}{1}}{}
+        \event{a}{\DRreg{r}{y}{1}\mid \SUB{y/r, r/x, x/s, s/z}}{}
         \event{b}{\DW{x}{1}}{right=of a}
         \event{c}{\DFR{}}{right=of b}
         \event{d}{\DW{z}{1}}{right=of c}
@@ -337,22 +348,22 @@ As a simple example, consider the following:
 \end{gather*}
 
 To see the need for parallel substitution of all register values via $\SUBDRS{\aPS^1}$ in 4bc, consider that the
-precondition of $(\DW{y}{1})$ must be $\FALSE$ after composing:
+precondition of $(\DW{y}{1})$ must be $\FALSE$ after composing the following:
 \begin{gather*}
   \begin{gathered}
     r\GETS x\SEMI s\GETS z
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
-      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
-      \final{f}{\SUBEMP}{right=of b}
+    \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{\DRreg{r}{x}{1} \mid \SUB{x/r}}{}
+      \event{b}{\DRreg{s}{z}{2} \mid \SUB{z/s}}{right=of a}
+      \final{f}{}{right=of b}
       \end{tikzinline}}
   \end{gathered}
   \qquad
   \begin{gathered}
      \IF{r{=}s}\THEN y\GETS1\FI
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=.5em]
       \event{c}{r{=}s\mid\DW{y}{1}}{}
       \final{f}{r{=}s\mid\SUB{1/y}}{right=of c}
       \end{tikzinline}}
@@ -361,9 +372,9 @@ precondition of $(\DW{y}{1})$ must be $\FALSE$ after composing:
   \begin{gathered}
     r\GETS x\SEMI s\GETS z \SEMI \IF{r{=}s}\THEN y\GETS1\FI
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
-      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
+    \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{\DRreg{r}{x}{1} \mid \SUB{x/r}}{}
+      \event{b}{\DRreg{s}{z}{2} \mid \SUB{z/s}}{right=of a}
       \nonevent{c}{1{=}2\mid\DW{y}{1}}{right=of b}
       \nonfinal{f}{1{=}2\mid\SUB{1/y}}{right=of c}
       \end{tikzinline}}
@@ -378,28 +389,28 @@ for this composition, even with this choice of read values:
   \begin{gathered}
     r\GETS x\SEMI s\GETS z
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
-      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
-      \final{f}{\SUBEMP}{right=of b}
+    \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{\DRreg{r}{x}{1} \mid \SUB{x/r}}{}
+      \event{b}{\DRreg{s}{z}{2} \mid \SUB{z/s}}{right=of a}
+      \final{f}{}{right=of b}
       \end{tikzinline}}
   \end{gathered}
   \qquad
   \begin{gathered}
      \IF{r{=}s}\THEN y\GETS1\FI
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \final{f}{r{\neq}s\mid\SUBEMP}{}
+    \hbox{\begin{tikzinline}[node distance=.5em]
+      \final{f}{r{\neq}s}{}
       \end{tikzinline}}
   \end{gathered}
   \\
   \begin{gathered}
     r\GETS x\SEMI s\GETS z \SEMI \IF{r{=}s}\THEN y\GETS1\FI
     \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{\SUB{x/r}}{x}{1}}{}
-      \event{b}{\DRreg{s}{\SUB{z/s}}{z}{2}}{right=of a}
-      \final{f}{1{\neq}2\mid\SUBEMP}{right=of b}
+    \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{\DRreg{r}{x}{1} \mid \SUB{x/r}}{}
+      \event{b}{\DRreg{s}{z}{2} \mid \SUB{z/s}}{right=of a}
+      \final{f}{1{\neq}2}{right=of b}
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
@@ -413,11 +424,11 @@ $\bSub=\SUB{0/x,\allowbreak x/r,\allowbreak {-}2/x}$:
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DW{x}{0}}{}
-      \event{b}{\DRreg{r}{\bSub}{x}{1}}{right=of a}
+      \event{b}{\DRreg{r}{x}{1} \mid \bSub}{right=of a}
       \event{c}{\DW{x}{{-}2}}{right=of b}
       \wk{a}{b}
       \wk{b}{c}
-      \final{f}{\SUB{{-2}/x}}{right=of c}
+      \final{f}{\SUB{{-2}/x}}{right=.5em of c}
       \end{tikzinline}}
   \end{gathered}
   \quad
@@ -426,7 +437,7 @@ $\bSub=\SUB{0/x,\allowbreak x/r,\allowbreak {-}2/x}$:
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{d}{r{\geq}0\mid\DW{y}{1}}{}
-      \final{f}{r{\geq}0\mid\SUB{1/y}}{right=of d}
+      \final{f}{r{\geq}0\mid\SUB{1/y}}{right=.5em of d}
       \end{tikzinline}}
   \end{gathered}
   \\
@@ -435,7 +446,7 @@ $\bSub=\SUB{0/x,\allowbreak x/r,\allowbreak {-}2/x}$:
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DW{x}{0}}{}
-      \event{b}{\DRreg{r}{\SUBPAR{\bSub}{1/y}}{x}{1}}{right=of a}
+      \event{b}{\DRreg{r}{x}{1} \mid \SUBPAR{\bSub}{1/y}}{right=of a}
       \event{c}{\DW{x}{{-}2}}{right=of b}
       \wk{a}{b}
       \wk{b}{c}
@@ -444,6 +455,7 @@ $\bSub=\SUB{0/x,\allowbreak x/r,\allowbreak {-}2/x}$:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
+\endgroup
 
 The semantics validates expected equations, such as
 \begin{math}

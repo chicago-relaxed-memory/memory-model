@@ -124,8 +124,8 @@ We require that every SC read is an acquire, and every SC write is a release.
 % $\SC\cap\fdom(\rreads)\subseteq\Acq$,
 % $\SC\cap\fdom(\rwrites)\subseteq\Rel$,
 % and
-We also require that termination events do not read or write, and are not
-acquiring, releasing, or SC.
+We also require that termination events are releasing, but do not read,
+write, or acquire.
 %$\disjoint{\Term}{(\Acq\cup\Rel\cup\SC\cup\fdom(\rreads)\cup\fdom(\rwrites))}$.
 
 
@@ -205,7 +205,7 @@ $\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
 
 \paragraph{Example Language.}
 Our example language includes actions of the form
-$(\DSTOP)$, which is a termination,
+$(\DSTOP)$, which is a \emph{termination},
 $(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads}  $\aVal$ from
 $\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
 $\aLoc$.
@@ -429,7 +429,7 @@ are closed with respect to \emph{augmentation}, \emph{prefixing},
 
 Each pomset in the semantics of a program has at most one termination event,
 which is ordered after all other events.  By causal strengthening, its
-postcondition must therefore imply the postcondition of all other events.
+precondition must therefore imply the precondition of all other events.
 
 We visualize pomsets as directed graphs.
 %where the nodes are drawn from $\Event$, each node $\aEv$ is labeled with $\labeling(\aEv)$, and order is drawn as an edge.
@@ -460,16 +460,14 @@ includes:
 \end{tikzdisplay}
 We visualize order using arrows that indicate the reason that the order
 arises.
-$\DW{x}{1}\xrf\DR{x}{1}$ is a \emph{reads-from} requirement: the read of $x$
-must be fulfilled by a matching write.
-$\DW{x}{0}\xwk\DW{x}{1}$ is a \emph{coherence} requirement: the write of $1$
+$(\DW{x}{0})\xwk(\DW{x}{1})$ is a \emph{coherence} requirement: the write of $1$
 must follow the write of $0$, since these are in program order.
-$\DR{x}{1}\xpo\DW{y}{1}$ is a \emph{dependency} requirement: the write to $y$
+$(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement: the read of $x$
+must be fulfilled by a matching write.
+$(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y$
 depends on the read of $x$.
 Although we use multiple arrows, we emphasize that they are all part
 of the same $\le$ relation.
-
-
 
 \paragraph{Semantics of the Example Language.}
 In the remainder of this section, we explain the semantics of our example
@@ -506,9 +504,9 @@ Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
 there is $\aPS\in\aPSS$ such that:
 $\Event' = \Event$,
 ${\le'} = {\le}$, 
-%${\gtN'} = {\gtN}$,
-and
-$\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
+%${\gtN'} = {\gtN}$,and
+$\labelingAct'(\aEv) = \labelingAct(\aEv)$, and
+$\labelingForm'(\aEv) = \labelingForm'(\aEv)\aSub$.
 
 Let $\aPS\in\stopPS$ when
 $\Event = \{ \aEv \}$ and
@@ -525,9 +523,11 @@ $\labelingAct(\aEv) = \DSTOP$.
 
 \begin{definition}
   \label{def:rf}
-  We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ \externally writes
-  $\aVal$ to $\aLoc$, $\aEv$ \externally reads $\aVal$ from $\aLoc$,
-  \begin{itemize}
+  We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if 
+  \begin{itemize}    
+  \item $\bEv$ \externally writes
+    $\aVal$ to $\aLoc$, 
+  \item $\aEv$ \externally reads $\aVal$ from $\aLoc$,
   \item
     $\bEv \lt \aEv$, and
   \item
@@ -959,8 +959,8 @@ rule for conditionals:
 \paragraph{Program Order Prefixing.} % for Trivial Expressions.}
 We present several candidate definitions for prefixing before giving the
 final definition.  The candidates are progressively more general and less
-ordered.  We begin by considering programs with trivial expressions and
-include all of program order in pomset order.
+ordered.  We begin by considering programs with trivial expressions,
+including all of program order in pomset order.
 
 
 % For programs with only trivial expressions, the simplest candidate
@@ -1042,10 +1042,6 @@ there is $\aPS\in\aPSS$ such that:
 \end{definition}
 
 % In the definition of prefixing,
-Item 1 introduces a new event.  Item 2 ensures that no order is removed from old
-events. Item 3 describes the label of the new event, which must imply
-$\aForm$. Item 4 describes the labels of old events, as discussed below.
-Item 5 ensures that program order is included for the new event.
 %\vspace{-2ex}
 \begin{candidate} %\ \vspace{-1ex}
   \label{cand2.9}
@@ -1059,7 +1055,12 @@ Item 5 ensures that program order is included for the new event.
     \;\smash{\mathhl{\textstyle\parallel_\aVal (\aExp=\aVal}\, \mid \DWmode\aLoc\aVal) \prefixsc\; \sem{\aCmd}}
   \end{align*}
 \end{candidate}
-We first discuss writes, then reads.
+Item 1 introduces a new event.  Item 2 ensures that no order is removed from old
+events. Item 3 describes the label of the new event, which must imply
+$\aForm$. Item 4 describes the labels of old events, as discussed below.
+Item 5 ensures that program order is included for the new event.
+
+%We first discuss writes, then reads.
 
 For writes, item 4 is simple: For old events, the new precondition in $\aPS'$
 must imply old the precondition in $\aPS$.  (This is very similar to the
@@ -1070,7 +1071,7 @@ the expression $\aExp$.  To ensure that at most one write is enabled, these
 are given disjoint preconditions.
 
 The semantics is again driven by the rules of
-Hoare logic---for write, the rule is left disjunction:
+Hoare logic---for writes, the rule is left disjunction:
 \begin{displaymath}
   \frac{
     \hoare{\aForm^1}{\aCmd}{\bForm}
@@ -1112,16 +1113,6 @@ in the definition of write is necessary to validate \emph{case analysis}:
   =
   \sem{\IF{\aExp}\THEN \aCmd\ELSE \aCmd\FI}.
 \end{math}
-
-
-The use of $\parallel$ is neither necessary nor desirable for reads.
-% : the read rule does not introduce read preconditions, and item 5a of
-% Definition \ref{def:prefix} ignores them.
-Whereas a write action introduces a precondition---satisfied
-sequentially---on the value to be written; a read introduces a pomset
-requirement---fulfilled concurrently---on the value to be read.  In the
-concurrent world, writes are capabilities; reads are obligations.  Thus, a
-read should introduce at most one event per pomset.
 
 
 In the semantics of read, item 4b %(Candidate \ref{def:pre-sc})
@@ -1187,7 +1178,7 @@ Item 4b then the substitutes the chosen value $[1/x]$:
     \hbox{\begin{tikzinline}[node distance=1em]
         \nonevent{wy1}{1<0\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
-        \po{rx1}{wy1}
+        %\po{rx1}{wy1}
       \end{tikzinline}}
   \end{gathered}
 \end{align}
@@ -1220,6 +1211,19 @@ causally dependent on the read.  By prefixing a read event, the precondition
 $x=1$ has moved from the sequential realm of Hoare logic to the concurrent
 memory model.  Rather than a precondition that must be \emph{satisfied}, the
 resulting pomset has a read event that must be \emph{fulfilled}.
+
+%The use of $\parallel$ is unnecessary  for reads.
+% : the read rule does not introduce read preconditions, and item 5a of
+% Definition \ref{def:prefix} ignores them.
+Whereas a write action introduces a precondition---satisfied
+sequentially---on the value to be written; a read introduces a pomset
+requirement---fulfilled concurrently---on the value to be read.  Since reads
+of different values do not have disjoint preconditions, it is important that
+a read introduce at most one event per pomset.  Thus, we use $\cup$ to
+combine pomsets for different read values, rather than $\parallel$.
+% In the concurrent world, writes are capabilities; reads are obligations.
+% Thus, a read should introduce at most one event per pomset.
+
 
 % We can now explain the substitution in the semantics of read in Candidate~\ref{def:rw:sc1}.
 % % (The substitution in the semantics of write \eqref{sc-write} is not used here; we explain
@@ -1296,7 +1300,7 @@ Definition \ref{def:pre-sc} such that:
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
 \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
-\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
+%\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
 \end{enumerate}
@@ -1407,7 +1411,7 @@ Unlike \citep[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}, our model allows
       \wk[in=165,out=15]{b}{d}
     \end{tikzinline}}
 \end{gather*}
-Note that there is no order from $\DW[\modeSC]{x}{2}$ to $\DW{y}{1}$.
+Note that there is no order from $(\DW[\modeSC]{x}{2})$ to $(\DW{y}{1})$.
 
 
 We relax program order on non-SC accesses in order to allow the outcome
