@@ -1,3 +1,25 @@
+V1.
+
+1. Def 2.1 
+     * Add coherence requirement.  
+         Any conflicting actions on a location are ordered
+     * If a precondition phi depends on x, it is treated
+         as a read of x for above purposes
+
+2. x-closed:
+   substitute(x,P) = replace every (phi|e)  by phi[x|->v],
+                                           W x v is visible for x at (phi|e)                                                          
+  x-Closed(Ps) 
+       = { substitute(x,P) | P in Ps,
+                             every read on x is fulfilled in substitute(x,P), 
+                             every event is independent of x substitute(x,P)}
+
+3. No other changes.
+
+
+================================================================================
+V0.
+
 1. Def 2.1 
      * Add coherence requirement.  
          Any conflicting actions on a location are ordered
@@ -28,6 +50,10 @@
       Drop subs on reads
       Drop 5a
 
-
-   
+x-closed:
+   substitute(x,P) = replace every (phi|e)  by phi[x|->v],
+                                           W x v is visible for x at (phi|e)                                                          
+x-Closed(calP) 
+       = { substitute(x,P) | every read on x is fulfilled, 
+                             every event is independent of x}
 
