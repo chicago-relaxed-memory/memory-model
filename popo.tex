@@ -1,33 +1,40 @@
 \section{Weak Ideas}
+Introduce \emph{weak order} $\wle$\footnote{Note we can \emph{not} require
+\begin{itemize}
+\item if $\bEv\;({\le}\cup{\wle})\;\aEv$ then $\labelingSub(\bEv)$ subsumes
+  $\labelingSub(\aEv)$.
+\end{itemize}
+This does not hold, for example, in $\sem{x\GETS1\SEMI x\GETS2}$.}.
+
 \begin{definition}[2.1]
-  A \emph{memory order pomset (popo)} is a tuple
-  $(\Event, {\rhb}, {\reco}, \labeling)$: 
+  A \emph{(memory order) pomset} is a tuple
+  $(\Event, {\le}, {\wle}, \labeling)$: 
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
-  \item ${\rhb}\subseteq (\Event\times\Event)$ and ${\reco}\subseteq (\Event\times\Event)$ are partial orders, 
+  \item ${\le}\subseteq (\Event\times\Event)$ and ${\wle}\subseteq (\Event\times\Event)$ are partial orders, 
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
     from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
   % \item $\labeling: \Event \fun (\Formulae\times\Act\times\Sub)$ is a \emph{labeling},
   %   from which we derive functions $\labelingForm:\Event\fun\Formulae$, $\labelingAct:\Event\fun\Act$, and  $\labelingSub:\Event\fun\Sub$,
-  \item if $\bEv\;({\xhb}\cup{\xeco})\;\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$, and
+  \item if $\bEv\;({\le}\cup{\wle})\;\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$, and
   % \item $\bigwedge\{\labelingForm(\aEv_i)\mid\forall i,j.\; \aEv_i\xpox\aEv_j \textor \aEv_j\xpox\aEv_i\}$ is satisfiable.
   \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
   \end{itemize}
   Additional stuff:
   \begin{itemize}
-  \item if $\bEv\;({\xhb}\sequence{\xeco})\;\aEv$ then $\bEv\neq\aEv$,
-  \item if $\bEv\xhb\aEv$ and $\bEv$ and $\aEv$ conflict, then $\bEv\xeco\aEv$,
-  \item if $\bEv\xeco\aEv$ and $\bEv$ and $\aEv$ are SC, then $\bEv\xhb\aEv$,
-  \item if $\bEv\;({\xhb}\sequence{\xeco}\sequence{\xhb})\;\aEv$ and $\bEv$ and $\aEv$ are SC Fences then $\bEv\xhb\aEv$,
+  \item if $\bEv\;({\le}\sequence{\wle})\;\aEv$ then $\bEv\neq\aEv$, and
+  % \item if $\bEv\le\aEv$ and $\bEv$ and $\aEv$ conflict, then $\bEv\wle\aEv$,
+  %\item if $\bEv\wle\aEv$ and $\bEv$ and $\aEv$ are SC, then $\bEv\le\aEv$,
+  \item if $\bEv\;({\le}\sequence{\wlt}\sequence{\le})\;\aEv$, $\bEv$ is SC,
+    and $\aEv$ is SC, then $\bEv\lt\aEv$.
   \end{itemize}
 \end{definition}
-
-Note we can \emph{not} require
+Update the definitions to use $\wle$ instead of $\le$ in two places:
 \begin{itemize}
-\item if $\bEv\;({\xhb}\cup{\xeco})\;\aEv$ then $\labelingSub(\bEv)$ subsumes
-  $\labelingSub(\aEv)$.
+\item the last item defining fulfillment, and
+\item item 5b defining prefixing.
 \end{itemize}
-This does not hold, for example, in $\sem{x\GETS1\SEMI x\GETS2}$.
+
 \begin{definition}[2.4]
   We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if 
   \begin{itemize}    
@@ -35,29 +42,28 @@ This does not hold, for example, in $\sem{x\GETS1\SEMI x\GETS2}$.
     $\aVal$ to $\aLoc$, 
   \item $\aEv$ reads $\aVal$ from $\aLoc$,
   \item
-    $\bEv \xhb \aEv$, and
+    $\bEv \le \aEv$, and
   \item
-    if $\cEv$ writes to $\aLoc$ then either $\cEv \xeco \bEv$ or $\aEv \xeco \cEv$.
+    if $\cEv$ writes to $\aLoc$ then either $\cEv \wle \bEv$ or $\aEv \wle \cEv$.
   \end{itemize}
 \end{definition}
 
-\begin{definition}
+\begin{definition}[2.10]
   \label{def:prefix}
-Two actions \emph{conflict} if one writes a location and the other
-either reads or writes the same location.
-
 Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE(\aPSS')$ where
 $\aPS'\in\aPSS'$ when
 there is some $\aPS\in\aPSS$ that satisfies items 1-4 of
-Definition \ref{def:pre-sc} such that:
+Definition 2.8 %\ref{def:pre-sc}
+such that:
 \begin{enumerate}
-\item[5a.]  if $\aEv$ writes then either $\bEv\xhbp\aEv$ or
+\item[5a.]  if $\aEv$ writes then either $\bEv\le'\aEv$ or
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-\item[5b.] if $\bEv$ and $\aEv$ are actions in conflict, then $\bEv\xecop\aEv$,
-\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \xhbp \aEv$, and
-\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \xhbp \aEv$.
+\item[5b.] if $\bEv$ and $\aEv$ are actions in conflict, then $\bEv\wle'\aEv$,
+\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \le' \aEv$, and
+\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \le' \aEv$.
 \end{enumerate}
 \end{definition}
+
 
 \begin{gather*}
   x\GETS0\SEMI
