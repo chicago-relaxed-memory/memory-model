@@ -528,32 +528,34 @@
 \newcommand{\rrmw}{\ensuremath{\mathrel{\mathsf{rmw}}}}%
 \newcommand{\xrmw}{\xarrowtikz{rmw}{rmw}}%
 
-\tikzstyle{eco} = [-latex,color=red!50!black,thick]
+\tikzstyle{eco} = [-latex,color=red!50!black,thick,dashed]
 \NewDocumentCommand \eco {O{} m O{} m} {\draw[eco,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{eco}$}  (#4);}
 \newcommand{\reco}{\ensuremath{\mathrel{\textcolor{red!50!black}{\mathsf{eco}}}}}%
+\newcommand{\recop}{\ensuremath{\mathrel{\textcolor{red!50!black}{\mathsf{eco'}}}}}%
 \newcommand{\xeco}{\xarrowtikz{eco}{eco}}%
-\tikzstyle{co} = [-latex,color=red!50!black,thick]
+\newcommand{\xecop}{\xarrowtikz{eco}{eco'}}%
+\tikzstyle{co} = [-latex,color=red!50!black,thick,dashed]
 \NewDocumentCommand \co {O{} m O{} m} {\draw[co,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{co}$}  (#4);}
 \newcommand{\rco}{\ensuremath{\mathrel{\textcolor{red!50!black}{\mathsf{co}}}}}%
 \newcommand{\xco}{\xarrowtikz{co}{co}}%
-\tikzstyle{coi} = [-latex,color=red!50!black,thick]
+\tikzstyle{coi} = [-latex,color=red!50!black,thick,dashed]
 \NewDocumentCommand \coi {O{} m O{} m} {\draw[coi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coi}$}  (#4);}
 \newcommand{\rcoi}{\ensuremath{\mathrel{\textcolor{red!50!black}{\mathsf{coi}}}}}%
 \newcommand{\xcoi}{\xarrowtikz{coi}{coi}}%
-\tikzstyle{coe} = [-latex,color=red!50!black,thick]
+\tikzstyle{coe} = [-latex,color=red!50!black,thick,dashed]
 \NewDocumentCommand \coe {O{} m O{} m} {\draw[coe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{coe}$}  (#4);}
 \newcommand{\rcoe}{\ensuremath{\mathrel{\textcolor{red!50!black}{\mathsf{coe}}}}}%
 \newcommand{\xcoe}{\xarrowtikz{coe}{coe}}%
 
-\tikzstyle{fr} = [-latex,color=red!90!black,thick]
+\tikzstyle{fr} = [-latex,color=red!90!black,thick,dashed]
 \NewDocumentCommand \fr {O{} m O{} m} {\draw[fr,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fr}$}  (#4);}
 \newcommand{\rfr}{\ensuremath{\mathrel{\textcolor{red!90!black}{\mathsf{fr}}}}}%
 \newcommand{\xfr}{\xarrowtikz{fr}{fr}}%
-\tikzstyle{fre} = [-latex,color=red!90!black,thick]
+\tikzstyle{fre} = [-latex,color=red!90!black,thick,dashed]
 \NewDocumentCommand \fre {O{} m O{} m} {\draw[fre,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fre}$}  (#4);}
 \newcommand{\rfre}{\ensuremath{\mathrel{\textcolor{red!90!black}{\mathsf{fre}}}}}%
 \newcommand{\xfre}{\xarrowtikz{fre}{fre}}%
-\tikzstyle{fri} = [-latex,color=red!90!black,thick]
+\tikzstyle{fri} = [-latex,color=red!90!black,thick,dashed]
 \NewDocumentCommand \fri {O{} m O{} m} {\draw[fri,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{fri}$}  (#4);}
 \newcommand{\rfri}{\ensuremath{\mathrel{\textcolor{red!90!black}{\mathsf{fri}}}}}%
 \newcommand{\xfri}{\xarrowtikz{fri}{fri}}%
@@ -591,7 +593,9 @@
 \tikzstyle{hb} = [-latex,color=blue,thick]
 \NewDocumentCommand \hb {O{} m O{} m} {\draw[hb,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{hb}$}  (#4);}
 \newcommand{\rhb}{\ensuremath{\mathrel{\textcolor{blue}{\mathsf{hb}}}}}%
+\newcommand{\rhbp}{\ensuremath{\mathrel{\textcolor{blue}{\mathsf{hb'}}}}}%
 \newcommand{\xhb}{\xarrowtikz{hb}{hb}}%
+\newcommand{\xhbp}{\xarrowtikz{hb}{hb'}}%
 \tikzstyle{ob} = [-latex,color=blue,thick]
 \NewDocumentCommand \ob {O{} m O{} m} {\draw[ob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ob}$}  (#4);}
 \newcommand{\rob}{\ensuremath{\mathrel{\textcolor{blue}{\mathsf{ob}}}}}%

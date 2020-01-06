@@ -1,0 +1,246 @@
+\RequirePackage{amssymb}  %% bizarre error previous def of Bbbk if after documentclass
+% at most 12 pages, % excluding references. 
+\documentclass[sigplan,10pt,
+review,anonymous,
+]{acmart}
+\makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
+\settopmatter{printfolios=true}
+\AtEndPreamble{%
+  % \theoremstyle{acmdefinition}
+  % \theoremstyle{plain}
+  % \newtheorem{theorem}{Theorem}[section]
+  % \newtheorem{proposition}[theorem]{Proposition}
+  % \theoremstyle{acmdefinition}
+  % \newtheorem{definition}[theorem]{Definition}
+  \theoremstyle{acmdefinition}
+  \newtheorem{remark}[theorem]{Remark}
+  \newtheorem{candidate}[theorem]{Candidate}
+  \renewcommand{\theequation}{\fnsymbol{equation}}
+}
+%% For single-blind review submission
+
+% \documentclass[acmsmall]{acmart}\settopmatter{printfolios=true}
+% \hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=2}
+%% For final camera-ready submission
+%\documentclass[acmsmall,10pt]{acmart}\settopmatter{}
+
+%% Note: Authors migrating a paper from PACMPL format to traditional
+%% SIGPLAN proceedings format should change 'acmsmall' to
+%% 'sigplan'.
+
+%\documentclass[acmsmall,screen]{acmart}
+
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+
+
+
+% \makeatletter\if@ACM@journal\makeatother
+% %% Journal information (used by PACMPL format)
+% %% Supplied to authors by publisher for camera-ready submission
+% \acmJournal{PACMPL}
+% \acmVolume{1}
+% \acmNumber{1}
+% \acmArticle{1}
+% \acmYear{2017}
+% \acmMonth{1}
+% \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
+% \else\makeatother
+% %% Conference information (used by SIGPLAN proceedings format)
+% %% Supplied to authors by publisher for camera-ready submission
+% \acmConference[PL'17]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2017}{New York, NY, USA}
+% \acmYear{2017}
+% \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+% \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
+% \fi
+
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission
+% \setcopyright{none}             %% For review submission
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2017}           %% If different from \acmYear
+
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+\citestyle{acmauthoryear}   %% For author/year citations
+
+% AFAICT this is the only way to get the copyright notice to be CC-BY-4.0
+% which is the recommended license for POPL 2020.
+\setcopyright{rightsretained}
+\begin{makeatletter}
+  \gdef\@copyrightpermission{%
+    This paper is published under the Creative Commons Attribution~4.0
+    International (CC-BY~4.0) license.
+  }
+\end{makeatletter}
+
+\usepackage{macros}
+
+% % at most 12 pages, excluding references, not anonymous
+% % Titles and Short Abstracts Due	4 January 2019
+% % Full Papers Due	11 January 2019
+% % Author Feedback/Rebuttal Period	4–8 March 2019
+% % Author Notification	29 March 2019
+% % Conference	24–27 June 2019
+% \documentclass[conference]{IEEEtran}
+% \IEEEoverridecommandlockouts
+
+\usepackage{macros}
+
+\begin{document}
+
+%% Title information
+\title{Weak Ideas}
+\author{Radha Jagadeesan}
+\affiliation{
+  %\department{School of Computing}
+  \institution{DePaul University}
+  %\country{USA}
+}
+%\email{rjagadeesan@cs.depaul.edu}
+
+\author{Alan Jeffrey}
+\orcid{0000-0001-6342-0318}
+\affiliation{
+  \institution{Mozilla Research}
+  %\country{USA}
+}
+%\email{ajeffrey@mozilla.com}
+
+\author{James Riely}
+\orcid{0000-0002-8731-1463}
+\affiliation{
+  %\department{School of Computing}
+  \institution{DePaul University}
+  %\country{USA}
+}
+%\email{jriely@cs.depaul.edu}
+
+
+%% Paper note
+\thanks{Radha Jagadeesan and James Riely were supported in part by NSF CCR}
+%% The \thanks command may be used to createame a "paper note" ---
+%% similar to a title note or an author note, but not explicitly
+%% associated with a particular element.  It will appear immediately
+%% above the permission/copyright statement.
+%                                         %% can be repeated if necesary
+%                                         %% contents suppressed with 'anonymous'
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10003752.10003753.10003761.10003762</concept_id>
+<concept_desc>Theory of computation~Parallel computing models</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+% <concept>
+% <concept_id>10003752.10003753.10003761.10003763</concept_id>
+% <concept_desc>Theory of computation~Distributed computing models</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10003753.10003761.10003764</concept_id>
+% <concept_desc>Theory of computation~Process calculi</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10003790.10002990</concept_id>
+% <concept_desc>Theory of computation~Logic and verification</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10010124.10010131.10010133</concept_id>
+% <concept_desc>Theory of computation~Denotational semantics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>TT
+% <concept>
+% <concept_id>10003752.10010124.10010131.10010134</concept_id>
+% <concept_desc>Theory of computation~Operational semantics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+% <concept>
+% <concept_id>10003752.10010124.10010131.10010135</concept_id>
+% <concept_desc>Theory of computation~Axiomatic semantics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
+<concept>
+<concept_id>10003752.10010124.10010138.10011119</concept_id>
+<concept_desc>Theory of computation~Abstraction</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Parallel computing models}
+% \ccsdesc[500]{Theory of computation~Distributed computing models}
+% \ccsdesc[500]{Theory of computation~Process calculi}
+% \ccsdesc[500]{Theory of computation~Logic and verification}
+% \ccsdesc[500]{Theory of computation~Denotational semantics}
+% \ccsdesc[500]{Theory of computation~Operational semantics}
+% \ccsdesc[500]{Theory of computation~Axiomatic semantics}
+\ccsdesc[500]{Theory of computation~Abstraction}
+ 
+
+%% End of generated code
+
+
+%% Keywords
+%% comma separated list
+\keywords{Relaxed Memory Models, Hardware Transactional Memory}  %% \keywords is optional
+
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+
+% \title{What Happened}
+
+% \author{
+% \IEEEauthorblockN{Radha Jagadeesan}
+% \IEEEauthorblockA{\textit{DePaul University}\\
+%   \email{rjagadeesan@cs.depaul.edu}}
+% \and
+% \IEEEauthorblockN{Alan Jeffrey}
+% \IEEEauthorblockA{\textit{Mozilla Research}\\
+%   \email{ajeffrey@mozilla.com}}
+% \and
+% \IEEEauthorblockN{James Riely}
+% \IEEEauthorblockA{\textit{DePaul University}\\
+%   \email{jriely@cs.depaul.edu}}
+% }
+
+\clearpage
+\input{popo}
+\end{document}
+
+% Local Variables:
+% mode: latex
+% TeX-master: t
+% End:

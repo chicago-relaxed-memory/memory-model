@@ -1303,8 +1303,8 @@ Definition \ref{def:pre-sc} such that:
 %   $\bEv\lt'\aEv$,
 \item[5b.] if $\bEv$ and $\aEv$ are \external actions in conflict,
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
-\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
-\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$, and
+\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
 %\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
@@ -2108,15 +2108,15 @@ It is also impossible for all threads to read $1$ in the following, due to
   \po{a1}{a2}
   \event{a3}{\DW{y}{1}}{right=of a2}
   \wk{a2}{a3}
-  \event{b1}{\DR{x}{1}}{right=of a3}
-  \event{b2}{\DW{y}{0}}{right=of b1}
+  \event{b1}{\DR{y}{1}}{right=of a3}
+  \event{b2}{\DW{z}{0}}{right=of b1}
   \po{b1}{b2}
-  \event{b3}{\DW{y}{1}}{right=of b2}
+  \event{b3}{\DW{z}{1}}{right=of b2}
   \wk{b2}{b3}
-  \event{c1}{\DR{x}{1}}{right=of b3}
-  \event{c2}{\DW{y}{0}}{right=of c1}
+  \event{c1}{\DR{z}{1}}{right=of b3}
+  \event{c2}{\DW{x}{0}}{right=of c1}
   \po{c1}{c2}
-  \event{c3}{\DW{y}{1}}{right=of c2}
+  \event{c3}{\DW{x}{1}}{right=of c2}
   \wk{c2}{c3}
   \rf{a3}{b1}
   \rf{b3}{c1}
