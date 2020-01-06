@@ -9,13 +9,16 @@
     from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
   % \item $\labeling: \Event \fun (\Formulae\times\Act\times\Sub)$ is a \emph{labeling},
   %   from which we derive functions $\labelingForm:\Event\fun\Formulae$, $\labelingAct:\Event\fun\Act$, and  $\labelingSub:\Event\fun\Sub$,
+  \item if $\bEv\;({\xhb}\cup{\xeco})\;\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$, and
+  % \item $\bigwedge\{\labelingForm(\aEv_i)\mid\forall i,j.\; \aEv_i\xpox\aEv_j \textor \aEv_j\xpox\aEv_i\}$ is satisfiable.
+  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
+  \end{itemize}
+  Additional stuff:
+  \begin{itemize}
   \item if $\bEv\;({\xhb}\sequence{\xeco})\;\aEv$ then $\bEv\neq\aEv$,
   \item if $\bEv\xhb\aEv$ and $\bEv$ and $\aEv$ conflict, then $\bEv\xeco\aEv$,
   \item if $\bEv\xeco\aEv$ and $\bEv$ and $\aEv$ are SC, then $\bEv\xhb\aEv$,
   \item if $\bEv\;({\xhb}\sequence{\xeco}\sequence{\xhb})\;\aEv$ and $\bEv$ and $\aEv$ are SC Fences then $\bEv\xhb\aEv$,
-  \item if $\bEv\;({\xhb}\cup{\xeco})\;\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$, and
-  % \item $\bigwedge\{\labelingForm(\aEv_i)\mid\forall i,j.\; \aEv_i\xpox\aEv_j \textor \aEv_j\xpox\aEv_i\}$ is satisfiable.
-  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
   \end{itemize}
 \end{definition}
 
