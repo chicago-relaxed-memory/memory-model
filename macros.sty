@@ -524,6 +524,15 @@
 \tikzstyle{wk} = [-latex,dashed,color=red!50!black,]
 \newcommand{\wk}[3][]{\draw[wk,#1](#2)to(#3);}
 \newcommand{\xwk}{\xarrowtikz{wk}{\;\;}}%
+\tikzstyle{wkx} = [->,dashed,thick,color=red!70!black,]
+\newcommand{\wkx}[3][]{\draw[wkx,#1](#2)to(#3);}
+\newcommand{\xwkx}{\xarrowtikz{wkx}{\;\;}}%
+\tikzstyle{wky} = [->,dotted,thick,color=green!70!black,]
+\newcommand{\wky}[3][]{\draw[wky,#1](#2)to(#3);}
+\newcommand{\xwky}{\xarrowtikz{wky}{\;\;}}%
+\tikzstyle{wkz} = [->,dashdotted,thick,color=blue!90!black,]
+\newcommand{\wkz}[3][]{\draw[wkz,#1](#2)to(#3);}
+\newcommand{\xwkz}{\xarrowtikz{wkz}{\;\;}}%
 
 \tikzstyle{rmw} = [-latex,thick]
 \NewDocumentCommand \rmw {O{} m O{} m} {\draw[rmw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rmw}$}  (#4);}

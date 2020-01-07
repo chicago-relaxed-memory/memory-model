@@ -65,30 +65,93 @@ such that:
 \end{definition}
 
 
+Weak order is only required to relate actions on the same location.  In
+augmentation minimal pomsets, it is a subset of $\reco$ (only relates writes
+that are read).  The irreflexivity requirement in the definition is thus
+comparable to requiring that ${\le}\cup({\wle}\restrict{\aLoc})$ is a partial
+order, for every $\aLoc$.  It is \emph{not} the case that ${\le}\cup{\wle}$
+is a partial order.
+
+With the requirements of fulfillment, we have that $\bEv\le\aEv$ implies
+$\bEv\wle\aEv$ when the actions conflict---there is a caveat for unread
+writes, where no order is forced.
+
+Here are some examples of the main text.  To better visualize, we use
+different arrowheads for strong and weak order.  We use a single color for
+strong order, and separate colors for each variable in weak order.
+
+\tikzstyle{po} = [-latex,color=black,]
+\tikzstyle{rf} = [-latex,color=black,]
+
+\begin{gather*}
+  x\GETS1\SEMI x\GETS 2
+  \PAR
+  y\GETS x \SEMI z\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DW{x}{2}}{right=of a}
+      \wkx{a}{b}
+      \event{c}{\DR{x}{2}}{right=2em of b}
+      \event{d}{\DW{y}{2}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{x}{1}}{right=of d}
+      \event{f}{\DW{z}{1}}{right=of e}
+      \po{e}{f}
+      \rf{b}{c}
+      \rf[out=10,in=170]{a}{e}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}
+  x\GETS1\SEMI y^\modeRA\GETS 1
+  \PAR
+  x\GETS 2\SEMI
+  r\GETS y^\modeSC \SEMI 
+  r\GETS x \SEMI 
+  r\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
+      \po{a}{b}
+      \event{c}{\DW{x}{2}}{below=of a}
+      \event{d}{\DR[\modeSC]{y}{1}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{x}{2}}{right=of d}
+      \po{d}{e}
+      \event{f}{\DR{x}{1}}{right=of e}
+      \po[out=10,in=170]{d}{f}
+      \rf{b}{d}
+      %\rf[out=-10,in=-170]{c}{e}
+      \wkx{a}{c}
+      %\rf[out=15,in=150]{a}{f}
+      \wkx[out=-165,in=-15]{f}{c}
+    \end{tikzinline}}
+\end{gather*}
 \begin{gather*}
   x\GETS0\SEMI
   y\GETS0\SEMI
   (
-  x\GETS1\SEMI\aReg\GETS y
+  x\REL\GETS1\SEMI\aReg\GETS y
   \PAR
-  y\GETS1\SEMI \aReg\GETS x)
+  y\REL\GETS1\SEMI \aReg\GETS x)
   \\
   \tag{\textsc{sb}}\label{SB}
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wy0}{\DW{y}{0}}{below=of wx0}
-      \event{wx}{\DW{x}{1}}{right=of wx0}
-      \event{wy}{\DW{y}{1}}{right=of wy0}
+      \event{wx}{\DWRel{x}{1}}{right=of wx0}
+      \event{wy}{\DWRel{y}{1}}{right=of wy0}
       \event{ry}{\DR{y}{0}}{right=of wx}
       \event{rx}{\DR{x}{0}}{right=of wy}
-      \wk{wx0}{wx}
-      \wk{wy0}{wy}
+      \wkx{wx0}{wx}
+      \wky{wy0}{wy}
       \po{wy}{rx}
       \po{wx}{ry}
       \rf{wy0}{ry}
       \rf{wx0}{rx}
-      \wk{ry}{wy}
-      \wk{rx}{wx}
+      \wky{ry}{wy}
+      \wkx{rx}{wx}
       % \po{rx}{wy}
     \end{tikzinline}}
 \end{gather*}
@@ -119,41 +182,21 @@ such that:
   \event{rx0}{\DR{x}{0}}{right=of ry1}
   \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
   \event{ry0}{\DR{y}{0}}{right=of rx1}
-  \wk{wx0}{wx1}
-  \wk{wy0}{wy1}
+  \wkx{wx0}{wx1}
+  \wky{wy0}{wy1}
   \rf{wx1}{rx1}
   \rf[bend left]{wy0}{ry0}
   \rf{wy1}{ry1}
   \rf[bend right]{wx0}{rx0}
-  \wk{rx0}{wx1}
-  \wk{ry0}{wy1}
+  \wkx{rx0}{wx1}
+  \wky{ry0}{wy1}
   \po{rx1}{ry0}
   \po{ry1}{rx0}
     \end{tikzinlinesmall}}}
   \\[-1ex]
 \end{gather*}
 
-\begin{gather*}
-  \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
-  {\PAR}
-  \IF{y}\THEN x\GETS0 \FI \SEMI x\GETS1
-  $}
-  \\[-.5ex]
-  \hbox{\begin{tikzinlinesmall}[node distance=1em]
-  \event{a1}{\DR{x}{1}}{}
-  \event{a2}{\DW{y}{0}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DW{y}{1}}{right=of a2}
-  \wk{a2}{a3}
-  \event{b1}{\DR{y}{1}}{right=of a3}
-  \event{b2}{\DW{x}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{x}{1}}{right=of b2}
-  \wk{b2}{b3}
-  \rf{a3}{b1}
-  \rf[out=173,in=7]{b3}{a1}  
-    \end{tikzinlinesmall}}
-\end{gather*}
+Three variable \mca\ example Allowed.
 \begin{gather*}
   \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
   {\PAR}
@@ -167,20 +210,42 @@ such that:
   \event{a2}{\DW{y}{0}}{right=of a1}
   \po{a1}{a2}
   \event{a3}{\DW{y}{1}}{right=of a2}
-  \wk{a2}{a3}
+  \wky{a2}{a3}
   \event{b1}{\DR{y}{1}}{right=of a3}
   \event{b2}{\DW{z}{0}}{right=of b1}
   \po{b1}{b2}
   \event{b3}{\DW{z}{1}}{right=of b2}
-  \wk{b2}{b3}
+  \wkz{b2}{b3}
   \event{c1}{\DR{z}{1}}{right=of b3}
   \event{c2}{\DW{x}{0}}{right=of c1}
   \po{c1}{c2}
   \event{c3}{\DW{x}{1}}{right=of c2}
-  \wk{c2}{c3}
+  \wkx{c2}{c3}
   \rf{a3}{b1}
   \rf{b3}{c1}
   \rf[out=173,in=7]{c3}{a1}  
+    \end{tikzinlinesmall}}
+\end{gather*}
+Two variable \mca\ example Allowed.
+\begin{gather*}
+  \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+  {\PAR}
+  \IF{y}\THEN x\GETS0 \FI \SEMI x\GETS1
+  $}
+  \\[-.5ex]
+  \hbox{\begin{tikzinlinesmall}[node distance=1em]
+  \event{a1}{\DR{x}{1}}{}
+  \event{a2}{\DW{y}{0}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DW{y}{1}}{right=of a2}
+  \wky{a2}{a3}
+  \event{b1}{\DR{y}{1}}{right=of a3}
+  \event{b2}{\DW{x}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{x}{1}}{right=of b2}
+  \wkx{b2}{b3}
+  \rf{a3}{b1}
+  \rf[out=173,in=7]{b3}{a1}  
     \end{tikzinlinesmall}}
 \end{gather*}
 
@@ -207,9 +272,10 @@ such that:
   \po{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
   \po{c2}{c3}
-  \wk{b3}{c1}
+  \wky{b3}{c1}
   \rf{a1}{b1}
-  \wk[out=-170,in=-10]{c3}{a1}
+  \wkx[out=-170,in=-10]{c3}{a1}
+  \po[in=170,out=10]{b2}{c2}
     \end{tikzinline}}
   \\
     x\GETS1\SEMI   
@@ -237,8 +303,9 @@ such that:
   \po{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
   \po{c2}{c3}
-  \wk{b3}{c1}
+  \wky{b3}{c1}
   \rf{a2}{b1}
-  \wk[out=-170,in=-10]{c3}{a1}
+  \wkx[out=-170,in=-10]{c3}{a1}
+  \po[in=170,out=10]{b2}{c2}
     \end{tikzinline}}
 \end{gather*}
