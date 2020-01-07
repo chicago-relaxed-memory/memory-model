@@ -1,4 +1,8 @@
 \section{Weak Ideas}
+Goal is to capture \ppc, not \armseven.
+See \textsection\ref{sec:ppc:arm7}, below.
+So cannot use IMM out of the box.
+
 Introduce \emph{weak order} $\wle$\footnote{Note we can \emph{not} require
 \begin{itemize}
 \item if $\bEv\;({\le}\cup{\wle})\;\aEv$ then $\labelingSub(\bEv)$ subsumes
@@ -62,11 +66,15 @@ there is some $\aPS\in\aPSS$ that satisfies items 1-4 of
 Definition 2.8 %\ref{def:pre-sc}
 such that:
 \begin{enumerate}
-\item[5a.]  if $\aEv$ writes then either $\bEv\le'\aEv$ or
+\item[5a.]  if $\aEv$ writes then either $\bEv\lt'\aEv$ or
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-\item[5b.] if $\bEv$ and $\aEv$ are actions in conflict, then $\bEv\wle'\aEv$,
-\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \le' \aEv$, and
-\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \le' \aEv$.
+\item[5b.] if $\bEv$ and $\aEv$ are actions in conflict, then $\bEv\wlt'\aEv$,
+\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
+\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$,
+\item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+  $\aEv \lt' \bEv$, and
+\item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+  $\bEv \lt' \aEv$.
 \end{enumerate}
 \end{definition}
 
@@ -74,10 +82,15 @@ such that:
 Weak order is only required to relate actions on the same location.  In
 augmentation minimal pomsets, it is a subset of $\reco$ (only relates writes
 that are read).  The irreflexivity requirement in the definition is thus
-comparable to requiring that ${\le}\cup({\wle}\restrict{\aLoc})$ is a partial
+comparable to requiring that ${\le}\cup{\wleaLoc}$ is a partial
 order, for every $\aLoc$.  It is \emph{not} the case that ${\le}\cup{\wle}$
 is a partial order.
 
+Note that we have a kind of semi-transitivity here, but only per variable.
+\begin{itemize}
+\item If $\cEv\leaLoc\bEv\wleaLoc\aEv$ then $\cEv\wleaLoc\aEv$.
+\item If $\cEv\wleaLoc\bEv\leaLoc\aEv$ then $\cEv\wleaLoc\aEv$.
+\end{itemize}
 With the requirements of fulfillment, we have that $\bEv\le\aEv$ implies
 $\bEv\wle\aEv$ when the actions conflict---there is a caveat for unread
 writes, where no order is forced.
@@ -86,8 +99,105 @@ Here are some examples of the main text.  To better visualize, we use
 different arrowheads for strong and weak order.  We use a single color for
 strong order, and separate colors for each variable in weak order.
 
-\tikzstyle{po} = [-latex,color=black,]
-\tikzstyle{rf} = [-latex,color=black,]
+% \tikzstyle{po} = [-latex,color=black,]
+% \tikzstyle{rf} = [-latex,color=black,]
+
+Here is fencing behavior mixing with release/acquire:
+\begin{gather*}  
+  x\GETS1\SEMI
+  %\FENCE^{\modeREL}\SEMI
+  y\REL\GETS1
+  \PAR
+  r\GETS y\ACQ\SEMI
+  %\FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      % \event{a2}{\DFS{\modeREL}}{right=of a1}
+      % \po{a1}{a2}
+      \event{a3}{\DWRel{y}{1}}{right=of a1}
+      \po{a1}{a3}
+      \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
+      % \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      % \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b1}
+      \po{b1}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}  
+  x\GETS1\SEMI
+  \FENCE^{\modeREL}\SEMI
+  y\GETS1
+  \PAR
+  r\GETS y\ACQ\SEMI
+  %\FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DFS{\modeREL}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DR{y}{1}}{right=3em of a3}
+      % \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      % \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b1}
+      \po{b1}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}  
+  x\GETS1\SEMI
+  y\REL\GETS1
+  \PAR
+  r\GETS y\SEMI
+  \FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      % \event{a2}{\DFS{\modeREL}}{right=of a1}
+      % \po{a1}{a2}
+      \event{a3}{\DWRel{y}{1}}{right=of a1}
+      \po{a1}{a3}
+      \event{b1}{\DR{y}{1}}{right=3em of a3}
+      \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b2}
+      \po{b2}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}  
+  x\GETS1\SEMI
+  \FENCE^{\modeREL}\SEMI
+  y\GETS1
+  \PAR
+  r\GETS y\SEMI
+  \FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DFS{\modeREL}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DR{y}{1}}{right=3em of a3}
+      \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b2}
+      \po{b2}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
 
 Coherence C does not allow:
 \begin{gather*}
@@ -430,13 +540,149 @@ Detour Example
    \end{tikzinline}}
 \end{gather*}
 
+\subsection{Another fencing example}
+
+\cite[\textsection{}D]{DBLP:journals/pacmpl/PodkopaevLV19}:
+The following execution graph is not consistent in the promise-free
+declarative model of [Kang et al. 2017]. Nevertheless, its mapping to POWER
+(obtained by simply replacing Fsc with Fsync) is POWER-consistent and ${\rpox}\cup {\rrf}$
+is acyclic (so it is Strong-POWER-consistent). Note that, using promises, the
+promising semantics allows this behavior.
+\begin{gather*}  
+  r\GETS z\SEMI
+  \FENCE^{\modeSC}\SEMI
+  x\GETS1
+  \PAR
+  x\GETS 2\SEMI
+  \FENCE^{\modeSC}\SEMI
+  y\GETS 1
+  \PAR
+  r\GETS y\SEMI
+  z\GETS 1
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DR{z}{1}}{}
+      \event{a2}{\DFS{\modeSC}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DW{x}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DW{x}{2}}{right=3em of a3}
+      \event{b2}{\DFS{\modeSC}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DW{y}{1}}{right=of b2}
+      \po{b2}{b3}
+      \event{c1}{\DR{y}{1}}{right=3em of b3}
+      \event{c2}{\DW{z}{1}}{right=of c1}
+      %\po{c1}{c2}
+      \wkx{a3}{b1}
+      \rf{b3}{c1}
+      \rf[out=170,in=10]{c2}{a1}
+      \po[out=-10,in=-170]{a2}{b2}
+    \end{tikzinline}}
+\end{gather*}
+Allowed behavior on POWER...
+Is there a dependency in the last thread?
+If so, this is a problem.
+
+\cite[\textsection{}8]{DBLP:journals/pacmpl/PodkopaevLV19}:
+To establish the correctness of compilation of the promising semantics to
+POWER, Kang et al. [2017] followed the approach of Lahav and Vafeiadis
+[2016]. This approach reduces compilation correctness to POWER to (i) the
+correctness of compilation to the POWER model strengthened with ${\rpox}\cup {\rrf}$
+acyclicity; and (ii) the soundness of local reorderings of memory
+accesses. To establish (i), Kang et al. [2017] wrongly argued that the
+strengthened POWER-consistency of mapped promise-free execution graphs imply
+the promise-free consistency of the source execution graphs. This is not the
+case due to SC fences, which have relatively strong semantics in the
+promise-free declarative model (see [Podkopaev et al. 2018, Appendix D] for a
+counter example). Nevertheless, our proof shows that the compilation claim of
+Kang et al. [2017] is correct.
+
+
+
+\subsection{Power versus ARM7}
+\label{sec:ppc:arm7}
+\cite[\textsection5]{DBLP:conf/fm/LahavV16}: Characterizing ppo of power:
+\begin{gather*}
+  \tag{PPO lower}
+  \mathsf{[RU]};({\rdeps}\cup{\rpoloc})^+;\mathsf{[WU]} \subseteq {\rppo}
+  \\
+  \tag{PPO upper}
+  {\rppo}\cap{{\rpox}\imm} \subseteq ({\rdeps}\cup{\rpoloc})^+
+\end{gather*}
+$R\imm$ denotes the relation consisting of all immediate R-edges,
+i.e., pairs $(a,b) \in R$ such that for every $c$, $(c,b) \in R$ implies $(c,a) \in R^?$, and 
+$(a, c) \in R$ implies $(b, c) \in R^?$.
+
 \cite[After example 3.6]{DBLP:journals/pacmpl/PodkopaevLV19}:
 Note that we do not include fri in ppo since it is not preserved in ARMv7
 [Alglave et al. 2014] (unlike in x86-TSO, POWER, and ARMv8). Thus, as ARMv7
 (as well as the Flowing and POP models of ARM in [Flur et al. 2016]), IMM
 allows the weak behavior from [Lahav and Vafeiadis 2016, §6].
 
+\cite[\textsection6]{DBLP:conf/fm/LahavV16}:
+Consider the program in Fig. 4.
+\begin{gather*}
+  r\GETS x\SEMI
+  x\GETS 1
+  \PAR
+  y\GETS x
+  \PAR
+  x\GETS y
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DW{x}{1}}{right=of a1}
+      \wkx{a1}{a2}
+      \event{b1}{\DR{x}{1}}{right=2em of a2}
+      \event{b2}{\DW{y}{1}}{right=of b1}
+      \po{b1}{b2}
+      \event{c1}{\DR{y}{1}}{right=2em of b2}
+      \event{c2}{\DW{x}{1}}{right=of c1}
+      \po{c1}{c2}
+      \rf{a2}{b1}
+      \rf{b2}{c1}
+      \rf[out=-170,in=-10]{c2}{a1}
+   \end{tikzinline}}
+\end{gather*}
+Note that no reorderings or eliminations can
+be applied to this program. In the second and the third threads, reordering
+is forbidden because of the dependency between the load and the subsequent
+store. On the first thread, there is no dependency, but since the load and
+the store access the same location, their reordering is generally unsound, as
+it allows the load to read from the (originally subsequent) store. Moreover,
+this program cannot return a = 1 under a (po $\cup$ rf)-acyclic model, because the
+only instance of the constant 1 in the program occurs after the load of x in
+the first thread. Nevertheless, this behavior is allowed under both the
+axiomatic ARMv7 model of Alglave et al. [4] and the ARMv8 Flowing and POP
+models of Flur et al. [12]
 
+The axiomatic ARMv7 model [4] is the same as the Power model presented in
+Section 5, with the only difference being the definition of ppo (preserved
+program order). In particular, this model does not satisfy (ppo-lower-bound)
+because
+\begin{displaymath}
+  \mathsf{[RU]};{\rpoloc};\mathsf{[WU]} \not\subseteq {\rppo}.
+\end{displaymath}
+Hence, the first thread’s program order in the example above is not included
+in ppo, and there is no happens-before cycle. For the same reason, our proof
+for Power does not carry over to ARM.
+
+In the ARMv8 Flowing model [12], consider the topology where the first two
+threads share a queue and the third thread is separate. The following
+execution is possible: (1) the first thread issues a load request from x and
+immediately commits the x := 1 store; (2) the second thread then issues a
+load request from x, which gets satisfied by the x := 1 store, and then (3)
+issues a store to y := 1; (4) the store to y gets reordered with the
+x-accesses, and flows to the third thread; (5) the third thread then loads y
+= 1, and also issues a store x := 1, which flows to the memory; (6) the load
+of x flows to the next level and gets satisfied by the x := 1 store of the
+third thread; and (7) finally the x := 1 store of the first thread also flows
+to the next level. The POP model is strictly weaker than the Flowing model,
+and thus also allows this outcome.
+
+
+\subsection{Fences and RMW}
 \cite[Remark 2, After example 3.1]{DBLP:journals/pacmpl/PodkopaevLV19}: Aim:
 allow the splitting of release writes and RMWs into release fences followed
 by relaxed operations.  In RC11 [Lahav et al. 2017], as well as in C/C++11
@@ -457,16 +703,17 @@ is actually unsound.
       \event{a2}{\DWRel{x}{1}}{right=of a1}
       \po{a1}{a2}
       \event{b1}{\DRAcq{x}{1}}{right=2em of a2}
-      \event{b2}{\DWRel{x}{2}}{right=of b1}
+      \event{b2}{\DWRel{x}{2}}{right=1.5em of b1}
       \rmw{b1}{b2}
       \event{b3}{\DW{x}{3}}{right=of b2}
       \wkx{b2}{b3}
-      \event{c1}{\DR{x}{3}}{right=2em of b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
       \event{c2}{\DR{y}{0}}{right=of c1}
       \po{c1}{c2}
       \rf{b3}{c1}
       \rf{a2}{b1}
       \wky[out=170,in=10]{c2}{a1}
+      \po[out=-15,in=-165]{b1}{b3}
    \end{tikzinline}}
 \end{gather*}
 (R)C11 disallows the annotated behavior, due in particular to the release sequence formed from the
@@ -492,15 +739,85 @@ program as well
       \po{a1}{a2}
       \event{b0}{\DFS{\modeREL}}{right=2em of a2}
       \event{b1}{\DRAcq{x}{1}}{right=of b0}
-      \event{b2}{\DW{x}{2}}{right=of b1}
+      \event{b2}{\DW{x}{2}}{right=1.5em of b1}
       \rmw{b1}{b2}
       \event{b3}{\DW{x}{3}}{right=of b2}
       \wkx{b2}{b3}
-      \event{c1}{\DR{x}{3}}{right=2em of b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
       \event{c2}{\DR{y}{0}}{right=of c1}
       \po{c1}{c2}
       \rf{b3}{c1}
-      \rf[out=-10,in=-170]{a2}{b1}
+      \rf[out=15,in=165]{a2}{b1}
+      \po[out=-15,in=-165]{b0}{b2}
       \wky[out=170,in=10]{c2}{a1}
+      \po[out=-15,in=-165]{b1}{b3}
+      \po[out=-20,in=-160]{b0}{b3}
+   \end{tikzinline}}
+\end{gather*}
+
+We seem to disallow both of those already.
+
+In the case of a relaxed read in the RMW, the outcome is allowed in both
+cases:
+\begin{gather*}
+  y\GETS 1\SEMI
+  x\REL\GETS 1
+  \PAR
+  r\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI  %1
+  x\GETS 3
+  \PAR
+  r\GETS x\ACQ \SEMI %3
+  s\GETS y %0
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{y}{1}}{}
+      \event{a2}{\DWRel{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{b1}{\DR{x}{1}}{right=2em of a2}
+      \event{b2}{\DWRel{x}{2}}{right=1.5em of b1}
+      \rmw{b1}{b2}
+      \event{b3}{\DW{x}{3}}{right=of b2}
+      \wkx{b2}{b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
+      \event{c2}{\DR{y}{0}}{right=of c1}
+      \po{c1}{c2}
+      \rf{b3}{c1}
+      \rf{a2}{b1}
+      \wky[out=170,in=10]{c2}{a1}
+      %\po[out=-15,in=-165]{b1}{b3}
+      \wkx[out=-15,in=-165]{b1}{b3}
+   \end{tikzinline}}
+\end{gather*}
+\begin{gather*}
+  y\GETS 1\SEMI
+  x\REL\GETS 1
+  \PAR
+  \FENCE^{\modeREL}\SEMI
+  r\GETS \FADD^{\modeRLX,\modeRLX}(x) \SEMI  %1
+  x\GETS 3
+  \PAR
+  r\GETS x\ACQ \SEMI %3
+  s\GETS y %0
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{y}{1}}{}
+      \event{a2}{\DWRel{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{b0}{\DFS{\modeREL}}{right=2em of a2}
+      \event{b1}{\DR{x}{1}}{right=of b0}
+      \event{b2}{\DW{x}{2}}{right=1.5em of b1}
+      \rmw{b1}{b2}
+      \event{b3}{\DW{x}{3}}{right=of b2}
+      \wkx{b2}{b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
+      \event{c2}{\DR{y}{0}}{right=of c1}
+      \po{c1}{c2}
+      \rf{b3}{c1}
+      \rf[out=15,in=165]{a2}{b1}
+      \po[out=-15,in=-165]{b0}{b2}
+      \wky[out=170,in=10]{c2}{a1}
+      %\po[out=-15,in=-165]{b1}{b3}
+      \po[out=-20,in=-160]{b0}{b3}
+      \wkx[out=-15,in=-165]{b1}{b3}
    \end{tikzinline}}
 \end{gather*}

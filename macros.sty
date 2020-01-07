@@ -1,3 +1,4 @@
+\newcommand{\imm}{\restrict{\mathrm{imm}}}
 \renewcommand{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or
     *\or
     \dagger\or
@@ -332,6 +333,10 @@
 \newcommand{\gtN}{\leq}
 \newcommand{\geN}{<}
 \newcommand{\wle}{\lessdoteq}
+\newcommand{\wleLoc}{\mathrel{{\wle}\restrict{\Loc}}}
+\newcommand{\leLoc}{\mathrel{{\le}\restrict{\Loc}}}
+\newcommand{\wleaLoc}{\mathrel{{\wle}\restrict{\aLoc}}}
+\newcommand{\leaLoc}{\mathrel{{\le}\restrict{\aLoc}}}
 \newcommand{\wlt}{\mathrel{\raisebox{.1ex}{$\lessdot$}}}
 % \newcommand{\gtN}{\mathrel{{\color{red!50!black}\lessdoteq}}}
 % \newcommand{\geN}{\mathrel{{\color{red!50!black}\lessdot}}}
@@ -527,10 +532,10 @@
 \tikzstyle{wkx} = [->,dashed,thick,color=red!70!black,]
 \newcommand{\wkx}[3][]{\draw[wkx,#1](#2)to(#3);}
 \newcommand{\xwkx}{\xarrowtikz{wkx}{\;\;}}%
-\tikzstyle{wky} = [->,dotted,thick,color=green!70!black,]
+\tikzstyle{wky} = [->,dotted,thick,color=red!70!black,]
 \newcommand{\wky}[3][]{\draw[wky,#1](#2)to(#3);}
 \newcommand{\xwky}{\xarrowtikz{wky}{\;\;}}%
-\tikzstyle{wkz} = [->,dashdotted,thick,color=blue!90!black,]
+\tikzstyle{wkz} = [->,dashdotted,thick,color=red!70!black,]
 \newcommand{\wkz}[3][]{\draw[wkz,#1](#2)to(#3);}
 \newcommand{\xwkz}{\xarrowtikz{wkz}{\;\;}}%
 
@@ -628,6 +633,10 @@
 \NewDocumentCommand \poloc {O{} m O{} m} {\draw[poloc,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{poloc}$}  (#4);}
 \newcommand{\rpoloc}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\mathsf{poloc}}}}}%
 \newcommand{\xpoloc}{\xarrowtikz{poloc}{poloc}}%
+\tikzstyle{ppo} = [-latex,thick,color=cyan!90!black,]
+\NewDocumentCommand \ppo {O{} m O{} m} {\draw[ppo,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{ppo}$}  (#4);}
+\newcommand{\rppo}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\mathsf{ppo}}}}}%
+\newcommand{\xppo}{\xarrowtikz{ppo}{ppo}}%
 \tikzstyle{addr} = [-latex,color=cyan!90!black,thick]
 \NewDocumentCommand \addr {O{} m O{} m} {\draw[addr,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{addr}$}  (#4);}
 \newcommand{\raddr}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\mathsf{addr}}}}}%
@@ -644,6 +653,10 @@
 \NewDocumentCommand \dob {O{} m O{} m} {\draw[dob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{dob}$}  (#4);}
 \newcommand{\rdob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\mathsf{dob}}}}}%
 \newcommand{\xdob}{\xarrowtikz{dob}{dob}}%
+\tikzstyle{deps} = [-latex,thick,color=cyan!90!black,]
+\NewDocumentCommand \deps {O{} m O{} m} {\draw[deps,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{deps}$}  (#4);}
+\newcommand{\rdeps}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\mathsf{deps}}}}}%
+\newcommand{\xdeps}{\xarrowtikz{deps}{deps}}%
 \tikzstyle{bob} = [-latex,thick,color=cyan!90!black,]
 \NewDocumentCommand \bob {O{} m O{} m} {\draw[bob,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{bob}$}  (#4);}
 \newcommand{\rbob}{\ensuremath{\mathrel{\textcolor{cyan!90!black}{\mathsf{bob}}}}}%

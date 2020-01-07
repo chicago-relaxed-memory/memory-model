@@ -28,6 +28,31 @@ to Definition \ref{def:prefix} of \emph{prefixing}:
 \item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}
+% Fences can simulate release/acquire access:
+% \begin{gather*}  
+%   x\GETS1\SEMI
+%   \FENCE^{\modeREL}\SEMI
+%   y\GETS1
+%   \PAR
+%   r\GETS y\SEMI
+%   \FENCE^{\modeACQ}\SEMI
+%   s\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{a1}{\DW{x}{1}}{}
+%       \event{a2}{\DFS{\modeREL}}{right=of a1}
+%       \po{a1}{a2}
+%       \event{a3}{\DW{y}{1}}{right=of a2}
+%       \po{a2}{a3}
+%       \event{b1}{\DR{y}{1}}{right=3em of a3}
+%       \event{b2}{\DFS{\modeACQ}}{right=of b1}
+%       \po{b1}{b2}
+%       \event{b3}{\DR{x}{0}}{right=of b2}
+%       \po{b2}{b3}
+%       \rf{a3}{b1}
+%       \wkx[out=-170,in=-10]{b3}{a1}
+%     \end{tikzinline}}
+% \end{gather*}
 
 Our semantics does not suffer the weaknesses of C11 fences, noted by
 \citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
