@@ -49,7 +49,7 @@ To ensure the order that invalidates this execution candidate, we add the follow
 to Definition \ref{def:prefix} of \emph{prefixing}:
 \begin{enumerate}
 \item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
-  $\aEv \lt' \bEv$, and
+  $\bEv \lt' \aEv$, and
 \item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}

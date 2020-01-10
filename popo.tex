@@ -72,7 +72,7 @@ such that:
 \item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
 \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$,
 \item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
-  $\aEv \lt' \bEv$, and
+  $\bEv \lt' \aEv$, and
 \item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}
