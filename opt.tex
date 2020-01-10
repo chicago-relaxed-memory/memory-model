@@ -51,7 +51,7 @@ are derived from the read events themselves.
 
   Require that $\aForm\aSub$ and $\bForm\bSub$ are satisfiable.
 
-  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$.
+  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$ (for each $\aEv_\bLoc$).
   
   Require that if $\cEv\le\aEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\bEvs_\aLocs$.
 
@@ -118,16 +118,17 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
   disjunction closure.
 \end{proof}
 \end{theorem}
-To illustrate multiple writes consider:
-\begin{gather*}
-  \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{w1}{\DW{x}{1}}{}
-      \event{w2}{\DW{x}{2}}{right=of w1}
-      \wk{w1}{w2}
-    \end{tikzinline}}
-\end{gather*}
+% To illustrate multiple writes consider:
+% \begin{gather*}
+%   \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{w1}{\DW{x}{1}}{}
+%       \event{w2}{\DW{x}{2}}{right=of w1}
+%       \wk{w1}{w2}
+%     \end{tikzinline}}
+% \end{gather*}
+
 Preconditions can be placed in $\aForm$ or $\cForm$ in
 Definition~\ref{def:prepost}, resulting in different pomsets:
 \begin{gather*}

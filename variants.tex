@@ -17,10 +17,35 @@ $(\DFS{\modeSC})$ is both a release and an acquire.
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
-The semantics of syntactic fences
-is subtly different from the fencing behavior of
-$\modeRA$/$\modeSC$-accesses in C11. 
-The additional order of syntactic fences is captured by adding the following
+Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-accesses.
+Consider the following variant of \eqref{aqc-rel}:
+\begin{gather*}
+  x\GETS0\SEMI %y\GETS0\SEMI
+  x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+  \PAR
+  r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx0}{\DW{x}{0}}{}
+      \event{wx1}{\DW{x}{1}}{right=of wx0}
+      \event{fr}{\DFS{\modeREL}}{right=of wx1}
+      \event{wy1}{\DW{y}{1}}{right=of fr}
+      \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+      \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+      \event{rx0}{\DR{x}{0}}{right=of fa}
+      \po{wx1}{fr}
+      \po{fr}{wy1}
+      \po{ry1}{fa}
+      \po{fa}{rx0}
+      \rf{wy1}{ry1}
+      \rf[out=10,in=170]{wx0}{rx0}
+      \wk{wx0}{wx1}
+    \end{tikzinline}}
+\end{gather*}
+% The semantics of syntactic fences
+% is subtly different from the fencing behavior of
+% $\modeRA$/$\modeSC$-accesses in C11. 
+To ensure the order that invalidates this execution candidate, we add the following rules 
 to Definition \ref{def:prefix} of \emph{prefixing}:
 \begin{enumerate}
 \item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then

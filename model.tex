@@ -110,10 +110,10 @@ For the actions of a data model, we require that
 % % $\Ext=\fdom(\rreads)\cup\fdom(\rwrites)$ are \emph{external}, whereas those
 % % in $\Int=\Act\setminus\Ext$ are \emph{internal}.
 %
-  We say that $\aAct$ is a \emph{read} if $\aAct\in\fdom(\rreads)$, a
-  \emph{write} if $\aAct\in\fdom(\rwrites)$, an \emph{acquire} if
-  $\aAct\in\Acq$, a \emph{release} if $\aAct\in\Rel$, a \emph{termination} if
-  $\aAct\in\Term$,  and \emph{SC} if
+  We say that $\aAct$ is a \emph{read} if $\aAct\in\fdom(\rreads)$, $\aAct$ is a
+  \emph{write} if $\aAct\in\fdom(\rwrites)$, $\aAct$ is an \emph{acquire} if
+  $\aAct\in\Acq$, $\aAct$ is a \emph{release} if $\aAct\in\Rel$, $\aAct$ is a \emph{termination} if
+  $\aAct\in\Term$,  and $\aAct$ is \emph{SC} if
   $\aAct\in\SC$.  Note that these are \emph{not} disjoint.
 % % We say that $\aAct$ is a
 % % \emph{synchronization} if it is either a release or an acquire.
@@ -1340,10 +1340,12 @@ Items 5b and 5c ensure correct publication.  For
 example, they disallow the following candidate execution, which sees a stale
 value for $x$:
 \vspace{-1ex}
-\begin{gather*}
+\begin{gather}
+  \label{aqc-rel}
   x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ; s\GETS x
+  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
   \\[-1ex]
+  \nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DW{x}{1}}{right=of wx0}
@@ -1356,7 +1358,7 @@ value for $x$:
       \rf[out=10,in=170]{wx0}{rx0}
       \wk{wx0}{wx1}
     \end{tikzinline}}
-\end{gather*}
+\end{gather}
 By Definition \ref{def:rf}, $(\DR x0)$ is \emph{unfulfilled} in this
 pomset. It fails the last requirement of the definition, since
 $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$.  In order to satisfy this requirement,
@@ -1576,7 +1578,7 @@ following pomsets:
 \end{gather*}
 
 Like item 4b, which substitutes $[\aVal/\aLoc]$ during a read, Candidate
-\ref{cand:sc}) substitutes $[\aExp/\aLoc]$ during a write.  Like 4b, this
+\ref{cand:sc} substitutes $[\aExp/\aLoc]$ during a write.  Like 4b, this
 affects subsequent preconditions, either allowing them to weaken, or
 requiring them to strengthen.  For write prefixing, however, there is no rule
 corresponding to item 5a. Unlike a read event, order is \emph{not} imposed from
@@ -1688,10 +1690,10 @@ the precondition on $(\DW{y}{1})$ must imply $r=1 \land r=x$.  The first conjunc
 imposed by 4b, the second by 5a.  Thus the two reads must see the same value.
 
 Write substitution only effects subsequent reads, and a read action always
-create an event that must be fulfilled.  In combination, these ensure that a
+creates an event that must be fulfilled.  In combination, these ensure that a
 write substitution cannot be used to ignore a blocking write.  In the
 following execution candidate, there is no order from $(\DR{x}{1})$ to
-$(\DR{y}{1})$, potentially allowing the program to write a stale value.
+$(\DW{y}{1})$, potentially allowing the program to write a stale value.
 However, $(\DR{x}{1})$ cannot be fulfilled, causing the execution candidate
 to be disallowed:
 \begin{gather*}
