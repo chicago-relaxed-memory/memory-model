@@ -756,12 +756,12 @@ program as well
       \rf[out=15,in=165]{a2}{b1}
       \sync[out=-15,in=-165]{b0}{b2}
       \wky[out=170,in=10]{c2}{a1}
-      %\sync[out=-15,in=-165]{b1}{b3}
+      \sync[out=-15,in=-165]{b1}{b3}
       \sync[out=-20,in=-160]{b0}{b3}
    \end{tikzinline}}
 \end{gather*}
 
-We have the same ``problem''.  Not sure that it's worth fixing.
+We seem to disallow both of these out of the box.
 
 In the case of a relaxed read in the RMW, the outcome is allowed in both
 cases:
