@@ -1,30 +1,16 @@
-V1.
-
-1. Def 2.1 
+1. 
+Def 2.1 
      * Add coherence requirement.  
          Any conflicting actions on a location are ordered
-     * If a precondition phi depends on x, it is treated
-         as a read of x for above purposes
+     * If any psi in sub(phi|a) depends on x, (phi | a) is treated as a read of x
+     * Consistency:  as before  
+         
+    
+4. Sequential composition.
+      Drop subs on reads
+      Drop 5a
 
-2. x-closed:
-   substitute(x,P) = replace every (phi|e)  by phi[x|->v],
-                                           W x v is visible for x at (phi|e)                                                          
-  x-Closed(Ps) 
-       = { substitute(x,P) | P in Ps,
-                             every read on x is fulfilled in substitute(x,P), 
-                             every event is independent of x substitute(x,P)}
-
-3. No other changes.
-
-
-================================================================================
-V0.
-
-1. Def 2.1 
-     * Add coherence requirement.  
-         Any conflicting actions on a location are ordered
-     * If a precondition phi depends on x, it is treated
-         as a read of x for above purposes
+===================== DOES NOT WORK ===================
 
 2. Prefixing
 
@@ -36,24 +22,127 @@ V0.
    Def: [r=x; C] = cup_v cup_phi ((phi|  R x v ) ==> (x=v |> [C](x/r)) 
    Def: [x=M; C] as before
 
-3. Parallel: 
-        (force the two sides to have no unresolved precond
-         so parallels cannot share registers with each other
-         parallel child is a separate sequential context
-         all assumptions validated for top level parallel)
-   
-   Using || for current sem definition
-   [| C1 || C2 |] = true |> [| C1 |] || true |> [| C2 |]
+3. x-closed:
 
-4. Sequential composition.
-
-      Drop subs on reads
-      Drop 5a
-
-x-closed:
+   fulfilled(x,P)  = every read on x is fulfilled,
    substitute(x,P) = replace every (phi|e)  by phi[x|->v],
-                                           W x v is visible for x at (phi|e)                                                          
-x-Closed(calP) 
-       = { substitute(x,P) | every read on x is fulfilled, 
-                             every event is independent of x}
+                                               R x v is visible for x at (phi|e)
+(* If fulfilled, if (R x v1, R x v2) are visible at (phi|e), then v1=v2   *)
+                                                      
+x-Closed(Ps) 
+       = { Q in substitute(fulfilled(x,Ps)) |  
+                      every event is independent of x in Q}
+
+============================================================
+
+
+Operational Rules
+
+Registers: r,s, ..
+
+Registers are single assignment
+
+Locations:          x, y, ..
+Lists of locations: L 
+
+Expressions:  E, E1, ..
+Expressions with locations: (E,L)
+
+
+Store : S1, S2,...    : Map of registers to (value,List(Variable)
+Memory: M1, M2, ......: Map of locations to values
+
+Commands:  
+  r = (x,L); 
+  r = (E,L);
+  x = (r,L);
+  if (r,L) then C1 else C2
+  C1; C2
+
+C[L1] defined as:
+  r = (x, L cup L1); 
+  r = (E,L cup L1);
+  x = (r,L cup L1);
+  if (r,L1 cup L) then C1[L1] else C2[L1]
+  C1[L1]; C2[L1]
+
+Config: ((S1,C1), ...,(S,Cn), M) 
+
+Labels: (R x v,L,r, tId) , (W x v, L,TiD)
+
+
+0) Expression evaluation
+       [| E |] S returns (value, List of registers used to evaluate it)
+
+   So, property is:
+       [| (E,<>) |] S = (v,L) ==> 
+           a) [| E |] (S|L) = (v,L)
+           b) [| E |] (S|L') = undefined if L < L'
+
+       [| (E,L) |] S = (v,L cup L1), where [| (E,<>) |] S = (v,L) 
+
+
+
+1) Context Rule.
+(S, C), M --l--> (S', C'), M'
+===========================================================================
+((S,C), (S1,C1), .., (Sn,Cn)), M --l--> ((S',C'), (S1,C1), .., (Sn,Cn)), M'
+
+
+2) Optimization Rule
+     (S,C1;C2), M ----> (S,C1';C2), M
+   if C1 is synchronization free
+      C1' is linear
+      C1 and C1' satisfy exactly the same Hoare triples whose preconditions include S
+
+3) Read:
+    (S, r=(x,L);C),   M[x -> v]) -- (R x v,L,r,tId) --> (S[r -->(v,L)], C), M[x--> v])
+    (S, r=^acq (x,L), M[x -> v]) -- (R x v,L,r,tId) --> (S[r -->(v,L)], C[L cup {r}]), M[x--> v])
+
+4) Expression evaluation:
+    (S, r= (E,L);C), M ---> (S[r --> ([| (E,L) |] S)], C), M 
+
+5) Write:
+     (S[r --> (v,L)], x=r[L1]; C), M 
+           --(W x v, L cup L1,tId) -> (S[r --> (v,L cup L1)], C), M [x--> v]
+
+     
+
+6) Conditional
+     (S[r --> (true,L), if r then C1 else C2), M
+              ---> S[r --> (true,L), C1[L ]
+     (S[r --> (false,L), if r then C1 else C2), M
+              ---> (S[r --> (false,L), C1[L]),  M
+
+
+From traces to Pomsets.
+   Event at a time
+   Inductively maintaining invaraint.
+   Coherence order on writes on each location
+   
+
+events: R x v tId, W x v tId
+
+(thread Ids dropped later)
+
+Order: Each (W y v) from a (W y v, L)  is ordered after
+          the (R x v) coming from (R x v,L)  where r in L
+       Each (W y v) ordered after all prior (W y v')
+       Each (R x v) ordered after the currently maximum (W x v)
+       
+       Each event in tId  ordered after all prior (Racq, .., TiD)
+       Each event in tId  ordered before all subsequent (Wrel, .., tId)
+       If e,e' in same tId, SC accesses: e ordered before e' if e before e'
+
+       
+
+
+     
+
+
+
+
+
+
+
 
