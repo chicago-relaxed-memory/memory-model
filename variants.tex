@@ -33,10 +33,10 @@ Consider the following variant of \eqref{aqc-rel}:
       \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
       \event{fa}{\DFS{\modeACQ}}{right=of ry1}
       \event{rx0}{\DR{x}{0}}{right=of fa}
-      \po{wx1}{fr}
-      \po{fr}{wy1}
-      \po{ry1}{fa}
-      \po{fa}{rx0}
+      \sync{wx1}{fr}
+      \sync{fr}{wy1}
+      \sync{ry1}{fa}
+      \sync{fa}{rx0}
       \rf{wy1}{ry1}
       \rf[out=10,in=170]{wx0}{rx0}
       \wk{wx0}{wx1}
@@ -97,14 +97,14 @@ in these examples:
   \event{a1}{\DW{x}{1}}{}
   \event{b1}{\DR{x}{1}}{right=3em of a1}
   \event{b2}{\DFS{\modeSC}}{right=of b1}
-  \po{b1}{b2}
+  \sync{b1}{b2}
   \event{b3}{\DR{y}{0}}{right=of b2}
-  \po{b2}{b3}
+  \sync{b2}{b3}
   \event{c1}{\DW{y}{1}}{right=3em of b3}
   \event{c2}{\DFS{\modeSC}}{right=of c1}
-  \po{c1}{c2}
+  \sync{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
-  \po{c2}{c3}
+  \sync{c2}{c3}
   \wk{b3}{c1}
   \rf{a1}{b1}
   \wk[out=-170,in=-10]{c3}{a1}
@@ -124,17 +124,17 @@ in these examples:
   \hbox{\begin{tikzinline}[node distance=.7em]
   \event{a1}{\DW{x}{1}}{}
   \event{a2}{\DWRel{z}{1}}{right=of a1}
-  \po{a1}{a2}
+  \sync{a1}{a2}
   \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
   \event{b2}{\DFS{\modeSC}}{right=of b1}
-  \po{b1}{b2}
+  \sync{b1}{b2}
   \event{b3}{\DR{y}{0}}{right=of b2}
-  \po{b2}{b3}
+  \sync{b2}{b3}
   \event{c1}{\DW{y}{1}}{right=2em of b3}
   \event{c2}{\DFS{\modeSC}}{right=of c1}
-  \po{c1}{c2}
+  \sync{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
-  \po{c2}{c3}
+  \sync{c2}{c3}
   \wk{b3}{c1}
   \rf{a2}{b1}
   \wk[out=-170,in=-10]{c3}{a1}
@@ -494,7 +494,7 @@ following, which is allowed by \armeight{}
   \event{b4}{\DWRel{x}{1}}{right=2em of b3}
   \rmw{b3}{b4}
   \event{b5}{\DW{y}{1}}{right=of b4}
-  \po[out=-15,in=-165]{b1}{b4}
+  \sync[out=-15,in=-165]{b1}{b4}
   \po[out=-20,in=-160]{b3}{b5}
   \rf[out=170,in=10]{b5}{a1}
     \end{tikzinline}}

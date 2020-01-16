@@ -524,6 +524,9 @@
 \tikzstyle{po} = [-latex,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
 \newcommand{\xpo}{\xarrowtikz{po}{\;\;}}%
+\tikzstyle{sync} = [-latex,color=cyan,double]
+\newcommand{\sync}[3][]{\draw[sync,#1](#2)to(#3);}
+\newcommand{\xsync}{\xarrowtikz{sync}{\;\;}}%
 \tikzstyle{lift} = [-latex,double]
 \newcommand{\lift}[3][]{\draw[lift,#1](#2)to(#3);}
 \tikzstyle{wk} = [-latex,dashed,color=red!50!black,]

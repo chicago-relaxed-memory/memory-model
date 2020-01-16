@@ -1352,8 +1352,8 @@ value for $x$:
       \event{wy1}{\DWRel{y}{1}}{right=of wx1}
       \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
       \event{rx0}{\DR{x}{0}}{right=of ry1}
-      \po{wx1}{wy1}
-      \po{ry1}{rx0}
+      \sync{wx1}{wy1}
+      \sync{ry1}{rx0}
       \rf{wy1}{ry1}
       \rf[out=10,in=170]{wx0}{rx0}
       \wk{wx0}{wx1}
@@ -1408,9 +1408,9 @@ Unlike \citep[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}, our model allows
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DR{y}{1}}{}
       \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
-      \po{a}{b}
+      \sync{a}{b}
       \event{bb}{\DR{x}{2}}{right=of b}
-      \po{b}{bb}
+      \wk{b}{bb}
       % \event{c}{\DW{y}{0}}{right=2em of bb}
       % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
       % \po{c}{d}
@@ -1466,31 +1466,63 @@ we {allow} the following, which C11 forbids:
 \end{gather*}
 Conversely, we {forbid} the following, which Java allows:
 \begin{gather*}
+  \hbox{\small$
   x\GETS1\SEMI y^\modeRA\GETS 1
   \PAR
-  x\GETS 2\SEMI
+  x\GETS2\SEMI z^\modeRA\GETS 1
+  \PAR
   r\GETS y^\modeSC \SEMI 
+  r\GETS z^\modeSC \SEMI 
   r\GETS x \SEMI 
-  r\GETS x
+  r\GETS x$}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DW{x}{1}}{}
-      \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
-      \po{a}{b}
-      \event{c}{\DW{x}{2}}{below=of a}
-      \event{d}{\DR[\modeSC]{y}{1}}{right=of c}
-      \po{c}{d}
-      \event{e}{\DR{x}{2}}{right=of d}
-      \po{d}{e}
-      \event{f}{\DR{x}{1}}{right=of e}
-      \po[out=10,in=170]{d}{f}
-      \rf{b}{d}
-      %\rf[out=-10,in=-170]{c}{e}
-      \wk{a}{c}
-      %\rf[out=15,in=150]{a}{f}
-      \wk[out=-165,in=-15]{f}{c}
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+      \sync{a1}{a2}
+      \event{b1}{\DW{x}{2}}{below=of a1}
+      \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+      \sync{b1}{b2}
+      \event{c1}{\DR[\modeRA]{y}{1}}{right=2em of a2}
+      \event{c2}{\DR[\modeRA]{\,z}{1}}{right=2em of b2}
+      \event{c3}{\DR{x}{2}}{right=of c1}
+      \event{c4}{\DR{x}{1}}{right=of c2}
+      \sync{c1}{c3}
+      \sync{c1}{c4}
+      \sync{c2}{c3}
+      \sync{c2}{c4}
+      \rf{a2}{c1}
+      \rf{b2}{c2}
+      \wk{a1}{b1}
+      \wk[out=-165,in=-15]{c4}{b1}
     \end{tikzinline}}
 \end{gather*}
+% \begin{gather*}
+%   x\GETS1\SEMI y^\modeRA\GETS 1
+%   \PAR
+%   x\GETS 2\SEMI
+%   r\GETS y^\modeSC \SEMI 
+%   r\GETS x \SEMI 
+%   r\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{a}{\DW{x}{1}}{}
+%       \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
+%       \sync{a}{b}
+%       \event{c}{\DW{x}{2}}{below=of a}
+%       \event{d}{\DR[\modeSC]{y}{1}}{right=of c}
+%       \po{c}{d}
+%       \event{e}{\DR{x}{2}}{right=of d}
+%       \po{d}{e}
+%       \event{f}{\DR{x}{1}}{right=of e}
+%       \po[out=10,in=170]{d}{f}
+%       \rf{b}{d}
+%       %\rf[out=-10,in=-170]{c}{e}
+%       \wk{a}{c}
+%       %\rf[out=15,in=150]{a}{f}
+%       \wk[out=-165,in=-15]{f}{c}
+%     \end{tikzinline}}
+% \end{gather*}
 The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required to fulfill $(\DR{x}{1})$. %by fulfillment.
 
 % Program order is only imposed from read to write when the precondition of
@@ -1706,20 +1738,20 @@ to be disallowed:
   \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}
   \event{a2}{\DWRel{a}{1}}{right=of a1}
-  \po{a1}{a2}
+  \sync{a1}{a2}
   \event{b3}{\DRAcq{a}{1}}{below=of a2}
   \rf{a2}{b3}
   \event{b4}{\DW{x}{2}}{right=of b3}
-  \po{b3}{b4}
+  \sync{b3}{b4}
   \event{b5}{\DWRel{b}{1}}{right=of b4}
-  \po{b4}{b5}
+  \sync{b4}{b5}
   \event{a6}{\DRAcq{b}{1}}{above=of b5}
   \rf{b5}{a6}
   \event{a7}{\DR{x}{1}}{right=of a6}
-  \po{a6}{a7}
+  \sync{a6}{a7}
   \event{a8}{\DW{y}{1}}{right=of a7}
   \graypo{a7}{a8}
-  \po[out=10,in=170]{a6}{a8}
+  \sync[out=10,in=170]{a6}{a8}
     \end{tikzinline}}
 \end{gather*}
 Note that we change $(\DR{x}{1})$ to $(\DR{x}{2})$ then the precondition of
@@ -1742,7 +1774,7 @@ of \citet{DBLP:journals/pacmpl/PodkopaevLV19}:
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
-  \po{a1}{a2}
+  \sync{a1}{a2}
   \event{a3}{\DR{y}{1}}{right=of a2}
   \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
   \rf{a2}{a3}
@@ -1978,11 +2010,12 @@ executions such as:
   \graywk{a1}{a2}
   \event{a3}{\DWRel{y}{1}}{right=of a2}
   \graypo{a2}{a3}
-  \event{b1}{\DRAcq{y}{1}}{right=of a3}
+  \event{b1}{\DRAcq{y}{1}}{right=2em of a3}
   \rf{a3}{b1}
   \event{b2}{\DR{x}{1}}{right=of b1}
-  \po{b1}{b2}
+  \sync{b1}{b2}
   \rf[out=10,in=170]{a1}{b2}
+  \sync[out=-10,in=-170]{a1}{a3}
     \end{tikzinline}}
 \end{gather*}
 In this drawing, we have included a ``non-event''---dashed border---to mark
@@ -2067,8 +2100,8 @@ The analysis follows from a few simple principles.
   \rf[bend right]{wx0}{rx0}
   \wk{rx0}{wx1}
   \wk{ry0}{wy1}
-  \po{rx1}{ry0}
-  \po{ry1}{rx0}
+  \sync{rx1}{ry0}
+  \sync{ry1}{rx0}
     \end{tikzinlinesmall}}}
   \\[-1ex]
 \end{gather*}

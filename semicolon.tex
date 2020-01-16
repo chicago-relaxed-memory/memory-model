@@ -175,7 +175,7 @@ w.r.t.~prefixing, implication, augmentation, and reverse subsumption.
   \CLOSE{\TIKZ{
       \event{a}{\DFS{\fmode}}{}
       \final{f}{}{right=of a}
-      \po{a}{f}
+      \sync{a}{f}
     }} 
   \\
   \sem{\aReg\GETS\REF{\cExp}^\amode} & =
@@ -183,15 +183,22 @@ w.r.t.~prefixing, implication, augmentation, and reverse subsumption.
   \CLOSE{\TIKZ{
       \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\REF{\cVal}}{\aVal}\mid \SUB{\REF{\cVal}/\aReg}}{}
       \final{f}{}{right=of a}
-      \po{a}{f}
+      \sync{a}{f}
     }}
-                                \\
+  \\& \cup
+  \textstyle\bigcup_{\cVal\phantom{,\aVal}}\;
+  \CLOSE{\TIKZ{
+      \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\REF{\cVal}}{\aVal}}{}
+      \final{f}{\SUB{\REF{\cVal}/\aReg}}{right=of a}
+      \sync{a}{f}
+    }}
+  \\
   \sem{\REF{\cExp}^\amode\GETS\aExp} & =
   \;\;\textstyle\parallel_{\cVal,\aVal}\;
   \CLOSE{\TIKZ{
       \event{a}{\cExp=\cVal\land\aExp=\aVal \mid \DW[\amode]{\REF{\cVal}}{\aVal}}{}
       \final{f}{\SUB{\aExp/\REF{\cVal}}}{right=of a}
-      \po{a}{f}
+      \sync{a}{f}
     }}
                                 \\
   \sem{\aCmd \SEMI \bCmd} &= \sem{\aCmd} \sequence \sem{\bCmd}
@@ -318,7 +325,9 @@ As a simple example, consider the following:
     s\GETS x
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{c}{\DFR{}}{}
+      % \event{c}{\DRreg{r}{x}{1} \mid \SUB{x/s}}{}
+      % \final{f}{}{below=of c}
+      \event{c}{\DRreg{s}{x}{2}}{}
       \final{f}{\SUB{x/s}}{below=of c}
       \end{tikzinline}}
   \end{gathered}
@@ -338,7 +347,7 @@ As a simple example, consider the following:
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{a}{\DRreg{r}{y}{1}\mid \SUB{y/r, r/x, x/s, s/z}}{}
         \event{b}{\DW{x}{1}}{right=of a}
-        \event{c}{\DFR{}}{right=of b}
+        \event{c}{\DRreg{s}{x}{2}}{right=of b}
         \event{d}{\DW{z}{1}}{right=of c}
         \final{f}{\SUB{r/x, x/s, s/z}}{right=of d}
         \po{a}{b}
