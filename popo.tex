@@ -821,3 +821,205 @@ cases:
       \wkx[out=-15,in=-165]{b1}{b3}
    \end{tikzinline}}
 \end{gather*}
+
+\subsection{More optimizations}
+
+From \cite{Manson:2005:JMM:1047659.1040336}:
+\begin{itemize}
+\item synchronization on thread local objects can be ignored or removed
+  altogether (the caveat to this is the fact that invocations of methods like
+  wait and notify have to obey the correct semantics – for example, even if
+  the lock is thread local, it must be acquired when perform- ing a wait),
+   
+\item redundant synchronization (e.g., when a synchronized method is called
+  from another synchronized method on the same object) can be ignored or
+  removed,
+  
+\item volatile fields of thread local objects can be treated as normal
+  fields.
+\end{itemize}
+
+Perhaps we can get at this with a strength reducing result.  If saying that
+synchronization actions can be replaced by relaxed actions in some cases.
+Then the rules for relaxed read elimination and relaxed write elimination can
+be used to get rid of them.
+
+\citet[\textsection7]{DBLP:conf/esop/CenciarelliKS07} example. (I
+incorrectly credit \citet{DBLP:conf/ecoop/SevcikA08}.)
+
+\begin{gather*}
+  \IF{x\land y}\THEN z\GETS 1\FI
+  \PAR
+  \IF{z}\THEN x\GETS1\SEMI y\GETS1 \ELSE y\GETS1\SEMI x\GETS1 \FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{y}{1}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      \po{a2}{a3}
+      \po[out=15,in=165]{a1}{a3}      
+      \event{b1}{\DR{z}{1}}{right=3em of a3}
+      \event{b2}{\DW{y}{1}}{right=of b1}
+      \event{b3}{\DW{x}{1}}{right=of b2}
+      % \po{b1}{b2}
+      % \po[out=15,in=165]{b1}{b3}
+      \rf{a3}{b1}
+      \rf[out=-165,in=-15]{b2}{a2}
+      \rf[out=-165,in=-15]{b3}{a1}
+   \end{tikzinline}}
+\end{gather*}
+
+
+Examples from \cite[\textsection4.1]{DBLP:conf/ecoop/SevcikA08} are interesting:
+Redundant write after read elimination:
+\begin{verbatim}
+|| lock m2; x=1; unlock m2
+|| lock m1; x=2; unlock m1
+|| lock m1; lock m2; r1=x; [x=r1;] r2=x; unlock m2; unlock m1 // [bracketed line removed]
+\end{verbatim}
+Even without the write, r1 and r2 must see the same values, whereas JMM
+allows different values for the reads when the write is missing.
+
+Redundant read after read elimination:
+\begin{verbatim}
+|| y=x
+|| r2=y; if (r2==1){[r3=y]; x=r3}else{x=1} // [r3=r2]
+\end{verbatim}
+Interesting case is left $\DW{x}{1}$.  Initially has predicate
+$r_3=1$. With read rule, we have $y=1$.  In read prefixing, we don't weaken.
+Instead we weaken with the read into r2.
+\begin{gather*}
+  \begin{gathered}
+    \IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3\FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+        \event{a1}{r_2{=}1 \mid \DR{y}{1}}{}
+        \event{a2}{r_2{=}1 \land y{=}1 \mid \DW{x}{1}}{right=of a1}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r_2{\neq}1}\THEN x\GETS 1\FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+        \event{a2}{r_2{\neq}1 \mid \DW{x}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3 \ELSE x\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{r_2{=}1 \mid \DR{y}{1}}{}
+      \event{a2}{y{=}1 \mid \DR{x}{1}}{right=of a1}
+   \end{tikzinline}}
+  \\
+  r_2\GETS y \SEMI\IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3 \ELSE x\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{y}{1}}{}
+      \event{a2}{\DR{x}{1}}{right=of a1}
+      \event{a0}{\DR{y}{1}}{left=of a1}
+      \po[out=-15,in=-165]{a0}{a2}
+   \end{tikzinline}}
+\end{gather*}
+To ignore the second read, we use the ``delay'' trick that we used for JMM
+TC1, but this is fulfilled by a read rather than a write.
+In any case, the execution with $x=y=1$ is impossible
+
+
+Roach Motel---all reads 1 impossible, but passible after swapping \verb:r1=x:
+and \verb:lock m:
+\begin{verbatim}
+|| lock m; x=1; unlock m
+|| lock m; x=2; unlock m
+|| r1=x; lock m; r2=z; if(r1==2){y=1}else{y=r2}; unlock m
+|| z=y
+\end{verbatim}
+So Question is whether you can read all 1 in
+\begin{verbatim}
+|| lock m; x=1; unlock m
+|| lock m; x=2; unlock m
+|| lock m; r1=x; r2=z; if(r1==2){y=1}else{y=r2}; unlock m
+|| z=y
+\end{verbatim}
+In any execution, we must have 1 before 2, or 2 before 1.
+\begin{itemize}
+\item If 1 before 2, then read x is 2.
+\item If 2 before 1, then read x is 1.
+  \begin{gather*}
+    \begin{gathered}
+      \IF{r_1{=}2}\THEN y\GETS 1 \ELSE y\GETS r_2\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r_1{=}2\lor r_2{=}1\mid \DW{y}{1}}{}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \begin{gathered}
+      r_1\GETS x\SEMI
+      r_2\GETS z\SEMI
+      \IF{r_1{=}2}\THEN y\GETS 1 \ELSE y\GETS r_2\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{\DW{y}{1}}{}
+          %\event{a2}{1{=}2\lor 1{=}1\mid \DW{y}{1}}{}
+          \event{a1}{\DR{z}{1}}{left=of a2}
+          \event{a0}{\DR{x}{1}}{left=of a1}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}    
+  \end{gather*}
+  So impossible for y and z to be 1.
+\end{itemize}
+
+Irrelevant Read Introduction (can I read 1 for both y and z?)
+\begin{verbatim}
+|| r=z; if(!r){if(x){y=1}}else{[s=x;]y=r}
+|| x=1; z=y
+\end{verbatim}
+
+\begin{gather*}
+    \begin{gathered}
+      \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}0\mid\DW{y}{1}}{}
+          \event{a1}{r{=}0\mid\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}      
+    \qquad
+    \begin{gathered}
+      \IF{r}\THEN s\GETS x\SEMI y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}1\mid\DW{y}{1}}{}
+          \event{a1}{r{\neq}0\mid\DR{x}{1}}{left=of a2}
+        \end{tikzinline}}
+    \end{gathered}      
+    \\
+    \begin{gathered}
+      \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}0\lor r{=}1\mid\DW{y}{1}}{}
+          \event{a1}{\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}          
+    \\
+    \begin{gathered}
+      r\GETS z\SEMI \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{\DW{y}{1}}{}
+          \event{a1}{\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+          \event{a0}{\DR{z}{1}}{left=of a1}
+          \po[out=-15,in=-165]{a0}{a2}
+        \end{tikzinline}}
+    \end{gathered}          
+  \end{gather*}
+  The execution reading 1 for y and z is impossible with or without the read.
+  This relies crucially on the fact that par takes order from both sides.
+  
