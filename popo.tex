@@ -828,27 +828,7 @@ cases:
    \end{tikzinline}}
 \end{gather*}
 
-\subsection{More optimizations}
-
-From \cite{Manson:2005:JMM:1047659.1040336}:
-\begin{itemize}
-\item synchronization on thread local objects can be ignored or removed
-  altogether (the caveat to this is the fact that invocations of methods like
-  wait and notify have to obey the correct semantics – for example, even if
-  the lock is thread local, it must be acquired when perform- ing a wait),
-   
-\item redundant synchronization (e.g., when a synchronized method is called
-  from another synchronized method on the same object) can be ignored or
-  removed,
-  
-\item volatile fields of thread local objects can be treated as normal
-  fields.
-\end{itemize}
-
-Perhaps we can get at this with a strength reducing result.  If saying that
-synchronization actions can be replaced by relaxed actions in some cases.
-Then the rules for relaxed read elimination and relaxed write elimination can
-be used to get rid of them.
+\subsection{Sevcik examples}
 
 \citet[\textsection7]{DBLP:conf/esop/CenciarelliKS07} example. (I
 incorrectly credit \citet{DBLP:conf/ecoop/SevcikA08}.)
@@ -1028,4 +1008,28 @@ Irrelevant Read Introduction (can I read 1 for both y and z?)
   \end{gather*}
   The execution reading 1 for y and z is impossible with or without the read.
   This relies crucially on the fact that par takes order from both sides.
+
+\subsection{More optimizations}
+
+From \cite{Manson:2005:JMM:1047659.1040336}:
+\begin{itemize}
+\item synchronization on thread local objects can be ignored or removed
+  altogether (the caveat to this is the fact that invocations of methods like
+  wait and notify have to obey the correct semantics – for example, even if
+  the lock is thread local, it must be acquired when perform- ing a wait),
+   
+\item volatile fields of thread local objects can be treated as normal
+  fields.
+
+\item redundant synchronization (e.g., when a synchronized method is called
+  from another synchronized method on the same object) can be ignored or
+  removed,
+  
+\end{itemize}
+
+It would be nice if we could get at these with a strength reducing result:
+synchronization actions can be replaced by relaxed actions in some cases.
+Then the rules for relaxed read elimination and relaxed write elimination can
+be used to get rid of them.
+
   
