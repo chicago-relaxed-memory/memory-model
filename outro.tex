@@ -18,8 +18,8 @@ executions.  Similarly, they take reads to be side\hyp{}effecting, modeling
 cache effects.  There are many less fundamental differences.  For example,
 their use of \emph{three-valued pomsets} means that they allow the
 three-location execution at the end of \textsection\ref{sec:model}, but
-disallow all two-location variants.  This odd behavior stems from the
-\emph{semi-transitivity}, inherited from \citet{DBLP:journals/dc/Lamport86}.
+disallow all two-location variants.  This odd behavior stems from
+\emph{semi\hyp{}transitivity}, inherited from \citet{DBLP:journals/dc/Lamport86}.
 
 True concurrency techniques have been applied to relaxed memory by
 \citet{DBLP:conf/esop/CenciarelliKS07}, \citet{Castellan},
@@ -34,16 +34,16 @@ executions to model relaxed memory:
 aimed to describe a \jmm-like model this way.  \drfsc\ holds, but \citet{SP} 
 discovered that it permits \oota\ behavior.
 
-\citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, a model whose only
-permitted reordering is of a relaxed write with a following relaxed read.
-The paper develops an axiomatic and studies effects on compilation.  It is
-designed as a restriction of the \jmm\ that compiles efficiently to \tso, but
-requires fencing on other architectures.
+\citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, which permits
+reordering of a relaxed write with a following relaxed read.
+% The paper develops an axiomatic semantics and studies effects on compilation.  
+\textsc{bmm} is designed as a restriction of the \jmm\ that compiles efficiently to
+\tso.  It requires fencing on other architectures.
 
 \citet{DBLP:conf/fm/LahavV16} characterized \tso\ as being derived by
 considering Write-Read (\textsf{WR}) reordering and Read-After-Write
 (\textsf{RAW}) elimination.  They also showed that the release acquires of
-C11 are less expressive than considering \textsf{WR} and \textsf{raw}
+C11 are less expressive than considering \textsf{WR} and \textsf{RAW}
 together with thread-inlining.  Our paper is inspired by their implicit
 challenge: ``Some memory models can be defined via transformations.  But
 there is more to weak memory than transformations.''
@@ -167,14 +167,14 @@ designers.''
 
 We have made two substantial contributions.
 
-In \textsection\ref{sec:opt}, we formalized a connection between Hoare logic
+First, in \textsection\ref{sec:opt}, we formalized a connection between Hoare logic
 and the sequential fragment of our language, allowing us to make a general
 statement about transformations.  Thus, we present a solution to a problem that has
 been open since \citet{DBLP:conf/ecoop/SevcikA08} discovered that several sequential
-compiler optimizations are invalid in the Java Memory Model
+compiler optimizations were invalid in the Java Memory Model
 \cite{Manson:2005:JMM:1047659.1040336}.
 
-In \textsection\ref{sec:logic}, we proposed a cyclical proof rule for
+Second, in \textsection\ref{sec:logic}, we proposed a cyclical proof rule for
 parallel composition of temporal properties in the style of
 \citet{Abadi:1993:CS:151646.151649}.  This provides an objectively
 falsifiable alternative to the notion of \emph{out of thin air} (\oota)
@@ -251,6 +251,8 @@ different a logic, capable of showing that the following program cannot write
 % \end{scope}
 The attempted execution is disallowed since there is no write to fulfill
 $(\DR{y}{1})$.   This example requires the ability to reason about values.
+
+
 % Closing $x$ and $y$ and using the last two conjuncts in the
 % invariant above:
 % % last conjunct, we have
@@ -270,7 +272,7 @@ $(\DR{y}{1})$.   This example requires the ability to reason about values.
 % \end{math}
 % as required.
 As another example, the following outcome is allowed by the promising
-semantics \cite{DBLP:conf/popl/KangHLVD17}, but not in \weakestmo{}
+semantics \cite{DBLP:conf/popl/KangHLVD17}, but not by \weakestmo{}
 \cite[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19} nor in our semantics, due
 to the cycle:
 \begin{gather*}

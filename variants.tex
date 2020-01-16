@@ -17,17 +17,67 @@ $(\DFS{\modeSC})$ is both a release and an acquire.
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
-The semantics of syntactic fences
-is subtly different from the fencing behavior of
-$\modeRA$/$\modeSC$-accesses in C11. 
-The additional order of syntactic fences is captured by adding the following
+Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-accesses.
+Consider the following variant of \eqref{aqc-rel}:
+\begin{gather*}
+  x\GETS0\SEMI %y\GETS0\SEMI
+  x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+  \PAR
+  r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx0}{\DW{x}{0}}{}
+      \event{wx1}{\DW{x}{1}}{right=of wx0}
+      \event{fr}{\DFS{\modeREL}}{right=of wx1}
+      \event{wy1}{\DW{y}{1}}{right=of fr}
+      \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+      \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+      \event{rx0}{\DR{x}{0}}{right=of fa}
+      \po{wx1}{fr}
+      \po{fr}{wy1}
+      \po{ry1}{fa}
+      \po{fa}{rx0}
+      \rf{wy1}{ry1}
+      \rf[out=10,in=170]{wx0}{rx0}
+      \wk{wx0}{wx1}
+    \end{tikzinline}}
+\end{gather*}
+% The semantics of syntactic fences
+% is subtly different from the fencing behavior of
+% $\modeRA$/$\modeSC$-accesses in C11. 
+To ensure the order that invalidates this execution candidate, we add the following rules 
 to Definition \ref{def:prefix} of \emph{prefixing}:
 \begin{enumerate}
-\item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
-  $\aEv \lt' \bEv$, and
-\item[5f.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
+\item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+  $\bEv \lt' \aEv$, and
+\item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}
+% Fences can simulate release/acquire access:
+% \begin{gather*}  
+%   x\GETS1\SEMI
+%   \FENCE^{\modeREL}\SEMI
+%   y\GETS1
+%   \PAR
+%   r\GETS y\SEMI
+%   \FENCE^{\modeACQ}\SEMI
+%   s\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{a1}{\DW{x}{1}}{}
+%       \event{a2}{\DFS{\modeREL}}{right=of a1}
+%       \po{a1}{a2}
+%       \event{a3}{\DW{y}{1}}{right=of a2}
+%       \po{a2}{a3}
+%       \event{b1}{\DR{y}{1}}{right=3em of a3}
+%       \event{b2}{\DFS{\modeACQ}}{right=of b1}
+%       \po{b1}{b2}
+%       \event{b3}{\DR{x}{0}}{right=of b2}
+%       \po{b2}{b3}
+%       \rf{a3}{b1}
+%       \wkx[out=-170,in=-10]{b3}{a1}
+%     \end{tikzinline}}
+% \end{gather*}
 
 Our semantics does not suffer the weaknesses of C11 fences, noted by
 \citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
@@ -235,7 +285,7 @@ The executions are disallowed, due to cycles.
 % complexity of C11 that it allows these executions.
 
 \paragraph{Address Calculation.}
-In the definition of a data model, remove the location set $\Loc$ and require
+In the definition of a data model, require
 that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$
 is a value.  Expressions may include neither memory locations nor the
 operator $\REF{\cExp}^{\amode}$.
@@ -371,8 +421,8 @@ In Definition \ref{def:mmpomset}, require that a \emph{(memory model) pomset}
 be a tuple $(\Event, {\le}, \labeling, \xrmw)$, where ${\xrmw}\subseteq{\le}$
 relates the two events of a successful \RMW.  Additionally, require that:
 \begin{itemize}
-\item If $\cEv$ and $\aEv$ both write $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
-\item If $\cEv$ and $\aEv$ both write $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
+\item If $\cEv$, $\aEv$ write the same $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
+\item If $\cEv$, $\aEv$ write the same $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
 \end{itemize}
 When selecting $\Event' \subseteq \Event$ in the definition of prefix
 (Definition~\ref{def:closure:properties}), we must ensure

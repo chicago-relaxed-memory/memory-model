@@ -1,0 +1,1025 @@
+\section{Weak Ideas}
+Goal is to capture \ppc, not \armseven.
+See \textsection\ref{sec:ppc:arm7}, below.
+So cannot use IMM out of the box.
+
+Introduce \emph{weak order} $\wle$\footnote{Note we can \emph{not} require
+\begin{itemize}
+\item if $\bEv\;({\le}\cup{\wle})\;\aEv$ then $\labelingSub(\bEv)$ subsumes
+  $\labelingSub(\aEv)$.
+\end{itemize}
+This does not hold, for example, in $\sem{x\GETS1\SEMI x\GETS2}$.}.
+
+\begin{definition}[2.1]
+  A \emph{(memory order) pomset} is a tuple
+  $(\Event, {\le}, {\wle}, \labeling,{\xrmw})$: 
+  \begin{itemize}
+  \item $\Event$ is a set of \emph{states},
+  \item ${\le}\subseteq (\Event\times\Event)$ and ${\wle}\subseteq (\Event\times\Event)$ are partial orders, 
+  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
+    from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
+  % \item $\labeling: \Event \fun (\Formulae\times\Act\times\Sub)$ is a \emph{labeling},
+  %   from which we derive functions $\labelingForm:\Event\fun\Formulae$, $\labelingAct:\Event\fun\Act$, and  $\labelingSub:\Event\fun\Sub$,
+  \item if $\bEv\;({\le}\cup{\wle})\;\aEv$ then $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$, and
+  % \item $\bigwedge\{\labelingForm(\aEv_i)\mid\forall i,j.\; \aEv_i\xpox\aEv_j \textor \aEv_j\xpox\aEv_i\}$ is satisfiable.
+  \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable.
+  \end{itemize}
+  Additional stuff:
+  \begin{itemize}
+  \item if $\bEv\;({\le}\sequence{\wlt})\;\aEv$ then $\bEv\neq\aEv$, and
+  % \item if $\bEv\le\aEv$ and $\bEv$ and $\aEv$ conflict, then $\bEv\wle\aEv$,
+  %\item if $\bEv\wle\aEv$ and $\bEv$ and $\aEv$ are SC, then $\bEv\le\aEv$,
+  \item if $\bEv\;({\le}\sequence{\wlt}\sequence{\le})\;\aEv$, $\bEv$ is SC,
+    and $\aEv$ is SC, then $\bEv\le\aEv$.
+  \end{itemize}
+  RMW:
+  \begin{itemize}
+  \item If $\bEv\xrmw\aEv$, then $\bEv\le\aEv$.
+  \item If $\cEv$, $\aEv$ write the same $x$, $\cEv\wle \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\wle \bEv$.
+  \item If $\cEv$, $\aEv$ write the same $x$, $\bEv\wle \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\wle \cEv$.
+  \end{itemize}  
+\end{definition}
+Update the definitions to use $\wle$ instead of $\le$ in two places:
+\begin{itemize}
+\item the last item defining fulfillment, and
+\item item 5b defining prefixing.
+\end{itemize}
+
+\begin{definition}[2.4]
+  We say $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if 
+  \begin{itemize}    
+  \item $\bEv$ writes
+    $\aVal$ to $\aLoc$, 
+  \item $\aEv$ reads $\aVal$ from $\aLoc$,
+  \item
+    $\bEv \le \aEv$, and
+  \item
+    if $\cEv$ writes to $\aLoc$ then either $\cEv \wle \bEv$ or $\aEv \wle \cEv$.
+  \end{itemize}
+\end{definition}
+
+\begin{definition}[2.10]
+  \label{def:prefix}
+Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE(\aPSS')$ where
+$\aPS'\in\aPSS'$ when
+there is some $\aPS\in\aPSS$ that satisfies items 1-4 of
+Definition 2.8 %\ref{def:pre-sc}
+such that:
+\begin{enumerate}
+\item[5a.]  if $\aEv$ writes then either $\bEv\lt'\aEv$ or
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+\item[5b.] if $\bEv$ and $\aEv$ are actions in conflict, then $\bEv\wlt'\aEv$,
+\item[5c.] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, 
+\item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$,
+\item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+  $\bEv \lt' \aEv$, and
+\item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+  $\bEv \lt' \aEv$.
+\end{enumerate}
+\end{definition}
+
+
+Weak order is only required to relate actions on the same location.  In
+augmentation minimal pomsets, it is a subset of $\reco$ (only relates writes
+that are read).  The irreflexivity requirement in the definition is thus
+comparable to requiring that ${\le}\cup{\wleaLoc}$ is a partial
+order, for every $\aLoc$.  It is \emph{not} the case that ${\le}\cup{\wle}$
+is a partial order.
+
+Note that we have a kind of semi-transitivity here, but only per variable.
+\begin{itemize}
+\item If $\cEv\leaLoc\bEv\wleaLoc\aEv$ then $\cEv\wleaLoc\aEv$.
+\item If $\cEv\wleaLoc\bEv\leaLoc\aEv$ then $\cEv\wleaLoc\aEv$.
+\end{itemize}
+With the requirements of fulfillment, we have that $\bEv\le\aEv$ implies
+$\bEv\wle\aEv$ when the actions conflict---there is a caveat for unread
+writes, where no order is forced.
+
+Here are some examples of the main text.  To better visualize, we use
+different arrowheads for strong and weak order.  We use a single color for
+strong order, and separate colors for each variable in weak order.
+
+% \tikzstyle{po} = [-latex,color=black,]
+% \tikzstyle{rf} = [-latex,color=black,]
+
+Here is fencing behavior mixing with release/acquire:
+\begin{gather*}  
+  x\GETS1\SEMI
+  %\FENCE^{\modeREL}\SEMI
+  y\REL\GETS1
+  \PAR
+  r\GETS y\ACQ\SEMI
+  %\FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      % \event{a2}{\DFS{\modeREL}}{right=of a1}
+      % \po{a1}{a2}
+      \event{a3}{\DWRel{y}{1}}{right=of a1}
+      \po{a1}{a3}
+      \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
+      % \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      % \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b1}
+      \po{b1}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}  
+  x\GETS1\SEMI
+  \FENCE^{\modeREL}\SEMI
+  y\GETS1
+  \PAR
+  r\GETS y\ACQ\SEMI
+  %\FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DFS{\modeREL}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DR{y}{1}}{right=3em of a3}
+      % \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      % \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b1}
+      \po{b1}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}  
+  x\GETS1\SEMI
+  y\REL\GETS1
+  \PAR
+  r\GETS y\SEMI
+  \FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      % \event{a2}{\DFS{\modeREL}}{right=of a1}
+      % \po{a1}{a2}
+      \event{a3}{\DWRel{y}{1}}{right=of a1}
+      \po{a1}{a3}
+      \event{b1}{\DR{y}{1}}{right=3em of a3}
+      \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b2}
+      \po{b2}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}  
+  x\GETS1\SEMI
+  \FENCE^{\modeREL}\SEMI
+  y\GETS1
+  \PAR
+  r\GETS y\SEMI
+  \FENCE^{\modeACQ}\SEMI
+  s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DFS{\modeREL}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DR{y}{1}}{right=3em of a3}
+      \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DR{x}{0}}{right=of b2}
+      \po{b2}{b3}
+      \rf{a3}{b1}
+      \wkx[out=-170,in=-10]{b3}{a1}
+    \end{tikzinline}}
+\end{gather*}
+
+Coherence C does not allow:
+\begin{gather*}
+  x\GETS1\SEMI x\GETS 2
+  \PAR
+  y\GETS x \SEMI z\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DW{x}{2}}{right=of a}
+      \wkx{a}{b}
+      \event{c}{\DR{x}{2}}{right=2em of b}
+      \event{d}{\DW{y}{2}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{x}{1}}{right=of d}
+      \event{f}{\DW{z}{1}}{right=of e}
+      \po{e}{f}
+      \rf{b}{c}
+      \rf[out=10,in=170]{a}{e}
+    \end{tikzinline}}
+\end{gather*}
+
+Coherence Java allows:
+\begin{gather*}
+  x\GETS1\SEMI y^\modeRA\GETS 1
+  \PAR
+  x\GETS 2\SEMI
+  r\GETS y^\modeSC \SEMI 
+  r\GETS x \SEMI 
+  r\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
+      \po{a}{b}
+      \event{c}{\DW{x}{2}}{below=of a}
+      \event{d}{\DR[\modeSC]{y}{1}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{x}{2}}{right=of d}
+      \po{d}{e}
+      \event{f}{\DR{x}{1}}{right=of e}
+      \po[out=10,in=170]{d}{f}
+      \rf{b}{d}
+      %\rf[out=-10,in=-170]{c}{e}
+      \wkx{a}{c}
+      %\rf[out=15,in=150]{a}{f}
+      \wkx[out=-165,in=-15]{f}{c}
+    \end{tikzinline}}
+\end{gather*}
+Store buffering
+\begin{gather*}
+  x\GETS0\SEMI
+  y\GETS0\SEMI
+  (
+  x\REL\GETS1\SEMI\aReg\GETS y
+  \PAR
+  y\REL\GETS1\SEMI \aReg\GETS x)
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx0}{\DW{x}{0}}{}
+      \event{wy0}{\DW{y}{0}}{below=of wx0}
+      \event{wx}{\DWRel{x}{1}}{right=of wx0}
+      \event{wy}{\DWRel{y}{1}}{right=of wy0}
+      \event{ry}{\DR{y}{0}}{right=of wx}
+      \event{rx}{\DR{x}{0}}{right=of wy}
+      \wkx{wx0}{wx}
+      \wky{wy0}{wy}
+      \po{wy}{rx}
+      \po{wx}{ry}
+      \rf{wy0}{ry}
+      \rf{wx0}{rx}
+      \wky{ry}{wy}
+      \wkx{rx}{wx}
+      % \po{rx}{wy}
+    \end{tikzinline}}
+\end{gather*}
+
+IRIW
+\begin{gather*}
+  \renewcommand{\arraycolsep}{1pt}
+  \begin{array}{ccccc}
+    &x\GETS0\SEMI x\GETS 1
+    &\PAR&
+    r\GETS x\ACQ \SEMI s\GETS y
+    %\IF{x}\THEN r\GETS y \FI
+    \\
+    \PAR
+    &y\GETS0\SEMI y\GETS 1
+    &\PAR&
+    r\GETS y\ACQ \SEMI s\GETS x
+    %\IF{y}\THEN s\GETS x \FI
+  \end{array}
+  \\
+  \hbox{\begin{tikzinline}[baseline=-10pt,node distance=.5em and 1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of wy0}
+  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
+  \event{ry0}{\DR{y}{0}}{right=of rx1}
+  \wkx{wx0}{wx1}
+  \wky{wy0}{wy1}
+  \rf{wx1}{rx1}
+  \rf[bend left]{wy0}{ry0}
+  \rf{wy1}{ry1}
+  \rf[bend right]{wx0}{rx0}
+  \wkx{rx0}{wx1}
+  \wky{ry0}{wy1}
+  \po{rx1}{ry0}
+  \po{ry1}{rx0}
+    \end{tikzinline}}
+\end{gather*}
+
+Three variable \mca\ example Allowed.
+\begin{gather*}
+  \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+  {\PAR}
+  \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
+  {\PAR}
+  \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
+  $}
+  \\[-.5ex]
+  \hbox{\begin{tikzinlinesmall}[node distance=1em]
+  \event{a1}{\DR{x}{1}}{}
+  \event{a2}{\DW{y}{0}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DW{y}{1}}{right=of a2}
+  \wky{a2}{a3}
+  \event{b1}{\DR{y}{1}}{right=of a3}
+  \event{b2}{\DW{z}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{z}{1}}{right=of b2}
+  \wkz{b2}{b3}
+  \event{c1}{\DR{z}{1}}{right=of b3}
+  \event{c2}{\DW{x}{0}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DW{x}{1}}{right=of c2}
+  \wkx{c2}{c3}
+  \rf{a3}{b1}
+  \rf{b3}{c1}
+  \rf[out=173,in=7]{c3}{a1}  
+    \end{tikzinlinesmall}}
+\end{gather*}
+Two variable \mca\ example Allowed.
+\begin{gather*}
+  \hbox{\small$\IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+  {\PAR}
+  \IF{y}\THEN x\GETS0 \FI \SEMI x\GETS1
+  $}
+  \\[-.5ex]
+  \hbox{\begin{tikzinlinesmall}[node distance=1em]
+  \event{a1}{\DR{x}{1}}{}
+  \event{a2}{\DW{y}{0}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DW{y}{1}}{right=of a2}
+  \wky{a2}{a3}
+  \event{b1}{\DR{y}{1}}{right=of a3}
+  \event{b2}{\DW{x}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{x}{1}}{right=of b2}
+  \wkx{b2}{b3}
+  \rf{a3}{b1}
+  \rf[out=173,in=7]{b3}{a1}  
+    \end{tikzinlinesmall}}
+\end{gather*}
+
+\cite[Fig.~5]{DBLP:conf/pldi/LahavVKHD17}
+\begin{gather*}
+    x\GETS1
+    \PAR
+    r\GETS x\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{b1}{\DR{x}{1}}{right=3em of a1}
+  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DR{y}{0}}{right=of b2}
+  \po{b2}{b3}
+  \event{c1}{\DW{y}{1}}{right=3em of b3}
+  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DR{x}{0}}{right=of c2}
+  \po{c2}{c3}
+  \wky{b3}{c1}
+  \rf{a1}{b1}
+  \wkx[out=-170,in=-10]{c3}{a1}
+  \po[in=170,out=10]{b2}{c2}
+    \end{tikzinline}}
+\end{gather*}
+
+\cite[Fig.~6]{DBLP:conf/pldi/LahavVKHD17}
+\begin{gather*}
+x\GETS1\SEMI   
+    z\REL\GETS1\SEMI   
+    \PAR
+    r\ACQ\GETS z\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=.7em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{a2}{\DWRel{z}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
+  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DR{y}{0}}{right=of b2}
+  \po{b2}{b3}
+  \event{c1}{\DW{y}{1}}{right=2em of b3}
+  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DR{x}{0}}{right=of c2}
+  \po{c2}{c3}
+  \wky{b3}{c1}
+  \rf{a2}{b1}
+  \wkx[out=-170,in=-10]{c3}{a1}
+  \po[in=170,out=10]{b2}{c2}
+    \end{tikzinline}}
+\end{gather*}
+
+PSC is part of AR
+\cite[Ex.~3.9]{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{gather*}
+  r\GETS y\SEMI
+  \FENCE^{\modeSC}\SEMI
+  r\GETS z
+  \PAR
+  z\GETS 1\SEMI
+  \FENCE^{\modeSC}\SEMI
+  r\GETS x
+  \PAR
+  \IF{x{\neq}0}\THEN y\GETS1 \FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{y}{1}}{}
+      \event{a2}{\DFS{\modeSC}}{right=of a1}
+      \event{a3}{\DR{z}{0}}{right=of a2}
+      \po{a1}{a2}
+      \po{a2}{a3}
+      \event{b1}{\DW{z}{1}}{right=2em of a3}
+      \event{b2}{\DFS{\modeSC}}{right=of b1}
+      \event{b3}{\DR{x}{1}}{right=of b2}
+      \po{b1}{b2}
+      \po{b2}{b3}
+      \event{c1}{\DR{x}{1}}{right=2em of b3}
+      \event{c2}{\DW{y}{1}}{right=of c1}
+      \po{c1}{c2}
+      \wkz{a3}{b1}
+      \rf{b3}{c1}
+      \rf[out=-170,in=-10]{c2}{a1}
+   \end{tikzinline}}
+\end{gather*}
+\cite[Ex.~3.2]{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{gather*}
+  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
+  \PAR
+  x\GETS 2\SEMI s\GETS x
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a2}{\DR{x}{0}}{}
+  \event{a1}{\DW{x}{0}}{left=of a2}
+  \rf{a1}{a2}
+  \event{a3}{\DW{x}{2}}{right=of a2}
+  \wkx{a2}{a3}
+  \event{b2}{\DW{x}{1}}{right=of a3}
+  \event{b3}{\DR{x}{1}}{right=of b2}
+  \rmw[out=-15,in=-165]{a2}[below]{b2}
+  \wkx{a3}{b2}
+  \rf{b2}{b3}
+    \end{tikzinline}}
+\end{gather*}
+
+\cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19} (Arm allows):
+\begin{gather*}
+  r \GETS y\SEMI
+  z \GETS r
+  \PAR
+  r\GETS z\SEMI
+  x\GETS 0\SEMI
+  s\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI
+  y\GETS s{+}1
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DR{y}{1}}{}
+  \event{a2}{\DW{z}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{b1}{\DR{z}{1}}{right=3em of a2}
+  \rf{a2}{b1}
+  \event{b2}{\DW{x}{0}}{right=of b1}
+  \event{b3}{\DR{x}{0}}{right=of b2}
+  \rf{b2}{b3}
+  \event{b4}{\DWRel{x}{1}}{right=2em of b3}
+  \rmw{b3}{b4}
+  \event{b5}{\DW{y}{1}}{right=of b4}
+  \po[out=-15,in=-165]{b1}{b4}
+  \po[out=-20,in=-160]{b3}{b5}
+  \rf[out=170,in=10]{b5}{a1}
+    \end{tikzinline}}
+\end{gather*}
+
+
+Detour Example 
+\cite[Ex.~3.7]{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{gather*}
+  x\GETS z-1\SEMI
+  y\GETS x
+  \PAR
+  x\GETS1
+  \PAR
+  z\GETS y
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{b1}{\DR{z}{1}}{}
+      \event{b2}{\DW{x}{0}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DR{x}{1}}{right=of b2}
+      \event{b4}{\DW{y}{1}}{right=of b3}
+      \po{b3}{b4}
+      \event{c1}{\DR{y}{1}}{right=2em of b4}
+      \event{c2}{\DW{z}{1}}{right=of c1}
+      \po{c1}{c2}
+      \event{a1}{\DW{x}{1}}{below right=2ex and -2ex of b2}
+      \rf{b4}{c1}
+      \rf{a1}{b3}
+      \wkx{b2}{a1} 
+      \rf[out=170,in=10]{c2}{b1}
+   \end{tikzinline}}
+\end{gather*}
+
+\subsection{Another fencing example}
+
+\cite[\textsection{}D]{DBLP:journals/pacmpl/PodkopaevLV19}:
+The following execution graph is not consistent in the promise-free
+declarative model of [Kang et al. 2017]. Nevertheless, its mapping to POWER
+(obtained by simply replacing Fsc with Fsync) is POWER-consistent and ${\rpox}\cup {\rrf}$
+is acyclic (so it is Strong-POWER-consistent). Note that, using promises, the
+promising semantics allows this behavior.
+\begin{gather*}  
+  r\GETS z\SEMI
+  \FENCE^{\modeSC}\SEMI
+  x\GETS1
+  \PAR
+  x\GETS 2\SEMI
+  \FENCE^{\modeSC}\SEMI
+  y\GETS 1
+  \PAR
+  r\GETS y\SEMI
+  z\GETS 1
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a1}{\DR{z}{1}}{}
+      \event{a2}{\DFS{\modeSC}}{right=of a1}
+      \po{a1}{a2}
+      \event{a3}{\DW{x}{1}}{right=of a2}
+      \po{a2}{a3}
+      \event{b1}{\DW{x}{2}}{right=3em of a3}
+      \event{b2}{\DFS{\modeSC}}{right=of b1}
+      \po{b1}{b2}
+      \event{b3}{\DW{y}{1}}{right=of b2}
+      \po{b2}{b3}
+      \event{c1}{\DR{y}{1}}{right=3em of b3}
+      \event{c2}{\DW{z}{1}}{right=of c1}
+      %\po{c1}{c2}
+      \wkx{a3}{b1}
+      \rf{b3}{c1}
+      \rf[out=170,in=10]{c2}{a1}
+      \po[out=-10,in=-170]{a2}{b2}
+    \end{tikzinline}}
+\end{gather*}
+Allowed behavior on POWER...
+Is there a dependency in the last thread?
+If so, this is a problem.
+
+\cite[\textsection{}8]{DBLP:journals/pacmpl/PodkopaevLV19}:
+To establish the correctness of compilation of the promising semantics to
+POWER, Kang et al. [2017] followed the approach of Lahav and Vafeiadis
+[2016]. This approach reduces compilation correctness to POWER to (i) the
+correctness of compilation to the POWER model strengthened with ${\rpox}\cup {\rrf}$
+acyclicity; and (ii) the soundness of local reorderings of memory
+accesses. To establish (i), Kang et al. [2017] wrongly argued that the
+strengthened POWER-consistency of mapped promise-free execution graphs imply
+the promise-free consistency of the source execution graphs. This is not the
+case due to SC fences, which have relatively strong semantics in the
+promise-free declarative model (see [Podkopaev et al. 2018, Appendix D] for a
+counter example). Nevertheless, our proof shows that the compilation claim of
+Kang et al. [2017] is correct.
+
+
+
+\subsection{Power versus ARM7}
+\label{sec:ppc:arm7}
+\cite[\textsection5]{DBLP:conf/fm/LahavV16}: Characterizing ppo of power:
+\begin{gather*}
+  \tag{PPO lower}
+  \mathsf{[RU]};({\rdeps}\cup{\rpoloc})^+;\mathsf{[WU]} \subseteq {\rppo}
+  \\
+  \tag{PPO upper}
+  {\rppo}\cap{{\rpox}\imm} \subseteq ({\rdeps}\cup{\rpoloc})^+
+\end{gather*}
+$R\imm$ denotes the relation consisting of all immediate R-edges,
+i.e., pairs $(a,b) \in R$ such that for every $c$, $(c,b) \in R$ implies $(c,a) \in R^?$, and 
+$(a, c) \in R$ implies $(b, c) \in R^?$.
+
+\cite[After example 3.6]{DBLP:journals/pacmpl/PodkopaevLV19}:
+Note that we do not include fri in ppo since it is not preserved in ARMv7
+[Alglave et al. 2014] (unlike in x86-TSO, POWER, and ARMv8). Thus, as ARMv7
+(as well as the Flowing and POP models of ARM in [Flur et al. 2016]), IMM
+allows the weak behavior from [Lahav and Vafeiadis 2016, §6].
+
+\cite[\textsection6]{DBLP:conf/fm/LahavV16}:
+Consider the program in Fig. 4.
+\begin{gather*}
+  r\GETS x\SEMI
+  x\GETS 1
+  \PAR
+  y\GETS x
+  \PAR
+  x\GETS y
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DW{x}{1}}{right=of a1}
+      \wkx{a1}{a2}
+      \event{b1}{\DR{x}{1}}{right=2em of a2}
+      \event{b2}{\DW{y}{1}}{right=of b1}
+      \po{b1}{b2}
+      \event{c1}{\DR{y}{1}}{right=2em of b2}
+      \event{c2}{\DW{x}{1}}{right=of c1}
+      \po{c1}{c2}
+      \rf{a2}{b1}
+      \rf{b2}{c1}
+      \rf[out=-170,in=-10]{c2}{a1}
+   \end{tikzinline}}
+\end{gather*}
+Note that no reorderings or eliminations can
+be applied to this program. In the second and the third threads, reordering
+is forbidden because of the dependency between the load and the subsequent
+store. On the first thread, there is no dependency, but since the load and
+the store access the same location, their reordering is generally unsound, as
+it allows the load to read from the (originally subsequent) store. Moreover,
+this program cannot return a = 1 under a (po $\cup$ rf)-acyclic model, because the
+only instance of the constant 1 in the program occurs after the load of x in
+the first thread. Nevertheless, this behavior is allowed under both the
+axiomatic ARMv7 model of Alglave et al. [4] and the ARMv8 Flowing and POP
+models of Flur et al. [12]
+
+The axiomatic ARMv7 model [4] is the same as the Power model presented in
+Section 5, with the only difference being the definition of ppo (preserved
+program order). In particular, this model does not satisfy (ppo-lower-bound)
+because
+\begin{displaymath}
+  \mathsf{[RU]};{\rpoloc};\mathsf{[WU]} \not\subseteq {\rppo}.
+\end{displaymath}
+Hence, the first thread’s program order in the example above is not included
+in ppo, and there is no happens-before cycle. For the same reason, our proof
+for Power does not carry over to ARM.
+
+In the ARMv8 Flowing model [12], consider the topology where the first two
+threads share a queue and the third thread is separate. The following
+execution is possible: (1) the first thread issues a load request from x and
+immediately commits the x := 1 store; (2) the second thread then issues a
+load request from x, which gets satisfied by the x := 1 store, and then (3)
+issues a store to y := 1; (4) the store to y gets reordered with the
+x-accesses, and flows to the third thread; (5) the third thread then loads y
+= 1, and also issues a store x := 1, which flows to the memory; (6) the load
+of x flows to the next level and gets satisfied by the x := 1 store of the
+third thread; and (7) finally the x := 1 store of the first thread also flows
+to the next level. The POP model is strictly weaker than the Flowing model,
+and thus also allows this outcome.
+
+
+\subsection{Fences and RMW}
+\cite[Remark 2, After example 3.1]{DBLP:journals/pacmpl/PodkopaevLV19}: Aim:
+allow the splitting of release writes and RMWs into release fences followed
+by relaxed operations.  In RC11 [Lahav et al. 2017], as well as in C/C++11
+[Batty et al. 2011], this rather intuitive transformation, as we found out,
+is actually unsound.
+\begin{gather*}
+  y\GETS 1\SEMI
+  x\REL\GETS 1
+  \PAR
+  r\GETS \FADD^{\modeRA,\modeRA}(x) \SEMI  %1
+  x\GETS 3
+  \PAR
+  r\GETS x\ACQ \SEMI %3
+  s\GETS y %0
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{y}{1}}{}
+      \event{a2}{\DWRel{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{b1}{\DRAcq{x}{1}}{right=2em of a2}
+      \event{b2}{\DWRel{x}{2}}{right=1.5em of b1}
+      \rmw{b1}{b2}
+      \event{b3}{\DW{x}{3}}{right=of b2}
+      \wkx{b2}{b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
+      \event{c2}{\DR{y}{0}}{right=of c1}
+      \po{c1}{c2}
+      \rf{b3}{c1}
+      \rf{a2}{b1}
+      \wky[out=170,in=10]{c2}{a1}
+      \po[out=-15,in=-165]{b1}{b3}
+   \end{tikzinline}}
+\end{gather*}
+(R)C11 disallows the annotated behavior, due in particular to the release sequence formed from the
+release exclusive write to x in the second thread to its subsequent relaxed write. However, if we
+split the increment to fencerel; a := FADDacq,rlx(x, 1) (which intuitively may seem stronger), the
+release sequence will no longer exist, and the annotated behavior will be allowed. IMM overcomes
+this problem by strengthening sw in a way that ensures a synchronization edge for the transformed
+program as well
+\begin{gather*}
+  y\GETS 1\SEMI
+  x\REL\GETS 1
+  \PAR
+  \FENCE^{\modeREL}\SEMI
+  r\GETS \FADD^{\modeRA,\modeRLX}(x) \SEMI  %1
+  x\GETS 3
+  \PAR
+  r\GETS x\ACQ \SEMI %3
+  s\GETS y %0
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{y}{1}}{}
+      \event{a2}{\DWRel{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{b0}{\DFS{\modeREL}}{right=2em of a2}
+      \event{b1}{\DRAcq{x}{1}}{right=of b0}
+      \event{b2}{\DW{x}{2}}{right=1.5em of b1}
+      \rmw{b1}{b2}
+      \event{b3}{\DW{x}{3}}{right=of b2}
+      \wkx{b2}{b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
+      \event{c2}{\DR{y}{0}}{right=of c1}
+      \po{c1}{c2}
+      \rf{b3}{c1}
+      \rf[out=15,in=165]{a2}{b1}
+      \po[out=-15,in=-165]{b0}{b2}
+      \wky[out=170,in=10]{c2}{a1}
+      \po[out=-15,in=-165]{b1}{b3}
+      \po[out=-20,in=-160]{b0}{b3}
+   \end{tikzinline}}
+\end{gather*}
+
+We seem to disallow both of those already.
+
+In the case of a relaxed read in the RMW, the outcome is allowed in both
+cases:
+\begin{gather*}
+  y\GETS 1\SEMI
+  x\REL\GETS 1
+  \PAR
+  r\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI  %1
+  x\GETS 3
+  \PAR
+  r\GETS x\ACQ \SEMI %3
+  s\GETS y %0
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{y}{1}}{}
+      \event{a2}{\DWRel{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{b1}{\DR{x}{1}}{right=2em of a2}
+      \event{b2}{\DWRel{x}{2}}{right=1.5em of b1}
+      \rmw{b1}{b2}
+      \event{b3}{\DW{x}{3}}{right=of b2}
+      \wkx{b2}{b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
+      \event{c2}{\DR{y}{0}}{right=of c1}
+      \po{c1}{c2}
+      \rf{b3}{c1}
+      \rf{a2}{b1}
+      \wky[out=170,in=10]{c2}{a1}
+      %\po[out=-15,in=-165]{b1}{b3}
+      \wkx[out=-15,in=-165]{b1}{b3}
+   \end{tikzinline}}
+\end{gather*}
+\begin{gather*}
+  y\GETS 1\SEMI
+  x\REL\GETS 1
+  \PAR
+  \FENCE^{\modeREL}\SEMI
+  r\GETS \FADD^{\modeRLX,\modeRLX}(x) \SEMI  %1
+  x\GETS 3
+  \PAR
+  r\GETS x\ACQ \SEMI %3
+  s\GETS y %0
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{y}{1}}{}
+      \event{a2}{\DWRel{x}{1}}{right=of a1}
+      \po{a1}{a2}
+      \event{b0}{\DFS{\modeREL}}{right=2em of a2}
+      \event{b1}{\DR{x}{1}}{right=of b0}
+      \event{b2}{\DW{x}{2}}{right=1.5em of b1}
+      \rmw{b1}{b2}
+      \event{b3}{\DW{x}{3}}{right=of b2}
+      \wkx{b2}{b3}
+      \event{c1}{\DRAcq{x}{3}}{right=2em of b3}
+      \event{c2}{\DR{y}{0}}{right=of c1}
+      \po{c1}{c2}
+      \rf{b3}{c1}
+      \rf[out=15,in=165]{a2}{b1}
+      \po[out=-15,in=-165]{b0}{b2}
+      \wky[out=170,in=10]{c2}{a1}
+      %\po[out=-15,in=-165]{b1}{b3}
+      \po[out=-20,in=-160]{b0}{b3}
+      \wkx[out=-15,in=-165]{b1}{b3}
+   \end{tikzinline}}
+\end{gather*}
+
+\subsection{More optimizations}
+
+From \cite{Manson:2005:JMM:1047659.1040336}:
+\begin{itemize}
+\item synchronization on thread local objects can be ignored or removed
+  altogether (the caveat to this is the fact that invocations of methods like
+  wait and notify have to obey the correct semantics – for example, even if
+  the lock is thread local, it must be acquired when perform- ing a wait),
+   
+\item redundant synchronization (e.g., when a synchronized method is called
+  from another synchronized method on the same object) can be ignored or
+  removed,
+  
+\item volatile fields of thread local objects can be treated as normal
+  fields.
+\end{itemize}
+
+Perhaps we can get at this with a strength reducing result.  If saying that
+synchronization actions can be replaced by relaxed actions in some cases.
+Then the rules for relaxed read elimination and relaxed write elimination can
+be used to get rid of them.
+
+\citet[\textsection7]{DBLP:conf/esop/CenciarelliKS07} example. (I
+incorrectly credit \citet{DBLP:conf/ecoop/SevcikA08}.)
+
+\begin{gather*}
+  \IF{x\land y}\THEN z\GETS 1\FI
+  \PAR
+  \IF{z}\THEN x\GETS1\SEMI y\GETS1 \ELSE y\GETS1\SEMI x\GETS1 \FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{y}{1}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      \po{a2}{a3}
+      \po[out=15,in=165]{a1}{a3}      
+      \event{b1}{\DR{z}{1}}{right=3em of a3}
+      \event{b2}{\DW{y}{1}}{right=of b1}
+      \event{b3}{\DW{x}{1}}{right=of b2}
+      % \po{b1}{b2}
+      % \po[out=15,in=165]{b1}{b3}
+      \rf{a3}{b1}
+      \rf[out=-165,in=-15]{b2}{a2}
+      \rf[out=-165,in=-15]{b3}{a1}
+   \end{tikzinline}}
+\end{gather*}
+
+
+Examples from \cite[\textsection4.1]{DBLP:conf/ecoop/SevcikA08} are interesting:
+Redundant write after read elimination:
+\begin{verbatim}
+|| lock m2; x=1; unlock m2
+|| lock m1; x=2; unlock m1
+|| lock m1; lock m2; r1=x; [x=r1;] r2=x; unlock m2; unlock m1 // [bracketed line removed]
+\end{verbatim}
+Even without the write, r1 and r2 must see the same values, whereas JMM
+allows different values for the reads when the write is missing.
+
+Redundant read after read elimination:
+\begin{verbatim}
+|| y=x
+|| r2=y; if (r2==1){[r3=y]; x=r3}else{x=1} // [r3=r2]
+\end{verbatim}
+Interesting case is left $\DW{x}{1}$.  Initially has predicate
+$r_3=1$. With read rule, we have $y=1$.  In read prefixing, we don't weaken.
+Instead we weaken with the read into r2.
+\begin{gather*}
+  \begin{gathered}
+    \IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3\FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+        \event{a1}{r_2{=}1 \mid \DR{y}{1}}{}
+        \event{a2}{r_2{=}1 \land y{=}1 \mid \DW{x}{1}}{right=of a1}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r_2{\neq}1}\THEN x\GETS 1\FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+        \event{a2}{r_2{\neq}1 \mid \DW{x}{1}}{}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3 \ELSE x\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{r_2{=}1 \mid \DR{y}{1}}{}
+      \event{a2}{y{=}1 \mid \DR{x}{1}}{right=of a1}
+   \end{tikzinline}}
+  \\
+  r_2\GETS y \SEMI\IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3 \ELSE x\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{y}{1}}{}
+      \event{a2}{\DR{x}{1}}{right=of a1}
+      \event{a0}{\DR{y}{1}}{left=of a1}
+      \po[out=-15,in=-165]{a0}{a2}
+   \end{tikzinline}}
+\end{gather*}
+To ignore the second read, we use the ``delay'' trick that we used for JMM
+TC1, but this is fulfilled by a read rather than a write.
+In any case, the execution with $x=y=1$ is impossible
+
+
+Roach Motel---all reads 1 impossible, but passible after swapping \verb:r1=x:
+and \verb:lock m:
+\begin{verbatim}
+|| lock m; x=1; unlock m
+|| lock m; x=2; unlock m
+|| r1=x; lock m; r2=z; if(r1==2){y=1}else{y=r2}; unlock m
+|| z=y
+\end{verbatim}
+So Question is whether you can read all 1 in
+\begin{verbatim}
+|| lock m; x=1; unlock m
+|| lock m; x=2; unlock m
+|| lock m; r1=x; r2=z; if(r1==2){y=1}else{y=r2}; unlock m
+|| z=y
+\end{verbatim}
+In any execution, we must have 1 before 2, or 2 before 1.
+\begin{itemize}
+\item If 1 before 2, then read x is 2.
+\item If 2 before 1, then read x is 1.
+  \begin{gather*}
+    \begin{gathered}
+      \IF{r_1{=}2}\THEN y\GETS 1 \ELSE y\GETS r_2\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r_1{=}2\lor r_2{=}1\mid \DW{y}{1}}{}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \begin{gathered}
+      r_1\GETS x\SEMI
+      r_2\GETS z\SEMI
+      \IF{r_1{=}2}\THEN y\GETS 1 \ELSE y\GETS r_2\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{\DW{y}{1}}{}
+          %\event{a2}{1{=}2\lor 1{=}1\mid \DW{y}{1}}{}
+          \event{a1}{\DR{z}{1}}{left=of a2}
+          \event{a0}{\DR{x}{1}}{left=of a1}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}    
+  \end{gather*}
+  So impossible for y and z to be 1.
+\end{itemize}
+
+Irrelevant Read Introduction (can I read 1 for both y and z?)
+\begin{verbatim}
+|| r=z; if(!r){if(x){y=1}}else{[s=x;]y=r}
+|| x=1; z=y
+\end{verbatim}
+
+\begin{gather*}
+    \begin{gathered}
+      \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}0\mid\DW{y}{1}}{}
+          \event{a1}{r{=}0\mid\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}      
+    \qquad
+    \begin{gathered}
+      \IF{r}\THEN s\GETS x\SEMI y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}1\mid\DW{y}{1}}{}
+          \event{a1}{r{\neq}0\mid\DR{x}{1}}{left=of a2}
+        \end{tikzinline}}
+    \end{gathered}      
+    \\
+    \begin{gathered}
+      \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}0\lor r{=}1\mid\DW{y}{1}}{}
+          \event{a1}{\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}          
+    \\
+    \begin{gathered}
+      r\GETS z\SEMI \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{\DW{y}{1}}{}
+          \event{a1}{\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+          \event{a0}{\DR{z}{1}}{left=of a1}
+          \po[out=-15,in=-165]{a0}{a2}
+        \end{tikzinline}}
+    \end{gathered}          
+  \end{gather*}
+  The execution reading 1 for y and z is impossible with or without the read.
+  This relies crucially on the fact that par takes order from both sides.
+  

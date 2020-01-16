@@ -78,8 +78,9 @@ $\labeling: \Event \fun (\Formulae\times\Act\times\Sub)$, from which we
 derive the additional function $\labelingSub:\Event\fun\Sub$.
 
 We write triples in $(\Formulae\times\Act\times\Sub)$ as
-$(\aForm \mid \aAct\mid \aSub)$, eliding $\aForm$ when it is a tautology and
-eliding $\aSub$ when it is the identity substitution.
+$(\aForm \mid \aAct\mid \aSub)$, eliding $\aForm$ when it is a tautology,
+eliding $\aAct$ when it is the termination action, and eliding $\aSub$ when
+it is the identity substitution.
 
 As a notational convenience, let $\labelingSub(\aPS)$ return the substitution
 of the termination event in $\aPS$, if one exists.  
@@ -156,7 +157,6 @@ cannot.
 To simplify the base cases, we use a literal notation for pomsets and define
 $\CLOSE{\aPS}$ to be the smallest set that includes $\aPS$ and is closed
 w.r.t.~prefixing, implication, augmentation, and reverse subsumption.
-We draw termination events as accepting states, dropping the termination action $(\DSTOP)$.
 % : Let
 % $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$
 % implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3) $\aPS''$

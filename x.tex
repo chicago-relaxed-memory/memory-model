@@ -104,34 +104,7 @@ review,anonymous,
 \begin{document}
 
 %% Title information
-\title{Let Go of That Which Does Not Serve You}
-\subtitle{Semantic Independence and Multi-Copy Atomicity in a Model of Relaxed Memory}
-%\title[Let go of that which does not serve you]{Let go of that which does not serve you: Semantic~Independence in a Model of Relaxed Memory}
-% \title{Semantic Dependency as a Model of Relaxed Memory}
-% \title[Short Title]{Full Title}         %% [Short Title] is optional;
-%                                         %% when present, will be used in
-%                                         %% header instead of Full Title.
-% \titlenote{with title note}             %% \titlenote is optional;
-%                                         %% can be repeated if necessary;
-%                                         %% contents suppressed with 'anonymous'
-
-% \subtitle{Subtitle}                     %% \subtitle is optional
-% \subtitlenote{with subtitle note}       %% \subtitlenote is optional;
-%                                         %% can be repeated if necessary;
-%                                         %% contents suppressed with 'anonymous'
-
-
-%% Author information
-%% Contents and number of authors suppressed with 'anonymous'.
-%% Each author should be introduced by \author, followed by
-%% \authornote (optional), \orcid (optional), \affiliation, and
-%% \email.
-%% An author may have multiple affiliations and/or emails; repeat the
-%% appropriate command.
-%% Many elements are not rendered, but should be provided for metadata
-%% extraction tools.
-
-
+\title{Weak Ideas}
 \author{Radha Jagadeesan}
 \affiliation{
   %\department{School of Computing}
@@ -238,8 +211,7 @@ review,anonymous,
 
 %% Keywords
 %% comma separated list
-\keywords{Relaxed Memory Models, Temporal Safety Properties, Compiler
-  Optimizations, Pomsets, Hoare Logic}  %% \keywords is optional
+\keywords{Relaxed Memory Models, Hardware Transactional Memory}  %% \keywords is optional
 
 
 %% \maketitle
@@ -264,22 +236,12 @@ review,anonymous,
 %   \email{jriely@cs.depaul.edu}}
 % }
 
-\input{intro}
-\input{model}
-\input{variants}
-\input{logic}
-\input{short}
-\input{opt}%\input{oldopt}
-\input{outro}
+\clearpage
+\input{popo}
 \clearpage
 \begin{small}
 \bibliography{bib}
 \end{small}
-\clearpage
-\appendix
-\input{semicolon}
-\input{appendix}
-
 \end{document}
 
 % Local Variables:

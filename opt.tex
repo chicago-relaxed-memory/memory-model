@@ -6,7 +6,7 @@ A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
 We argue that our model is fully flexible with respect to 
 optimization of such programs, as long as the
 optimizations do not introduce new writes or ``relevant'' reads.  To do so, we
- isolate a \emph{linear} fragment of our language that ensure these
+ isolate a \emph{linear} fragment of our language that ensures these
 restrictions.  We then show the soundness of {\em all} transformations of
 synchronization-free sequential programs into this fragment.  
 %
@@ -14,10 +14,16 @@ We end this section with a discussion of specific optimizations, some of
 which relax the linearity assumption and include synchronization.
 
 \paragraph{Pomsets for Hoare Logic.}
-We use Hoare logic \cite{Hoare:1969:ABC:363235.363259,gordonHoare} to establish the soundness of transformations, developing
-a pomset semantics for pairs of formulae $\semRW{\aForm}{\bForm}$ and showing
-a relation between $\sem{\aCmd}$ and $\semRW{\aForm}{\bForm}$ for valid Hoare
-triples $\hoare{\aForm}{\aCmd}{\bForm}$.
+In \textsection\ref{sec:model}, we used Hoare logic
+\cite{Hoare:1969:ABC:363235.363259,gordonHoare} to reason about
+\emph{dependency analysis} for sequential code.  Here, we use an alternative
+interpretation of Hoare logic to establish the soundness of \emph{program
+  transformations}.  We develop a pomset semantics for pairs of formulae
+$\semRW{\aForm}{\bForm}$, and show a relation between $\sem{\aCmd}$ and
+$\semRW{\aForm}{\bForm}$ for valid Hoare triples
+$\hoare{\aForm}{\aCmd}{\bForm}$.  In \textsection\ref{sec:model},
+preconditions were discharged by read events.  Here, instead, preconditions
+are derived from the read events themselves.
 
 \begin{definition}
   \label{def:prepost}
@@ -45,7 +51,7 @@ triples $\hoare{\aForm}{\aCmd}{\bForm}$.
 
   Require that $\aForm\aSub$ and $\bForm\bSub$ are satisfiable.
 
-  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$.
+  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$ (for each $\aEv_\bLoc$).
   
   Require that if $\cEv\le\aEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\bEvs_\aLocs$.
 
@@ -70,7 +76,7 @@ $\sem{x\GETS\aExp\SEMI r\GETS x\SEMI \aCmd}\neq \sem{x\GETS\aExp\SEMI\aCmd}$, ev
 $\aCmd$.  To make such equations hold, we define $\readc(\aPSS)$ to saturate
 $\aPSS$ with reads.
 
-In addition, Hoare postconditions are properties of completed executions.
+In addition, Hoare postconditions are properties of \emph{completed} executions.
 For example, in $\hoare{\TRUE}{x\GETS1\SEMI x\GETS2}{x{=}2}$, the postcondition
 does not hold for the prefix $x\GETS1$.  As a result, we also define
 $\readc(\aPSS)$ to restrict attention to completed executions.  % A pomset
@@ -112,16 +118,17 @@ $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
   disjunction closure.
 \end{proof}
 \end{theorem}
-To illustrate multiple writes consider:
-\begin{gather*}
-  \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{w1}{\DW{x}{1}}{}
-      \event{w2}{\DW{x}{2}}{right=of w1}
-      \wk{w1}{w2}
-    \end{tikzinline}}
-\end{gather*}
+% To illustrate multiple writes consider:
+% \begin{gather*}
+%   \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{w1}{\DW{x}{1}}{}
+%       \event{w2}{\DW{x}{2}}{right=of w1}
+%       \wk{w1}{w2}
+%     \end{tikzinline}}
+% \end{gather*}
+
 Preconditions can be placed in $\aForm$ or $\cForm$ in
 Definition~\ref{def:prepost}, resulting in different pomsets:
 \begin{gather*}
@@ -176,7 +183,7 @@ that includes all of the required writes.
 \end{corollary}
 
 \paragraph{Linearity.}
-A command $\aCmd$ is \emph{linear} for every $\aPS\in\sem{\aCmd}$, there is
+A command $\aCmd$ is \emph{linear} if for every $\aPS\in\sem{\aCmd}$, there is
 at most one read and at most one write on any location.  Intuitively, this
 means that the context around $\aCmd$ is unable to interfere with the atomic
 execution of $\aCmd$; dually, neither can the atomic execution of $\aCmd$
@@ -308,7 +315,7 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 Theorem \ref{thm:hoare} immediately validates peephole optimizations, such as
 redundant load \eqref{RL}, store forwarding \eqref{SF}, dead store \eqref{DS},
 and independent reorderings.  Using the semantics directly, we can prove
-other properties without using $\readc$.
+some properties without using $\readc$.
 Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 \begin{align*}
   \taglabel{RL}
@@ -337,9 +344,9 @@ Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)
 \end{align*}
 \eqref{RR} requires either $\aReg\neq\bReg$ or $\aLoc=\bLoc$.  \eqref{WW} and
 \eqref{RW} require that two sides of the semicolon have disjoint ids; for example,
-\eqref{RW} requires $\disjoint{\free(\aReg \GETS \aLoc)}{\free(\bLoc \GETS \bExp)}$.
+\eqref{RW} requires $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
 \eqref{RL} and \eqref{SF} follow from read closure.
-\eqref{SF} follows from the write elimination allowed in Definition \ref{def:cover}.
+\eqref{DS} follows from the write elimination allowed in Definition \ref{def:cover}.
 
 Since reads are unordered in our model, read optimizations are not limited by
 the power of aliasing analysis, as they are with stronger models of coherence
@@ -422,8 +429,7 @@ sequential composition and location binding:
 \eqref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
 Many laws hold for the conditional.  We show case analysis \eqref{CA} and
-dead code elimination \eqref{DC}.  The correctness of \eqref{CA} follows from
-disjunction closure in the semantics.
+dead code elimination \eqref{DC}.  
 \begin{align*}
   \taglabel{CA}
   \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
@@ -433,7 +439,9 @@ disjunction closure in the semantics.
   \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
   \sem{\aCmd}
 \end{align*}
-\eqref{DC} requires that $\aExp$ be a tautology.
+\eqref{DC} requires that $\aExp$ be a tautology.  The correctness of
+\eqref{CA} follows from disjunction closure (Definition
+\ref{def:closure:properties}).
 
 % Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
 %reorderings hold.
@@ -574,7 +582,7 @@ These are distinguished by the context:
   \IF{\aReg {=} \aReg} \THEN \cLoc \GETS 1 \FI
 \end{displaymath}
 With weaker notions of coherence
-\cite{Manson:2005:JMM:1047659.1040336, Dolan:2018:BDR:3192366.3192421}, these
+\cite{Manson:2005:JMM:1047659.1040336}, these
 commands are indistinguishable.
 
 Thread inlining is invalid (see \textsection\ref{sec:model}):

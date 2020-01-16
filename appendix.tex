@@ -172,7 +172,7 @@ We show that $\aPS$ is a top-level pomset, reasoning as follows.
 
 
 \begin{lemma}\label{extendob}
-Let $\aEv, \bEv$ be distinct events and $\bEv'\ (\xob\cap \xpox) \ \bEv\ ((\xeco\cap \xpox) \setminus \xrfi) \  \aEv\ (\xob \cap \xpox)  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
+Let $\aEv, \bEv$ be distinct events and $\bEv'\ ({\xob}\cap {\xpox}) \ \bEv\allowbreak\ (({\xeco}\cap {\xpox}) \setminus {\xrfi}) \  \aEv\ ({\xob} \cap {\xpox})  \ \aEv'$.  Then $\bEv' \xob \aEv'$.
 
 \begin{proof}
 If $\bEv'$ is an acquire,  or $\aEv$ is an release, or $\aEv'$ is a release, result is immediate.
@@ -233,8 +233,7 @@ We next prove  that if $\bEv\ (\xeco \cap \xpox) \ \aEv\ (\xob\cap \xpox) \ \aEv
 Since $\aEv$ is not a read, $\aEv ({\rpox};{\IDRel}; {\rcoi}^?) \aEv'$.  Result follows since  $\bEv \xpox\ \aEv$.
 
 
-\item If $\aEv \xdob  \aEv'$, then $\aEv$ is a read.  
-
+\item If $\aEv \xdob  \aEv'$, then $\aEv$ is a read.  \popQED
 \end{itemize}
 \end{proof}
 \end{lemma}
@@ -274,9 +273,9 @@ We reason by cases.
 
 Let $\bEv \xobi \cEv_0 \xobi \cEv_1 \ldots \cEv_n \xobi \aEv$ be the witness.   If $\cEv_n \xpox \aEv$, then $\cEv_n \xobi \bEv$ and we have an $\xob$ cycle.
 
-So, $\cEv_n \not\xpox \aEv$.  Thus, $\cEv_n$ is the write fulfilling $\aEv$. So, we deduce: $\cEv_n \xeco \aEv$ and $\bEv \xeco \cEv_n$ yielding an $\xeco$ cycle.
+So, $\cEv_n \not\xpox \aEv$.  Thus, $\cEv_n$ is the write fulfilling
+$\aEv$. So, we deduce: $\cEv_n \xeco \aEv$ and $\bEv \xeco \cEv_n$ yielding an $\xeco$ cycle. \popQED
 \end{itemize}
-
 \end{proof}
 \end{lemma}
 
@@ -386,7 +385,6 @@ $\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \m
 \item Item 5a, 5c, 5d, 5e 5c change to impose $\slt$ order: eg. if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \slt' \aEv$.
 \end{itemize}
 \end{itemize}
-
 We use $\tsem{\aCmd}$ to stand for the \tvalpom\ semantics of $\aCmd$.  
 
 \subsection{Generators. } Modal pomsets provide a characterization of generators from section~\ref{sec:sc}.  
@@ -561,8 +559,8 @@ Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can bui
 \item $\aEv \gtN \bEv$ in $\bPS$
 \item For all reads $\cEv$ matched to $\aEv$, change from $\bEv \gtN \cEv$ in $\aPS$ to $\cEv \gtN \bEv$ in $\bPS$
 \item For all reads $\cEv$ matched to $\bEv$, change from $\cEv \gtN \aEv$ in $\aPS$ to $\aEv \gtN \cEv$ in $\bPS$
+\popQED
 \end{itemize}
-
 \end{proof}
 
 \section{Proof of DRF}\label{drfproof}
