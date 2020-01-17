@@ -442,10 +442,14 @@ We visualize pomsets as directed graphs.
  event.  For example, the semantics of
 \begin{math}
   \VAR\aLoc\SEMI(
-  x\GETS 0\SEMI
+  x\GETS 0
+  \SEMI
   x\GETS 1
   \PAR
-  y\GETS x)
+  y\GETS x
+  \SEMI
+  z^\modeRA\GETS 1
+  )
   %\aReg\GETS x\SEMI y\GETS \aReg)
 \end{math}
 includes:
@@ -454,9 +458,11 @@ includes:
   \event{wx1}{\DW{x}{1}}{right=of wx0}
   \event{rx1}{\DR{x}{1}}{right=3em of wx1}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{wz1}{\DWRel{z}{1}}{right=of wy1}
   \rf{wx1}{rx1}
   \wk{wx0}{wx1}
   \po{rx1}{wy1}
+  \sync{wy1}{wz1}
 \end{tikzdisplay}
 We visualize order using arrows that indicate the reason that the order
 arises.
@@ -466,6 +472,7 @@ $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement: the read of $x$
 must be \emph{fulfilled} by a matching write.
 $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y$
 \emph{depends on} the read of $x$.
+$(\DW{y}{1})\xsync(\DWRel{z}{1})$ is a \emph{fencing} requirement.
 Although we use multiple arrows, we emphasize that they are all part
 of the same $\le$ relation.
 
