@@ -1032,4 +1032,211 @@ synchronization actions can be replaced by relaxed actions in some cases.
 Then the rules for relaxed read elimination and relaxed write elimination can
 be used to get rid of them.
 
-  
+\subsection{Examples for semicolon semantics}
+
+Value for $r$ in $(r\EQ1\mid\DW{z}{1})$ from $(\DW{x}{1})$:
+\begin{gather*}
+  x\GETS 1 \PAR x\GETS 1\SEMI r\GETS x \SEMI y\GETS r\SEMI z\GETS r
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DR{x}{1}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{1}}{right=of a3}
+      \po{a2}{a3}
+      %\po[out=-15,in=-165]{a1}{a4}
+      \event{a0}{\DW{x}{1}}{left=2em of a1}
+      \rf[out=15,in=165]{a0}{a2}
+    \end{tikzinline}}
+\end{gather*}          
+Value for $r$ in $(r\EQ1\mid\DW{z}{1})$ from $(\DW{x}{1})$:
+\begin{gather*}
+  x\GETS 2 \PAR x\GETS 1\SEMI r\GETS x \SEMI \IF{r{>}0}\THEN y\GETS 1\FI \SEMI \IF{r{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{1}}{right=of a3}
+      \po{a2}{a3}
+      %\po[out=-15,in=-165]{a1}{a4}
+      \event{a0}{\DW{x}{2}}{left=2em of a1}
+      \rf[out=15,in=165]{a0}{a2}
+    \end{tikzinline}}
+\end{gather*}
+Note that this also contains pomset where value for $r$ in
+$(r\EQ1\mid\DW{y}{1})$ also comes from $(\DW{x}{1})$:
+\begin{gather*}
+  x\GETS 2 \PAR x\GETS 1\SEMI r\GETS x \SEMI \IF{r{>}0}\THEN y\GETS 1\FI \SEMI \IF{r{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{1}}{right=of a3}
+      %\po{a2}{a3}
+      %\po[out=-15,in=-165]{a1}{a4}
+      \event{a0}{\DW{x}{2}}{left=2em of a1}
+      \rf[out=15,in=165]{a0}{a2}
+    \end{tikzinline}}
+\end{gather*}
+So our semantics will calculate the least ordered version.  Then rely on
+augmentation to get the others.
+\begin{gather*}
+  \begin{gathered}
+    x\GETS 1
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DW{x}{1}}{}
+      \final{f}{\SUB{1/x}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    r\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{b}{\DRreg{r}{x}{2}}{}
+      \final{f}{\SUB{x/r}}{below=of b}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{>}0}\THEN y\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{r{>}0 \mid \DW{y}{1}}{}
+      \final{f}{r{>}0 \mid \SUB{1/y}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{>}0}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{d}{r{>}0 \mid \DW{z}{1}}{}
+      \final{f}{r{>}0 \mid \SUB{1/z}}{below=of d}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \begin{gathered}
+    x\GETS 1
+    \SEMI
+    r\GETS x    
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{\DRreg{r}{x}{2} \mid \SUB{1/x,1/r}}{right=of a}
+      \final{f}{\SUB{1/x}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{>}0}\THEN y\GETS 1\FI
+    \SEMI
+    \IF{r{>}0}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{r{>}0 \mid \DW{y}{1}}{}
+      \event{d}{r{>}0 \mid \DW{z}{1}}{right=of c}
+      \final{f}{r{>}0 \mid \SUB{1/y,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+It is also possible that the read is necessary to give a value for $r$:
+\begin{gather*}
+  x\GETS 2 \PAR x\GETS 0\SEMI r\GETS x \SEMI \IF{r{>}0}\THEN y\GETS 1\FI \SEMI \IF{r{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DW{x}{0}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{1}}{right=of a3}
+      \po{a2}{a3}
+      \po[out=15,in=165]{a2}{a4}
+      \event{a0}{\DW{x}{2}}{left=2em of a1}
+      \rf[out=15,in=165]{a0}{a2}
+    \end{tikzinline}}
+\end{gather*}
+\begin{gather*}
+  \begin{gathered}
+    x\GETS 0
+    \SEMI
+    r\GETS x    
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DW{x}{0}}{}
+      \event{b}{\DRreg{r}{x}{2} \mid \SUB{0/x,0/r}}{right=of a}
+      \final{f}{\SUB{0/x}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{>}0}\THEN y\GETS 1\FI
+    \SEMI
+    \IF{r{>}0}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{r{>}0 \mid \DW{y}{1}}{}
+      \event{d}{r{>}0 \mid \DW{z}{1}}{right=of c}
+      \final{f}{r{>}0 \mid \SUB{1/y,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}  
+\end{gather*}
+Dependency on two reads:
+\begin{gather*}
+  r\GETS x \SEMI s\GETS y\SEMI \IF{r{<}s}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DRreg{r}{x}{1}}{}
+      \event{a2}{\DRreg{s}{y}{2}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      \po{a2}{a3}
+      \po[out=15,in=165]{a1}{a3}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  \begin{gathered}
+    r\GETS x\SEMI s\GETS y
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{y}{2}}{right=of a}
+      \final{f}{\SUB{x/r,y/s}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{<}s}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{r{<}s \mid \DW{z}{1}}{}
+      \final{f}{r{<}s \mid \SUB{1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+  \\
+  \begin{gathered}
+    r\GETS x\SEMI s\GETS y \SEMI \IF{r{<}s}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{y}{2}}{right=of a}
+      \event{c}{x{<}2 \mid \DW{z}{1}}{right=1em of b}
+      \po{b}{c}
+      \final{f}{r{<}s \mid \SUB{x/r,y/s,1/z}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+Value for $r$ in $(r{<}s\mid\DW{z}{1})$ from $(\DW{x}{0})$:
+\begin{gather*}
+  x\GETS 0\SEMI r\GETS x \SEMI s\GETS y\SEMI \IF{r{<}s}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DRreg{r}{x}{1}}{}
+      \event{a2}{\DRreg{s}{y}{2}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      \event{a0}{\DW{x}{0}}{left=of a1}
+      \po{a2}{a3}
+      %\po[out=15,in=165]{a0}{a3}
+    \end{tikzinline}}
+\end{gather*}          

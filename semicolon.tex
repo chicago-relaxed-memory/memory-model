@@ -185,13 +185,13 @@ w.r.t.~prefixing, implication, augmentation, and reverse subsumption.
       \final{f}{}{right=of a}
       \sync{a}{f}
     }}
-  \\& \cup
-  \textstyle\bigcup_{\cVal\phantom{,\aVal}}\;
-  \CLOSE{\TIKZ{
-      \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\REF{\cVal}}{\aVal}}{}
-      \final{f}{\SUB{\REF{\cVal}/\aReg}}{right=of a}
-      \sync{a}{f}
-    }}
+  % \\& \cup
+  % \textstyle\bigcup_{\cVal\phantom{,\aVal}}\;
+  % \CLOSE{\TIKZ{
+  %     \event{a}{\cExp=\cVal\mid\DRreg[\amode]{\aReg}{\REF{\cVal}}{\aVal}}{}
+  %     \final{f}{\SUB{\REF{\cVal}/\aReg}}{right=of a}
+  %     \sync{a}{f}
+  %   }}
   \\
   \sem{\REF{\cExp}^\amode\GETS\aExp} & =
   \;\;\textstyle\parallel_{\cVal,\aVal}\;
@@ -336,8 +336,8 @@ As a simple example, consider the following:
     z\GETS s
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{d}{\DW{z}{1}}{}
-      \final{f}{\SUB{s/z}}{below=of d}
+      \event{d}{s\EQ1 \mid \DW{z}{1}}{}
+      \final{f}{s\EQ1 \mid \SUB{s/z}}{below=of d}
       \end{tikzinline}}
   \end{gathered}
   \\

@@ -79,7 +79,7 @@ Labels: (R x v,L,r, tId) , (W x v, L,TiD)
            a) [| E |] (S|L) = (v,L)
            b) [| E |] (S|L') = undefined if L < L'
 
-       [| (E,L) |] S = (v,L cup L1), where [| (E,<>) |] S = (v,L) 
+       [| (E,L) |] S = (v,L cup L1), where [| (E,<>) |] S = (v,L1) 
 
 
 

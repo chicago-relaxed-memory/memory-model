@@ -1007,7 +1007,7 @@ For example, consider the \emph{store buffering} litmus test:
   y\GETS1\SEMI \aReg\GETS x)
   \\
   \tag{\textsc{sb}}\label{SB}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1em and 2em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wy0}{\DW{y}{0}}{below=of wx0}
       \event{wx}{\DW{x}{1}}{right=of wx0}
@@ -1020,8 +1020,8 @@ For example, consider the \emph{store buffering} litmus test:
       \po{wx}{ry}
       \rf{wy0}{ry}
       \rf{wx0}{rx}
-      \wk{ry}{wy}
-      \wk{rx}{wx}
+      \wk[out=-150,in=15]{ry}{wy}
+      \wk[out=150,in=-15]{rx}{wx}
       % \po{rx}{wy}
     \end{tikzinline}}
 \end{gather*}
