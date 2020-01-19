@@ -1,39 +1,4 @@
-1. 
-Def 2.1 
-     * Add coherence requirement.  
-         Any conflicting actions on a location are ordered
-     * If any psi in sub(phi|a) depends on x, (phi | a) is treated as a read of x
-     * Consistency:  as before  
-         
-    
-4. Sequential composition.
-      Drop subs on reads
-      Drop 5a
 
-===================== DOES NOT WORK ===================
-
-2. Prefixing
-
-   Def 2.10
-          Drop 3b,4b,4c,5a
-
-   Def: A filter x=v  |> P ensures that the events (phi | e) are such that  phi ==> phi[x/v] 
-
-   Def: [r=x; C] = cup_v cup_phi ((phi|  R x v ) ==> (x=v |> [C](x/r)) 
-   Def: [x=M; C] as before
-
-3. x-closed:
-
-   fulfilled(x,P)  = every read on x is fulfilled,
-   substitute(x,P) = replace every (phi|e)  by phi[x|->v],
-                                               R x v is visible for x at (phi|e)
-(* If fulfilled, if (R x v1, R x v2) are visible at (phi|e), then v1=v2   *)
-                                                      
-x-Closed(Ps) 
-       = { Q in substitute(fulfilled(x,Ps)) |  
-                      every event is independent of x in Q}
-
-============================================================
 
 
 Operational Rules
@@ -68,7 +33,9 @@ C[L1] defined as:
 
 Config: ((S1,C1), ...,(S,Cn), M) 
 
-Labels: (R x v,L,r, tId) , (W x v, L,TiD)
+Labels: (R x v,L,r, tId)   
+        (W x v, L,tiD)
+
 
 
 0) Expression evaluation
@@ -97,14 +64,15 @@ Labels: (R x v,L,r, tId) , (W x v, L,TiD)
 
 3) Read:
     (S, r=(x,L);C),   M[x -> v]) -- (R x v,L,r,tId) --> (S[r -->(v,L)], C), M[x--> v])
-    (S, r=^acq (x,L), M[x -> v]) -- (R x v,L,r,tId) --> (S[r -->(v,L)], C[L cup {r}]), M[x--> v])
+    (S, r=^acq (x,L), M[x -> v]) -- (R x v,L,r,tId) --> (S[r -->(v,L)], 
+                                                         C[L cup {r}]), M[x--> v])
 
 4) Expression evaluation:
     (S, r= (E,L);C), M ---> (S[r --> ([| (E,L) |] S)], C), M 
 
 5) Write:
      (S[r --> (v,L)], x=r[L1]; C), M 
-           --(W x v, L cup L1,tId) -> (S[r --> (v,L cup L1)], C), M [x--> v]
+           --(W x v, L cup L1,tId) -> (S[r --> (v,L)], C), M [x--> v]
 
      
 
@@ -125,14 +93,56 @@ events: R x v tId, W x v tId
 
 (thread Ids dropped later)
 
-Order: Each (W y v) from a (W y v, L)  is ordered after
-          the (R x v) coming from (R x v,L)  where r in L
-       Each (W y v) ordered after all prior (W y v')
+Order: Each (W y v) from a (W y v, L, tId)  is ordered after
+          the (R x v) coming from (R x v,L, tID)  where r in L
+       Each (W y v ) ordered after all prior (W y v')
        Each (R x v) ordered after the currently maximum (W x v)
        
        Each event in tId  ordered after all prior (Racq, .., TiD)
        Each event in tId  ordered before all subsequent (Wrel, .., tId)
-       If e,e' in same tId, SC accesses: e ordered before e' if e before e'
+       If e,e' in same tId, SC accesses: e ordered before e' if e before e
+
+
+=========================================================================
+
+Logic.  Hoare Rules +
+
+    Modalilty A: so
+           phi ==> A (phi), A ( A ( phi)) ==> A (phi)
+          (phi ==> psi) ==> (A(phi) ==> A(psi))
+          
+          ??(A(phi) ==> A(psi) ==> A(phi and psi))??
+           
+
+          phi[v/x] ==> /\_w A (phi[w/x])
+
+    CoModality R: so
+           R(phi) ==> phi, 
+           R(phi) => R(R(phi))
+           R(phi ==> psi) ==> R(phi) ==> R(psi)
+           true ==> R(true)
+
+          [NOT MONOIDAL: so, no R(A) /\ R(B) ==> R(A /\ B)]
+                         even though we do have: R(A /\B) => R(A) /\ R(B) ]
+
+
+
+    {phi[x/r])}        r   = x^a   {A phi}
+    {R phi[M/x]}       x^r = M     {phi }
+
+A transformation is valid from C --> C' if:
+            (a) (co)Modality free, C and C' satisfy the same formulas
+            (b) With (co)Modality, C' satisfies more formulas
+
+  Example:
+    {true}    r = x^a; y =1; {y=1}
+    {true}    y=1; r = x^a;  {A(y=1)}  [cannot prove:  {true} y=1; r = x^a {y=1} ]
+
+    {true}    y=1; x^r = 3; {R(y=1 /\x=3)}
+    {true}    x^r=3; y=1;   {R(x=3) and R(y=1)} [cannot prove the above]
+
+   
+
 
        
 
