@@ -107,28 +107,24 @@ Order: Each (W y v) from a (W y v, L, tId)  is ordered after
 
 Logic.  Hoare Rules +
 
-    Modalilty A: so
-           phi ==> A (phi), A ( A ( phi)) ==> A (phi)
-          (phi ==> psi) ==> (A(phi) ==> A(psi))
+    Modalilty Ax, for each location x.
+         so
+           phi ==> Ax (phi), Ax ( Ax ( phi)) ==> Ax (phi)
+          (phi ==> psi) ==> (Ax(phi) ==> Ax(psi))
           
-          ??(A(phi) ==> A(psi) ==> A(phi and psi))??
+          Can include full commutativity.
+               (A(phi) ==> A(psi) ==> A(phi and psi))??
            
-
-          phi[v/x] ==> /\_w A (phi[w/x])
-
-    CoModality R: so
-           R(phi) ==> phi, 
-           R(phi) => R(R(phi))
-           R(phi ==> psi) ==> R(phi) ==> R(psi)
-           true ==> R(true)
-
-          [NOT MONOIDAL: so, no R(A) /\ R(B) ==> R(A /\ B)]
-                         even though we do have: R(A /\B) => R(A) /\ R(B) ]
+    CoModality Rx: so
+           Rx(phi) ==> phi, 
+           Rx(phi) => Rx(Rx(phi))
+           Rx(phi ==> psi) ==> Rx(phi) ==> Rx(psi)
+           true ==> Rx(true)
 
 
-
-    {phi[x/r])}        r   = x^a   {A phi}
-    {R phi[M/x]}       x^r = M     {phi }
+New Rules:
+    {phi[x/r])}        r   = x^a {Ax phi}
+    {phi[M/x]}       x^r = M     {Rx phi }
 
 A transformation is valid from C --> C' if:
             (a) (co)Modality free, C and C' satisfy the same formulas
@@ -136,10 +132,10 @@ A transformation is valid from C --> C' if:
 
   Example:
     {true}    r = x^a; y =1; {y=1}
-    {true}    y=1; r = x^a;  {A(y=1)}  [cannot prove:  {true} y=1; r = x^a {y=1} ]
+    {true}    y=1; r = x^a;  {Ax(y=1)}  [cannot prove:  {true} y=1; r = x^a {y=1} ]
 
     {true}    y=1; x^r = 3; {R(y=1 /\x=3)}
-    {true}    x^r=3; y=1;   {R(x=3) and R(y=1)} [cannot prove the above]
+    {true}    x^r=3; y=1;   {R(x=3)/\ y=1} [cannot prove the above]
 
    
 
