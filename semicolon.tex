@@ -3,10 +3,12 @@
 We provide an alternative semantics that supports full sequential
 composition, building $\sem{\aCmd\SEMI\bCmd}$ from $\sem{\aCmd}$ and
 $\sem{\bCmd}$.  To simplify the definitions\footnote{This restriction can be
-  removed as follows. Separate registers into two categories: those used for
+  loosened as follows. Separate registers into two categories: those used for
   direct assignment ($\aReg\GETS\aExp$) and those used for reads
   ($\aReg\GETS \REF{\cExp}^{\amode}$).  When constructing a pomset, define
-  \emph{program order} $(\xpox)$ in the obvious way.  Let $\bEv$ be
+  \emph{program order} $(\xpox)$ in the obvious way.  In
+  Definition~\ref{def:par}, of parallel composition, require that the
+  registers of $\aPS^1$ and $\aPS^2$ be disjoint.  Let $\bEv$ be
   \emph{visible} if it reads into some $\aReg$ and there is no $\aEv$ that
   reads into $\aReg$ such that $\bEv\xpox\aEv$.  Let $\SUBDRS{\aPS}$ be
   derived from visible reads (rather than all reads).  In item 5a of
@@ -265,7 +267,9 @@ sequential composition using completed executions, then prefix close.
   and $\aPS^2\in\aPSS^2$
   such that the following hold.
 
-Let $\bEv$ range over $\Event^1$.  Let $\aEv$ range over $\Event^2$.  
+  Let $\bEv$ range over $\Event^1$.  Let $\aEv$ range over $\Event^2$.
+
+  For every $\aEv\in\Event^2$, fix $\bEvs_\aEv\subseteq\Event^1$.
       
 \begin{enumerate}
 \item[1.] $\Event' = \Event^2 \uplus \{\bEv\in\Event^1\mid\bEv\text{ is not a termination}\}$,

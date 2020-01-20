@@ -896,21 +896,21 @@ Instead we weaken with the read into r2.
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
       \event{a1}{r_2{=}1 \mid \DR{y}{1}}{}
-      \event{a2}{y{=}1 \mid \DR{x}{1}}{right=of a1}
+      \event{a2}{(r_2{=}1 \land y{=}1) \lor (r_2{\neq}1) \mid \DW{x}{1}}{right=of a1}
    \end{tikzinline}}
   \\
   r_2\GETS y \SEMI\IF{r_2{=}1}\THEN r_3\GETS y\SEMI x\GETS r_3 \ELSE x\GETS 1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
       \event{a1}{\DR{y}{1}}{}
-      \event{a2}{\DR{x}{1}}{right=of a1}
+      \event{a2}{(y{=}1 \land y{=}1) \lor (y{\neq}1) \mid\DW{x}{1}}{right=of a1}
       \event{a0}{\DR{y}{1}}{left=of a1}
-      \po[out=-15,in=-165]{a0}{a2}
+      %\po[out=-15,in=-165]{a0}{a2}
    \end{tikzinline}}
 \end{gather*}
 To ignore the second read, we use the ``delay'' trick that we used for JMM
 TC1, but this is fulfilled by a read rather than a write.
-In any case, the execution with $x=y=1$ is impossible
+In any case, the execution with $x=y=1$ is allowed.
 
 
 Roach Motel---all reads 1 impossible, but passible after swapping \verb:r1=x:
@@ -930,14 +930,14 @@ So Question is whether you can read all 1 in
 \end{verbatim}
 In any execution, we must have 1 before 2, or 2 before 1.
 \begin{itemize}
-\item If 1 before 2, then read x is 2.
-\item If 2 before 1, then read x is 1.
+\item If thread sees 2, then read x is 2.
+\item If thread sees 1, then read x is 1.
   \begin{gather*}
     \begin{gathered}
       \IF{r_1{=}2}\THEN y\GETS 1 \ELSE y\GETS r_2\FI
       \\
       \hbox{\begin{tikzinline}[node distance=.5em and 1em]
-          \event{a2}{r_1{=}2\lor r_2{=}1\mid \DW{y}{1}}{}
+          \event{a2}{r_1{=}2\lor (r_1{\neq}2 \land r_2{=}1)\mid \DW{y}{1}}{}
         \end{tikzinline}}
     \end{gathered}
     \\
@@ -995,19 +995,64 @@ Irrelevant Read Introduction (can I read 1 for both y and z?)
     \end{gathered}          
     \\
     \begin{gathered}
-      r\GETS z\SEMI \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      z\GETS 0\SEMI r\GETS z\SEMI \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
       \\
       \hbox{\begin{tikzinline}[node distance=.5em and 1em]
-          \event{a2}{\DW{y}{1}}{}
+          \event{a2}{0{=}0\lor 0{=}1\mid\DW{y}{1}}{}
           \event{a1}{\DR{x}{1}}{left=of a2}
           \po{a1}{a2}
           \event{a0}{\DR{z}{1}}{left=of a1}
-          \po[out=-15,in=-165]{a0}{a2}
+          \event{a00}{\DW{z}{0}}{left=of a0}
+          %\po[out=-15,in=-165]{a0}{a2}
         \end{tikzinline}}
     \end{gathered}          
   \end{gather*}
-  The execution reading 1 for y and z is impossible with or without the read.
-  This relies crucially on the fact that par takes order from both sides.
+\begin{gather*}
+    \begin{gathered}
+      \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}0\mid\DW{y}{1}}{}
+          \event{a1}{r{=}0\mid\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}      
+    \qquad
+    \begin{gathered}
+      \IF{r}\THEN y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}1\mid\DW{y}{1}}{}
+        \end{tikzinline}}
+    \end{gathered}      
+    \\
+    \begin{gathered}
+      \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{r{=}0\lor r{=}1\mid\DW{y}{1}}{}
+          \event{a1}{r{=}0\mid\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+        \end{tikzinline}}
+    \end{gathered}          
+    \\
+    \begin{gathered}
+      z\GETS 0\SEMI r\GETS z\SEMI \IF{\BANG r}\THEN \IF{x}\THEN y\GETS 1\FI\ELSE y\GETS r\FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+          \event{a2}{0{=}0\lor 0{=}1\mid\DW{y}{1}}{}
+          \event{a1}{\DR{x}{1}}{left=of a2}
+          \po{a1}{a2}
+          \event{a0}{\DR{z}{1}}{left=of a1}
+          \event{a00}{\DW{z}{0}}{left=of a0}
+          %\po[out=-15,in=-165]{a0}{a2}
+        \end{tikzinline}}
+    \end{gathered}          
+  \end{gather*}
+  If z is initialized to 2, rather than 0, then the dependencies remain and
+  both are disallowed.  This relies crucially on the fact that par takes
+  order from both sides.
+
 
 \subsection{More optimizations}
 
@@ -1027,12 +1072,26 @@ From \cite{Manson:2005:JMM:1047659.1040336}:
   
 \end{itemize}
 
+Counterexample for first two:
+\begin{verbatim}
+ y=1; x^AR=1; r=X^AR; z=1
+\end{verbatim}
+If you see $z=1$ you must see $y=1$
+
 It would be nice if we could get at these with a strength reducing result:
 synchronization actions can be replaced by relaxed actions in some cases.
 Then the rules for relaxed read elimination and relaxed write elimination can
 be used to get rid of them.
 
 \subsection{Examples for semicolon semantics}
+
+\begin{itemize}
+\item Parallel asymmetric: state result for \emph{joint free} programs. 
+\item Subsumption can be allowed on registers only
+\item We build substitutions
+\item Ignore substitutions when considering semantic equality.
+\end{itemize}
+
 
 Value for $r$ in $(r\EQ1\mid\DW{z}{1})$ from $(\DW{x}{1})$:
 \begin{gather*}
@@ -1227,6 +1286,133 @@ Dependency on two reads:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
+Don't need to worry about confusing reads:
+\begin{gather*}
+  r\GETS x \SEMI s\GETS x\SEMI \IF{s{<}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DRreg{r}{x}{1}}{}
+      \event{a2}{\DRreg{s}{x}{2}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      \po{a2}{a3}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  \begin{gathered}
+    r\GETS x\SEMI s\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \final{f}{\SUB{x/r,x/s}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    z\GETS s
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{s{<}0 \mid \DW{z}{1}}{}
+      \final{f}{s{<}0 \mid \SUB{1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+But we also have
+\begin{gather*}
+  r\GETS x \SEMI s\GETS x\SEMI \IF{s{<}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DRreg{r}{x}{1}}{}
+      \event{a2}{\DRreg{s}{x}{2}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      \po[out=15,in=165]{a1}{a3}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  \begin{gathered}
+    r\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \final{f}{\SUB{x/r}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    s\GETS x \SEMI \IF{s{<}0}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{b}{\DRreg{s}{x}{2}}{}
+      \event{c}{x{<}0 \mid \DW{z}{1}}{right=of b}
+      \final{f}{x{<}0 \mid \SUB{x/s,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+Dependency on two reads (No dependency here):
+\begin{gather*}
+  r\GETS x \SEMI s\GETS x\SEMI \IF{r{=}s}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DRreg{r}{x}{1}}{}
+      \event{a2}{\DRreg{s}{x}{2}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      %\po{a2}{a3}
+      %\po[out=15,in=165]{a1}{a3}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  \begin{gathered}
+    r\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \final{f}{\SUB{x/r}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    s\GETS x \SEMI \IF{r{=}s}\THEN z\GETS 1\FI
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{b}{\DRreg{s}{x}{2}}{}
+      \event{c}{r{=}x \mid \DW{z}{1}}{right=of b}
+      \final{f}{r{=}x \mid \SUB{x/s,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+Another example:
+\begin{gather*}
+  r\GETS x \SEMI s\GETS x\SEMI  z\GETS s
+  \\
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DRreg{r}{x}{1}}{}
+      \event{a2}{\DRreg{s}{x}{1}}{right=of a1}
+      \event{a3}{\DW{z}{1}}{right=of a2}
+      %\po{a2}{a3}
+      \po[out=15,in=165]{a1}{a3}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  \begin{gathered}
+    r\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \final{f}{\SUB{x/r}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    s\GETS x \SEMI z \GETS s
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{b}{\DRreg{s}{x}{1}}{}
+      \event{c}{x{=}1 \mid \DW{z}{1}}{right=of b}
+      \final{f}{x{=}1 \mid \SUB{x/s,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+
 Value for $r$ in $(r{<}s\mid\DW{z}{1})$ from $(\DW{x}{0})$:
 \begin{gather*}
   x\GETS 0\SEMI r\GETS x \SEMI s\GETS y\SEMI \IF{r{<}s}\THEN z\GETS 1\FI
@@ -1240,3 +1426,98 @@ Value for $r$ in $(r{<}s\mid\DW{z}{1})$ from $(\DW{x}{0})$:
       %\po[out=15,in=165]{a0}{a3}
     \end{tikzinline}}
 \end{gather*}          
+
+
+Contrary to submission, reverse subsumption not okay.
+\begin{gather*}
+  \begin{gathered}
+    x\GETS 1
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \final{f}{\SUB{1/x}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    x\GETS 2
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{b}{\DRreg{s}{x}{2}}{}
+      \final{f}{\SUB{}}{below=of b}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+
+Another
+\begin{gather*}
+  r\GETS x
+  \SEMI s\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po[out=-15,in=-165]{a}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po[out=-15,in=-165]{a}{c}
+      \po[out=15,in=165]{a}{d}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  s\GETS x
+  \SEMI r\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po[out=-15,in=-165]{a}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po{b}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  \begin{gathered}
+  r\GETS x
+  \SEMI s\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \final{f}{\SUB{x/r,x/s}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{>}0}\THEN y\GETS 1\FI
+    \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+\\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{r{>}0 \mid \DW{y}{1}}{}
+      \event{d}{s{>}0 \mid \DW{z}{1}}{right=of c}
+      \final{f}{r{>}0 \land s{>}0 \mid \SUB{1/y,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
