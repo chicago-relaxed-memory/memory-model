@@ -113,7 +113,7 @@ Logic.  Hoare Rules +
           (phi ==> psi) ==> (Ax(phi) ==> Ax(psi))
           
           Can include full commutativity.
-               (A(phi) ==> A(psi) ==> A(phi and psi))??
+               (A(phi) ==> A(psi) ==> A(phi and psi))
            
     CoModality Rx: so
            Rx(phi) ==> phi, 
@@ -122,6 +122,8 @@ Logic.  Hoare Rules +
            true ==> Rx(true)
 
    with: Ay(Rx(phi)) ==> Rx(Ay(phi)), if x not= y 
+         Ax(Ay(phi)) <==> Ay(Ax(phi)), if x not=y
+         Rx(Ry(phi)) <==> Ry(Rx(phi)), if x not=y
    
    SC:    Aysc, Rxsc as above
         + above commutation not permitted
