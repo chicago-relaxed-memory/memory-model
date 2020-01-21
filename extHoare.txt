@@ -1,0 +1,131 @@
+=========================================================================
+
+Logic.  
+Hoare Rules +
+
+    Modalilty Ax, for each location x.
+         so
+           phi ==> Ax (phi), Ax ( Ax ( phi)) ==> Ax (phi)
+           A(phi and psi) = A(phi) and A(psi)
+           Symmetrically for or
+           phi ==> psi ==> (A(phi) ==> A(psi))
+
+    CoModality Rx: so
+           Rx(phi) ==> phi, 
+           Rx(phi) => Rx(Rx(phi))
+           Rx(phi ==> psi) ==> Rx(phi) ==> Rx(psi)
+           true ==> Rx(true)
+
+   with: 
+         For location free formulas:  phi ==> R(phi), and A(phi) ==> phi
+         Ay ( Rx (phi)) ==> Rx ( Ay (phi))
+
+   
+   SC:    Aysc, Rxsc as above
+        + above commutation not permitted
+        + Rxsc ==> Rx
+        + Aysc ==> Ay
+
+
+New Rules:
+    {phi[x/r])}        r   = x^a {Ax phi}
+
+    {phi[M/x]}       x^r = M     {Rx phi }
+
+
+
+A transformation is valid from C --> C' if C' satisfies more formulas than C:
+                         phi C psi   ==> phi C' psi
+
+
+  Example:
+  (a)  {true}    r = x^a; y =1; {y=1}
+    {true}    y=1; r = x^a;  {Ax(y=1)}  [cannot prove:  {true} y=1; r = x^a {y=1} ]
+
+  (b)  {true}    y=1; x^r = 3; {R(y=1 /\x=3)}
+    {true}    x^r=3; y=1;   {R(x=3)/\ y=1} [cannot prove the above]
+
+              
+  (c)   true                      y=1;
+     y=1                       x^r =1
+     R[(x=1) and y=1]          x=2       (*)
+     x=2 and R(y=1)            v=2
+     x=2 and R(y=1) and v=2
+
+Only key point is (*):
+     using 2/x in R[(x=1) and y=1] yields false
+So, derivation goes:
+            true         x=2          x=2
+   weakening
+       R[(x=1) and y=1]  x=2          x=2
+
+  (d) Example below.  (With A now a necessity/comodality.  R now a possibility/modality}
+
+  u=1     ;
+  x^r = 1 ;
+  r = y^a ;
+  b = u+r;
+
+Annotated with formulas:
+   true,y=3
+      u=1
+   u=1, y=3
+      x^r =1
+   R(u=1 and x =1 and y=3)
+      r=y^a
+   AR(u=1 and x =1 and r=3)
+      b= u+ r   **** CRASH **** cant deduce r==3 
+                               [ stopped by 
+=========================================================================
+
+Note: it is possible to invert (b).  Which means we invert BOTH modality/comodality from 
+acquire/release to release/acquire.   The symmetric choice doesnt seem to make a difference, 
+except in flipping correctness of transformation to:
+
+    A transformation is valid from C --> C' if C' satisfies fewer formulas than C:
+                         phi C' psi   ==> phi C psi
+
+
+============================================================================
+
+Extended Linearity.
+     Hoare triple format.
+           {phi} C  <W,L,R>
+
+     from which:
+          <W',L',phi> C <W cup W', L cup L', phi>
+
+     Formulas: <W,L>
+          W: set of write formulas
+          L: set of read formulas
+          
+
+     <W,L,phi> ==> <W',L',psi> if W subseteq W', L subseteq L', phi ==> psi
+          
+
+     (a){phi[M/x]}
+           x=M;
+        {phi[x],emptyset,phi}
+
+     (b) {phi[x/r]}
+           r=x;
+         {emptyset,phi[x/r],phi[r]}
+
+
+(c) 
+    <b and phi> C <W', L', R'>, <not b and phi> C <W', L', R'> 
+=================================================================  
+           <phi> C <W',L',R'>
+
+(d)  {phi} C {W1,L1,psi}, {psi} C' {W2,L2,psi'}
+     ==========================================
+         {phi} C;C' {W1 cp W2, L1 cup L2, psi'}
+
+
+     <phi[x/r,x/s]>  
+            r=x;s =x;  
+     <empty, {phi[x/s],phi[x/r,x/s}, phi[]>
+
+      <empty, empty, phi[x/r,x/s]>  
+            r=x;s =r;  
+      <empty, {phi[x/s,x/r]}, phi[], phi[]>

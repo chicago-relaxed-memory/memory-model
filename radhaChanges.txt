@@ -103,62 +103,6 @@ Order: Each (W y v) from a (W y v, L, tId)  is ordered after
        If e,e' in same tId, SC accesses: e ordered before e' if e before e
 
 
-=========================================================================
-
-Logic.  Hoare Rules +
-
-    Modalilty Ax, for each location x.
-         so
-           phi ==> Ax (phi), Ax ( Ax ( phi)) ==> Ax (phi)
-          (phi ==> psi) ==> (Ax(phi) ==> Ax(psi))
-          
-          Can include full commutativity.
-               (A(phi) ==> A(psi) ==> A(phi and psi))
-           
-    CoModality Rx: so
-           Rx(phi) ==> phi, 
-           Rx(phi) => Rx(Rx(phi))
-           Rx(phi ==> psi) ==> Rx(phi) ==> Rx(psi)
-           true ==> Rx(true)
-
-   with: Ay(Rx(phi)) ==> Rx(Ay(phi)), if x not= y 
-         Ax(Ay(phi)) <==> Ay(Ax(phi)), if x not=y
-         Rx(Ry(phi)) <==> Ry(Rx(phi)), if x not=y
-   
-   SC:    Aysc, Rxsc as above
-        + above commutation not permitted
-        + Rxsc ==> Rx
-        + Aysc ==> Ay
-
-
-New Rules:
-    {phi[x/r])}        r   = x^a {Ax phi}
-    {phi[M/x]}       x^r = M     {Rx phi }
-
-A transformation is valid from C --> C' if:
-            (a) (co)Modality free, C and C' satisfy the same formulas
-            (b) With (co)Modality, C' satisfies more formulas
-
-  Example:
-    {true}    r = x^a; y =1; {y=1}
-    {true}    y=1; r = x^a;  {Ax(y=1)}  [cannot prove:  {true} y=1; r = x^a {y=1} ]
-
-    {true}    y=1; x^r = 3; {R(y=1 /\x=3)}
-    {true}    x^r=3; y=1;   {R(x=3)/\ y=1} [cannot prove the above]
-
-   {phi}      x^r= ..; r = y^a; {Ay(Rx (..))}
-              r = y^a; x^r = ..;{Rx(Ay(...)}
-
-   
-
-
-       
-
-
-     
-
-
-
 
 
 
