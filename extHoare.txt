@@ -133,3 +133,59 @@ Extended Linearity.
       <empty, {phi[x/t][x/s][x/r],phi[s/t][x/s],phi[s/t]}, phi[r,s,t]>
 
 
+============================================================================
+
+Extended Linearity.
+     Hoare triple format.
+           {phi} C  <W,L,R>
+
+     from which:
+          <W',L',phi> C <W cup W', L cup L', phi>
+
+     Formulas: <W,L>
+          W: set of write formulas
+          L: set of read formulas
+          
+
+     <W,L,phi> ==> <W',L',psi> if W subseteq W', L subseteq L', phi ==> psi
+          
+
+     (a){phi[M/x]}
+           x=M;
+        {phi[x],emptyset,phi}
+
+        In contrast:
+        {phi[M/r]}
+           r=M;
+        {emptyset,emptyset,phi}
+
+     (b) {phi[x/r]}
+           r=x;
+         {emptyset,phi[x/r],phi[r]}
+
+         In contrast:
+          {phi[s/r]}
+           r=s;
+         {emptyset,emptyset,phi[r]}
+         
+
+
+
+(c) 
+    <b and phi> C <W', L', R'>, <not b and phi> C <W', L', R'> 
+=================================================================  
+           <phi> C <W',L',R'>
+
+(d)  {phi} C {W1,L1,psi}, {psi} C' {W2,L2,psi'}
+     ==========================================
+         {phi} C;C' {W1 cp W2, L1 cup L2, psi'}
+
+
+     <phi[x/t][x/s][x/r]>  
+            r=x;s =x;t=x;
+     <empty, {phi[x/t],phi[x/t][x/s],phi[x/t][x/s][x/r], phi[r,s,t]>
+
+      <phi[x/t][x/s][x/r]>  
+            r=x;s =r; t=s; 
+      <empty, {phi[x/t][x/s][x/r],phi[s/t][x/s]}, phi[r,s,t]>
+
