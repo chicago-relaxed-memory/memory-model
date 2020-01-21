@@ -342,16 +342,23 @@ Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)
   \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc} &=
   \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc} &%\text{if } \aLoc{\neq}\bLoc
 \end{align*}
-\eqref{RR} requires either $\aReg\neq\bReg$ or $\aLoc=\bLoc$.  \eqref{WW} and
-\eqref{RW} require that two sides of the semicolon have disjoint ids; for example,
-\eqref{RW} requires $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-\eqref{RL} and \eqref{SF} follow from read closure.
-\eqref{DS} follows from the write elimination allowed in Definition \ref{def:cover}.
+% \eqref{WW}, \eqref{RW} and \eqref{RR} require that two sides of the semicolon
+% have disjoint ids; for example, \eqref{RW} requires $\disjoint{{\free(\aReg
+%     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
+\textcolor{red}{\eqref{RR} requires either $\aReg\neq\bReg$ or
+  $\aLoc=\bLoc$.}  \eqref{WW} and \eqref{RW} require that two sides of the
+semicolon have disjoint ids; for example, \eqref{RW} requires
+$\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
+\eqref{RL} and \eqref{SF} follow from read closure.  \eqref{DS} follows from
+the write elimination allowed in Definition \ref{def:cover}.
 
-Since reads are unordered in our model, read optimizations are not limited by
+% Reads on the same location are ordered in our model; thus, read optimizations
+% are limited by the power of aliasing analysis
+% \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
+\textcolor{red}{Since reads are unordered in our model, read optimizations are not limited by
 the power of aliasing analysis, as they are with stronger models of coherence
 \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  Composing \eqref{RR} and
-\eqref{RL}, for $\aReg_2\neq\bReg$ we have:
+\eqref{RL}, for $\aReg_2\neq\bReg$ we have:}
 \begin{displaymath}
   \readsem{r_1\GETS \aLoc \SEMI
   s\GETS \bLoc \SEMI  
@@ -361,6 +368,7 @@ the power of aliasing analysis, as they are with stronger models of coherence
   s\GETS \bLoc \SEMI  
   r_2\GETS r_1}
 \end{displaymath}
+%However, this fails if $\aLoc=\bLoc$.
 This holds regardless of whether $\aLoc=\bLoc$.
 % \begin{displaymathsmall}
 %   \sem{r_1\GETS \REF{\aExp} \SEMI
