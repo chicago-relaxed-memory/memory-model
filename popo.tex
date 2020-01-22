@@ -1449,117 +1449,7 @@ Contrary to submission, reverse subsumption not okay.
   \end{gathered}
 \end{gather*}
 
-\section{Commuting reads and other goodies}
-Another
-\begin{gather*}
-  r\GETS x
-  \SEMI s\GETS x
-  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
-  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-  \\
-  r\GETS x
-  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
-  \SEMI s\GETS x
-  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{x}{1}}{}
-      \event{b}{\DRreg{s}{x}{2}}{right=of a}
-      \event{c}{\DW{y}{1}}{right=of b}
-      \event{d}{\DW{z}{1}}{right=of c}
-      \po[out=-15,in=-165]{a}{c}
-      \po[out=15,in=165]{b}{d}
-    \end{tikzinline}}
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{x}{1}}{}
-      \event{b}{\DRreg{s}{x}{2}}{right=of a}
-      \event{c}{\DW{y}{1}}{right=of b}
-      \event{d}{\DW{z}{1}}{right=of c}
-      \po[out=-15,in=-165]{a}{c}
-      \po[out=15,in=165]{a}{d}
-    \end{tikzinline}}
-\end{gather*}          
-\begin{gather*}
-  s\GETS x
-  \SEMI r\GETS x
-  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
-  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-  \\
-  s\GETS x
-  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-  \SEMI r\GETS x
-  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{x}{1}}{}
-      \event{b}{\DRreg{s}{x}{2}}{right=of a}
-      \event{c}{\DW{y}{1}}{right=of b}
-      \event{d}{\DW{z}{1}}{right=of c}
-      \po[out=-15,in=-165]{a}{c}
-      \po[out=15,in=165]{b}{d}
-    \end{tikzinline}}
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DRreg{r}{x}{1}}{}
-      \event{b}{\DRreg{s}{x}{2}}{right=of a}
-      \event{c}{\DW{y}{1}}{right=of b}
-      \event{d}{\DW{z}{1}}{right=of c}
-      \po{b}{c}
-      \po[out=15,in=165]{b}{d}
-    \end{tikzinline}}
-\end{gather*}          
-\begin{gather*}
-  s\GETS x
-  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
-  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{b}{\DRreg{s}{x}{2}}{}
-      \event{c}{r{>}0\mid\DW{y}{1}}{right=of b}
-      \event{d}{\DW{z}{1}}{right=of c}
-      %\po{b}{c}
-      \po[out=15,in=165]{b}{d}
-    \end{tikzinline}}
-\end{gather*}          
-% For the desired result, it is sufficient if
-% \begin{gather*}
-%   s\GETS x
-%   \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
-%   \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-%   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
-%       \event{b}{\DRreg{s}{x}{2}}{}
-%       \event{c}{r{=}x\mid\DW{y}{1}}{right=of b}
-%       \event{d}{\DW{z}{1}}{right=of c}
-%       \po{b}{c}
-%       \po[out=15,in=165]{b}{d}
-%     \end{tikzinline}}
-% \end{gather*}          
-
-\begin{gather*}
-  \begin{gathered}
-  r\GETS x
-  \SEMI s\GETS x
-    \\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{\DRreg{r}{x}{1}}{}
-      \event{b}{\DRreg{s}{x}{2}}{right=of a}
-      \final{f}{\SUB{x/r,x/s}}{below=of a}
-      \end{tikzinline}}
-  \end{gathered}
-  \qquad
-  \begin{gathered}
-    \IF{r{>}0}\THEN y\GETS 1\FI
-    \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
-\\[-1ex]
-    \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{c}{r{>}0 \mid \DW{y}{1}}{}
-      \event{d}{s{>}0 \mid \DW{z}{1}}{right=of c}
-      \final{f}{r{>}0 \land s{>}0 \mid \SUB{1/y,1/z}}{below=of c}
-      \end{tikzinline}}
-  \end{gathered}
-\end{gather*}
+\section{Commuting release and acquire}
 
 RA example.  This is impossible, since $\DR{x}{1}$ unfulfilled.
 \begin{gather*}
@@ -1695,7 +1585,8 @@ But not:
     \end{tikzinline}}
 \end{gather*}
 
-Our model of coherence is as weak as that of
+\section{Coherence}
+ Our model of coherence is as weak as that of
 \cite{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
   x\GETS1\SEMI x\GETS 2
@@ -1720,6 +1611,7 @@ Our model of coherence is as weak as that of
     \end{tikzinline}}
 \end{gather*}
 
+\section{Write rule}
 Alan example of why substitute M/x rather than v/x in the write rule:
 \begin{gather*}
   r\GETS y\SEMI x\GETS r\SEMI s\GETS  x\SEMI z\GETS s
@@ -1759,6 +1651,7 @@ We lost the order from $\DR{y}{1}$ to $\DW{z}{1}$.
 \end{gather*}
 
 
+\section{CSE example}
 Pugh example for alias analysis and CSE:
 \begin{gather*}
   r_1\GETS x \SEMI
@@ -1794,6 +1687,117 @@ I don't see the problem with this for now.  Is this sound????
 
 
 \section{Playing around with 5a and 4b}
+Another
+\begin{gather*}
+  r\GETS x
+  \SEMI s\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
+  r\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI s\GETS x
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po[out=-15,in=-165]{a}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po[out=-15,in=-165]{a}{c}
+      \po[out=15,in=165]{a}{d}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  s\GETS x
+  \SEMI r\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
+  s\GETS x
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \SEMI r\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po[out=-15,in=-165]{a}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \event{c}{\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      \po{b}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+\end{gather*}          
+\begin{gather*}
+  s\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{b}{\DRreg{s}{x}{2}}{}
+      \event{c}{r{>}0\mid\DW{y}{1}}{right=of b}
+      \event{d}{\DW{z}{1}}{right=of c}
+      %\po{b}{c}
+      \po[out=15,in=165]{b}{d}
+    \end{tikzinline}}
+\end{gather*}          
+% For the desired result, it is sufficient if
+% \begin{gather*}
+%   s\GETS x
+%   \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+%   \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{b}{\DRreg{s}{x}{2}}{}
+%       \event{c}{r{=}x\mid\DW{y}{1}}{right=of b}
+%       \event{d}{\DW{z}{1}}{right=of c}
+%       \po{b}{c}
+%       \po[out=15,in=165]{b}{d}
+%     \end{tikzinline}}
+% \end{gather*}          
+
+\begin{gather*}
+  \begin{gathered}
+  r\GETS x
+  \SEMI s\GETS x
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{a}{\DRreg{r}{x}{1}}{}
+      \event{b}{\DRreg{s}{x}{2}}{right=of a}
+      \final{f}{\SUB{x/r,x/s}}{below=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  \qquad
+  \begin{gathered}
+    \IF{r{>}0}\THEN y\GETS 1\FI
+    \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+\\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=.2em]
+      \event{c}{r{>}0 \mid \DW{y}{1}}{}
+      \event{d}{s{>}0 \mid \DW{z}{1}}{right=of c}
+      \final{f}{r{>}0 \land s{>}0 \mid \SUB{1/y,1/z}}{below=of c}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+
 Idea to get rid of 4b and change 5a to the following:
 \begin{itemize}
 \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
