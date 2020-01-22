@@ -1457,6 +1457,11 @@ Another
   \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
   \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
   \\
+  r\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \SEMI s\GETS x
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \\
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DRreg{r}{x}{1}}{}
       \event{b}{\DRreg{s}{x}{2}}{right=of a}
@@ -1481,6 +1486,11 @@ Another
   \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
   \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
   \\
+  s\GETS x
+  \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+  \SEMI r\GETS x
+  \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+  \\
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DRreg{r}{x}{1}}{}
       \event{b}{\DRreg{s}{x}{2}}{right=of a}
@@ -1499,7 +1509,6 @@ Another
       \po[out=15,in=165]{b}{d}
     \end{tikzinline}}
 \end{gather*}          
-For the desired result, it is sufficient if
 \begin{gather*}
   s\GETS x
   \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
@@ -1507,12 +1516,26 @@ For the desired result, it is sufficient if
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{b}{\DRreg{s}{x}{2}}{}
-      \event{c}{r{=}x\mid\DW{y}{1}}{right=of b}
+      \event{c}{r{>}0\mid\DW{y}{1}}{right=of b}
       \event{d}{\DW{z}{1}}{right=of c}
-      \po{b}{c}
+      %\po{b}{c}
       \po[out=15,in=165]{b}{d}
     \end{tikzinline}}
 \end{gather*}          
+% For the desired result, it is sufficient if
+% \begin{gather*}
+%   s\GETS x
+%   \SEMI \IF{r{>}0}\THEN y\GETS 1\FI
+%   \SEMI \IF{s{>}0}\THEN z\GETS 1\FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{b}{\DRreg{s}{x}{2}}{}
+%       \event{c}{r{=}x\mid\DW{y}{1}}{right=of b}
+%       \event{d}{\DW{z}{1}}{right=of c}
+%       \po{b}{c}
+%       \po[out=15,in=165]{b}{d}
+%     \end{tikzinline}}
+% \end{gather*}          
 
 \begin{gather*}
   \begin{gathered}
@@ -1769,3 +1792,144 @@ Pugh example for alias analysis and CSE:
 \end{gather*}
 I don't see the problem with this for now.  Is this sound????
 
+Without 4b, we still do not allow:
+\begin{gather*}
+  r\GETS x\SEMI
+  s\GETS x\SEMI
+  y\GETS r\SEMI
+  z\GETS r
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{2}}{right=of a3}
+      \po[out=15,in=165]{a1}{a3}
+      \po[out=15,in=165]{a2}{a4}
+    \end{tikzinline}}
+\end{gather*}
+The following is not a pomset (consistency):
+\begin{gather*}
+  y\GETS r\SEMI
+  z\GETS r
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a3}{r\EQ1\mid\DW{y}{1}}{right=of a2}
+      \event{a4}{r\EQ2\mid\DW{z}{2}}{right=of a3}
+    \end{tikzinline}}
+\end{gather*}
+
+Without 4b, we still do not allow:
+\begin{gather*}
+  r\GETS x\SEMI
+  s\GETS x\SEMI
+  y\GETS r\SEMI
+  z\GETS s\SEMI
+  \IF{r{=}s}\THEN a\GETS 1\FI\SEMI
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{2}}{right=of a3}
+      \event{a5}{x{=}x\mid\DW{a}{1}}{right=of a4}
+      \po[out=15,in=165]{a1}{a3}
+      \po[out=15,in=165]{a2}{a4}
+    \end{tikzinline}}
+\end{gather*}
+The following is not a pomset (consistency):
+\begin{gather*}
+  y\GETS r\SEMI
+  z\GETS s\SEMI
+  \IF{r{=}s}\THEN a\GETS 1\FI\SEMI
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a3}{r{=}1\mid\DW{y}{1}}{}
+      \event{a4}{s{=}1\mid\DW{z}{2}}{right=of a3}
+      \event{a5}{r{=}s\mid\DW{a}{1}}{right=of a4}
+    \end{tikzinline}}
+\end{gather*}
+
+We do allow:
+\begin{gather*}
+  r\GETS x\SEMI
+  s\GETS x\SEMI
+  \IF{r{=}s}\THEN a\GETS 1\FI\SEMI
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{x{=}x\mid\DW{a}{1}}{right=of a2}
+    \end{tikzinline}}
+\end{gather*}
+% \begin{gather*}
+%   s\GETS x\SEMI
+%   \IF{r{=}s}\THEN a\GETS 1\FI\SEMI
+%   \\[-1ex]
+%   \nonumber
+%   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+%       \event{a2}{\DR{x}{2}}{}
+%       \event{a3}{r{=}x\mid\DW{a}{1}}{right=of a2}
+%     \end{tikzinline}}
+% \end{gather*}
+And also
+\begin{gather*}
+  r_1\GETS x\SEMI
+  r_2\GETS x\SEMI
+  r_3\GETS x\SEMI
+  \IF{r_3{\leq}1}\THEN y\GETS 1\FI\SEMI
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a0}{\DR{x}{0}}{}
+      \event{a1}{\DR{x}{2}}{right=of a0}
+      \event{a2}{\DR{x}{1}}{right=of a1}
+      \event{a3}{1{\leq}1\mid\DW{y}{1}}{right=of a2}
+      \po[out=15,in=165]{a0}{a3}
+    \end{tikzinline}}
+\end{gather*}
+
+But we cannot wait forever to satisfy a precondition.
+This is not a pomset:
+\begin{gather*}
+  r\GETS x\SEMI
+  s\GETS x\SEMI
+  y\GETS r\SEMI
+  z\GETS s
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{x{=}1\mid\DW{y}{1}}{right=of a2}
+      \event{a4}{x{=}2\mid\DW{z}{2}}{right=of a3}
+      %\po[out=15,in=165]{a1}{a3}
+      %\po[out=15,in=165]{a2}{a4}
+    \end{tikzinline}}
+\end{gather*}
+So cannot have:
+\begin{gather*}
+  r_1\GETS x\SEMI
+  s_1\GETS x\SEMI  
+  r_2\GETS x\SEMI
+  s_2\GETS x\SEMI
+  y\GETS r_2\SEMI
+  z\GETS s_2
+  \\[-1ex]
+  \nonumber
+  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+      \event{a1}{\DR{x}{1}}{}
+      \event{a2}{\DR{x}{2}}{right=of a1}
+      \event{a3}{\DW{y}{1}}{right=of a2}
+      \event{a4}{\DW{z}{2}}{right=of a3}
+      \event{b2}{\DR{x}{1}}{left=of a1}
+      \event{b1}{\DR{x}{2}}{left=of b2}
+      \po[out=15,in=165]{b1}{a3}
+      \po[out=15,in=165]{b2}{a4}
+    \end{tikzinline}}
+\end{gather*}

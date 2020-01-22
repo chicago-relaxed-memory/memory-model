@@ -1305,6 +1305,9 @@ Definition \ref{def:pre-sc} such that:
 \begin{enumerate}
 \item[5a.] %$\bEv$ \externally reads and
   if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+\item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
+  $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
+  from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
 % \item[5a.] if %$\bEv$ \externally reads and
 %   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
 %   $\bEv\lt'\aEv$,
@@ -1576,7 +1579,7 @@ Let $\aCmd$ be the program above.  The existence of this pomset is justified
 by the triple $\hoare{x\geq0}{\aCmd}{y=1}$.  It is not justified by the value of the read
 action.
 
-Nonetheless, item 4b requires that the value of the read action must
+\textcolor{red}{Nonetheless, item 4b requires that the value of the read action must
 be \emph{compatible} with subsequent formulae.  In this example, the write
 precondition must become unsatisfiable when ${-}2$ is read from $x$:
 \begin{gather*}
@@ -1614,7 +1617,7 @@ following pomsets:
       %\wk[out=20,in=160]{wx0}{rx1}
       %\wk{wx0}{rx2}
     \end{tikzinline}}
-\end{gather*}
+\end{gather*}}
 
 Like item 4b, which substitutes $[\aVal/\aLoc]$ during a read, Candidate
 \ref{cand:sc} substitutes $[\aExp/\aLoc]$ during a write.  Like 4b, this
@@ -1720,13 +1723,13 @@ satisfy the precondition:
   \rf[out=162,in=15]{b2}{a1}
     \end{tikzinline}}
 \end{gather*}
-Note that in the prefix
+\textcolor{red}{Note that in the prefix
 \begin{math}
   \sem{s\GETS x\SEMI
   \IF{r{=}s}\THEN y\GETS 1\FI},
 \end{math}
 the precondition on $(\DW{y}{1})$ must imply $r=1 \land r=x$.  The first conjunct is
-imposed by 4b, the second by 5a.  Thus the two reads must see the same value.
+imposed by 4b, the second by 5a.  Thus the two reads must see the same value.}
 
 Write substitution only effects subsequent reads, and a read action always
 creates an event that must be fulfilled.  In combination, these ensure that a
