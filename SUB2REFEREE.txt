@@ -1,0 +1,459 @@
+Thank you for reading our paper.  Before responding to your specific
+comments, we'd like to zoom out to see the big picture, which can be easily
+lost in a conference paper, which has page limits, the need to be
+self-contained, etc.
+
+Our goal has been to define a semantics that will support:
+
+- safe languages, without "catch-fire" semantics --- therefore we avoid C's
+  "plain" access, which causes "undefined behavior" when there is a data race
+
+- full compiler optimization for C's "relaxed atomic" access, which is the
+  weakest form of safe access --- it corresponds to plain access in safe
+  languages such as Java and O'Caml
+
+- memory allocation, deallocation and re-use, while retaining type safety ---
+  this means that the types of pointers must change over time, leading to our
+  emphasis on temporal safety properties
+
+Over the last decade, the focus on memory models for C, which is unsafe, has
+allowed some important observations to be forgotten.  We have attempted to
+recall them in this paper:
+
+1. [Alglave 2010, section 1.1.2.1] http://www0.cs.ucl.ac.uk/staff/j.alglave/these.pdf
+
+   Alglave notes that models in which "all the participants involved agree on
+   [a] global ordering of the events" are "the easiest to understand and to
+   reason with, which may explain their prominence."
+
+   A similar argument is made in [Pulte 2018], leading to the adoption of a
+   global order in ARMv8.
+   
+   Our model is the first to use a single global order and also allow relaxed
+   atomic access to be implemented using plain loads and stores on ARMv8.
+
+   The formalization of a relaxed memory model using a simple pomset, without
+   buffers or other tricks, is a major achievement.  We recently became aware
+   of an attempt to formalize TSO using pomsets with buffers, and we invite
+   the referees to compare the solution there with that of our paper
+   https://lmcs.episciences.org/5443
+
+   Having said that, it is also possible to take the other ideas from our
+   paper and apply them to a model with multiple ordering relations.  Such a
+   model could be implemented on Power without requiring fences for relaxed
+   atomic access.
+
+   In our S&P paper [Disselkoen, et al 2019], we used separate relations to
+   distinguish "coherence order" from "causal order".  We found that the use
+   of two orders made it much harder to reason about examples, even very
+   simple ones.  Anyone who has studied the C memory model will sure share
+   this experience.
+
+2. [Pugh 1999, section 2.3] http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.17.7914&rep=rep1&type=pdf
+
+   Pugh argued that memory model design should be principled, rather than
+   adhering to arbitrary ideas of what seems right.
+
+   In particular, he noted that with read-read coherence, "since a read of a
+   memory location may cause the thread to become aware of a write by another
+   thread, it must be treated in the compiler as a possible write.  In
+   talking with a number of people at OOPSLA98, I found that most people were
+   not aware of the implications for compilers..."  Significantly, common
+   subexpression elimination fails.  See [Dolan 2018, section 9.2] for a
+   discussion http://kcsrk.info/papers/pldi18-memory.pdf
+
+   C avoids this particular problem by promising full compiler optimization
+   only for plain variable access, for which data races have catch-fire
+   semantics.  This is not an option for safe languages.
+
+   Our abstract results for optimizations are stronger than any previous
+   memory model.  We support not just a handful of optimizations, but any
+   theoretically possible optimization.  This is a huge advance over the
+   state of the art.  We have achieved this by appeal to Hoare Logic, which
+   is the gold standard for reasoning about straight-line sequential code
+   (without synchronization).  It is impossible to do the same for
+   optimizations that involve synchronization, because there is no gold
+   standard for such programs.
+
+3. [Lochbilher 2013, section 2.1.1]
+http://www.andreas-lochbihler.de/pub/lochbihler14toplas.pdf
+
+   Lochbiler observed that under the JMM, pointer types cannot be assigned
+   dynamically at the point of allocation.  We reproduce his figure 8 on line
+   81 of our paper.  As counterintuitive as it may seem, this example shows
+   that type safety is difficult to achieve under the JMM without
+   partitioning memory by type.  As a consequence, it is difficult to imagine
+   the formalization of a realistic memory allocator for the JMM, since
+   dynamic type assignment is fundamental to memory allocation.
+
+   Other models based on speculation have the same issue, including the
+   promising semantics of [Kang, et al 2017], as the authors have confirmed.
+   For our correspondence, see
+   http://fpl.cs.depaul.edu/jriely/correspondence.pdf
+
+   Because the promising semantics does not include objects or memory
+   allocation, one must approximate these using simple integers, as we do in
+   this correspondence and on line 907 of our paper.
+   
+   BTW, we address the time-travel issue exemplified in Lochbiler's figure 7
+   by including reads-from in pomset order --- For a similar example and
+   solution, see [Dolan, et al 2018, example 3].
+
+   Temporal properties are essential for combining type safety and realistic
+   memory allocation, where pointer types change over time.  C avoids this
+   problem by avoiding type safety.
+
+   Our model is the first to enjoy temporal safety properties and also allow
+   relaxed atomic access to be implemented using plain loads and stores for
+   ARMv8.  Our _results_ in section 4 are the first such results for _any_
+   weak memory model.
+
+Our model is radically unlike any previously published model and solves
+several important open problems.  These problems are certain to gain
+prominence as attention moves from unsafe languages to safe ones.  While we
+recognize the importance of proof mechanization, it is important to note that
+the current emphasis on mechanization has the unintended effect of raising
+the bar of entry for new ideas, potentially silencing the voices of
+researchers from institutions with low numbers of able PhD students, such as
+ours.
+
+We now respond to specific comments not addressed above.
+
+----------------------- REVIEW 1 ---------------------
+
+(2) The key insight is that a single pomset can be used to represent global
+order.
+
+(3) We chose to keep the model as simple as possible rather than attempting
+to validate all possible optimizations using synchronization variables.
+Indeed, there is no accept definition of "all possible optimizations using
+synchronization variables".  Explaining this is a paper in and of itself ---
+which we intend to write!  There is no conceptual difficulty in adapting our
+model to allow such optimizations---but without a gold standard to compare
+to, we saw no reason to list a bunch of ad hoc rules in the definition of
+prefixing, as would be necessary to allow deorderings or coalescings, as you
+describe.
+
+(4) We believe that reasoning using our logic is necessary to support type
+safety when pointers may change type over time, as required for realistic
+memory allocation.  About the promising model, please see point 3 above.
+
+(5) Please see point 2 above.  The lack of read coherence is an important
+_advantage_ of our model that is _required_ to establish any general theorem
+about optimization.  The same holds for address dependencies.
+
+(6) We do not view non-atomic access as a "concurrency feature" of C.
+
+(7) Yes, they can coalesce.  There are no special rules for RMWs.
+
+(8) Thanks for noting the typo.  C3 was meant to be
+    x:=1;r:=x;if(r){y:=1}
+
+(9) We neglected to mention that this section covers the language without
+fences.
+
+(10) There are standard techniques for including loops and nontermination in
+denotation models.  These are orthogonal to subject of the paper.
+
+
+----------------------- REVIEW 2 ---------------------
+
+Our model may not be final one, but we believe that we advance the state of
+the art in several important ways.
+
+We used the ARMv8 model presented in [Pulte, et al 2018], which includes coi
+and rfi in ob only when there is a preceding fence or dependency.  Also,
+[Pulte, et al 2018] does not include fri nor fre in ob.  All of these are in
+eco.
+
+
+----------------------- REVIEW 3 ---------------------
+
+There is no typo in our rendition of Lochbilher's example.  We simply
+replaced r2 with r and r3 with s --- we also swapped x and y for consistency
+with our other examples.
+
+It is true that Lochbilher did not fully explain the impact of his
+observations.  We hope that we have done a bit better above.  The point is
+that Lochbiler had to separate memory into regions partitioned by type. (We
+did the same in a TLDI 2012 paper.)  This is obviously a "theory hack" that
+cannot be used with a realistic memory allocator, as for example in RUST.
+
+MCA is essential for _one_ contribution of paper, but not the others.
+
+Consider the load buffering litmus test
+
+  (r:=y; x:=1; || s:=x; y:=1)
+  
+This is represented by a pomset with four events.  In each thread the write
+is independent of the read, therefore the pomset need not order these events.
+For example, the following pomset appears in the semantics of this program:
+
+  (Wy1)-->(Ry1)  (Wx1)-->(Rx1)
+
+From this independence, it is clear that the models of this program include
+pomsets that fail to validate the formula that claims "that a write to x must
+be preceded by a read from y", for example.  Thus the logic cannot be used to
+prove such things.  Note that we have given the logic semantically, rather
+than using rules of inference.
+
+------------------------------------------------------
+
+
+
+
+Dear James,
+
+Thank you for your submission to LICS 2020. The LICS 2020
+rebuttal period will be between now and 23:59, 20 March, AoE.
+
+During this time, you will have access to the current state of
+your reviews and have the opportunity to submit a response. 
+The response should be concise; please try hard to not exceed
+800 words. Please keep in mind the following during this
+process:
+
+* The response must focus on any factual errors in the reviews
+and any questions posed by the reviewers. It must not provide
+new research results or reformulate the presentation. Try to be
+as concise and to the point as possible.
+
+* The response period is an opportunity to react to the
+reviews, but not a requirement to do so. Thus, if you feel the
+reviews are accurate and the reviewers have not asked any
+questions, then you do not have to respond.
+(If you would like to respond, but are unable to do so
+during this author response period because of an effect of
+the coronavirus pandemic, please contact me.)
+
+* The reviews are as submitted by the PC members, without any
+coordination between them. Thus, there may be inconsistencies.
+Furthermore, these are not the final versions of the reviews.
+The reviews can later be updated to take into account the
+discussions at the program committee meeting, and we may find
+it necessary to solicit other outside reviews after the
+rebuttal period.
+
+* The program committee will read your responses carefully and
+take this information into account during the discussions. On
+the other hand, the program committee will not directly respond
+to your responses, either before the program committee meeting
+or in the final versions of the reviews.
+
+* Your response will be seen by all PC members who have access
+to the discussion of your paper, so please try to be polite and
+constructive.
+
+The reviews on your paper are attached to this letter. To
+submit your response you should log on the EasyChair Web page
+for LICS 2020 and select your submission on the menu.
+
+----------------------- REVIEW 1 ---------------------
+SUBMISSION: 91
+TITLE: Let Go of That Which Does Not Serve You: Semantic Independence and Multi-Copy Atomicity in a Model of Relaxed Memory
+AUTHORS: Radha Jagadeesan, Alan Jeffrey and James Riely
+
+----------- Overall evaluation -----------
+SCORE: -3 (strong reject)
+----- TEXT:
+This paper proposes a programming language semantics for 
+C11 style concurrency and establish some programmability and 
+efficient compilation results. 
+
+The main claim of the paper is that no existing models provide both 
+“implementation flexibility” and “ease of use”, while the new model provides both. 
+The validity of this claim is at best arguable. 
+
+First, regarding "implementation flexibility",
+
+(1) The proposed model provides MCA and so it not efficiently 
+compilable to architectures, such as Power, that do not provide MCA. 
+
+(2) MCA is addressed in ad-hoc manner with examples only. I expected some key insight.
+Moreover, the model does not provide MCA when there is address-dependency 
+between the pair of reads contrary to ARMv8 model. 
+
+(3) The set of allowed transformations is   
+non-exhaustive, especially on synchronization accesses. 
+For instance, the model does not support elimination of 
+redundant synchronization accesses, e.g. redundant fence elimination. 
+This is very primitive and is performed in compilers.
+Also the model does not support a number of reordering transformations 
+for synchronization accesses (Ref. [Vafeiadis et al. 2015]).
+
+Second, regarding "ease of use", 
+
+(4) It is defined as supporting reasoning under a very specific compositional 
+logic introduced in the paper, which is neither a necessary and/or a sufficient condition for 
+usability of a model. 
+The promising semantics [Kang et al. 2017] also supports reasoning with a compositional program 
+logic (a simple invariant logic in the original paper and a more advanced one in [Svendsen et al. 2018]). 
+Considering Example (*) from the introduction, Kang et al. 2017 forbid the behavior 
+where x and y get an object of type C.
+
+(5) The model does not provide read-read coherence (page 6 example), 
+does not order address dependencies (page 8 example) 
+unlike other types of dependencies, and conforms to neither C11 nor Java.     
+These design choices do not facilitate ease of use for programmers. 
+
+Third, there are some additional concerns.
+
+(6) The claim 'captures all C11 concurrency features' in line 131 is not a correct 
+as the paper does not handle non-atomic accesses.
+
+(7) It is not clear from the paper how coalescing in one thread 
+affect other threads. For instance, if 
+rmw_1 reads from w_1 and rmw_2 reads from w_2 
+then is it possible to coalesce w_1 and w_2? 
+
+(8) The claim on line 116 is wrong.  {true} C3  {y=1}  does not hold.
+
+(9) The definition of hb in line 976 is incorrect. 
+
+(10) The language does not include loops. 
+Given the presentation of the semantics, 
+it is not clear how it can be extended to support loops 
+(and non-terminating computations in general).
+
+
+----------------------- REVIEW 2 ---------------------
+SUBMISSION: 91
+TITLE: Let Go of That Which Does Not Serve You: Semantic Independence and Multi-Copy Atomicity in a Model of Relaxed Memory
+AUTHORS: Radha Jagadeesan, Alan Jeffrey and James Riely
+
+----------- Overall evaluation -----------
+SCORE: 1 (weak accept)
+----- TEXT:
+* Summary
+This paper introduces a new methodology to model the concurrent
+behaviour of relaxed multicore architectures. The approach models
+programs by pomsets, ie. partial orders representing the causal
+constraints respected by the architecture. These constraints are
+computed by figuring out when an instruction depends on another (there
+are several reasons for such dependency in general in weak memory
+model: data dependency, and control dependencies are two
+examples). The paper proposes uses SMT formulas to define a semantic
+notion of dependence. This methodology is applied to model a C11-like
+architecture with release/acquire operations. The paper shows that
+this model can be efficiently computed to ARMv8 without adding
+barriers, supports a DRC-SC theorem; as well as reasoning with a
+temporal logic and Hoare-style reasoning on sequential programs.
+
+Section 2 introduces the core model, Section 3 discusses general
+extensions (fences, address calculation, rmw). Section 4 discusses
+reasoning on the model using a temporal logic, Section 5 compilation
+to ARM; Section 6 states the DRF theorem and Section 7 studies
+sequential programs and optimisations in the model.
+
+* Opinion
+The paper leverages pomsets to give an axiomatic and causal
+description of a model for C11. The model is causal in the sense that
+there everything is done in terms of one partial order containing the
+global causality of the execution. The model is axiomatic in the sense
+that the mapping from programs to pomsets is obtained by cutting down
+a space of "candidate pomsets" through some axioms (Although the
+thread semantics is denotational in flavour, but axiomatic in practice
+I would say). I like the model, but the technical tools are not too
+ground breaking to me.
+
+The model is a weaker than ARMv8 (allowing more behaviour than ARMv8)
+while retaining DRF-SC.  
+
+* Comments on the paper
+The paper is over all well written, although I have some caveats:
+
+- The related section would need some work to compare with other true
+  concurrent models that compute a notion of dependency between the
+  actions.
+
+- It is another paper defining another model unrelated (in the sense
+  not equivalent to) other models. I understand the quest for the
+  perfect C11 model, but at the same time, it is the latest one of a
+  long series of papers doing that. Is this the final one? Why?
+
+* Question for the author
+In your "compilation to ARM" (ahem), why do you need to add eco to ob?
+It is my understanding that recent version of the CAT model already
+include it (coe is in obs and coi in lob via lws).
+
+
+----------------------- REVIEW 3 ---------------------
+SUBMISSION: 91
+TITLE: Let Go of That Which Does Not Serve You: Semantic Independence and Multi-Copy Atomicity in a Model of Relaxed Memory
+AUTHORS: Radha Jagadeesan, Alan Jeffrey and James Riely
+
+----------- Overall evaluation -----------
+SCORE: -1 (weak reject)
+----- TEXT:
+There has been a long line of work on developing relaxed-memory
+concurrency models for higher-level programming languages like C++ and
+Java.  The challenge in developing such memory models is balancing the
+needs of programmers (ease of use, compositional reasoning principles)
+against the goal of supporting efficient compilation (validating
+common compiler optimizations, efficient translation to machine code
+on modern multicore architectures).  In particular, due to this
+difficult balancing act, the Java memory model fails to handle certain
+optimizations performed by Java compilers (like roach-motel
+reorderings), and the C++ memory model suffers from the so-called
+"out-of-thin-air" (OOTA) problem, namely that certain behaviors are
+permitted which violate basic reasoning about program invariants.
+Recently, there have been several proposals for new memory models that
+circumvent these problems, with various tradeoffs (e.g. Kang et
+al. 2017, Lahav et al. 2017, Chakraborty and Vafeiadis 2019).
+
+The present paper presents a new memory model for a C++-like language,
+in a very different style from the aforementioned models.  Restricting
+the model to be multi-copy atomic (MCA), it uses pomsets (partially
+ordered multisets) to represent executions.  It also attempts to
+capture the "essential" dependencies between read and write events by
+embedding logical assertions as preconditions to events.
+
+It appears that the main claimed contributions of this new model over
+previous ones are:
+
+1. It supports compositional reasoning about *temporal* safety
+properties.  Concretely, there is an example given Section 4, based on
+an example of Lochbihler, in which the authors are able to argue
+(using a temporal logic built atop their model) that a certain behavior
+is not possible, which *is* possible under previous models like the
+"promising" semantics [Kang et al. 2017].
+
+2. A general argument is given for the correctness of a whole range
+of sequential compiler optimizations.
+
+The paper is indeed somewhat interesting, but I'm afraid I cannot
+recommend it for publication because it is so exceedingly technically
+dense that I could not follow it, despite my being fairly
+knowledgeable about relaxed memory models and having worked on the
+topic for some time.  The paper is filled almost wall to wall with
+formal definitions and very little expository material to connect
+them.  Since the proofs are also not formalized mechanically at all,
+it is very hard for me to have any confidence in the proposed model,
+let alone understand the intuitions behind it.
+
+Some comments:
+
+First of all, the paper does not do a clear job of articulating why
+Lochbihler's example is so important -- or even explaining what is
+going on in Lochbihler's example.  It is literally dropped in out of
+nowhere on page 1, but there is no context given for why the reader
+should care about this particular example.  I also must confess I did
+not fully understand the example -- shouldn't the `s` be an `r`?  I
+see that it is not in Lochbihler's original paper, but I don't
+understand it there either.
+
+Second, I am quite confused about the extent to which this paper
+depends on MCA.  The introduction suggests that it is important for
+ensuring acylicity in time, but the conclusion says it isn't central
+to the authors' approach.  Which is it?
+
+Third, what does the title of the paper mean?  I couldn't make sense
+of it.
+
+Question for the authors: I assume load buffering is permitted under
+your model?  Can you explain how your model permits this behavior
+(and/or why the logic in Section 4 does not enable you to prove that
+this behavior is inadmissible)?
+
+
+------------------------------------------------------
