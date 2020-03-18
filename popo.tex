@@ -2252,3 +2252,12 @@ In semicolon semantics, join is asymmetric.
 State theorem for the join-free fragment, since prefixing has no joins.
 
 Our address calculation NO-TAR example should be replaced by JMM TC12.
+
+
+\section{Alan comments}
+
+\begin{verbatim}
+  x=s; y=r; z=3s+2r
+
+  x=s; y=r; z1=s; if(r odd){ z2=1} // using 1 and 3 as the reads
+\end{verbatim}
