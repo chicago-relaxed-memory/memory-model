@@ -1,12 +1,24 @@
+% OOPSLA: double-blind reviewing 
+% Submitted papers may be at most 23 pages in 10 point font, excluding
+% bibliographic references and appendices.
+
+% Novelty: The paper presents new ideas and results and places them
+% appropriately within the context established by previous research. 
+
+% Importance: The paper contributes to the advancement of knowledge in the
+% field. We also welcome papers that diverge from the dominant trajectory of
+% the field. 
+
+% Evidence: The paper presents sufficient evidence supporting its claims,
+% such as proofs, implemented systems, experimental results, statistical
+% analyses, case studies, and anecdotes. 
+
+% Clarity: The paper presents its contributions, methodology and results clearly.
+
+
 \RequirePackage{amssymb}  %% bizarre error previous def of Bbbk if after documentclass
-% at most 12 pages, % excluding references. 
-\documentclass[acmsmall]{acmart}\settopmatter{printfolios=true}
-\hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=2}
-%For final camera-ready submission
-%\documentclass[acmsmall,10pt]{acmart}\settopmatter{}
-% \documentclass[sigplan,10pt,
-% review,anonymous,
-% ]{acmart}
+\documentclass[acmsmall,review,anonymous,screen]{acmart}\settopmatter{printfolios=true}
+\hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=1}
 \makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
 \settopmatter{printfolios=true}
 \AtEndPreamble{%
@@ -277,7 +289,7 @@
 \end{small}
 \clearpage
 \appendix
-\input{semicolon}
+%\input{semicolon}
 \input{appendix}
 
 \end{document}
