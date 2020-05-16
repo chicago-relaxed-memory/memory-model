@@ -1,0 +1,50 @@
+\section{The Promising Semantics Allows OOTA1/OOTA4}
+\label{sec:promising}
+
+We have confirmed that
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s
+[\citeyear{DBLP:journals/toplas/Lochbihler13}], \ref{OOTA1}, is allowed by
+the promising semantics.  Because the promising semantics does not have
+object creation, we used the variant \ref{OOTA4}.
+
+On Aril 3, 2018, we sent \ref{OOTA4} to \citet{DBLP:conf/esop/SvendsenPDLV18}.
+We present the example here exactly as it was in our correspondence:
+\begin{verbatim}
+Thread s: 
+  a:=x         // a==1
+  y:=a
+Thread t: 
+  b:=z         // b==1
+  if (b==1)
+    c:=y       // c==1
+    x:=c
+  else
+    x:=1
+Thread u: 
+  z:=1
+\end{verbatim}
+
+The transitions of the threads are as follows:
+\begin{verbatim}
+s0 --R(x,v)--> s1 --W(y,v)--> s2
+t0 --R(z,0)--> t1 --W(x,1)--> t2
+t0 --R(z,1)--> t3 --R(y,v)--> t4 --W(x,v)--> t5
+u0 --W(z,1)--> u1
+\end{verbatim}
+
+To get the result, first execute \texttt{u} to get message \texttt{<z:1@1>}.
+Then \texttt{t} promises \texttt{<x:1@1>}, which it can fulfill by reading \texttt{b/z==0}.
+Then execute \texttt{s} to get message \texttt{<y:1@1>}.
+Then execute \texttt{t}, reading \texttt{b/z==1} and \texttt{c/y==1} and fulfill the promise by writing \texttt{<x:1@1>}.
+
+On Aril 3, 2018, \citeauthor{DBLP:conf/esop/SvendsenPDLV18} replied:
+\begin{quotation}
+  \emph{Yes, it is allowed in the way you described.}
+\end{quotation}
+On March 17, 2020, the authors confirmed that this did not change in Promising 2.0.
+
+We sent the same example to \citet{DBLP:journals/pacmpl/ChakrabortyV19}.
+On December 10, 2018, they replied:
+\begin{quotation}
+  \emph{Yes the following outcome is allowed in our semantics. The event structure and the extracted execution are in pic-2 (attached).}
+\end{quotation}

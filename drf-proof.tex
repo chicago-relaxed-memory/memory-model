@@ -1,0 +1,611 @@
+\section{Modal pomsets}
+In order to perform a sharper analysis of dependency, we present an alternate
+semantics using modal pomsets defined below.  Modal pomsets make a formal
+distinction between strong order and weak order.
+\begin{definition}
+  A \emph{modal (memory model) pomset} is a tuple
+  $(\Event, {\sle}, {\gtN},
+  \labeling)$, such that
+  \begin{itemize}
+   \item $(\Event, {\gtN},
+  \labeling)$ is a (memory model) pomset, and 
+\item ${\sle} \subseteq {\gtN}$ is a partial order. 
+  \end{itemize}
+\end{definition}
+We write $\bEv\slt\aEv$ when $\bEv\sle\aEv$ and $\bEv\neq\aEv$, and similarly for $\gtN$.   Thus, $(\sle \cup \reco)^{*} \subseteq {\gtN}$.  
+
+We list out a few observations to illustrate the relationship between \tvalpom s and pomsets.  We are given a  \tvalpom, 
+  $(\Event, {\sle}, {\gtN}, \labeling)$.  Then:
+\begin{itemize}
+\item $(\Event, {\gtN},\labeling)$ is a pomset with the same reads-from relation.  
+
+\item Let $\reco$ be the restriction of $\gtN$ to conflicting actions on the same location.  Then, $(\Event, {\sle}, (\sle \cup \reco)^{*}, \labeling)$ is a \tvalpom, and $(\sle \cup \reco)^{*} \subseteq {\gtN}$.
+\end{itemize}
+
+\paragraph*{Changes to definitions}
+The definition of the semantics of programs using \tvalpom\ largely follows the one using pomsets.  We sketch the changes to definitions below.
+
+\begin{itemize}
+\item
+  We say that $\bEv$ \emph{fulfills $\aEv$ on $\aLoc$} if $\bEv$ writes
+  $\aVal$ to $\aLoc$, $\aEv$ reads $\aVal$ from $\aLoc$,
+  \begin{itemize}
+  \item $\bEv \slt \aEv$, and
+  \item if an event $\cEv$ writes to $\aLoc$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+  \end{itemize}
+
+\item 
+Augmentation has to include ${\slt}$. i.e 
+$\aPS'$ is an \emph{augmentation} of $\aPS$ if $\Event'=\Event$,
+  ${\labeling'}={\labeling}$, ${\sle'}\supseteq{\sle}$, and
+  ${\gtN'}\supseteq{\gtN}$.
+
+\item The definitions of substitution, restriction and the filtering
+  operations  stay the same, with $\sle$ carried over unchanged.  For
+  example, substitution is defined as follows:
+
+Let $\aPSS\aSub$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ whenever
+there is $\aPS\in\aPSS$ such that:
+$\Event' = \Event$,
+${\sle'} = {\sle}$, 
+${\gtN'} = {\gtN}$,
+and
+$\labeling'(\aEv) = (\bForm\aSub \mid \aAct)$ when $\labeling(\aEv) = (\bForm \mid \aAct)$.
+
+
+\item In composition,we require ${\sle'}\supseteq{\sle^1}\cup{\sle^2}$
+
+\item The changes to the definition \ref{def:prefix} of prefixing are as follows.  The key changes are that synchronization and dependency enforce $\slt$ whereas coherence only enforces $\gtN$. 
+\begin{itemize}
+\item ${\sle'}\supseteq{\sle}$.
+
+% \item Item 5b changes to: if $\aEv$ is a write then either $\cEv\slt'\aEv$
+% or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+
+\item 5b changes to: if $\bEv$ and $\aEv$ are \external actions in conflict, then $\bEv \gtN' \aEv$,
+% \item Item \ref{pre-coherence} changes to:
+%  if $\aAct$ is a write that conflicts with $\labelingAct(\aEv)$ 
+%     then $\cEv \gtN' \aEv$,
+
+\item Item 5a, 5c, 5d, 5e 5c change to impose $\slt$ order: eg. if $\aAct$ is an acquire or $\labelingAct(\aEv)$ is a release then $\cEv \slt' \aEv$.
+\end{itemize}
+\end{itemize}
+We use $\tsem{\aCmd}$ to stand for the \tvalpom\ semantics of $\aCmd$.  
+
+\subsection{Generators. } Modal pomsets provide a characterization of generators from section~\ref{sec:sc}.  
+
+Recall that \emph{generators} in the pomset semantics are pomsets that are minimal with respect to augmentation and implication.  These generators are induced by pomsets  that are minimal with respect to augmentation and implication in the \tvalpom\ semantics  in the following sense.  
+
+$(\Event, {\gtN},\labeling)$ is a generator for $\sem{\aCmd}$ 
+if there exists  $(\Event, \slt, {\gtN},\labeling) \in \tsem{\aCmd}$ minimal w.r.t.~augmentation and implication, and  $\gtN = (\sle \cup \reco)^{*}$.
+
+Furthermore, any strong order that is outside of program order must be induced by a reads-from.  In the two-thread case, we can state the latter
+property as follows: suppose $\aEv$ and $\bEv$ are not related by program
+order and $\aEv\slt\bEv$; then there exist $\bEv'$ that reads-from $\aEv'$
+such that $\aEv\xpox\aEv'$, $\bEv'\xpox\bEv$ and
+$\aEv \slt \aEv' \slt \bEv' \slt \bEv$.
+
+\subsection{Closure properties}
+The fine grain analysis of dependency in the modal semantics allows us to establish some closure properties of the semantics of programs.  
+
+We consider programs of the
+form $\vec{\aLoc}\GETS\vec{0}\SEMI\FENCE\SEMI\aCmd$, where $\aCmd$ is
+restriction-free.  Thus, all memory locations are initialized to $0$,
+initialization happens-before the execution of any command, 
+
+We say that $\aPS' = \aPS\restrict{\Event'}$ when 
+ $\Event' \subseteq \Event$,
+ ${\labeling'} = {\labeling}\restrict{\Event'}$,   and
+ ${\le'} = {\le}\restrict{\Event'}$.
+% ${\gtN'} = {\gtN}\restrict{\Event'}$.
+
+\begin{definition}
+Let $(\aPS \after \aEv) = {\{ \bEv\in\Event \mid \aEv \le \bEv
+  \}}$ be the set of events that follow $\aEv$ in $\aPS$.
+\end{definition}
+
+The semantics of read is ``input''-enabled, since it permits the read of any visible value.   Thus, any racy read in a program can be replaced by a read of a earlier value (w.r.t.~$\reco$), even while  the races with existing independent writes are maintained.   A canonical example to keep in mind for this lemma is the program:
+\begin{align*}
+  (y\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1)
+  \PAR
+  (x\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS 1)
+\end{align*}
+with both registers getting value $1$ via the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{ry1}{\DR{y}{1}}{right=of wy0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{rx1}{\DR{x}{1}}{right=of wx0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx1}{rx1}
+\rf{wy1}{ry1}
+\wk{wx0}{rx1}
+\wk{wy0}{ry1}
+\end{tikzdisplay}
+The lemma constructs the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{ry1}{\DR{y}{0}}{right=of wy0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{rx1}{\DR{x}{0}}{right=of wx0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx0}{rx1}
+\rf{wy0}{ry1}
+\wk{rx1}{wx1}
+\wk{ry1}{wy1}
+\end{tikzdisplay}
+
+
+\begin{lemma}\label{inputen}
+%Let $\aCmd = \vec{\aLoc}\GETS\vec{0}\SEMI \FENCE\SEMI (\aCmd^1 \PAR \cdots \PAR \aCmd^n)$.
+Let $\aPS \in \tsem{\aCmd}$ be a top level pomset.  
+Let $\aEv \in \aPS$ read from write event $\bEv$  on $\aLoc$,  $\neg(\bEv \xhb \aEv)$.
+Then, there exists $\bPS \in \tsem{\aCmd}$ such that:
+\begin{itemize}
+%\item $(\exists \aEv' \in \Event_{\bPS})$ such that $
+%\Event_{\bPS}$ is the disjoint union of  $\Event_{\aPS} \setminus  
+%(\aPS \after \aEv))$ and $(\bPS \after \aEv')$.
+\item $\aEv'$ reads from $\aLoc$, with matching write event $\bEv'$, such that $\bEv' \xeco \bEv$ in $\bPS$
+\item The restriction of $\sle$  in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS \after \aEv)$ agrees with the restriction of $\sle$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS \after \aEv)$  in  $\bPS$.  
+\item The restriction of $\le$  in $\aPS$ to $\Event_{\aPS} \setminus  (\aPS \after \aEv)$ agrees with the restriction of $\le$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS \after \aEv)$  in  $\bPS$.  
+\end{itemize}
+\end{lemma}
+\begin{proof}
+The form of $\aCmd$ ensures that there is always a write to $\aLoc$ that is related by $\xhb$ to any read.  Thus, there is at least one other write than can satisfy the read recorded as  $\aEv$.  
+
+The key observation behind the proof is that change in a  prefixing read action can only affect the events that are dependent, ie. in the $\slt$ order to the read action.  
+\end{proof}
+
+
+In the following lemma,  invert the $\reco$ relationship between a read and a write.   A canonical example to keep in mind for this lemma is the program:
+\begin{align*}
+(y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
+\PAR (x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x)
+\end{align*}
+with both registers getting value $0$ via the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=of wy0}
+\event{ry0}{\DR{y}{0}}{right=of wx1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{wy1}{\DW{y}{1}}{right=of wx0}
+\event{rx0}{\DR{x}{0}}{right=of wy1}
+\rf[bend right]{wx0}{rx0}
+\rf[bend left]{wy0}{ry0}
+\wk{rx0}{wx1}
+\wk{ry0}{wy1}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\end{tikzdisplay}
+The lemma constructs the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{y}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=of wy0}
+\event{ry0}{\DR{y}{1}}{right=of wx1}
+\event{wx0}{\DW{x}{0}}{below=of wy0}
+\event{wy1}{\DW{y}{1}}{right=of wx0}
+\event{rx0}{\DR{x}{1}}{right=of wy1}
+\rf{wx1}{rx0}
+\rf{wy1}{ry0}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\end{tikzdisplay}
+
+\begin{lemma}\label{removerw}
+Let $\aPS \in \tsem{\aCmd}$ be a top-level pomset.   
+Let $\bEv \in \aPS$ be a write on $\aLoc$. 
+Let $\aEv \in \aPS$ read from $\aLoc$ such that $\aEv \xeco \bEv$ and $\neg(\aEv \slt \bEv)$.  Then, there exists $\bPS \in \tsem{\aCmd}$ such that:
+\begin{itemize}
+\item $\aEv' \in \bPS \setminus \aPS$ reads from $\aLoc$, with matching write $\bEv$.
+\item The restriction of $\sle$ in $\aPS$ to $\Event_{\aPS} \setminus (\aPS\ \after\ \aEv)$ agrees with the restriction of $\sle$ in $\bPS$ to $\Event_{\bPS} \setminus  (\aPS\ \after\ \aEv)$.  
+\end{itemize}
+\end{lemma}
+\begin{proof}
+The proof proceeds similar to the above proof; in this case, replace the value read in $\aEv$ to come from $\bEv$.  
+\end{proof}
+Any new  event $\bEv'$ in $\bPS \after \aEv'$ reading from $\aLoc$ cannot have a matching write event $\bEv'' \xeco \bEv$ since that  implies $\bEv' \xeco \bEv$ and a $\reco$ cycle $\bEv \slt \aEv \slt \aEv' \xeco \bEv$.  Thus, the above lemma can be iterated if the new pomset is has any further reads that precede $\bEv$ in $\reco$, so we can finally derive a pomset with no reads and writes satisfying the hypothesis of the lemma.   
+
+
+
+The $\reco$ order between writes that are not related by $\lt$ can be reversed. 
+A canonical example to keep in mind for this lemma is the program:
+\begin{align*}
+(x\GETS 1)
+\PAR (x\GETS 0)
+\end{align*}
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{x}{1}}{}
+\event{wx0}{\DW{x}{0}}{right=of wy0}
+\wk{wy0}{wx0}
+\end{tikzdisplay}
+The lemma constructs the execution:
+\begin{tikzdisplay}[node distance=1em]
+\event{wy0}{\DW{x}{1}}{}
+\event{wx0}{\DW{x}{0}}{right=of wy0}
+\wk{wx0}{wy0}
+\end{tikzdisplay}
+\begin{lemma}\label{cohww}
+Let $\aPS \in \tsem{\aCmd}$ be a top level pomset.  Let $\bEv, \aEv$ be a writes to $\aLoc$ such that:
+\begin{itemize}
+\item $\bEv\gtN \aEv$  
+\item for all writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\cEv \slt \aEv)$ and $\neg(\cEv \xpox \aEv)$
+\end{itemize}
+
+Then, there exists $\bPS \in \tsem{\aCmd}$ such that $\Event_{\aPS} = \Event_{\bPS}$, $\sle_{\aPS} = \sle_{\bPS}$, and 
+$\aEv \gtN \bEv$ in $\bPS$. 
+\end{lemma}
+\begin{proof}
+We show how to interchange $\aEv, \bEv$ adjacent in $\gtN$, ie. we assume that  $\neg(\exists \cEv) \  \bEv \gtN \cEv \gtN \aEv$.  The full proof follows by induction.
+
+Since  $\sem{\aCmd}$ is augmentation closed, it suffices to show that we can build $\bPS$ while satisfying the constraints between $\slt,\gtN$.  We list the changes below.
+\begin{itemize}
+\item $\aEv \gtN \bEv$ in $\bPS$
+\item For all reads $\cEv$ matched to $\aEv$, change from $\bEv \gtN \cEv$ in $\aPS$ to $\cEv \gtN \bEv$ in $\bPS$
+\item For all reads $\cEv$ matched to $\bEv$, change from $\cEv \gtN \aEv$ in $\aPS$ to $\aEv \gtN \cEv$ in $\bPS$
+\popQED
+\end{itemize}
+\end{proof}
+
+\section{Proof of DRF}\label{drfproof}
+
+In this section of the appendix, we develop a proof of DRF for \tvalpom s.  By the results in the earlier section, it yields DRF for the pomset semantics, since the races are identical in both models.
+
+In the rest of this section, we assume that $\aPS$ is a generator for
+$\tsem{\aCmd}$.
+
+We prove:
+\begin{description}
+\item[DRF1: ] If $\aPS$ does not have a race, $\aPS \in \tsemsc{\aCmd}$. 
+\item[DRF2: ] If $\aPS$ has a race, then there exists $\bPS\in \tsemClosed{\aCmd}$ such that $\bPS \in \tsemsc{\aCmd}$ and has a race.
+\end{description}
+
+\paragraph*{Proof of DRF1}
+We first show that if $\aPS \in \tsem{\aCmd} \setminus \tsemsc{\aCmd}$, then $\aPS$ has a race.  By assumption, there is a cycle in  $\rpox \cup \slt \cup \xeco$.  Let this cycle be $\aEv_0, \aEv'_0, \aEv_1, \aEv'_1, \ldots, \aEv_n, \aEv'_n, \aEv_0$ where for all $i$, $\aEv_i \xpox \aEv'_i$ and $\aEv'_i  \not\xpox \aEv'_{i+1}$.
+If for all $i$, $\aEv'_i  \xhb \aEv'_{i+1}$, then the above is a cycle in $\rhb$, which is a contradiction.
+So, there is at least one $i$ such that $\aEv'_i  \not\xhb \aEv'_{i+1}$.  There are two cases to consider.
+\begin{itemize}
+\item $\aEv'_i  \xeco \aEv'_{i+1}$.   In this case, there is a race.
+\item  $\aEv'_i  \slt \aEv'_{i+1}$.  In this case, $\aEv'_i$ is a write and $\aEv'_{i+1}$ is a conflicting read, so there is a race. 
+\end{itemize}
+
+
+\paragraph*{Proof of DRF2}
+
+We define a size $|\aPS|$ as follows: $\size(\aPS)$ is the number of events in $\aPS$.    Since we are considering loop free programs, there is an $\aPS \in \tsemsc{\aCmd}$ with maximum size, which we identify as $\size(\aCmd)$.  
+
+We prove by induction on $\size(\aCmd) - \size(\bPS)$ that given $(\aPS, \bPS)$ such that:
+\begin{itemize}
+\item $\bPS$ is a prefix of some $\aPS' \in \tsemsc{\aCmd}$
+\item $\bPS$ is a prefix of $\aPS$ under all of $\xpox,\gtN,\lt$ 
+\item $\aPS$ has a race
+\end{itemize}
+there exists $\bPS\in \tsem{\aCmd}$ that demonstrates the race.
+
+The required theorem follows by setting $\bPS$ to be the empty pomset.
+
+For the base case, $\bPS = |\aPS|$.  In this case, $\aPS$ is the required witness.
+
+Otherwise, consider a maximal sequential prefix, extending $\bPS$, w.r.t.~all of  $\rpox,\reco,\slt$.  If it strictly contains $\bPS$, result follows from induction hypothesis.  
+
+If not, $\bPS$ is already maximal.  Consider the set of all events in $\aPS \setminus \bPS$ that are minimal w.r.t.~$\rhb$.  In particular, these events will also be minimal w.r.t.~$\rpox$.  
+
+If one of these events, say $\aEv$  is a write, we proceed as follows.   Using $\rhb$-minimality of $\aEv$, we deduce $\rpox$ minimality of $\aEv$.  Using the generator properties, we deduce that $\aEv$ is $\slt$-minimal .  Using lemma~\ref{removerw}, we build $\aPS_1$ from $\aPS$ without changing $\bPS$ to ensure that there are is no read $\bEv \in \aPS_1 \setminus \bPS$ such that $\bEv \xeco \aEv$.  Using lemma~\ref{cohww}, we build $\aPS_2$ from $\aPS_1$ without changing $\bPS$ to ensure that there are is no write $\bEv \in \aPS_2 \setminus \bPS$ such that $\bEv \xeco \aEv$.  Thus, $\aEv$ is $\reco$-minimal in $\aPS_2 \setminus \bPS$.  Result follows from induction hypothesis by considering $(\aPS_2,\bPS_1)$ where $\bPS_1$ is got from $\bPS$ by adding $\aEv$.  
+
+
+So, we can assume that  all events in $\aPS \setminus \bPS$, say $\aEv_0, \ldots, \aEv_n$  that are minimal w.r.t.~$\rhb$ are reads, and we have  events 
+$\aEv'_0, \aEv'_1, \ldots, \aEv'_n, \aEv_0$ such that:
+\[
+\begin{array}{lrl}
+\aEv_i \xpox\ \aEv'_i \\
+\aEv'_i \  (\reco\ \cup \slt)  \ \aEv_{(i+1)\mod n}
+\end{array}
+\]
+Let $\bEv$ be the matching write for $\aEv_{(i+1)\mod n}$. If $\bEv_i \in \bPS$bEv , then by $\reco$ prefix closure of $\bPS$, $\bEv \xeco\ \aEv'_i$ and $\aEv_{(i+1)\mod n} \reco\ \aEv'_i$, which is a contradiction to $\reco$ being a partial order per location.  So, we can assume that $\aEv'_i \  \slt  \ \aEv_{(i+1)\mod n}$. 
+
+We proceed as follows.  We use lemma~\ref{inputen} on the  pomset $\aPS$ and read $\aEv_{(i+1)\mod n}$ and write $\aEv'_i$ to construct $\cPS$ that changes the value read in $\aEv_{j}$ to a value from $\bPS$.  $\dPS$  is derived adding the modified read yielded by lemma~\ref{inputen} to $\bPS$.  Result follows by induction hypothesis since $\dPS$ is a prefix of $\cPS$ under all of $\xpox,\lt, \reco$,  $\cPS$ has a race, and $\size(\dPS) = \size(\bPS) + 1$. 
+
+
+
+
+\endinput 
+
+
+
+
+
+
+
+
+\begin{comment}
+Operation        Implementation
+Relaxed read     ldr                     
+Relaxed write    str             
+Acquiring read   ldar            
+Releasing write  stlr
+Fence            dmb.sy
+\end{comment}
+
+\begin{comment}
+ob does not contradict eco
+
+ob does not contradict (co cap po):
+
+Suppose that wx1 po wx2 then it cannot be that wx2 ob wx1.
+We know that wx1 co wx2 by SC-PER-LOC
+
+% Case 1. w1 is read externally, then we have
+%   wx1 rfe r
+% and
+%   r fre w2
+% so
+%   wx1 obs+ wx2
+% which contradicts EXTERNAL
+
+% Case 2. wx1 is not read externally.
+We show this by contradiction
+Assume
+  wx1 co wx2
+and
+  wx2 ob wx1
+
+Note that
+  po supseteq dob cup aob cup bob
+So in order to get order into wx1, we must have
+  wx2 (ob?; obs; ob?; obs; ob?) wx1
+
+Note that we cannot have dob or bob into wx1 after obs, since then we would
+also have it into wx2, creating a cycle in EXTERNAL.  This holds because both
+dob and bob are closed on the right w.r.t. coi
+
+So it must be that 
+  wx2 (ob?; obs; ob?; wx0; coe) wx1, 
+in which case we also have wx0 coe wx2, contradicting EXTERNAL
+or 
+  wx2 (ob?; obs; ob?; rx0; fre) wx1
+in which case we also have rx0 fre wx2, contradicting EXTERNAL
+
+
+
+
+Internal reads do not need to respect ob:
+Arm allows the following:
+
+  Ra1 -ctrl-> Wx1 -rfi-> Rx1 ---> Wb1    if(a){x=1}; b=x
+   |                               |
+  Wa1 <-------------------------- Rb1    a=b
+
+
+Suppose that wx1 po rx2 and rx2 is read externally.
+Then it cannot be that rx2 ob wx1.
+
+Case 1: if wx1 co wx2, then we have wx1 coe wx2 rfe rx2, contradicting EXTERNAL
+Case 2: if wx2 co wx1, then we have rx2 fr wx1, contradicting SC-PER-LOC
+
+
+
+Suppose that rx1 po wx2 and rx1 is read externally.
+Then it cannot be that wx2 ob rx1.
+
+Case 1: if wx2 co wx1, then wx2 co wx1 rf rx1 po wx2, contradicting SC-PER-LOC 
+Case 2: if wx1 co wx2, for a contradiction, suppose wx2 ob rx1.
+then we need another thread involved to get order from wx2 to rx1.
+To get order into the read, there are several options:
+- use cross thread read, then dob; but dob does not include reads in it's domain.
+  An attempt to do this is something like:
+
+              Wx1                 x=1
+               |
+  Ra2 -ctrl-> Rx1 - - -> Wx2      if(a){r=x}; x=2
+   |                      |
+  Wa2 <----------------- Rx2      a=x
+
+  But the ctrl dependency is not included in ob between reads.
+- use cross thread read then barrier, but then you contradict EXTERNAL
+- create and ob edge from Rx2 to Wx1.
+  An attempt to do this is, 
+
+  Wx1 <-------------- Ra1       
+   |                   |        But cannot get Wx2 --> Wa1 without a barrier
+  Rx1 - - -> Wx2 ---> Wa1       
+
+  Wx1 <----- Rx2                         
+   |          |                 contradicts SC-PER-LOC 
+  Rx1 - - -> Wx2                         
+
+
+Other examples to type in:
+Allowed:
+Rx1 -> Wy0  Wy1
+Ry1 -> Wz0  Wz1
+Rz1 -> Wx0  Wx1
+
+Forbidden:
+Rx1 -> Wy0 Wy1
+Ry1 -> Wx0 Wx1
+
+\end{comment}
+
+
+
+\begin{comment}
+\citet{DBLP:journals/pacmpl/PodkopaevLV19} define the \emph{Intermediate
+  Memory Model (IMM)} and provide efficient implementations of the IMM into
+several processor architectures, including TSO, ARMv8 and Power.
+
+In this section, we show that any execution allowed by a sublanguage of the
+IMM is also allowed by our semantics.  The sublanguage we consider bans
+loops, read-modify-write (RMW) operations, and fences.  In addition, we take
+the set of memory locations, $\Loc$, to be finite.  Syntactically, we drop
+the superscript \textsf{rlx} on relaxed reads and writes; in addition, we use
+structured conditionals rather than the more general \textsf{goto}.  We refer
+to this sublanguage as $\muIMM$.
+
+$\muIMM$ programs sit in the restriction-free fragment of our language, where
+all memory locations are initialized to $0$ and parallel-composition occurs
+only at top level.  In other words, $\muIMM$ programs have the form
+\begin{displaymath}
+  {\aLoc_1}\GETS{0}\SEMI
+  \cdots\SEMI
+  {\aLoc_m}\GETS{0}\SEMI
+  (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+\end{displaymath}
+where $\aCmd^1$, \ldots, $\aCmd^n$ do not include either composition or
+restriction.
+
+Due to space limitations, we do not include a full description of the IMM.
+The broad strokes of the argument given here should be clear, but interested
+readers will need to refer to \citep{DBLP:journals/pacmpl/PodkopaevLV19} for
+details.
+\end{comment}
+
+
+
+\endinput
+
+\section{Proof of DRF}
+
+For any $\aPS$, then $\closed(\aPS)$ is set enriched with useless reads
+(preserving augmentation closure) and where we remove any event whose
+precondition is not a tautology.
+
+For top level programs:
+\begin{displaymath}
+  \semClosed{\VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)}
+  =
+  \VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\semClosed{\aCmd^1} \PAR \cdots \PAR \semClosed{\aCmd^n})
+\end{displaymath}
+
+\begin{definition}
+A thread: top level component of a parallel composition
+\end{definition}
+
+\begin{definition}
+$\aPS$ is a generator of  $\semClosed{\aCmd}$ if for all $\bPS \in \semClosed{\aCmd}$ such that $\aPS$ augments $\bPS$, $\aPS = \bPS$.
+\end{definition}
+
+
+Since the program we consider are loop free, for any command $\aCmd$, the size of the pomsets in $\aCmd$ are bounded by a constant, that we denote by $\size(\aCmd)$.  
+ 
+
+\section{Generators for semantics of programs with parallel composition}
+All generators $\aPS$  satisfy the following factorization of cross-thread $\lt$.  
+
+\begin{lemma}\label{pargen}
+Consider the subset of pomsets of $\semClosed{\aCmd \PAR \bCmd}$ that are  $\aLoc$-closed for all $\aLoc$.  
+
+Let $\aPS$  be any generator.  
+%\begin{itemize}
+% \item
+ Let $\aEv\lt\bEv$ and $\aEv \in \semClosed{\aCmd}$ and  $\bEv \in \semClosed{\bCmd} $.
+  
+Then there is a write  $\aEv' \in \semClosed{\aCmd}$, and  a read $\bEv' \in \semClosed{\bCmd}$ such that  $\bEv'$ reads-from $\aEv'$ and $\aEv \lt \aEv' \lt \bEv' \lt \bEv$. 
+
+%\item $\aEv \gtN \bEv$ only if $ \aEv  [\lt \cup (\le; \reco;\le)^{\star}]  
+%\bEv$.
+
+% \item If $\aEv\lt\bEv$ and $\aEv, \bEv \in \semClosed{\aCmd}$, 
+%then there exists 
+
+%There exists a release action $\aEv'$ in $\sem{\aCmd}$, a 
+%matching acquire action $\bEv'$ in $\sem{\bCmd}$ such that $
+%\aEv \lt \aEv'$, $\bEv' \lt \bEv$ and $\aEv' \lt \bEv'$.
+
+\end{lemma}
+
+
+
+
+
+
+
+
+The proof of lemma~\ref{cohsat} yields the following two corollaries.
+\begin{corollary}\label{cohrw}
+Let $\aPS \in \sem{\aCmd}$ be a generator. Let 
+\begin{itemize}
+\item $\bEv'$ be a read from $\aLoc$ with matching write $\bEv$.  \item $\aEv$ be a write to $\aLoc$ such that  $\bEv' \gtN \aEv$.   \item Forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$,  it is the case that  $ \neg(\bEv' \lt \cEv)$ and $\neg(\bEv \xpox \cEv) ]$
+\end{itemize}
+
+Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that $\Event_{\aPS} = \Event_{\bPS}$, $\le_{\aPS} = \le_{\bPS}$, and $\aEv \gtN \bEv'$ in $\bPS$.
+\end{corollary}
+\begin{corollary}\label{cohwr}
+Let $\aPS \in \sem{\aCmd}$ be a generator. Let 
+\begin{itemize}
+\item $\aEv'$  read from $\aLoc$ with matching write $\aEv$. 
+\item $\bEv$ be a  write to $\aLoc$ such that  $\bEv \gtN \aEv'$.  \item Forall writes $\cEv$ to $\aLoc$ such that  $ \bEv \gtN \cEv \gtN  \aEv$ and $\cEv \not= \aEv$,  it is the case that  $ \neg(\cEv \lt \aEv')$ and $\neg(\cEv \xpox \aEv) ]$. 
+\end{itemize}
+
+Then, there exists $\bPS \in \sem{\aCmd}$, also a generator, such that:
+$\Event_{\aPS} = \Event_{\bPS}$, $\le_{\aPS} = \le_{\bPS}$, and 
+$\aEv' \gtN \bEv$ in $\bPS$.  
+
+\end{corollary}
+        
+
+===============good lemma. Not used. ==================
+
+
+
+
+\begin{definition}
+$ \aEv \xeco  \bEv$ if both $\aEv$ and $\bEv$ touch the same location, at least one is a write, and $\aEv \xird \bEv$  or $\aEv \xrb \bEv$ or $\aEv\xird \bEv$ or $\bEv \gtN \aEv$.
+\end{definition}
+
+
+
+
+
+
+
+By lemma~\ref{extendob}, if $\aEv \not=\aEv'$, we deduce $\aEv \xob \bEv'$, and thus $\aEv \xob \bEv$.  If $\bEv \not=\bEv'$, we deduce $\aEv' \xob \bEv$ and thus $\aEv \xob \bEv$.
+
+Thus, if $\aEv \not=\aEv'$ or $\bEv \not=\bEv'$, then there is a cycle $\aEv \xob \bEv \xob \cEv \xob \cEv' \xob \aEv$.  
+
+So we can assume that  $\aEv' = \aEv$, $\bEv' = \bEv$ and 
+\[ \aEv  \xeco \bEv \xob \cEv \xob \cEv' \xeco \aEv \]
+where all of $\aEv, \bEv, \cEv, \cEv'$ access the same location and at least one of $\aEv,\bEv$ is a write, at least one of $\aEv,\cEv'$ is a write, and at least one of $\bEv,\cEv$ is a write.
+
+We reason by cases.
+\begin{itemize}
+\item If $\cEv'$ is a write or both $(\aEv, \bEv)$ are writes.
+
+We deduce that $\bEv \xeco \cEv' \xeco \aEv$ and thus $\bEv \xeco \aEv$.
+
+\item $\cEv'$ is a read.  $\aEv$ is a write.  $\bEv$ is a read.
+
+In this case $\cEv$ is a write.  From $\cEv \xob \aEv$, we deduce $\cEv \xeco \aEv$. Combining with $\bEv \xeco \cEv$, we deduce that $\bEv \xeco \aEv$.  
+
+
+\end{itemize}
+In either case, there is a contradiction $\aEv \xeco \bEv \xeco \aEv$.
+
+
+
+
+ Consider the write $\cEv'$ fulfilling $\aEv$.  
+
+
+ $\cEv' (\xobi \cap \xeco) \aEv$.  Since $\aEv$ not $\rrfi$ event.
+Also,
+
+So, we can assume that $\aEv \xpox \bEv$, and the situation is:
+\[ \cEv' \xobi \cEv (\xpox \cap \xobi) \aEv (\xeco \cap \xpox)  \bEv  (\xpox \cap \xobi) \cEv'' \xobi \cEv' \]
+
+
+By lemma~\ref{extendob}, if $\cEv \not= \aEv$, $\cEv \xob \bEv$, and we have a cycle in $\xob$.
+Similarly, if $\bEv \not= \cEv''$, $\aEv \xob \cEv''$, and we have a cycle in $\xob$.  So, the situation is:
+\[ \cEv' \xobi \aEv (\xeco \cap \xpox)  \bEv \xobi \cEv' \]
+$\cEv',\aEv,\bEv$ are events on same variable.  The above is a cycle in $\xeco$.
+
+
+
