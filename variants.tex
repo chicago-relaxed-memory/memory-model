@@ -18,8 +18,46 @@ $(\DFS{\modeSC})$ is both a release and an acquire.
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
 Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-accesses.
-Consider the following variant of \eqref{aqc-rel}:
+% Consider a variant of \ref{Pub1}:
+% \begin{gather*}
+%   \label{Pub2}\tag{Pub2}
+%   x\GETS0\SEMI %y\GETS0\SEMI
+%   x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+%   \PAR
+%   r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{wx0}{\DW{x}{0}}{}
+%       \event{wx1}{\DW{x}{1}}{right=of wx0}
+%       \event{fr}{\DFS{\modeREL}}{right=of wx1}
+%       \event{wy1}{\DW{y}{1}}{right=of fr}
+%       \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+%       \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+%       \event{rx0}{\DR{x}{0}}{right=of fa}
+%       \sync{wx1}{fr}
+%       %\sync{fr}{wy1}
+%       %\sync{ry1}{fa}
+%       \sync{fa}{rx0}
+%       \rf{wy1}{ry1}
+%       \rf[out=10,in=170]{wx0}{rx0}
+%       \wk{wx0}{wx1}
+%     \end{tikzinline}}
+% \end{gather*}
+% The semantics of syntactic fences
+% is subtly different from the fencing behavior of
+% $\modeRA$/$\modeSC$-accesses in C11. 
+%To ensure the order that invalidates this execution candidate,
+We add the following rules 
+to Definition \ref{def:prefix} of \emph{prefixing}:
+\begin{enumerate}
+\item[{\labeltext[5e]{(5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+  $\bEv \lt' \aEv$, and
+\item[{\labeltext[5f]{(5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+  $\bEv \lt' \aEv$.
+\end{enumerate}
+Consider the following variant of \ref{Pub1}:
 \begin{gather*}
+  \taglabel{Pub2}
   x\GETS0\SEMI %y\GETS0\SEMI
   x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
   \PAR
@@ -42,17 +80,11 @@ Consider the following variant of \eqref{aqc-rel}:
       \wk{wx0}{wx1}
     \end{tikzinline}}
 \end{gather*}
-% The semantics of syntactic fences
-% is subtly different from the fencing behavior of
-% $\modeRA$/$\modeSC$-accesses in C11. 
-To ensure the order that invalidates this execution candidate, we add the following rules 
-to Definition \ref{def:prefix} of \emph{prefixing}:
-\begin{enumerate}
-\item[5e.] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
-  $\bEv \lt' \aEv$, and
-\item[5f.] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
-  $\bEv \lt' \aEv$.
-\end{enumerate}
+\ref{5f} requires that $(\DFS{\modeREL})\le(\DW{y}{1})$.  \ref{5e} requires
+that $(\DR{y}{1})\le(\DFS{\modeACQ})$.  The attempted execution is
+\emph{invalid}: the stale read $(\DR{x}{0})$ violates the last requirement of
+fulfillment (Definition \ref{def:rf}).
+
 % Fences can simulate release/acquire access:
 % \begin{gather*}  
 %   x\GETS1\SEMI
@@ -83,6 +115,7 @@ Our semantics does not suffer the weaknesses of C11 fences, noted by
 \citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
 in these examples:
 \begin{gather*}
+  \taglabel{SC1}
     x\GETS1
     \PAR
     r\GETS x\SEMI   
@@ -110,6 +143,7 @@ in these examples:
   \wk[out=-170,in=-10]{c3}{a1}
     \end{tikzinline}}
   \\
+  \taglabel{SC2}
     x\GETS1\SEMI   
     z\REL\GETS1\SEMI   
     \PAR
@@ -140,7 +174,10 @@ in these examples:
   \wk[out=-170,in=-10]{c3}{a1}
     \end{tikzinline}}
 \end{gather*}
-The executions are disallowed, due to cycles.
+The executions are disallowed, due to cycles.  While these results are
+immediate in our model, it is worth noting that they are anything but
+immediate in the various models of C++.  \citet{DBLP:conf/pldi/LahavVKHD17}
+devote an entire paper to debugging the model of SC access in C++.
 % It is a testament to the
 % complexity of C11 that it allows these executions.
 
@@ -335,46 +372,52 @@ following semantics produces exactly the same executions as before.
 %   \end{aligned}$}
 % \end{aligned}
 
-
-Let us revisit the discussion of the use of \!$\PAR$\!
-in Candidate~\ref{cand2.9}.
+\labeltext{Let}{page:disjunction2} us revisit the discussion of the use of \!$\PAR$\!
+in Candidate~\ref{cand:sc}.
 Note that 
 \begin{math}
-  \sem{a[r] \GETS 0\SEMI a[0]\GETS \BANG r}
+  \sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}
 \end{math}
 includes both of the following pomsets (``$\BANG \aExp$'' evaluates to $1$ if
 $\aExp$ is $0$, and $0$ otherwise):
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r\EQ0\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
+      \event{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
     \end{tikzinline}}%\;\;\cdots
   \qquad
   %\\[-1.5ex]\intertext{and:}\\[-5ex]
   \hbox{\begin{tikzinline}[node distance=.2em]
-      \event{a}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{}
-      \event{b}{r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{right=of a}
+      \event{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
+      \event{b}{r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
     \end{tikzinline}}%\;\;\cdots
 \end{align*}
 By using \!$\PAR$\!, it also includes:
 \begin{gather}
   \label{alanAddress}
   \hbox{\begin{tikzinline}[node distance=.5em]
-      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{a[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{a[0]}{1}}{right=of a}
-      %\event{c}{r\EQ1\mathbin{\mid}\DW{a[1]}{0}}{right=of b}
+      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
+      \event{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
+    \end{tikzinline}}%\;\;\cdots
+  \qquad
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
+      \event{b}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of a}
+      %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
 \end{gather}
 In this example, the events that coalesce correspond to different statements
 in the syntax.
 
 
-Because we do not enforce order between reads, there is some danger that
+\labeltext{Because}{page:strengthening} we do not enforce order between reads, there is some danger that
 address calculations could introduce anomalous behaviors that arise \emph{out of thin air}
 (\oota) \cite{DBLP:conf/esop/BattyMNPS15}.  Consider the following attempted
 execution, where all memory addresses are initialized to $0$, except that
 $\REF{2}$ is $1$ and $\REF{1}$ is $2$:
 \begin{gather*}
+  \taglabel{OOTA2}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
   \aReg\GETS x\SEMI \bReg\GETS \REF{\aReg}\SEMI y\GETS \bReg
@@ -418,23 +461,23 @@ actions or using an additional relation between events.  The second approach
 is more general and less obvious, therefore we explain it here.
 
 In Definition \ref{def:mmpomset}, require that a \emph{(memory model) pomset}
-be a tuple $(\Event, {\le}, \labeling, \xrmw)$, where ${\xrmw}\subseteq{\le}$
+be a tuple $(\Event, {\le}, \labeling, \rrmw)$, where ${\rrmw}\subseteq{\le}$
 relates the two events of a successful \RMW.  Additionally, require that:
 \begin{itemize}
 \item If $\cEv$, $\aEv$ write the same $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
 \item If $\cEv$, $\aEv$ write the same $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
 \end{itemize}
-When selecting $\Event' \subseteq \Event$ in the definition of prefix
-(Definition~\ref{def:closure:properties}), we must ensure
-both downclosure---including
-$\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \bEv\le\aEv\}$---and \RMW\
-closure---including
-$\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \aEv\xrmw\bEv\}$.
+In Definition~\ref{def:downset}, require that downsets are \RMW\
+closed:
+$\Event'\subseteq\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \aEv\xrmw\bEv\}$.
 % ${\le'}={\le}\restrict{\Event'}$, 
 % ${\xrmw'}={\xrmw}\restrict{\Event'}$, and
 % ${\labeling'}={\labeling}\restrict{\Event'}$.  
 
-We elide the obvious and tedious semantic rules.
+Other than these two changes, nothing else changes.  In particular, \RMW{}s
+require no special treatment in Definition~\ref{def:par}: the constituent
+events of an \RMW{} may coalesce with other events as a result of parallel
+composition.  We elide the obvious and tedious semantic rules that generate $\rrmw$.
 
 % \begin{scope}
 % \renewcommand{\aEv}{r}
@@ -452,6 +495,7 @@ We elide the obvious and tedious semantic rules.
 This definition ensures atomicity, disallowing executions such as
 \cite[Ex.~3.2]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
+  \taglabel{RMW1}
   \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
   \PAR
   x\GETS 2\SEMI s\GETS x
@@ -474,6 +518,7 @@ By using two actions rather than one, the definition allows examples such as the
 following, which is allowed by \armeight{} 
 \cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
+  \taglabel{RMW2}
   r \GETS y\SEMI
   z \GETS r
   \PAR

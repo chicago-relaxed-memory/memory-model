@@ -1,4 +1,4 @@
-\section{Invariant Reasoning in Temporal Logic}
+\section{Understanding ``Thin Air Reads'' using Temporal Logic}
 \label{sec:logic}
 
 A significant challenge for a software memory model is to relax order enough
@@ -6,7 +6,7 @@ to allow efficient implementation without admitting anomalous
 behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
 \begin{gather}
-  \label{oota1}
+  \label{OOTA3}\tag{OOTA3}
   (y\GETS x \!\PAR\! r\GETS y\SEMI x\GETS r)
   \quad
   %\nonumber
@@ -21,15 +21,26 @@ behaviors---called \emph{out of thin air} (\oota) in the literature
   \rf[out=170,in=10]{wx}{rx}
     \end{tikzinline}}
 \end{gather}
-Although Java does not allow \oota{} behaviors of \eqref{oota1},
+Although Java does not allow \oota{} behaviors of \ref{OOTA3},
 \citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
-behaviors of \eqref{lochbihler}, from \textsection\ref{sec:intro}.
-\citet{DBLP:conf/lics/JeffreyR16} described a logic that rules out \eqref{oota1} but not \eqref{lochbihler}.  In this section, we  provide a more accurate test of \oota{} behaviors  by enhancing their logic with temporal features.
+behaviors of \ref{OOTA1}, from \textsection\ref{sec:intro}.
+\citet{DBLP:conf/lics/JeffreyR16} described a logic that rules out \ref{OOTA3} but not \ref{OOTA1}.  In this section, we  provide a more accurate test of \oota{} behaviors  by enhancing their logic with temporal features.
+
+On first read, we suggest that readers skip to the examples and the
+discussion that follows, coming back to the details of the logic as
+necessary.  Example~\ref{ex:thin} discusses the canonical \oota{} example
+\ref{OOTA3}; the analysis is trivial and well-known
+\cite{DBLP:journals/lmcs/JeffreyR19, DBLP:conf/popl/KangHLVD17}.
+Example~\ref{ex:lochb} is more interesting.  It discusses a variant of
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s example \ref{OOTA1},
+from the introduction.
 % In this case, the violation is a subtler
 % temporal property.  We develop a logic sufficient to prove that our semantics
 % disallows \oota\ on \eqref{lochbihler}.  
-The logic is not meant to be
-definitive; in \textsection\ref{sec:outro}, we discuss \oota{} examples that require non-trivial extensions.
+The logic given here is not meant to be definitive; on page
+\pageref{page:logic:limits}, we discuss \oota{} examples that require
+non-trivial extensions
+\cite{DBLP:conf/esop/SvendsenPDLV18,DBLP:journals/pacmpl/ChakrabortyV19}.
 
 We adapt past linear temporal logic (\pLTL)
 \cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
@@ -76,7 +87,7 @@ Let
   \end{math}
 %\end{definition}
 
-  Let $\afo$ be \emph{prefix closed} when
+  Let $\afo$ be \emph{downclosed} when
   $\{ \bPSS \mid \bPSS \models \afo \}$ is.
 
 % Thus, $\aPS\models \afo \land \always\afo$ whenever $\aPS \models
@@ -144,7 +155,7 @@ Let
 %We now present two proof rules for programs. 
 
 %\paragraph*{Proof rules for programs}
-We present two proof rules for programs. 
+We present two proof rules. 
 The first provides a logical view of \emph{$\aLoc$-closure} (Definition~\ref{def:rf}):
 %The soundness proof is straightforward.
 % \begin{math}
@@ -176,7 +187,7 @@ consider the special case with a single invariant.
 % include environment assumptions.
 
 \begin{proposition}%[Composition]
-  Let $\afo$ be prefix-closed.  Let $\aPSS_1, \aPSS_2$ be
+  Let $\afo$ be downclosed.  Let $\aPSS_1, \aPSS_2$ be
   augmentation\hyp{}closed. %\footnote{$\aPS'$ is an augmentation of $\aPS$ if
  %   $\Event'=\Event$, $\aEv\le\bEv$ implies $\aEv\le'\bEv$, $\aEv\gtN\bEv$
  %   implies $\aEv\gtN'\bEv$, and
@@ -195,32 +206,42 @@ consider the special case with a single invariant.
   \end{displaymath}
 \end{proposition}
 \begin{proof}[Proof sketch]
-  We will show that all prefixes in the prefix closures of
+  We will show that all downsets in the downset closures of
   $\aPSS_1 \parallel \aPSS_2$ satisfy the required property.  Proof proceeds
-  by induction on prefixes of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
+  by induction on downsets of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
   %
-  The case for empty prefix  follows from assumption that  $\afo$ is prefix closed.  
+  The case for empty downset  follows from assumption that  $\afo$ is downset closed.  
   %
-  For the inductive case, consider %$\aPS$ in the prefix closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
+  For the inductive case, consider %$\aPS$ in the downset closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
   $\aPS \in \aPS_1 \parallel \aPS_2$ where
   $\aPS_i \in \aPSS_i$.  Since $\aPSS_1$ and $\aPSS_2$ are augmentation
   closed, we can assume that the restriction of $\aPS$ to the events of
   $\aPS_i$ coincides with $\aPS_i$, for $i=1,2$.
   %
-  Consider a prefix $\aPS'$ derived by removing a maximal element $\aEv$ from
+  Consider a downset $\aPS'$ derived by removing a maximal element $\aEv$ from
   $\aPS$.  Suppose $\aEv$ comes from $\aPS_1$ (the other case is
-  symmetric). Since $\aPS_2$ is a prefix of $\aPS'$ and $\aPS' \models \afo$
+  symmetric). Since $\aPS_2$ is a downset of $\aPS'$ and $\aPS' \models \afo$
   by induction hypothesis, we deduce that $\aPS_2 \models \afo$.
   % Thus, $\aPS_2 \in \mods{(\afo)}$.
   Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
   deduce that $\aPS \models \afo$.
 \end{proof}
-When all variables are initially bound to $0$, we show that \eqref{oota1}
+
+The logic is defined with respect to downclosed sets, but $\sem{\aCmd}$
+includes only completed pomsets.  For reasoning in the logic, we downclose
+the semantics, considering pomsets that may not be completed.  Let
+$\semdown{\aCmd}=\{\aPS'\mid\aPS'$ is a downset of some
+$\aPS \in \sem{\aCmd}\}$.
+
+\begin{example}
+\label{ex:thin}
+With all variables initialized to $0$, we show that \ref{OOTA3}
 satisfies
 \begin{math}
   \lnot\DW{x}{1}.
 \end{math}
- We start with the invariant:
+
+We start with the invariant:
 \begin{displaymath}
   [\DW{x}{1}\Rightarrow\once\DR{y}{1}]
   \land
@@ -264,12 +285,15 @@ By coinduction,
   \lnot\DW{x}{1},
 \end{math}
 as required.
+\end{example}
 
-We consider a variant of
-\citeauthor{DBLP:journals/toplas/Lochbihler13}'s example \eqref{lochbihler}:
+\begin{example}
+  \label{ex:lochb}
+  Our language lacks object creation; therefore, we consider a variant of
+  \ref{OOTA1}:
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{align*}
-  \label{alan}
+  \tag{OOTA4}\label{OOTA4}
   %   Z=1;
   % ||
   %   a=X; // 1
@@ -290,11 +314,13 @@ We consider a variant of
   \PAR
     \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
 \end{align*}
-This variant retains the essential temporal aspects of \eqref{lochbihler}.
-In this case, all threads satisfy the invariant ``a write to $a$ is preceded
-by a read of $z$ as $1$.''
+\ref{OOTA4} retains the essential temporal aspects of
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s example, discussed in
+\textsection\ref{sec:intro}.  In this case, all threads satisfy the invariant
+``any write to location $a$ is preceded by a reading $1$ for $z$,'' rather
+than ``allocation at type \texttt{C} is preceded by reading $1$ for $z$''
 
-Attempting to write $1$ to $a$ results in a cycle:
+As a warmup, note that attempting to write $1$ to $a$ results in a cycle:
 \begin{tikzdisplay}[node distance=1em]
   \event{rx}{\DR{x}{1}}{}
   \event{wz1}{\DW{z}{1}}{left=2em of rx}
@@ -384,11 +410,13 @@ Simplifying:
   \notonce\DW{a}{1} \Rightarrow \FALSE,
 \end{math}
 as required.
+\end{example}
 
 Many examples are superficially similar, but in fact have fewer dependencies.
-In the following, $\DW{x}{1}$ is independent of $\DR{y}{1}$.
-We discuss another such example at the end of \textsection\ref{sec:opt}.
+A referee for a previous version of this paper expected that the following example is
+``the same'':
 \begin{gather*}
+  \tag{OOTA?}\label{OOTA?}
     y\GETS x
   \PAR
     \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS1 \FI
@@ -405,6 +433,20 @@ We discuss another such example at the end of \textsection\ref{sec:opt}.
   \po[out=-15,in=-165]{ry}{wa}
     \end{tikzinline}}
 \end{gather*}
+In this execution, $\DW{x}{1}$ is independent of $\DR{y}{1}$, thus there is no
+\oota{} behavior.
+
+On page \pageref{page:rfub}, we discuss \citeauthor{BoehmOOTA}'s
+[\citeyear{BoehmOOTA}] \ref{RFUB} example, which presents another potential
+form of \oota{} behavior, in the context of compiler optimization.  Our
+analysis shows that there is no \oota{} behavior in \ref{RFUB}, instead
+\citeauthor{BoehmOOTA}'s analysis has a false dependency.
+
+Understanding \oota{} behavior is notoriously difficult, even for the
+greatest minds in the field!  We believe the \emph{logic} is the only tool
+that can cut the horrible knot that semanticists have tied themselves in.
+Preconditions provide a \emph{natural} solution to working out
+these dependencies.
 
 % \endinput
 
@@ -448,7 +490,7 @@ We discuss another such example at the end of \textsection\ref{sec:opt}.
 
 % A more interesting example is the following variant of \eqref{types}:
 % \begin{displaymath}
-%   %\label{alan}
+%   %\label{OOTA4}
 %   % x\GETS0\SEMI
 %   %y\GETS0\SEMI   
 %   (

@@ -19,7 +19,7 @@
 \RequirePackage{amssymb}  %% bizarre error previous def of Bbbk if after documentclass
 \documentclass[acmsmall,review,anonymous,screen]{acmart}\settopmatter{printfolios=true}
 \hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=1}
-\makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
+%\makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
 \settopmatter{printfolios=true}
 \AtEndPreamble{%
   % \theoremstyle{acmdefinition}
@@ -116,8 +116,8 @@
 \begin{document}
 
 %% Title information
-\title{Let Go of That Which Does Not Serve You}
-\subtitle{Semantic Independence and Multi-Copy Atomicity in a Model of Relaxed Memory}
+\title{Pomsets with Preconditions}
+\subtitle{A Simple Model of Relaxed Memory}
 %\title[Let go of that which does not serve you]{Let go of that which does not serve you: Semantic~Independence in a Model of Relaxed Memory}
 % \title{Semantic Dependency as a Model of Relaxed Memory}
 % \title[Short Title]{Full Title}         %% [Short Title] is optional;
@@ -250,8 +250,8 @@
 
 %% Keywords
 %% comma separated list
-\keywords{Relaxed Memory Models, Temporal Safety Properties, Compiler
-  Optimizations, Pomsets, Hoare Logic}  %% \keywords is optional
+\keywords{Relaxed Memory Models, Pomsets, Preconditions, Hoare Logic,
+  Temporal Safety Properties, Compiler Optimizations, Thin-Air Reads} %% \keywords is optional
 
 
 %% \maketitle
@@ -290,6 +290,7 @@
 \clearpage
 \appendix
 %\input{semicolon}
+\input{promising}
 \input{appendix}
 
 \end{document}

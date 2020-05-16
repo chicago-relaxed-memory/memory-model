@@ -1,4 +1,4 @@
-\section{Other Related Work}\label{sec:ldrf}
+\section{Other Related Work}\label{sec:related}
 We survey related work not discussed in
 \textsection\ref{sec:intro}-\ref{sec:logic} and \textsection\ref{sec:outro}.
 
@@ -16,24 +16,27 @@ do not satisfy our \emph{consistency} requirement, and thus contradictory
 preconditions are allowed in the same pomset, modeling aborted speculative
 executions.  Similarly, they take reads to be side\hyp{}effecting, modeling
 cache effects.  There are many less fundamental differences.  For example,
-their use of \emph{three-valued pomsets} means that they allow the
-three-location execution at the end of \textsection\ref{sec:model}, but
-disallow all two-location variants.  This odd behavior stems from
-\emph{semi\hyp{}transitivity}, inherited from \citet{DBLP:journals/dc/Lamport86}.
+their use of \emph{three-valued pomsets} means that they allow \ref{MCA2},
+but disallow its two-location variant.  This odd behavior stems from
+\emph{semi\hyp{}transitivity}, inherited from
+\cite{DBLP:journals/dc/Lamport86}.
 
 True concurrency techniques have been applied to relaxed memory by
 \citet{DBLP:conf/esop/CenciarelliKS07}, \citet{Castellan},
 \citet{Pichon-Pharabod:2016:CSR:2837614.2837616}, and
-\citet{DBLP:conf/cgo/ChakrabortyV17}.  See
-\citet{DBLP:journals/lmcs/JeffreyR19} for a discussion.
+\citet{DBLP:conf/cgo/ChakrabortyV17}.
+% See
+% \citet{DBLP:journals/lmcs/JeffreyR19} for a discussion.
+Partial order models have been developed by \citet{brookes} and
+\citet{DBLP:journals/lmcs/KavanaghB19}.
 
 There is also a rich literature on the use of transformations over SC
 executions to model relaxed memory:
-
+%
 \citet{Saraswat:2007:TMM:1229428.1229469}
 aimed to describe a \jmm-like model this way.  \drfsc\ holds, but \citet{SP} 
 discovered that it permits \oota\ behavior.
-
+%
 \citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, which permits
 reordering of a relaxed write with a following relaxed read.
 % The paper develops an axiomatic semantics and studies effects on compilation.  
@@ -155,52 +158,52 @@ there is more to weak memory than transformations.''
 
 %\paragraph{Relationship to Models of Speculation.}
 
+\section{Limitations}
+\label{sec:limits}
 
-\section{Conclusions}
-\label{sec:outro}
+Our work has several limitations, each of which provides an opportunity for
+future research.  In several cases, these limitations have allowed us to
+\emph{surpass prior work in significant ways}.
 
-We have defined a relaxed memory model, using standard tools from mathematics,
-and demonstrated that it satisfies the fundamental criterion for
-software memory models, namely ``the memory model must strike a balance
-between ease-of-use for programmers and implementation flexibility for system
-designers.''
+The model does not provide read-read coherence (\ref{Co2}), even for address
+dependencies (\ref{OOTA2}). This model of coherence does not correspond to
+either Java or C++, and therefore is unfamiliar.  \emph{We consider this all
+  upside.  C++ invalidates \ref{CSE} on relaxed access.  Java invalidates
+  the local \drfsc{} theorem \cite{Dolan:2018:BDR:3192366.3192421}.}
 
-We have made two substantial contributions.
+We treat loops via unrolling: loops introduce
+complexities\allowbreak{}---such as liveness and continuity---that are
+orthogonal to the main topic of the paper. We also do not include types,
+allocation, garbage collection, etc.  This is the norm for work on relaxed
+memory: The problem is already hard enough. \emph{On the upside, we do allow
+  thread creation via $\!\!\PAR\!\!$, which is unusual.}
 
-First, in \textsection\ref{sec:opt}, we formalized a connection between Hoare logic
-and the sequential fragment of our language, allowing us to make a general
-statement about transformations.  Thus, we present a solution to a problem that has
-been open since \citet{DBLP:conf/ecoop/SevcikA08} discovered that several sequential
-compiler optimizations were invalid in the Java Memory Model
-\cite{Manson:2005:JMM:1047659.1040336}.
+Except for roach motel (\ref{RelW}, \ref{AcqW}), the model does not validate
+transformations that involve synchronizations and fences
+\cite{DBLP:conf/popl/VafeiadisBCMN15}.  For example, the model does not
+support elimination of redundant synchronization accesses.  Accommodating
+such optimizations will likely require changes to the definition of
+$\textsf{cover}$ (page \pageref{def:cover}) and $\textsf{read}$ (page
+\pageref{page:readsat}).  \emph{On the upside, 
+  Corollary~\ref{seqcompleteness} is the first abstract characterization of
+  valid transformations for relaxed access.}
 
-Second, in \textsection\ref{sec:logic}, we proposed a cyclical proof rule for
-parallel composition of temporal properties in the style of
-\citet{Abadi:1993:CS:151646.151649}.  This provides an objectively
-falsifiable alternative to the notion of \emph{out of thin air} (\oota)
-execution, which has been famously difficult to prove or disprove
-\cite{DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.
+Our model realizes \emph{multi-copy atomicity} (\mca).  Thus it will not
+compile efficiently to non-\mca{} architectures, such as \ppc\ and \armseven.
+To do so, one cannot include the order required by the last item of
+Definition~\ref{def:rf} in pomset order.  It may be sufficient to use a
+weaker second order.  \citet{2019-sp} attempted to define such a weaker
+order, but their model is anomalous on \ref{MCA2}---as we discussed in
+\textsection\ref{sec:related}.  \emph{On the upside, ours is the first
+  language-level model of \mca{}.  The use of preconditions does not depend
+  on \mca, so there is hope to extend our approach to dependency calculations
+  to non-\mca{} architectures.}
 
-These contributions rest on a semantics that supports a simple, executable
-prescription of \emph{essential dependencies}.  This provides a
-clear interface between the language user and the compiler writer, and a
-clear bridge from the compiler writer to computer architecture.
+Our \drfsc{} theorem does not address fences or \RMW{}s.  \emph{On the upside,
+we have proven a \emph{local} \drfsc{} theorem, which is stronger
+than the standard \drfsc{} result.}
 
-We presented a denotational semantics using pomsets with preconditions.  The
-model may also be expressible in the operational framework of
-\citet{DBLP:conf/esop/FerreiraFS10}, which parameterizes a standard SC
-operational semantics with respect to a set of program transformations.
-
-Ours is the first language-level model to incorporate \emph{multi-copy
-  atomicity} (\mca).  However, our main contributions do not depend on \mca.
-It is possible to apply our ideas to stronger models, and to weaker ones.
-For stronger models,
-such as \citet{Boehm:2014:OGA:2618128.2618134} and \citet{Dolan:2018:BDR:3192366.3192421}, it is
-likely sufficient to require more order in the pomset.  To compile
-efficiently to weaker architectures, such as \ppc\ and \armseven, it 
-appears necessary to use a model with more than one ordering relation.
-
-The logic we presented in \textsection\ref{sec:logic} is only strong enough
+\labeltext{The}{page:logic:limits} logic we presented in \textsection\ref{sec:logic} is only strong enough
 to prove a few examples.  \citet{DBLP:conf/esop/SvendsenPDLV18} presented a
 different a logic, capable of showing that the following program cannot write
 2:
@@ -208,6 +211,7 @@ different a logic, capable of showing that the following program cannot write
 % logic with value quantification---we leave the details to future work.
 % Consider \cite[(\textsc{rng})]{DBLP:conf/esop/SvendsenPDLV18}:
 \begin{gather*}
+  \taglabel{OOTA5}
   % \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI %\\[-.5ex]
   \begin{aligned}
     ( y\GETS x+1
@@ -249,10 +253,10 @@ different a logic, capable of showing that the following program cannot write
 %     \once\DR{y}{2}]
 %   \end{gather*}
 % \end{scope}
-The attempted execution is disallowed since there is no write to fulfill
-$(\DR{y}{1})$.   This example requires the ability to reason about values.
-
-
+The attempted execution is \emph{not} allowed by our semantics since there is no write
+to fulfill $(\DR{y}{1})$.  Proving this requires the ability to reason about
+values.
+%
 % Closing $x$ and $y$ and using the last two conjuncts in the
 % invariant above:
 % % last conjunct, we have
@@ -271,12 +275,10 @@ $(\DR{y}{1})$.   This example requires the ability to reason about values.
 %   \DW{y}{2} \Rightarrow \FALSE,
 % \end{math}
 % as required.
-As another example, the following outcome is allowed by the promising
-semantics \cite{DBLP:conf/popl/KangHLVD17}, but not by \weakestmo{}
-\cite[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19} nor in our semantics, due
-to the cycle:
+As another example, consider
+\cite[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}:
 \begin{gather*}
-  \label{weakestmo}
+  \taglabel{OOTA6}
   x\GETS 2\SEMI
   \IF{x\NOTEQ2}\THEN y\GETS 1 \FI
   \PAR
@@ -303,9 +305,60 @@ to the cycle:
   \wk{wx2}{rx3}
     \end{tikzinline}}
 \end{gather*}
-Is not possible for the left thread to read $3$ for $x$ when the right thread
-reads $2$.  Proving this may require a logic with modalities to deal with
-intervening writes and coherence.
+The attempted execution is \emph{not} allowed by our semantics, due to the
+evident cycle.  Surprisingly, this outcome is allowed by the promising
+semantics \cite{DBLP:conf/popl/KangHLVD17}.
+\citeauthor{DBLP:journals/pacmpl/ChakrabortyV19} developed \weakestmo{} to
+address this example.  Intuitively, it is not possible for the left thread to
+read $3$ for $x$ when the right thread reads $2$.  Proving this may require a
+logic with modalities to deal with intervening writes and coherence.
+\emph{On the upside, our logic is powerful enough to show that our semantics
+  disallows \oota{} executions of \ref{OOTA4} --- \weakestmo{} and the
+  promising semantics both permit \oota{} executions of \ref{OOTA4} (see \textsection\ref{sec:promising}).}
+
+Our results have not been formally verified, but only because we do not have
+the resources to do it ourselves.  It is worth noting that the current
+emphasis on formal verification has the unintended effect of making research
+more conservative: Large libraries are built, and large institutions with
+teams of graduate students build them.
+
+
+\section{Conclusions}
+\label{sec:outro}
+
+We have defined a relaxed memory model, using standard tools from mathematics,
+and demonstrated that it satisfies the fundamental criterion for
+software memory models, namely ``the memory model must strike a balance
+between ease-of-use for programmers and implementation flexibility for system
+designers.''
+We have made two substantial contributions:
+
+In \textsection\ref{sec:logic}, we proposed a cyclical proof rule for
+parallel composition of temporal properties in the style of
+\citet{Abadi:1993:CS:151646.151649}.  This provides an objectively
+falsifiable alternative to the notion of \emph{out of thin air} (\oota)
+execution, which has been famously difficult to prove or disprove
+\cite{DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.
+
+In \textsection\ref{sec:opt}, we formalized a connection between Hoare
+logic and the sequential fragment of our language, allowing us to make a
+general statement about transformations.  Thus, we present a solution to a
+problem that has been open since \citet{DBLP:conf/esop/CenciarelliKS07}
+discovered reordering of independent statements is invalid in the JMM
+\cite{Manson:2005:JMM:1047659.1040336}.
+
+These contributions rest on a semantics that supports a simple, executable
+prescription of \emph{essential dependencies}, calculated using logic and
+manifest in pomset order.  This provides a
+clear interface between the language user and the compiler writer, and a
+clear bridge from the compiler writer to computer architecture.
+
+We presented a denotational semantics using pomsets with preconditions.  The
+model may also be expressible in the operational framework of
+\citet{DBLP:conf/esop/FerreiraFS10}, which parameterizes a standard SC
+operational semantics with respect to a set of program transformations.
+
+
 
 
 \endinput
@@ -440,7 +493,7 @@ to the cycle:
 
 
 \subsection{RFUB}
-Let $\aCmd$ be the right thread in \eqref{rfub}.
+Let $\aCmd$ be the right thread in \ref{rfub}.
 \begin{align*}
   \aCmd = r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
 \end{align*}

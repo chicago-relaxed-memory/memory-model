@@ -1,19 +1,44 @@
 \section{Single-Threaded Optimizations}
 \label{sec:opt}
 
-A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
-\emph{synchronization-free} if lacks fences and $\modeRA/\modeSC$ access.
-We argue that our model is fully flexible with respect to 
-optimization of such programs, as long as the
-optimizations do not introduce new writes or ``relevant'' reads.  To do so, we
- isolate a \emph{linear} fragment of our language that ensures these
-restrictions.  We then show the soundness of {\em all} transformations of
-synchronization-free sequential programs into this fragment.  
-%
-We end this section with a discussion of specific optimizations, some of
-which relax the linearity assumption and include synchronization.
+We discuss compiler optimizations both concretely and abstractly.
+Concretely, we show the validity of specific optimizations, such as the roach
+motel laws for synchronization.  Abstractly, we establish sufficient
+conditions to replace any command $\aCmd$ by an equivalent $\bCmd$: if
+$\aCmd$ and $\bCmd$ are synchronization\hyp{}free and sequentially
+equivalent, and furthermore $\bCmd$ is \emph{linear}---performs at most one
+read and at most one write on each location in each execution---then $\aCmd$
+can be refined to $\bCmd$.
 
-\paragraph{Pomsets for Hoare Logic.}
+The linearity restriction ensures that the context cannot interfere with the
+atomic execution of the command, and, dually, that the atomic execution of
+the command cannot interfere with the context.  To see the need for this,
+consider that the introduction of redundant reads is valid sequentially, but
+not valid concurrently. For example,
+$\aReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \aReg}\THEN \bLoc \GETS 1 \FI$
+cannot be refined to
+$\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \bReg}
+\THEN \bLoc \GETS 1 \FI$.  In a concurrent context, the latter program may
+see different values for the two reads.
+
+A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
+\emph{synchronization-free} if lacks fences and $\modeRA/\modeSC$ access.  We
+argue that our model is fully flexible with respect to optimization of such
+programs, as long as the optimizations do not introduce new writes or
+``relevant'' reads.  To do so, \textsection\ref{sec:hoare} formalizes the
+relation between Hoare triples and pomsets with preconditions.
+\textsection\ref{sec:linear} then isolates a \emph{linear} fragment of our
+language and shows
+the soundness of {\em all} transformations of synchronization-free sequential
+programs into this fragment.
+%
+\textsection\ref{sec:valid} discusses specific optimizations, some of which
+relax the linearity assumption and include synchronization.  Finally,
+\textsection\ref{sec:invalid}, discusses ``optimizations'' that fail, such as
+\citeauthor{BoehmOOTA}'s [\citeyear{BoehmOOTA}] \ref{RFUB} example.
+
+\subsection{Pomsets for Hoare Logic}
+\label{sec:hoare}
 In \textsection\ref{sec:model}, we used Hoare logic
 \cite{Hoare:1969:ABC:363235.363259,gordonHoare} to reason about
 \emph{dependency analysis} for sequential code.  Here, we use an alternative
@@ -76,46 +101,41 @@ $\sem{x\GETS\aExp\SEMI r\GETS x\SEMI \aCmd}\neq \sem{x\GETS\aExp\SEMI\aCmd}$, ev
 $\aCmd$.  To make such equations hold, we define $\readc(\aPSS)$ to saturate
 $\aPSS$ with reads.
 
-In addition, Hoare postconditions are properties of \emph{completed} executions.
-For example, in $\hoare{\TRUE}{x\GETS1\SEMI x\GETS2}{x{=}2}$, the postcondition
-does not hold for the prefix $x\GETS1$.  As a result, we also define
-$\readc(\aPSS)$ to restrict attention to completed executions.  % A pomset
+% Recall that postconditions are properties of \emph{completed} executions.
+% For example, in $\hoare{\TRUE}{x\GETS1\SEMI x\GETS2}{x{=}2}$, the
+% postcondition does not hold for the prefix $x\GETS1$.  % As a result, we
+% restrict attention to completed executions.  % A pomset
 % $\aPS\in\aPSS$ is \emph{maximal} if there is no $\aPS'\in\aPSS$ such that
 % $\aPS$ is a proper prefix of $\aPS'$.
 
 
-Let $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
-a completed pomset $\aPS\in\aPSS$ and some set $D$ such that
-$\Event'= \Event'\uplus D$, ${\le'} \supseteq{\le}$,
-$\labeling'(\aEv) = \labeling(\aEv)$, and for every $\bEv\in D$ there are
-$\aLoc$ and $\aVal$ such that
+\labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
+$\exists\aPS\in\aPSS$ and  $\exists D$ such that $\Event'= \Event'\uplus D$,
+${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
+$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
 $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
 \begin{theorem}
   \label{thm:hoare}
-  Let $\aCmd$ be synchronization-free and sequential.  Then
-  $\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
-  $\notdisjoint{\semRW{\aForm}{\bForm}}{\readsem{\aCmd}}$.
+  If $\aCmd$ is synchronization-free and sequential,
+  $\hoare{\aForm}{\aCmd}{\bForm}\Longleftrightarrow\notdisjoint{\semRW{\aForm}{\bForm}}{\readsem{\aCmd}}$.
 \begin{proof}
-  The proof proceeds by induction on the number of steps of derivation of the
-  proof of the Hoare triple.
+  The proof proceeds by induction on the derivation of the Hoare triple.
 
   We first consider the structural rules.  Precondition strengthening follows
-  from augmentation closure.  The proof that the structural rule of
-  disjunction:
-  \begin{displaymath}
-    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
-  \end{displaymath}
-  holds  follows from closure of the semantics under disjuncts. The proof for the structural rule of conjunction:
-  \begin{displaymath}
-    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1},  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
-  \end{displaymath}
+  from augmentation closure.   The structural rule for
+  disjunction
+  {\small\begin{math}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1}\quad  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
+  \end{math}}
+follows from disjunction closure (Definition~\ref{def:dis}). The structural rule for conjunction
+  {\small\begin{math}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1}\quad \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
+  \end{math}}
   follows from the fact that pomsets have only concurrency and no conflict.  
 
-  The remaining cases that use the rules for deducing Hoare triples by
-  structural induction on the command follow directly from the semantics.
-  The only subtleties are in the write rule, which uses $\parallel$ to ensure
-  disjunction closure.
+  The remaining cases follow directly from the semantics.  The only subtlety
+  is the write rule, which uses $\parallel$ to ensure disjunction closure.
 \end{proof}
 \end{theorem}
 % To illustrate multiple writes consider:
@@ -158,8 +178,7 @@ Control dependencies are calculated correctly:
 % $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
 % $.
 
-For any compatible set of preconditions, we can always find a single pomset
-that includes all of the required writes.
+For any consistent set of preconditions, we can always find a single pomset:
 \begin{gather*}
   \hoare{x_1=1}{y_1 \GETS x_1}{y_1=1}
   \qquad
@@ -175,14 +194,15 @@ that includes all of the required writes.
       \end{tikzinline}}
 \end{gather*}
 \begin{corollary}
-  If $\bigwedge_{i\in I}\aForm_i$ is satisfiable:
-  \begin{displaymath}
+  If $\bigwedge_{i\in I}\aForm_i$ is satisfiable,
+  \begin{math}
     \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
     \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
-  \end{displaymath}
+  \end{math}
 \end{corollary}
 
-\paragraph{Linearity.}
+\subsection{Linearity}
+\label{sec:linear}
 A command $\aCmd$ is \emph{linear} if for every $\aPS\in\sem{\aCmd}$, there is
 at most one read and at most one write on any location.  Intuitively, this
 means that the context around $\aCmd$ is unable to interfere with the atomic
@@ -217,8 +237,8 @@ $\hoare{\aForm}{\aCmd'}{\bForm}$, for every $\aForm$ and $\bForm$.
 % \end{proof}
 \end{corollary}
 
-\paragraph{Valid Rewrites.}
-\ When $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$, we say that $\aCmd'$ is
+\subsection{Valid Rewrites}
+\label{sec:valid} When $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$, we say that $\aCmd'$ is
 a \emph{valid transformation} of $\aCmd$.
 
 To enable reasoning about program fragments, transformation validity must be
@@ -226,82 +246,82 @@ preserved by \emph{contexts}.  In \textsection\ref{sec:model}, we defined the
 semantics by prefixing one action at a time.  This helps to make the
 semantics understandable, but it also creates impoverished contexts.
 
-To allow for richer contexts, we appeal to the alternate presentation of the
-language given in \textsection\ref{sec:semicolon}.  We refactor the syntax
-of commands and define contexts:
-\begin{align*}
-  \aCmd,\,\bCmd
-  \BNFDEF& \SKIP
-  \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
-  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
-  % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
-  % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
-  \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
-  \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
-  \\[-.5ex]
-  \BNFSEP&\aCmd \PAR \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-  \\
-  \aCtxt,\,\bCtxt
-  \BNFDEF& \hole{}
-  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
-  \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
-  \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
-  \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
-  \\[-.5ex]
-  \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-  \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-\end{align*}
+% To allow for richer contexts, we appeal to the alternate presentation of the
+% language given in \textsection\ref{sec:semicolon}.  We refactor the syntax
+% of commands and define contexts:
+% \begin{align*}
+%   \aCmd,\,\bCmd
+%   \BNFDEF& \SKIP
+%   \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
+%   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
+%   % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
+%   % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
+%   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
+%   \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
+%   \\[-.5ex]
+%   \BNFSEP&\aCmd \PAR \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+%   \\
+%   \aCtxt,\,\bCtxt
+%   \BNFDEF& \hole{}
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
+%   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
+%   \\[-.5ex]
+%   \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+% \end{align*}
 
 
-\begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
-  Let $\bCtxt$ be a context
-  % \footnote{%
-  %   The results of this section hold for contexts of the example language
-  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-  %   % \begin{math}
-  %   %   \begin{array}[t]{rcl}
-  %   %     \aCtxt,\,\bCtxt
-  %   %     &\BNFDEF& \hole{}
-  %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
-  %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
-  %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
-  %   %     \\[-.5ex]
-  %   %     &\BNFSEP&\aCtxt \PAR \bCmd
-  %   %     \BNFSEP \aCmd \PAR \bCtxt
-  %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
-  %   %     \\[-.5ex]
-  %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-  %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-  %   %   \end{array}
-  %   % \end{math}
-  %   The results of this section hold for contexts of the example language
-  %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-  %   The results also hold for the more general contexts of
-  %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
-  %   \begin{displaymath}
-  %     \begin{array}[t]{rcl}
-  %       \aCtxt,\,\bCtxt
-  %       &\BNFDEF& \hole{}
-  %       \BNFSEP \aCtxt \SEMI \bCmd
-  %       \BNFSEP \aCmd \SEMI \bCtxt
-  %       \BNFSEP \aCtxt \PAR \bCmd
-  %       \BNFSEP \aCmd \PAR \bCtxt
-  %       \BNFSEP 
-  %       \\[-.5ex]
-  %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
-  %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-  %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-  %     \end{array}
-  %   \end{displaymath}}
-and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
-\begin{displaymath}
-  \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
-\end{displaymath}
-\end{lemma}
+% \begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
+%   Let $\bCtxt$ be a context
+%   % \footnote{%
+%   %   The results of this section hold for contexts of the example language
+%   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+%   %   % \begin{math}
+%   %   %   \begin{array}[t]{rcl}
+%   %   %     \aCtxt,\,\bCtxt
+%   %   %     &\BNFDEF& \hole{}
+%   %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
+%   %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
+%   %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
+%   %   %     \\[-.5ex]
+%   %   %     &\BNFSEP&\aCtxt \PAR \bCmd
+%   %   %     \BNFSEP \aCmd \PAR \bCtxt
+%   %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
+%   %   %     \\[-.5ex]
+%   %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+%   %   %   \end{array}
+%   %   % \end{math}
+%   %   The results of this section hold for contexts of the example language
+%   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+%   %   The results also hold for the more general contexts of
+%   %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
+%   %   \begin{displaymath}
+%   %     \begin{array}[t]{rcl}
+%   %       \aCtxt,\,\bCtxt
+%   %       &\BNFDEF& \hole{}
+%   %       \BNFSEP \aCtxt \SEMI \bCmd
+%   %       \BNFSEP \aCmd \SEMI \bCtxt
+%   %       \BNFSEP \aCtxt \PAR \bCmd
+%   %       \BNFSEP \aCmd \PAR \bCtxt
+%   %       \BNFSEP 
+%   %       \\[-.5ex]
+%   %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
+%   %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+%   %     \end{array}
+%   %   \end{displaymath}}
+% and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
+% \begin{displaymath}
+%   \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
+% \end{displaymath}
+% \end{lemma}
 
 To discuss valid transformations without getting lost in notation, we present
 them using simple locations, rather than calculated addresses.  The extension
@@ -313,63 +333,67 @@ sets can be defined similarly.
 Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 
 Theorem \ref{thm:hoare} immediately validates peephole optimizations, such as
-redundant load \eqref{RL}, store forwarding \eqref{SF}, dead store \eqref{DS},
-and independent reorderings.  Using the semantics directly, we can prove
-some properties without using $\readc$.
-Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)$.
+redundant load elimination \eqref{RL}, store forwarding \eqref{SF}, dead
+store elimination \eqref{DS}, and independent reorderings (\ref{WW}, \ref{RW}
+and \ref{RR}).  Using the semantics directly, we can prove some properties
+without using $\readc$.  Note that if $\aPSS'\supseteq\aPSS$, then
+$\readc(\aPSS')\supseteq \readc(\aPSS)$.
 \begin{align*}
   \taglabel{RL}
-  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc} &\supseteq 
-  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg}
+  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
   \\
   \taglabel{SF}
-  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc} &\supseteq 
-  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp}
+  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp\SEMI\aCmd}
   \\
   \taglabel{DS}
-  \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp} &\supseteq 
-  \sem{\aLoc \GETS \bExp}    
+  \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp\SEMI\aCmd} &\supseteq 
+  \sem{\aLoc \GETS \bExp\SEMI\aCmd}    
   \\
   \taglabel{WW}
-  \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp} &=
-  \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp} &%\text{if } \aLoc{\neq}\bLoc
+  \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
   \\
   \taglabel{RW}
-  \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp} &=
-  \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc} &%\text{if } \aLoc{\neq}\bLoc
+  \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
   \\
   \taglabel{RR}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc} &=
-  \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc} &%\text{if } \aLoc{\neq}\bLoc
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
+  \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
 \end{align*}
-% \eqref{WW}, \eqref{RW} and \eqref{RR} require that two sides of the semicolon
-% have disjoint ids; for example, \eqref{RW} requires $\disjoint{{\free(\aReg
+% \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
+% have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
 %     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
-\textcolor{red}{\eqref{RR} requires either $\aReg\neq\bReg$ or
-  $\aLoc=\bLoc$.}  \eqref{WW} and \eqref{RW} require that two sides of the
-semicolon have disjoint ids; for example, \eqref{RW} requires
-$\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-\eqref{RL} and \eqref{SF} follow from read closure.  \eqref{DS} follows from
-the write elimination allowed in Definition \ref{def:cover}.
+% \textcolor{red}{\ref{RR} requires either $\aReg\neq\bReg$ or
+%   $\aLoc=\bLoc$.}  \ref{WW} and \ref{RW} require that two sides of the
+% semicolon have disjoint ids; for example, \ref{RW} requires
+% $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
+\ref{RL} and \ref{SF} follow from read closure.  \ref{DS} follows from
+\emph{write elimination} (Definition \ref{def:cover}).
 
 % Reads on the same location are ordered in our model; thus, read optimizations
 % are limited by the power of aliasing analysis
 % \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
-\textcolor{red}{Since reads are unordered in our model, read optimizations are not limited by
-the power of aliasing analysis, as they are with stronger models of coherence
-\cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  Composing \eqref{RR} and
-\eqref{RL}, for $\aReg_2\neq\bReg$ we have:}
-\begin{displaymath}
+Since reads are unordered in our model, read optimizations are not limited by
+the power of aliasing analysis.  When $\aReg_2\neq\bReg$, we validate
+\ref{CSE}, from \textsection\ref{intro}.
+\begin{gather*}
+  \taglabel{CSE}
   \readsem{r_1\GETS \aLoc \SEMI
   s\GETS \bLoc \SEMI  
-  r_2\GETS \aLoc}
+  r_2\GETS \aLoc\SEMI\aCmd}
   \supseteq
-  \readsem{r_1\GETS \aLoc \SEMI
-  s\GETS \bLoc \SEMI  
-  r_2\GETS r_1}
-\end{displaymath}
+  \readsem{r_1\GETS \aLoc \SEMI     
+    r_2\GETS r_1\SEMI
+    s\GETS \bLoc \SEMI\aCmd}
+\end{gather*}
 %However, this fails if $\aLoc=\bLoc$.
-This holds regardless of whether $\aLoc=\bLoc$.
+This holds by composing \ref{RR} and \ref{RL},
+regardless of whether $\aLoc=\bLoc$.
+(To see this, recall \ref{Co2}.)
+
 % \begin{displaymathsmall}
 %   \sem{r_1\GETS \REF{\aExp} \SEMI
 %   s\GETS \REF{\bExp} \SEMI  
@@ -382,74 +406,97 @@ This holds regardless of whether $\aLoc=\bLoc$.
 % This holds regardless of whether $\aExp=\bExp$.
 
 
-By induction on the length of the pomsets in $\aCmd$, we can use the
-reorderings to establish, more generally, that when $\aCmd$ and $\bCmd$ are
-assignment sequences and $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
-\begin{gather*}
-  \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
-\end{gather*}
+% By induction on the length of the pomsets in $\aCmd$, we can use the
+% reorderings to establish, more generally, that when $\aCmd$ and $\bCmd$ are
+% assignment sequences and $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
+% \begin{gather*}
+%   \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
+% \end{gather*}
 % Appealing directly to the semantics, we can establish general properties for
-% redundant load \eqref{RLp}, store forwarding \eqref{SFp}, and roach-motel
-% \eqref{A}, \eqref{R}:
-The semantics also validates roach-motel reorderings.  Let $\aCmd$ be
-synchronization-free, with disjoint ids as before:
-\begin{align*}
-  % \taglabelp{RL}
-  % \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
-  % \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
-  % \\
-  % \taglabelp{SF} 
-  % \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
-  % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
-  % \\
-  \taglabel{A}
-  \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
-  \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
-  \\
-  \taglabel{R}
-  \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
-  \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
-\end{align*}
+% redundant load \ref{RLp}, store forwarding \ref{SFp}, and roach-motel
+% \ref{A}, \ref{R}:
+The semantics also validates roach-motel reorderings.  The rules for relaxed
+writes are as follows:
+  \begin{align*}
+    \taglabel{AcqW} 
+    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
+    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    &&\textif x\neq y&&\hbox{}
+    \\
+    \taglabel{RelW}
+    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
+    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
+    &&\textif x\neq y&&\hbox{}
+  \end{align*}
+% Let $\aCmd$ be
+% synchronization-free, with disjoint ids as before:
+% \begin{align*}
+%   % \taglabelp{RL}
+%   % \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
+%   % \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
+%   % \\
+%   % \taglabelp{SF} 
+%   % \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
+%   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
+%   % \\
+%   \taglabel{A}
+%   \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
+%   \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
+%   \\
+%   \taglabel{R}
+%   \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
+%   \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
+% \end{align*}
+% Roach-motel reorderings that increase the scope of synchronization are valid.
+% \begin{lemma}%[Reorderings]
+%   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
+%   \begin{align*}
+%     \tag{R-Acq}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
+%     \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     \\
+%     \tag{W-Acq} 
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
+%     \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
+%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+% \tag{Rel-R} 
+% \sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
+%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
+%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+%     \tag{Rel-W}
+%     \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
+%   \end{align*}
+% \begin{proof}
+% The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
+% \end{proof}
+% \end{lemma}
+
 % Again, we suppose that $\aCmd$ is an assignment sequence and disjoint
 % identifiers.
-% \eqref{A} and \eqref{R} require
-% disjoint names, as in \eqref{WW} and
-% \eqref{RW}. In addition, \eqref{A} and \eqref{R} require that $\aCmd$ is
+% \ref{A} and \ref{R} require
+% disjoint names, as in \ref{WW} and
+% \ref{RW}. In addition, \ref{A} and \ref{R} require that $\aCmd$ is
 % synchronization-free.
 
-As expected, sequential and parallel composition commute with conditionals
-and location binding, and conditionals and location binding commute with each
-other.  We show sequential scope extrusion \eqref{SSE}, which concerns
-sequential composition and location binding:
-\begin{align*}
-  % \taglabel{PSE}
-  % \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd}\allowbreak &=
-  % \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
-  % \\
-  \taglabel{SSE}
-  \sem{\aCmd\SEMI \VAR\aLoc\SEMI\bCmd}\allowbreak &=
-  \sem{\VAR\aLoc\SEMI(\aCmd\SEMI\bCmd)}
-  % \\
-  % \taglabel{CSE}
-  % \sem{\IF{\aExp}\THEN\aCmd\ELSE \VAR\aLoc\SEMI\bCmd\FI}\allowbreak &=
-  % \sem{\VAR\aLoc\SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
-\end{align*}
-\eqref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
-Many laws hold for the conditional.  We show case analysis \eqref{CA} and
-dead code elimination \eqref{DC}.  
+Many laws hold for the conditional.  We show dead code elimination \eqref{DC}
+and case analysis \eqref{CA}, which follows from disjunction closure
+(Definition \ref{def:dis}).
 \begin{align*}
-  \taglabel{CA}
-  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
-  \sem{\aCmd}
-  \\
   \taglabel{DC}
   \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
   \sem{\aCmd}
+  \qquad \textif \aExp \text{ is a tautology}
+  \\
+  \taglabel{CA}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
+  \sem{\aCmd}
 \end{align*}
-\eqref{DC} requires that $\aExp$ be a tautology.  The correctness of
-\eqref{CA} follows from disjunction closure (Definition
-\ref{def:closure:properties}).
+% \ref{DC} requires that $\aExp$ be a tautology.
 
 % Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
 %reorderings hold.
@@ -560,10 +607,38 @@ dead code elimination \eqref{DC}.
 %\cLoc).
 %\end{math}
 
+As expected, %sequential and
+parallel composition commutes with conditionals and declarations, and
+conditionals and declarations commute with each other.  We discussed scope
+extrusion on page \pageref{page:extrusion}.
+%For example,  % We show sequential scope extrusion \ref{SSE}, which concerns
+% sequential composition and location binding:
+% \begin{math}
+%   % \taglabel{PSE}
+%   \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd}\allowbreak =
+%   \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
+%   % \\
+%   % \taglabel{SSE}
+%   % \sem{\aCmd\SEMI \VAR\aLoc\SEMI\bCmd}\allowbreak &=
+%   % \sem{\VAR\aLoc\SEMI(\aCmd\SEMI\bCmd)}
+%   % \\
+%   % \taglabel{CSE}
+%   % \sem{\IF{\aExp}\THEN\aCmd\ELSE \VAR\aLoc\SEMI\bCmd\FI}\allowbreak &=
+%   % \sem{\VAR\aLoc\SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
+% \end{math}
+% if $\aLoc$ does not appear in $\aCmd$.
+
+%\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
 
-\paragraph{Invalid Rewrites.}
-Relevant read introduction is invalid:
+\subsection{Invalid Rewrites}
+\label{sec:invalid}
+
+We discussed the invalidity of variable renaming on page
+\pageref{page:extrusion} and the invalidity of thread inlining on page
+\pageref{page:inlining} .  Rewrites that introduce accesses are generally
+invalid --- irrelevant read introduction is the exception.  For example, \emph{relevant}
+read introduction is invalid:
 \begin{align*}
   %\tag{Read-Intro-Invalid}
   \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
@@ -574,31 +649,24 @@ These are distinguished by the context
 \begin{math}
   \hole{} \PAR x\GETS1\PAR x\GETS2.
 \end{math}
-
-Write introduction is invalid, even for equal values:
+Write introduction is always invalid:
 \begin{align*}
-  \sem{\aLoc \GETS 1 \SEMI \aCmd} 
+  \sem{\aLoc \GETS 1} 
   &\not\supseteq
-  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1 \SEMI \aCmd}
+  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1}
 \end{align*}
-These are distinguished by the context:
-\begin{displaymath}
+These are distinguished by the context
+\begin{math}
   \hole{} \PAR
   r\GETS x \SEMI
   x\GETS2 \SEMI
   s\GETS x\SEMI
-  \IF{\aReg {=} \aReg} \THEN \cLoc \GETS 1 \FI
-\end{displaymath}
-With weaker notions of coherence
-\cite{Manson:2005:JMM:1047659.1040336}, these
-commands are indistinguishable.
-
-Thread inlining is invalid (see \textsection\ref{sec:model}):
-\begin{math}
-  \sem{\aCmd \PAR \bCmd}
-  \not\supseteq
-  \sem{\aCmd \SEMI \bCmd}.
+  \IF{\aReg {=} \aReg} \THEN \cLoc \GETS 1 \FI.
 \end{math}
+% With weaker notions of coherence
+% \cite{Manson:2005:JMM:1047659.1040336}, these
+% commands are indistinguishable.
+
 
 
 % // p and q might be aliased
@@ -625,27 +693,29 @@ Thread inlining is invalid (see \textsection\ref{sec:model}):
 
 
 
-\citet{BoehmOOTA} considers the following programs:
+\citet{BoehmOOTA} \labeltext{considers}{page:rfub} the following programs:
 \begin{gather*}
+  \tag{RFUB}\label{RFUB}
   \sem{r\GETS y\SEMI x\GETS r}
   \not\supseteq
   \sem{r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI \SEMI x\GETS r}
 \end{gather*}
-The left command is half of the \oota{} example from
-\textsection\ref{sec:logic} \eqref{oota1}.  The right command is dubbed \rfub{}, for
+The left command is half of \ref{OOTA3}, from
+\textsection\ref{sec:logic}.  The right command is dubbed \rfub{}, for
 \emph{Register assignment From an Unexecuted Branch}.
 \citeauthor{BoehmOOTA} observes that in the context $x\GETS y \PAR \hole{}$,
 these programs have different behaviors.  Yet the \oota{} example on the left
 never writes $1$.  Why should the unexecuted branch change that?  As it turns
-out, both branches of the conditional in \rfub{} can execute, since the write
+out, both branches of the conditional in \ref{RFUB} can execute, since the write
 to $x$ is independent of the read from $y$.  Considering just the two threads
 above, we have $\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
-$\hoare{\TRUE}{\text{\oota}}{x=1}$.  As a result, it is expected that \rfub{}
-may have additional behaviors.  The change in the thread from \oota{} to
-\rfub{} is not a valid refinement under Hoare logic and thus it is not valid
+$\hoare{\TRUE}{\text{\oota}}{x=1}$.  As a result, it is expected that \ref{RFUB}
+may have additional behaviors.  The change in the thread from \ref{OOTA3} to
+\ref{RFUB} is not a valid refinement under Hoare logic and thus it is not valid
 in our semantics.
+
 % Let $\aCmd$ be the right
-% thread in \eqref{rfub}.
+% thread in \ref{rfub}.
 % \begin{align*}
 %   \aCmd = r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
 % \end{align*}
@@ -656,7 +726,7 @@ in our semantics.
 %  \event{wx}{\DW{x}{1}}{right=of wa}
 %  \rf{ry}{wa}
 % \end{tikzdisplay}
-% % Consider a fragment from example~\eqref{rfub}.
+% % Consider a fragment from example~\ref{rfub}.
 % % \begin{align*}
 % % \bCmd:  r \GETS y \SEMI \IF{r \NOTEQ 42} \THEN a \GETS 1 \SEMI s \GETS 42 \FI \SEMI x \GETS 42
 % % \end{align*}

@@ -160,7 +160,7 @@ To simplify the base cases, we use a literal notation for pomsets and define
 $\CLOSE{\aPS}$ to be the smallest set that includes $\aPS$ and is closed
 w.r.t.~prefixing, implication, augmentation, and reverse subsumption.
 % : Let
-% $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE(\aPS)$ such (1) $\aPS''$
+% $\aPS''\in\CLOSE{\aPS}$ if there is $\aPS'\in\PRE{\aPS}$ such (1) $\aPS''$
 % implies $\aPS'$, (2) $\aPS''$ is an augmentation of $\aPS'$ and (3) $\aPS''$
 % is subsumed by $\aPS'$.
 \begingroup
@@ -225,7 +225,7 @@ event from the second.  Thus when computing
 \begin{math}
   \sem{a[r] \GETS 0} \sequence \sem{a[0]\GETS \BANG r},
 \end{math}
-we must coalesce events with incompatible preconditions ($r{=}0$, $r{=}1$)
+we must coalesce events with inconsistent preconditions ($r{=}0$, $r{=}1$)
 that occur on different sides of the sequencing operator.  This makes a
 direct definition difficult.
 
@@ -393,7 +393,7 @@ precondition of $(\DW{y}{1})$ must be $\FALSE$ after composing the following:
       \end{tikzinline}}
   \end{gathered}
 \end{gather*}
-This pomset candidate does not satisfy the \emph{compatibility} requirement
+This pomset candidate does not satisfy the \emph{consistency} requirement
 of Definition \ref{def:mmpomset}.  However, note that
 $(\IF{r{=}s}\THEN y\GETS1\FI)$ is shorthand for
 $(\IF{r{=}s}\THEN y\GETS1\ELSE\SKIP\FI)$, and thus we do have a valid pomset

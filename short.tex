@@ -110,28 +110,444 @@ of) the \tso\ propagation relation \citep{alglave}.
 % compilation scheme on ARMv8 and similar architectures.
 
 
-\section{Data Race Free Executions are Sequentially Consistent}
+\section{Local Data Race Freedom and Sequential Consistency}
 \label{sec:sc}
 
-When constructing a pomset, define \emph{program order} $(\xpox)$ in the
-obvious way.  Define $\bEv\xsw\aEv$ exactly when $\bEv$ fulfills $\aEv$,
-$\bEv$ is a release, $\aEv$ is an acquire, and $\lnot(\bEv\xpox\aEv)$.
-Define ${\xhb}=({\xpox}\cup{\xsw})^*$.  A pomset has a
-\emph{data race} if there are conflicting events that are unordered by
-$\rhb$.
+We adapt \citeauthor{Dolan:2018:BDR:3192366.3192421}'s
+[\citeyear{Dolan:2018:BDR:3192366.3192421}] notion of \emph{Local Data Race
+  Freedom (LDRF)} to our setting.
 
-Note that the definition of a data-race does not mention \emph{pomset} order.
-Instead, it relies on the auxiliary definition of \emph{program} order.  Thus
-it is stable with respect to augmentation.
+When constructing a pomset, define \emph{program order} $(\rpox)$ in the
+obvious way.  As usual\footnote{To allow this simple definition of $\rsw$, we
+  consider the base language of \textsection\ref{sec:model}, which does not
+  include fences or \RMW{}s.}, we say that $\bEv$ \emph{synchronizes with}
+$\aEv$ (notation $\bEv\xsw\aEv$) exactly when $\bEv$ fulfills $\aEv$, $\bEv$
+is a release, $\aEv$ is an acquire, and $\lnot(\bEv\xpox\aEv)$.  Let
+${\rhb}=({\rpox}\cup{\rsw})^+$ be the \emph{happens-before} relation.  In
+\ref{Pub1}, for example, $(\DW{x}{1})$ happens-before $(\DR{x}{0})$, but
+this fails if either $\modeRA$ access is relaxed.
 
-Let a \emph{generator} for $\aCmd$ be a top-level pomset that is minimal with
-respect to augmentation and implication.  Let $\semsc{\aCmd}$ be the
-executions as defined in Candidate~\ref{cand:sc}. % of \textsection\ref{sec:model}.
 
-We prove the following theorem in \textsection\ref{drfproof}.
+
+Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
+  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they conflict at
+some location in $L$, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
+$\aEv\xhb\bEv$.  
+% A pomset has a \emph{data race} if there are conflicting events that are
+% unordered by $\rhb$.
+The definition of $L$-race uses \emph{program} order, not \emph{pomset}
+order, and thus is stable with respect to augmentation.
+In \ref{SB}, for example,
+$(\DR{x}{0})$ has an $x$-race with $(\DW{x}{1})$, but not $(\DW{x}{0})$,
+which is $\rpox$-before it.
+
+To state the theorem, we require several technical definitions.  The reader
+unfamiliar with \citep{Dolan:2018:BDR:3192366.3192421} may prefer to skip to
+the examples that follow the theorem statement, coming back to the
+definitions as needed.
+
+% We say that a pomset is $\textit{SC}$ if it is top-level and $(\rpox\cup\le)$
+% is acyclic.  %; note that all top-level executions of Candidate~\ref{cand:sc} are SC.
+
+We say that $\aPS'$ \emph{generates} $\aPS$ if either
+$\aPS$ augments $\aPS'$ or $\aPS$ implies $\aPS'$.  For example, the
+unordered pomset $(\DR{x}{1})$ $(\DW{y}{1})$ generates the ordered pomset
+$(\DR{x}{1})\xpo(\aReg=1\mid\DW{y}{1})$.
+
+We say that $\aPS$ is a \emph{generation-minimal} in $\aPSS$ if $\aPS\in\aPSS$ and
+there is no $\aPS\neq\aPS'\in\aPSS$ that generates $\aPS$.
+
+Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
+
+Let $\semmin{\aCmd}=\PRE{}\{\aPS\in\sem{\aCmd} \mid \aPS$ is top-level and
+  generation-minimal in $\sem{\aCmd}\}$.
+
+%For the remainder of this section, fix a command $\aCmd$.
+
+We say that $\aPS'$ \emph{$\aCmd$-extends} $\aPS$ if $\aPS\in\semmin{\aCmd}$,
+$\aPS'\in\semmin{\aCmd}$, and $\aPS\in\PRE{\aPS'}$.
+%Let $\POST{\aPS'}{\aPSS}$ be the set of extensions to $\aPS'$ in $\aPSS$.
+
+We say that $\aPS$ is \emph{$L$-unstable in $\aCmd$} if
+$\aPS\in\semmin{\aCmd}$ and either %
+(1) $\aPS$ is not $\rpox$-convex (something missing in program order), or %
+(2) there is a $\aCmd$-extension of $\aPS$ with a \emph{crossing} $L$-race:
+that is, there is some $\bEv\in\Event$, some $\aPS'$ $\aCmd$-extending
+$\aPS$, and some $\aEv\in\Event'\setminus\Event$ such that $\bEv\lrace{L}\aEv$.
+
+We say that $\aPS$ is \emph{$L$-stable in $\aCmd$} if $\aPS\in\semmin{\aCmd}$
+and $\aPS$ is not $L$-unstable in $\aCmd$.
+
+Note that the empty pomset is $L$-stable.
+
+Let ${\pole{L}}={\lt}\cup{\rpox_L}$, where $\rpox_L$ is the restriction of $\rpox$ to events that read or write locations in $L$.
+
+We say that $\aPS'\in\semmin{\aCmd}$ is \emph{$L$-sequential in $\aCmd$} after $\aPS$ if 
+(1) $\aPS$ is $L$-stable in $\aCmd$, %
+(2) $\aPS'$ $\aCmd$-extends $\aPS$, %
+(3) $\aPS'$ is $\rpox$-convex, and %
+(4) $\pole{L}$ is acyclic in $\aPS'\setminus\aPS$.
+
 \begin{theorem}
-  Let $\aPS$ be a generator for $\aCmd$.
-  (a) If $\aPS$ does not have a data race, then $\aPS \in \semsc{\aCmd}$.
-  (b) If $\aPS$ has a data race, then there is some
-    $\aPS'\in \semsc{\aCmd}$ that also has a data race.
+  Suppose $\aPS$ is $L$-stable in $\aCmd$, $\aPS'$ is an $L$-sequential $\aCmd$-extension of
+  $\aPS$, and $\aPS''$ is a nonempty $\aCmd$-extension of $\aPS'$.  Then either
+  \begin{enumerate}
+  \item \label{xx1}  $\exists\aEv\in(\Event''\setminus\Event')$ that
+    \emph{$L$-covers} $\aPS'$:
+    $(\not\exists\bEv\in(\Event''\setminus\Event'):\;\bEv\pole{L}\aEv)$ or
+  \item  \label{xx2}  $\exists \aPS'''$: an $L$-sequential $\aCmd$-extension of $\aPS'$ with an
+    \emph{$L$-race after $\aPS$}:
+    $(\exists\{\bEv,\aEv\}\subseteq(\Event'''\setminus\Event):\;\bEv\lrace{L}\aEv)$.
+  \end{enumerate}
+  \begin{proof}[Proof Sketch]
+    Suppose there is no $\aEv$ satisfying \eqref{xx1}.  Then we must find
+    $\aPS'''$ satisfying \eqref{xx2}.  From \eqref{xx1}, we deduce that there
+    is a minimal $\pole{L}$ cycle in $\aPS''$.  From the semantics, we deduce
+    that there must be at least one read in this cycle that is minimal
+    w.r.t.~pomset order.  From the semantics, we find the required $\aPS'''$
+    by choosing to read a different value.
+  \end{proof}
 \end{theorem}
+% We prove the following theorem in \textsection\ref{drfproof}.
+% \begin{theorem}
+%   Let $\aPS$ be a generator for $\aCmd$.
+%   (a) If $\aPS$ does not have a data race, then $\aPS \in \semsc{\aCmd}$.
+%   (b) If $\aPS$ has a data race, then there is some
+%     $\aPS'\in \semsc{\aCmd}$ that also has a data race.
+% \end{theorem}
+
+
+% \section{DRF notes}
+%\subsection{Future read elimination: WWR$\rightarrow$WRW}
+
+% Example:
+% \begin{gather*}
+%   (x\GETS 0 \SEMI \aReg \GETS z \SEMI x \GETS 1)
+%   \PAR
+%   (y\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS \bReg)
+%   \PAR
+%   (z\GETS 0 \SEMI \cReg \GETS y \SEMI z \GETS \cReg)
+% \\
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{rz1}{\DR{z}{1}}{right=of wx0}
+% \event{wx1}{\DW{x}{1}}{right=of rz1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx1}{\DR{x}{1}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx1}
+% \event{wz0}{\DW{z}{0}}{below=of wy0}
+% \event{ry1}{\DR{y}{1}}{right=of wz0}
+% \event{wz1}{\DW{z}{1}}{right=of ry1}
+% \rf{wx1}{rx1}
+% \rf{wz1}{rz1}
+% \rf{wy1}{ry1}
+% \po{rx1}{wy1}
+% \po{ry1}{wz1}
+% \wk[bend left]{wx0}{wx1}
+% \wk[bend left]{wy0}{wy1}
+% \wk[bend right]{wz0}{wz1}
+% \end{tikzinline}}
+% \qquad
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{rz1}{\DR{z}{0}}{right=of wx0}
+% \event{wx1}{\DW{x}{1}}{right=of rz1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx1}{\DR{x}{1}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx1}
+% \event{wz0}{\DW{z}{0}}{below=of wy0}
+% \event{ry1}{\DR{y}{1}}{right=of wz0}
+% \event{wz1}{\DW{z}{1}}{right=of ry1}
+% \rf{wx1}{rx1}
+% \wk{rz1}{wz1}
+% \rf{wz0}{rz1}
+% \rf{wy1}{ry1}
+% \po{rx1}{wy1}
+% \po{ry1}{wz1}
+% \wk[bend left]{wx0}{wx1}
+% \wk[bend left]{wy0}{wy1}
+% \end{tikzinline}}
+% \end{gather*}
+%Example:
+
+We discuss the required properties of the semantics by example, taking
+$L=\{x,y\}$ and $\aPS=\emptyset$.
+
+Suppose that the $\le$-minimal read is fulfilled by a write in $\aPS''$.  In
+this case, we break the cycle by reading an ``older'' value from $\aPS'$.
+For example, we switch from $\aPS''$ on the left to below to $\aPS'''$ on the
+right.  Program order goes from left to right, with the left thread above the
+right one; we only show program order explicitly when it is relevant to the
+example.
+\begin{gather*}
+  (x\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS 1)
+  \PAR
+  (y\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS \bReg)
+\\
+\hbox{\begin{tikzinline}[node distance=1em and 2em]
+\event{wx0}{\DW{x}{0}}{}
+\event{ry1}{\DR{y}{1}}{right=3em of wx0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wy0}{\DW{y}{0}}{below=of wx0}
+\event{rx1}{\DR{x}{1}}{right=3em of wy0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\rf{wx1}{rx1}
+\rf{wy1}{ry1}
+\po{rx1}{wy1}
+\pox{ry1}{wx1}
+\wk[bend left]{wx0}{wx1}
+\wk[bend right]{wy0}{wy1}
+\node(ix)[left=of wx0]{};
+\node(iy)[left=of wy0]{};
+\bgoval[yellow!50]{(ix)(iy)}{P}
+\bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+\bgoval[green!10]{(ry1)(wx1)(rx1)(wy1)}{P''\setminus P'}
+\end{tikzinline}}
+\qquad
+\hbox{\begin{tikzinline}[node distance=1em and 2em]
+\event{wx0}{\DW{x}{0}}{}
+\event{ry1}{\DR{y}{0}}{right=3em of wx0}
+\event{wx1}{\DW{x}{1}}{right=of ry1}
+\event{wy0}{\DW{y}{0}}{below=of wx0}
+\event{rx1}{\DR{x}{1}}{right=3em of wy0}
+\event{wy1}{\DW{y}{1}}{right=of rx1}
+\pox{ry1}{wx1}
+\wk[bend left]{wx0}{wx1}
+\rf{wx1}{rx1}
+\rf{wy0}{ry1}
+\po{rx1}{wy1}
+\wk{ry1}{wy1}
+\node(ix)[left=of wx0]{};
+\node(iy)[left=of wy0]{};
+\bgoval[yellow!50]{(ix)(iy)}{P}
+\bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+\bgoval[green!10]{(ry1)(wx1)(rx1)(wy1)}{P'''\setminus P'}
+\end{tikzinline}}
+\end{gather*}
+% Not possible:
+% \begin{gather*}
+%   (x\GETS 0 \SEMI \aReg \GETS y  \SEMI x \GETS \aReg)
+%   \PAR
+%   (y\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS \bReg)
+% \\
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{ry1}{\DR{y}{1}}{right=of wx0}
+% \event{wx1}{\DW{x}{1}}{right=of ry1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx1}{\DR{x}{1}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx1}
+% \rf{wx1}{rx1}
+% \rf{wy1}{ry1}
+% \po{rx1}{wy1}
+% \po{ry1}{wx1}
+% \wk[bend left]{wx0}{wx1}
+% \wk[bend right]{wy0}{wy1}
+% \end{tikzinline}}
+% \end{gather*}
+
+% \begin{gather*}
+% (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
+% \PAR (x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x)
+% \\
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{wx1}{\DW{x}{1}}{right=of wx0}
+% \event{ry0}{\DR{y}{0}}{right=of wx1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{wy1}{\DW{y}{1}}{right=of wy0}
+% \event{rx0}{\DR{x}{0}}{right=of wy1}
+% \rf[bend right]{wx0}{rx0}
+% \rf[bend left]{wy0}{ry0}
+% \wk{rx0}{wx1}
+% \wk{ry0}{wy1}
+% % \wk{wx0}{wx1}
+% % \wk{wy0}{wy1}
+% \end{tikzinline}}
+% \qquad
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{wx1}{\DW{x}{1}}{right=of wx0}
+% \event{ry0}{\DR{y}{1}}{right=of wx1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{wy1}{\DW{y}{1}}{right=of wy0}
+% \event{rx0}{\DR{x}{1}}{right=of wy1}
+% \rf{wx1}{rx0}
+% \rf{wy1}{ry0}
+% \wk{wx0}{wx1}
+% \wk{wy0}{wy1}
+% \end{tikzinline}}
+% \end{gather*}
+
+
+% \begin{gather*}
+% (y\GETS 0 \SEMI \aReg \GETS y \SEMI  x \GETS 1 )
+% \PAR (x\GETS 0 \SEMI  \bReg \GETS x \SEMI  y \GETS \bReg + 1)
+% \\
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{ry0}{\DR{y}{0}}{right=of wx0}
+% \event{wx1}{\DW{x}{1}}{right=of ry0}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx0}{\DR{x}{0}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx0}
+% \po{rx0}{wy1}
+% \rf{wx0}{rx0}
+% \rf{wy0}{ry0}
+% \wk{rx0}{wx1}
+% \wk{ry0}{wy1}
+% % \wk[bend left]{wx0}{wx1}
+% % \wk[bend right]{wy0}{wy1}
+% \end{tikzinline}}
+% \qquad
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{ry0}{\DR{y}{1}}{right=of wx0}
+% \event{wx1}{\DW{x}{1}}{right=of ry0}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx0}{\DR{x}{0}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx0}
+% \po{rx0}{wy1}
+% \rf{wx0}{rx0}
+% \rf{wy1}{ry0}
+% \wk{rx0}{wx1}
+% %\wk[bend left]{wx0}{wx1}
+% \wk[bend right]{wy0}{wy1}
+% \end{tikzinline}}
+% \end{gather*}
+
+% \begin{gather*}
+% (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
+% \PAR (x\GETS 0 \SEMI  \bReg \GETS x \SEMI  y \GETS \bReg + 1)
+% \\
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{wx1}{\DW{x}{1}}{right=of wx0}
+% \event{ry0}{\DR{y}{0}}{right=of wx1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx0}{\DR{x}{0}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx0}
+% \po{rx0}{wy1}
+% \rf{wx0}{rx0}
+% \rf{wy0}{ry0}
+% \wk{rx0}{wx1}
+% \wk{ry0}{wy1}
+% % \wk[bend left]{wx0}{wx1}
+% % \wk[bend right]{wy0}{wy1}
+% \end{tikzinline}}
+% \qquad
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \event{wx0}{\DW{x}{0}}{}
+% \event{wx1}{\DW{x}{1}}{right=of wx0}
+% \event{ry0}{\DR{y}{1}}{right=of wx1}
+% \event{wy0}{\DW{y}{0}}{below=of wx0}
+% \event{rx0}{\DR{x}{0}}{right=of wy0}
+% \event{wy1}{\DW{y}{1}}{right=of rx0}
+% \po{rx0}{wy1}
+% \rf{wx0}{rx0}
+% \rf{wy1}{ry0}
+% \wk{rx0}{wx1}
+% %\wk[bend left]{wx0}{wx1}
+% \wk[bend right]{wy0}{wy1}
+% \end{tikzinline}}
+% \end{gather*}
+
+
+Suppose that the $\le$-minimal read is fulfilled by a stale write in $\aPS'$.  In
+this case, we break the cycle by reading an ``newer'' value from $\aPS''$.
+(We include a fence in the following example to break the symmetry.)
+\begin{gather*}
+(y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
+\PAR
+(x\GETS 0 \SEMI  y \GETS 1  \SEMI \FENCE^{\modeSC} \SEMI  \bReg \GETS x)
+\\
+\hbox{\begin{tikzinline}[node distance=1em and 2em]
+\event{wx0}{\DW{x}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=3em of wx0}
+\event{wy0}{\DW{y}{0}}{below=of wx0}
+\event{wy1}{\DW{y}{1}}{right=3em of wy0}
+\event{f}{\DFS{\modeSC}}{right=of wy1}
+\event{rx0}{\DR{x}{0}}{right=of f}
+\event{ry0}{\DR{y}{0}}{above=of rx0}
+\sync{wy1}{f}
+\sync{f}{rx0}
+\rf{wx0}{rx0}
+\rf{wy0}{ry0}
+\wk{rx0}{wx1}
+\wk{ry0}{wy1}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\pox{wx1}{ry0}
+\node(ix)[left=of wx0]{};
+\node(iy)[left=of wy0]{};
+\bgoval[yellow!50]{(ix)(iy)}{P}
+\bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+\bgoval[green!10]{(wx1)(wy1)(f)(rx0)(ry0)}{P''\setminus P'}
+\end{tikzinline}}
+\qquad
+\hbox{\begin{tikzinline}[node distance=1em and 2em]
+\event{wx0}{\DW{x}{0}}{}
+\event{wx1}{\DW{x}{1}}{right=3em of wx0}
+\event{wy0}{\DW{y}{0}}{below=of wx0}
+\event{wy1}{\DW{y}{1}}{right=3em of wy0}
+\event{f}{\DFS{\modeSC}}{right=of wy1}
+\event{rx0}{\DR{x}{0}}{right=of f}
+\event{ry0}{\DR{y}{1}}{above=of rx0}
+\pox{wx1}{ry0}
+\sync{wy1}{f}
+\sync{f}{rx0}
+\rf{wx0}{rx0}
+\rf{wy1}{ry0}
+\wk{wx0}{wx1}
+\wk{wy0}{wy1}
+\wk{rx0}{wx1}
+\node(ix)[left=of wx0]{};
+\node(iy)[left=of wy0]{};
+\bgoval[yellow!50]{(ix)(iy)}{P}
+\bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+\bgoval[green!10]{(wx1)(wy1)(f)(rx0)(ry0)}{P'''\setminus P'}
+\end{tikzinline}}
+\end{gather*}
+
+Because we define $L$-stability using $\pole{L}$ rather than $\rpox$, this
+result does not suffer from the complications caused by ``mixed races'' in
+\citep{DBLP:conf/ppopp/DongolJR19}.  In particular, the $\aPS'$ chosen on the
+left below is \emph{not} $L$-sequential, because it is not $\pole{L}$-convex.
+\begin{gather*}
+(x\GETS 0 \SEMI   x\REL \GETS 1)
+\PAR
+(\aReg\GETS x\ACQ)
+\\
+\hbox{\begin{tikzinline}[node distance=1em and 2em]
+\event{wx0}{\DW{x}{0}}{}
+\event{wx1}{\DWRel{x}{1}}{right=of wx0}
+\event{rx}{\DRAcq{x}{0}}{below=of wx0}
+\rf{wx0}{rx}
+\pox{wx0}{wx1}
+\wk{rx}{wx1}
+\node(ix)[left=of wx0]{};
+\bgoval[yellow!50]{(ix)}{P}
+\bgoval[pink!50]{(wx0)(wx1)}{P'\setminus P}
+\bgovalright[green!10]{(rx)}{P''\setminus P'}
+\end{tikzinline}}
+\qquad
+\qquad
+\hbox{\begin{tikzinline}[node distance=1em and 2em]
+\event{wx0}{\DW{x}{0}}{}
+\event{wx1}{\DWRel{x}{1}}{right=of wx0}
+\event{rx}{\DRAcq{x}{0}}{below=of wx0}
+\rf{wx0}{rx}
+\pox{wx0}{wx1}
+\wk{rx}{wx1}
+\node(ix)[left=of wx0]{};
+\bgoval[yellow!50]{(ix)}{P}
+\bgoval[pink!50]{(wx0)}{P'\setminus P}
+\bgovalright[green!10]{(rx)}{P''\setminus P'}
+\end{tikzinline}}
+\end{gather*}
+To satisfy the premise of the theorem, we must choose $\aPS'$ as on the
+right.  This simplification is enabled by denotational reasoning and a
+precise characterization of the dependency.
+
+
+%Write swap (WW$\rightarrow$WW):

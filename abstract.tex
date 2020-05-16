@@ -1,5 +1,21 @@
-The fundamental problem in the study of relaxed memory is to simultaneously achieve efficient implementability and thread-compositional reasoning.  We define a model for C11-style concurrency that meets these goals, building on simple and traditional mathematical  foundations that are well understood at LICS.   We show that the model
-(1) supports compositional reasoning for temporal safety properties,
-(2) supports all reasonable sequential compiler optimizations, 
-(3) satisfies the \drfsc\ criterion, and
-(4) compiles to Intel and ARM microprocessors without requiring extra fences on relaxed operations.
+Relaxed memory models must simultaneously achieve efficient implementability
+and thread-compositional reasoning.  Is that why they have become so
+complicated?  We argue that the answer is no: It is possible to achieve these
+goals by combining an idea from the 60s (preconditions) with an idea from the
+ 80s (pomsets), at least for \textsc{x64} and \armeight.  We show that the
+resulting model (1) supports compositional reasoning for temporal safety
+properties, (2) supports all reasonable sequential compiler optimizations,
+(3) satisfies the \drfsc\ criterion, and (4) compiles to \textsc{x64} and \armeight{}
+microprocessors without requiring extra fences on relaxed accesses.
+
+\endinput
+
+Relaxed memory models must simultaneously achieve efficient implementability
+and thread-compositional reasoning.  Is that why they have become so
+complicated?  We argue that the answer is no: It is possible to achieve these
+goals by combining an idea from the 60s (preconditions) with an idea from the
+80s (pomsets), at least for X64 and ARMv8.  We show that the resulting model
+(1) supports compositional reasoning for temporal safety properties, (2)
+supports all reasonable sequential compiler optimizations, (3) satisfies the
+DRF-SC criterion, and (4) compiles to X64 and ARMv8 microprocessors without
+requiring extra fences on relaxed accesses.

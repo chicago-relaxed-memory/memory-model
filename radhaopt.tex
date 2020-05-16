@@ -286,7 +286,7 @@ Control dependencies are calculated correctly:
 % $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
 % $.
 
-For any compatible set of preconditions, we can always find a single pomset
+For any consistent set of preconditions, we can always find a single pomset
 that includes all of the required writes.
 \begin{gather*}
   \hoare{x_1=1}{y_1 \GETS x_1}{y_1=1}
@@ -577,7 +577,7 @@ dead code elimination \eqref{DC}.
 \end{align*}
 \eqref{DC} requires that $\aExp$ be a tautology.  The correctness of
 \eqref{CA} follows from disjunction closure (Definition
-\ref{def:closure:properties}).
+\ref{def:dis}).
 
 % Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
 %reorderings hold.
