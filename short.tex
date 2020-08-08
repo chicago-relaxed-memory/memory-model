@@ -115,7 +115,11 @@ of) the \tso\ propagation relation \citep{alglave}.
 
 We adapt \citeauthor{Dolan:2018:BDR:3192366.3192421}'s
 [\citeyear{Dolan:2018:BDR:3192366.3192421}] notion of \emph{Local Data Race
-  Freedom (LDRF)} to our setting.
+  Freedom (LDRF)} to our setting,
+\textcolor{red}{and prove the result for programs where all variables are
+  top-level; that is, there are no local declarations
+  of the form $(\VAR\aLoc\SEMI \aCmd)$.}
+
 
 When constructing a pomset, define \emph{program order} $(\rpox)$ in the
 obvious way.  As usual\footnote{To allow this simple definition of $\rsw$, we
@@ -175,6 +179,15 @@ $\aPS\in\semmin{\aCmd}$ and either %
 that is, there is some $\bEv\in\Event$, some $\aPS'$ $\aCmd$-extending
 $\aPS$, and some $\aEv\in\Event'\setminus\Event$ such that $\bEv\lrace{L}\aEv$.
 
+% We say that $\aPS$ is \emph{$L$-unstable in $\aCmd$} if
+% $\aPS\in\semmin{\aCmd}$ and either %
+% (1) $\aPS$ is not $\pole{L}$-convex\footnote{That is, there is some $\aPS'$ $\aCmd$-extending
+% $\aPS$, some $\{\cEv,\aEv\}\subseteq\Event$ and some
+% $\bEv\in\Event'\setminus\Event$ such that $\cEv\pole{L}\bEv\pole{L}\aEv$.}, or %
+% (2) there is a $\aCmd$-extension of $\aPS$ with a \emph{crossing} $L$-race\footnote{That is, there is some $\aPS'$ $\aCmd$-extending
+% $\aPS$, some $\bEv\in\Event$, and some $\aEv\in\Event'\setminus\Event$ such that $\bEv\lrace{L}\aEv$.}.
+
+
 We say that $\aPS$ is \emph{$L$-stable in $\aCmd$} if $\aPS\in\semmin{\aCmd}$
 and $\aPS$ is not $L$-unstable in $\aCmd$.
 
@@ -189,8 +202,14 @@ We say that $\aPS'\in\semmin{\aCmd}$ is \emph{$L$-sequential in $\aCmd$} after $
 (4) $\pole{L}$ is acyclic in $\aPS'\setminus\aPS$.
 
 \begin{theorem}
-  Suppose $\aPS$ is $L$-stable in $\aCmd$, $\aPS'$ is an $L$-sequential $\aCmd$-extension of
-  $\aPS$, and $\aPS''$ is a nonempty $\aCmd$-extension of $\aPS'$.  Then either
+  Suppose $\aPS$ is $L$-stable in $\aCmd$, $\aPS'$ is an $L$-sequential
+  $\aCmd$-extension of $\aPS$, and $\aPS''$ is a nonempty $\aCmd$-extension
+  of $\aPS'$. 
+  Further, suppose that that there is no $\pole{L}$-intervening event in
+  $\aPS''$: that is, there are no $\{\cEv,\aEv\}\subseteq\Event'$ and
+  $\bEv\in(\Event''\setminus\Event')$ such that
+  $\cEv\pole{L}\bEv\pole{L}\aEv)$. 
+  Then either
   \begin{enumerate}
   \item \label{xx1}  $\exists\aEv\in(\Event''\setminus\Event')$ that
     \emph{$L$-covers} $\aPS'$:
@@ -203,7 +222,7 @@ We say that $\aPS'\in\semmin{\aCmd}$ is \emph{$L$-sequential in $\aCmd$} after $
     Suppose there is no $\aEv$ satisfying \eqref{xx1}.  Then we must find
     $\aPS'''$ satisfying \eqref{xx2}.  From \eqref{xx1}, we deduce that there
     is a minimal $\pole{L}$ cycle in $\aPS''$.  From the semantics, we deduce
-    that there must be at least one read in this cycle that is minimal
+    that there must be at least one read in this cycle that is extremal
     w.r.t.~pomset order.  From the semantics, we find the required $\aPS'''$
     by choosing to read a different value.
   \end{proof}
@@ -273,8 +292,8 @@ We say that $\aPS'\in\semmin{\aCmd}$ is \emph{$L$-sequential in $\aCmd$} after $
 We discuss the required properties of the semantics by example, taking
 $L=\{x,y\}$ and $\aPS=\emptyset$.
 
-Suppose that the $\le$-minimal read is fulfilled by a write in $\aPS''$.  In
-this case, we break the cycle by reading an ``older'' value from $\aPS'$.
+Suppose that the $\le$-extremal read is fulfilled by a write in $\aPS''$.  In
+this case, the read is maximal in $\le$, and we break the cycle by reading an ``older'' value from $\aPS'$.
 For example, we switch from $\aPS''$ on the left to below to $\aPS'''$ on the
 right.  Program order goes from left to right, with the left thread above the
 right one; we only show program order explicitly when it is relevant to the
@@ -453,8 +472,8 @@ example.
 % \end{gather*}
 
 
-Suppose that the $\le$-minimal read is fulfilled by a stale write in $\aPS'$.  In
-this case, we break the cycle by reading an ``newer'' value from $\aPS''$.
+Suppose that the $\le$-extremal read is fulfilled by a stale write in $\aPS'$.  In
+this case, the read is minimal in $\le$, and we break the cycle by reading an ``newer'' value from $\aPS''$.
 (We include a fence in the following example to break the symmetry.)
 \begin{gather*}
 (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
@@ -509,6 +528,84 @@ this case, we break the cycle by reading an ``newer'' value from $\aPS''$.
 \end{tikzinline}}
 \end{gather*}
 
+
+
+
+%Write swap (WW$\rightarrow$WW):
+
+
+\begin{scope}
+  \color{red}
+
+  Only valid if variables are all initialized:
+  This is needed for the all $\rrf$ case.
+  
+  $\aCmd$ is properly initialized if for every pomset
+  $\aPS\in\semmin{\aCmd}$, if there is a read or write of $\aLoc$ in $\aPS$,
+  then there is some write to $\aLoc$ that precedes all other reads/writes of
+  $\aLoc$.
+
+
+  In a minimal pomset, cross-thread order is only introduced by the
+  requirement of fulfillment.
+
+  If there is a 
+
+
+  To get the closure conditions needed for DRF/LDRF, it's simplest if we make
+  three mild assumptions:
+
+  1) We only treat programs without local variable declarations, so all the
+  fulfillment stuff can be done at the end.
+
+  2) We have syntactic markers on all reads so that we can keep them straight
+  across all the pomsets in a set of pomsets; since there are no loops this
+  is trivial.
+
+  3) We assume that each variable has an initializing write, which appears
+  before every read/write of that variable, in every pomset.
+
+  For such programs, I think we can define up with a procedure that
+  inductively generates all the pomsets in min[[C]], as defined in section 6.
+  It works very much like an opsem, but on ppo-order, rather than full
+  program order.
+
+  Here's the procedure:
+  
+  We start with all of the pomsets generated by semantics, without imposing
+  fulfillment requirements (so they just have ppo).  Take all the initial
+  non-conflicting writes as the starting point.  These must be the same in
+  all executions.
+
+  We pick an event to add.  This must be a ppo-covering event.  If we are
+  picking a read, we consider all available values for  read in that
+  thread.  So we have a bunch of completions, each with a covering e_v.  If
+  we are picking a write of a given thread, there will be only one.
+
+  If e is a read, then look at all of the 
+  it must be fulfilled by one of the old writes.  If e cannot
+  be fulfilled, we throw out the pomsets that contain e. Add the rfe edge for
+  e.  Add coe edges between the old writes as needed.
+
+  If e is a write, you can always add it.  Also put fre edges from any of the
+  old reads into this write.
+
+  I think that there are two things true about this procedure:
+
+  1) You can always get to a termination event, no matter which choices you make.
+  
+  
+  The point is that you can always complete this procedure to get to the end
+  of the program, regardless of the reads you chose to make.  There will be
+  some future that gets you to the termination point and the pomset is
+  completely fulfilled.
+  
+Start with all the minimal pomsets generated by the semantics, without adding any rfe/fre/coe edges.  So you have ppo.Now you can start building complete pomsets by adding one event at a time, following in ppo.
+
+  
+\end{scope}
+
+\textcolor{red}{First case of proof.  No closure properties need.}
 Because we define $L$-stability using $\pole{L}$ rather than $\rpox$, this
 result does not suffer from the complications caused by ``mixed races'' in
 \citep{DBLP:conf/ppopp/DongolJR19}.  In particular, the $\aPS'$ chosen on the
@@ -547,7 +644,4 @@ left below is \emph{not} $L$-sequential, because it is not $\pole{L}$-convex.
 \end{gather*}
 To satisfy the premise of the theorem, we must choose $\aPS'$ as on the
 right.  This simplification is enabled by denotational reasoning and a
-precise characterization of the dependency.
-
-
-%Write swap (WW$\rightarrow$WW):
+precise characterization of dependency.

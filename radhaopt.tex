@@ -473,7 +473,7 @@ Note that if $\aPSS'\supseteq\aPSS$, then $\readc(\aPSS')\supseteq \readc(\aPSS)
 % \eqref{WW}, \eqref{RW} and \eqref{RR} require that two sides of the semicolon
 % have disjoint ids; for example, \eqref{RW} requires $\disjoint{{\free(\aReg
 %     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
-\textcolor{red}{\eqref{RR} requires either $\aReg\neq\bReg$ or
+\textcoor{red}{\eqref{RR} requires either $\aReg\neq\bReg$ or
   $\aLoc=\bLoc$.}  \eqref{WW} and \eqref{RW} require that two sides of the
 semicolon have disjoint ids; for example, \eqref{RW} requires
 $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
@@ -483,7 +483,7 @@ the write elimination allowed in Definition \ref{def:cover}.
 % Reads on the same location are ordered in our model; thus, read optimizations
 % are limited by the power of aliasing analysis
 % \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
-\textcolor{red}{Since reads are unordered in our model, read optimizations are not limited by
+\textcoor{red}{Since reads are unordered in our model, read optimizations are not limited by
 the power of aliasing analysis, as they are with stronger models of coherence
 \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  Composing \eqref{RR} and
 \eqref{RL}, for $\aReg_2\neq\bReg$ we have:}

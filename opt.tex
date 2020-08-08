@@ -13,7 +13,7 @@ can be refined to $\bCmd$.
 The linearity restriction ensures that the context cannot interfere with the
 atomic execution of the command, and, dually, that the atomic execution of
 the command cannot interfere with the context.  To see the need for this,
-consider that the introduction of redundant reads is valid sequentially, but
+consider that the introduction of redundant relevant reads is valid sequentially, but
 not valid concurrently. For example,
 $\aReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \aReg}\THEN \bLoc \GETS 1 \FI$
 cannot be refined to
@@ -54,7 +54,7 @@ are derived from the read events themselves.
   \label{def:prepost}
   Let $\aPS\in\semRW{\aForm\land\cForm}{\bForm}$
   %We say that $\aPS$ \emph{satisfies} precondition $\aForm$ and postcondition $\bForm$ (notation $\aPS\in\semRW{\aForm}{\bForm}$)
-  when it possible to satisfy the following:
+  when it is possible to satisfy the following:
 
   Let $\aLocs$ be the set of locations such that $\aLoc\in\aLocs$ exactly
   when $\aForm$ depends on $\aLoc$.  For each $\aLoc\in\aLocs$, choose
@@ -366,8 +366,8 @@ $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 % \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
 % have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
 %     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
-% \textcolor{red}{\ref{RR} requires either $\aReg\neq\bReg$ or
-%   $\aLoc=\bLoc$.}  \ref{WW} and \ref{RW} require that two sides of the
+% \ref{RR} requires either $\aReg\neq\bReg$ or
+%   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
 % $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
 \ref{RL} and \ref{SF} follow from read closure.  \ref{DS} follows from
@@ -378,7 +378,7 @@ $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 % \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
 Since reads are unordered in our model, read optimizations are not limited by
 the power of aliasing analysis.  When $\aReg_2\neq\bReg$, we validate
-\ref{CSE}, from \textsection\ref{intro}.
+\ref{CSE}, from \textsection\ref{sec:intro}.
 \begin{gather*}
   \taglabel{CSE}
   \readsem{r_1\GETS \aLoc \SEMI

@@ -292,6 +292,187 @@
 %\input{semicolon}
 \input{promising}
 \input{appendix}
+\color{red}
+Section 2.5 could use some smoothing.    Move candidate 2.11 down two
+paragraphs.  When discussing (*), mention the substitution in 2.11
+
+Section 2.7 should say that the second rule for write does not require a new action.
+
+Everywhere we have SB, it could be SB/LB.  I think there is space for both.
+
+At Co2, point out that this is not arbitrary, but needed to validate CSE.
+
+At Co3, point out that this stops races from the past from sneaking in.
+
+TC16 is coherence... we don't do that one.
+
+
+Should say explicitly that we allow load buffering
+
+
+A sentence I like but deleted (originally near RFUB):
+
+This example shows the wisdom of using existing tools, such as Hoare logic,
+to model new problems, such as relaxed memory.  We don't need to abandon
+established techniques, we only need to adapt them.
+
+Comments from Radha:
+
+Linear is incorrect as stated. eg. skip is Hoare equiv to r=x;x =r (which is
+linear) but cannot be substituted by it.  It is necessary to add the proviso
+linear AND (writes only if original program writes)
+
+
+a. Defn of linear needs to forbid reads after writes. 
+
+The theorem does not hold for:
+   x=1; r=x
+vs
+   x=1
+
+They are both linear. Satisfy the same hoare triples.  But have different
+read(C)
+
+
+b. For the record.  I'm uncomfortable about DRF proof sketch.  If it comes to
+that, I'd like a careful flushing out of the "assumed closure conditions"
+
+REF A:
+
+> Details:
+
+> The claim that this "supports all reasonable sequential compiler
+> optimizations" seems prone to misinterpretation. Section 7 correctly points
+> out several kinds of sequential optimizations that are not correct in a
+> concurrent setting. 
+
+> The statement about relaxed accesses not requiring hardware synchronization
+> could use more explanation. Relaxed accesses currently require special
+> instructions on Itanium. They clearly require special instructions for
+> accesses larger than natively supported by the hardware. 
+
+> At line 51, it hasn't yet been explained that s is not shared.
+
+> Line 72: I don't believe that "undefined behavior" here is actually a
+> weakness. This seems like just an instance of the observation that every
+> substantial program has bugs. I also no longer believe that Java is really
+> substantively different here. It does try to give defined semantics to
+> language-level races. But it does not for racing standard (or other) library
+> calls. For "substantial programs", the latter kind of races are not going to
+> be that much less frequent than the former. Furthermore, the fact that low
+> level races have defined behavior makes it harder to justify simple race
+> detectors, which would usually also detect the latter. Java's security goals
+> for untrusted code forced its approach, but those goals have generally not
+> been met anyway. 
+
+> I found the definition of substitution confusing. Please add an example or two.
+
+> Line 132: Calling memory orders "fencing actions" seems weird to me. Fences
+> order two large groups of accesses with respect to each other. These don't.  
+
+> Line 153 is questionable. Whether plain and relaxed accesses are the same for
+> race-free code depends on OOTA treatment, which isn't yet resolved. Consider
+> if (x) y := 1 || if (y) x := 1 . 
+
+> Line 745: "is preceded by a reading 1 for z": What's "a"?
+
+
+REF B
+
+> - 53 "resulting" what did the JMM result from?
+> - 61 I don't understand what the "lack of composability" is here
+> - 99 what does it mean to "compile" a formal model to an architecture?
+> - 191 "fulfilled" and "satisfied" are only defined several pages later.
+> - 230 "the semantics is also closed with respect to ..." but the semantics
+>   hasn't even been defined yet.
+> - 252 "used define"
+> - 266 I really liked the diagrams. it would be worth clarifying that the
+>   depicted pomset is one element of the semantics of the given program (and that
+>   this semantics is still undefined at this point)
+> - 283 "top-level" where do we use this term? if only much later, it would help
+>   to define it right before we need it.
+> - 289 I almost missed this transition. please visually mark when you are
+>   defining semantics for each case
+> - 310 again, mark new cases in the definition. these are really hard to find at
+>   a glance, and it is very easy to get lost in 2.4 (which is essentially one
+>   enormous definition)
+> - 331 what is "eco"?
+> - 360 "The semantics is again driven by Hoare logic" I could not understand
+>   this. the semantics of Hoare logic should be defined in terms of the program
+>   semantics, but we are currently defining the program semantics. Unless the
+>   paper is referring to an existing semantics of Hoare logic? (this should be
+>   clearly cited or better, displayed in the paper).
+> - 436 again, I do not understand this "justified by Hoare logic" comment.
+> - 568 "control dependencies" what color are these arrows?
+> - 779 "eco" this is not discussed after Def. 2.5
+> - 797 I could also not follow this section. A high-level question: what are we
+>   trying to show in this section? What is the goal? This section introduces a
+>   ton of definitions, states a theorem and sketches a proof, but I don't
+>   understand what the goal is.
+> - 825 why is this theorem interesting? what is the intuitive meaning?
+> - 876 "roach motel laws" citation?
+
+
+
+
+
+REF C
+
+> I struggled in some places with typesetting. Line 282 is a good example.
+> Eventually I figured out the intention is that this is meant to be read as if
+> the previous line ends with "Then we define:", but for a long while these just
+> seemed like dangling equations. Perhaps this just reflects badly on me, though.
+> (It would be much clearer in a mechanized model! :-))
+
+> Minor stuff:
+> * Line 331: eco is never defined (same problem at line 789)
+
+
+
+REF D
+
+> The authors should compare their model to the thin-air solution of
+> "Modular Relaxed Dependencies in Weak Memory Concurrency" from ESOP
+> 2020.
+
+> The authors say they deal with all Java causality tests (line 557).
+> Tests 19 and 20 include join, but the language does not seem to provide
+> the facility to join. How are tests 19 and 20 accounted for?
+
+> In section 5, does dropping parts of dependency-ordered-before produce a
+> strictly weaker model of ARMv8? I want to be sure this is the proper
+> compilation result.
+
+
+> Minor comments:
+
+> An example on page 5 uses pointer dereferencing before it is added to
+> the language.
+
+> On page 5 and line 639, the use of the terms "states" and "events"
+> confused me for a while.
+
+> The inverted delta subscript for downset was not introduced at the
+> definition of downset.
+
+
+> Line 331: eco not defined or referenced.
+> Lines 323 and 340: "trivial" and "general" expressions. These sound like keywords but are not defined.
+
+
+
+
+bib:
+
+\cite{DBLP:journals/lmcs/KavanaghB19} previous pomset approaches.
+
+\cite{10.1145/2694344.2694391} gpus
+
+Batty Mark 2017
+Compositional relaxed concurrency
+Phil. Trans. R. Soc. A.
+http://doi.org/10.1098/rsta.2015.0406
+
 
 \end{document}
 

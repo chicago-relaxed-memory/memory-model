@@ -68,13 +68,11 @@ execution where they reference a \texttt{C} object''
 %\vspace{-.5ex}
 \begin{gather}
   \taglabel{OOTA1}
-  \begin{aligned}
-    &z \GETS 1
-    \PAR %\\[-1ex] \PAR&
-    y\GETS x
-    \\[-1ex] \PAR&
-    \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \texttt{C} \ELSE \aReg \GETS \NEW \texttt{D} \FI  \SEMI x \GETS \aReg 
-  \end{aligned}
+  z \GETS 1
+  \PAR %\\[-1ex] \PAR&
+  y\GETS x
+  \PAR
+  \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \texttt{C} \ELSE \aReg \GETS \NEW \texttt{D} \FI  \SEMI x \GETS \aReg 
 \end{gather}
 Informally, all threads satisfy the invariant ``allocation at type \texttt{C}
 is preceded by reading $1$ for $z$'' and ``allocation at type \texttt{D} is
