@@ -412,30 +412,6 @@ Simplifying:
 as required.
 \end{example}
 
-Many examples are superficially similar, but in fact have fewer dependencies.
-A referee for a previous version of this paper expected that the following example is
-``the same'':
-\begin{gather*}
-  \tag{OOTA?}\label{OOTA?}
-    y\GETS x
-  \PAR
-    \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS1 \FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{rx}{\DR{x}{1}}{}
-  \event{wy}{\DW{y}{1}}{right=of rx}
-  \po{rx}{wy}
-  \event{ry}{\DR{y}{1}}{right=2em of wy}
-  \event{wx}{\DW{x}{1}}{right=of ry}
-  \event{wa}{\DW{a}{1}}{right=of wx}
-  \rf[out=-15,in=-165]{wy}{ry}
-  \rf[out=170,in=10]{wx}{rx}
-  \po[out=-15,in=-165]{ry}{wa}
-    \end{tikzinline}}
-\end{gather*}
-In this execution, $\DW{x}{1}$ is independent of $\DR{y}{1}$, thus there is no
-\oota{} behavior.
-
 On page \pageref{page:rfub}, we discuss \citeauthor{BoehmOOTA}'s
 [\citeyear{BoehmOOTA}] \ref{RFUB} example, which presents another potential
 form of \oota{} behavior, in the context of compiler optimization.  Our
