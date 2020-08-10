@@ -8,16 +8,16 @@ values that a read may return.  For a survey of hardware models, see
 \citep{DBLP:journals/toplas/Lochbihler13,DBLP:phd/ethos/Batty15}.  For an
 attempt to bridge the two, see \citep{DBLP:journals/pacmpl/PodkopaevLV19}.
 
-\citet{2019-sp} introduced the notion of pomsets with preconditions.  They
-studied \emph{micro\hyp{}architecture}---specifically, speculative execution.
-We have presented an \emph{architectural} model, leading to many formal
-differences between our model and theirs.  Chief among these: Their pomsets
-do not satisfy our \emph{consistency} requirement, and thus contradictory
-preconditions are allowed in the same pomset, modeling aborted speculative
-executions.  Similarly, they take reads to be side\hyp{}effecting, modeling
-cache effects.  There are many less fundamental differences.  For example,
-their use of \emph{three-valued pomsets} means that they allow \ref{MCA2},
-but disallow its two-location variant.  This odd behavior stems from
+In our previous work~\cite{2019-sp}, we introduced the notion of pomsets with preconditions.
+This was to study \emph{micro\hyp{}architecture}---specifically, speculative execution.
+We have presented an \emph{architectural} model, leading to some formal
+differences between the models.  Chief among these: we now require pomsets
+to satisfy \emph{consistency} requirement, which simplifies the model,
+though it can no longer reason about executions where speculative
+behaviour can become visible, for example by cache timing attacks.
+There are many less fundamental differences.  For example,
+the previous use of \emph{three-valued pomsets} means that we allowed \ref{MCA2},
+but disallowed its two-location variant.  This odd behavior stems from
 \emph{semi\hyp{}transitivity}, inherited from
 \cite{DBLP:journals/dc/Lamport86}.
 
