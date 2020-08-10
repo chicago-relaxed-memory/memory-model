@@ -41,6 +41,119 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
+The model is based on \emph{partially ordered multisets}~\cite{???},
+where events are labelled with reads and writes, and
+the partial order tracks control and data dependencies, coherence, concurrent reads and writes using shared memory, and fencing.
+Here, we are only using one order, which stands in stark contrast with
+other models that use many different relations.
+
+For example the semantics of \ref{OOTA?} (including explicit initialization with zero, and explicit $\DSTOP$ to indicate termination)
+contains the expected pomset
+
+\begin{tikzdisplay}[node distance=2em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
+  \event{rx0}{\DR{x}{0}}{right=3em of wx0}
+  \event{wy0a}{\DW{y}{0}}{right=of rx0}
+  \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
+  \event{wx1}{\DW{x}{1}}{right=of ry0}
+  \event{stop}{\DSTOP}{right=of wx1}
+  \rf{wx0}{rx0}
+  \rf{wy0a}{ry0}
+  \wk[out=20,in=160]{rx0}{wx1}
+  \wk[out=0,in=200]{wy0}{wy0a}
+  \po{rx0}{wy0a}
+  \sync{wx1}{stop}
+  \sync[out=30,in=150]{ry0}{stop}
+\end{tikzdisplay}
+but also the unexpected one
+
+\begin{tikzdisplay}[node distance=2em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{a}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=200,in=-20]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=20,in=160]{wx0}{wx1}
+  \wk[out=0,in=200]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+\end{tikzdisplay}
+
+We stress that in these diagrams, color plays no formal role, it is purely to help the reader see where the
+order comes from. For instance:
+\begin{itemize}
+
+\item $(\DW{x}{0})\xwk(\DW{x}{1})$ is a \emph{coherence} requirement: the write of $1$
+  must follow the write of $0$, since these are to the same location.
+
+\item $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement: the read of $x$
+  is fulfilled by a matching write from another thread.
+
+\item $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y$
+  \emph{depends on} the read of $x$.
+
+\item $(\DWRel{z}{1})\xsync(\DSTOP)$ is a \emph{fencing} requirement (in this case the fence is at the end of the program,
+  but concurrency controls introduce fencing).
+
+\end{itemize}
+
+The interesting fact about these pomsets is that there is no control dependency between
+reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides of the conditional.
+Compare this with \ref{OOTA!}, where there is a control dependency:
+
+\begin{tikzdisplay}[node distance=2em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
+  \event{rx0}{\DR{x}{0}}{right=3em of wx0}
+  \event{wy0a}{\DW{y}{0}}{right=of rx0}
+  \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
+  \event{wx2}{\DW{x}{2}}{right=of ry0}
+  \event{stop}{\DSTOP}{right=of wx2}
+  \rf{wx0}{rx0}
+  \rf{wy0a}{ry0}
+  \wk[out=20,in=160]{rx0}{wx2}
+  \wk[out=0,in=200]{wy0}{wy0a}
+  \po{rx0}{wy0a}
+  \po{ry0}{wx2}
+  \sync{wx2}{stop}
+  \sync[out=30,in=150]{ry0}{stop}
+\end{tikzdisplay}
+and so an attempt to replicate the unexpected execution from~\ref{OOTA?} fails,
+since it introduces a cycle in the order:
+
+
+\begin{tikzdisplay}[node distance=2em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{a}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=200,in=-20]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=20,in=160]{wx0}{wx1}
+  \wk[out=0,in=200]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \po{ry1}{wx1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+\end{tikzdisplay}
+
+This model is based on that of~\cite{us}, though missing the features designed to capture
+speculative execution attacks. We will present the model in this section,
+but readers familiar with or earlier work can skip ahead.
+
 \subsection{Data models}
 A \emph{data model} consists of:
 \begin{itemize}

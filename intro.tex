@@ -83,7 +83,6 @@ type in order to prove type safety.  This formal device means that memory
 cannot be used at different types over time, making practical memory
 reclamation impossible.
 
-
 % The JMM is defined using an operational model that incorporates the idea of
 % restarting executions.  Similar models have used speculation
 % \cite{DBLP:conf/esop/JagadeesanPR10} or promises
@@ -97,6 +96,47 @@ invalidate compositional reasoning, as in \ref{OOTA1}.  See
 \textsection\ref{sec:promising} for confirmation from the authors themselves.
 This means that these models \emph{cannot support both type safety and
   realistic memory reclamation}.
+
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s example shows a surprising feature of
+relaxed memory models: the presence of an execution may depend on code that was not executed. Consider:
+\begin{gather}
+  \taglabel{OOTA?}
+    y\GETS x
+  \PAR
+    \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS1 \FI
+\end{gather}
+Most programmers would be surprised to learn that this program does allow
+an execution in which $a=1$. To see why, imagine a compiler that does type inference
+and finds that $x$ and $y$ are booleans, with either value $0$ or $1$. which enables the
+program to be optimized as:
+\begin{gather}
+  \taglabel{OOTA?'}
+    y\GETS x
+  \PAR
+    \IF{y}\THEN x\GETS 1\SEMI a\GETS 1 \ELSE x\GETS1 \FI
+\end{gather}
+The compiler then lifts the assignment $x\GETS1$ out of the conditional
+(which is valid, since it occurs on both branches):
+\begin{gather}
+  \taglabel{OOTA?''}
+    y\GETS x
+  \PAR
+    x\GETS1\SEMI \IF{y}\THEN a\GETS 1 \FI
+\end{gather}
+The optimized program has a sequentially consistent execution with $a=1$.
+Compare \ref{OOTA?} with:
+\begin{gather}
+  \taglabel{OOTA!}
+    y\GETS x
+  \PAR
+    \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS2 \FI
+\end{gather}
+which does not have an execution where $a=1$. Note that the only 
+difference between \ref{OOTA?} and \ref{OOTA!} is the code in the branch
+which was not taken. This means that any model of relaxed memory that supports
+common compiler optimizations (such as those from \ref{OOTA?} to \ref{OOTA?''})
+must take into account code that was not executed. This accounts for
+the speculative executions common in relaxed memory models.
 
 % Due to the shortcomings of the JMM, many subsequent models preferred an
 % axiomatic approach.  
