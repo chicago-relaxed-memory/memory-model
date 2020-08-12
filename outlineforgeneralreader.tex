@@ -1,21 +1,34 @@
-In our approach, a program is a set of execution.  Each execution is a partial order on a set of read and write events.  The order is intended to be read as a ``dependency'' relation.  The dependency relation can vary between executions, so it is dynamic; events that are not related in an execution are ``independent'' and can be seen by a sequential observer in either order.   
+In our approach, a program is a set of execution.  Each execution is a
+partial order on a set of read and write events.  The order is intended to be
+read as a ``dependency'' relation.  The dependency relation can vary between
+executions, so it is dynamic; events that are not related in an execution are
+``independent'' and can be seen by a sequential observer in either order.
 
-The executions of a program are computed compositionally, by induction on the structure of the program.  Thus, our model falls into the style of relaxed memory models advocated by~\citet{Batty17}.  
+The executions of a program are computed compositionally, by induction on the
+structure of the program.  Thus, our model falls into the style of relaxed
+memory models advocated by~\citet{Batty17}.
 
-Cross thread dependencies arise from conflicting actions on the same variable.  Thus, any two actions, at least one of which is a write, on the same location and not in the same thread, are ordered.   In the parlance of hardware memory models~\citep{alglave}, $\rcoe,\rfre,\rrfe$ are included in the dependency ordering.  Thus, our model is realizes \emph{multi-copy atomicity} (\mca); when
-a write becomes visible to one thread it must become visible to
-all\nofootnote{\mca\ is traditionally explored in hardware memory models.
-  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent
-  architectures, such as \armeight\ (see,
-  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18},
-        RISC-V.
-), are \mca, but not older
-  architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11})
-  or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
-\citep{DBLP:journals/pacmpl/PulteFDFSS18}.   
+Cross thread dependencies arise from conflicting actions on the same
+variable.  Thus, any two actions, at least one of which is a write, on the
+same location and not in the same thread, are ordered.  In the parlance of
+hardware memory models~\citep{alglave}, $\rcoe,\rfre,\rrfe$ are included in
+the dependency ordering.  Thus, our model is realizes \emph{multi-copy
+  atomicity} (\mca); when a write becomes visible to one thread it must
+become visible to all\nofootnote{\mca\ is traditionally explored in hardware
+  memory models.  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10})
+  and recent architectures, such as \armeight\ (see,
+  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.  ), are \mca, but
+  not older architectures, such as \ppc\ (see,
+  e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see,
+  e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
+\citep{DBLP:journals/pacmpl/PulteFDFSS18}.
   
 
-Within a thread, the dependency calculation can be viewed as the computation of \emph{preserved} program order (\textsf{ppo}) in hardware models.   $\rppo$ captures the \emph{essential dependencies} between events in the same thread.  Our key insight is to that  \emph{logic is better than syntax} to capture such dependencies.  
+Within a thread, the dependency calculation can be viewed as the computation
+of \emph{preserved} program order (\textsf{ppo}) in hardware models.  $\rppo$
+captures the \emph{essential dependencies} between events in the same thread.
+Our key insight is to that \emph{logic is better than syntax} to capture such
+dependencies.
 
 Consider the following program fragments: \begingroup \allowdisplaybreaks
 \begin{align*}
@@ -26,20 +39,34 @@ Consider the following program fragments: \begingroup \allowdisplaybreaks
 \end{align*}
 \endgroup
 
-All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each case, the write of $y$ is independent of
-any code that precedes it in program order. While $\aCmd_1$ reflects syntactic independence,  $\aCmd_2$ reflects the independence derived by case analysis, and $\aCmd_3$ reflects the independence deduced from partial evaluation (in the restricted form of constant propagation).  Notably, in contrast to external reads ($\rfe$), internal reads are not necessarily recorded in the dependency relation, mirroring the special status of internal reads ($\rfi$) in \armeight.  
+All these fragments satisfy $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
+case, the write of $y$ is independent of any code that precedes it in program
+order. While $\aCmd_1$ reflects syntactic independence, $\aCmd_2$ reflects
+the independence derived by case analysis, and $\aCmd_3$ reflects the
+independence deduced from partial evaluation (in the restricted form of
+constant propagation).  Notably, in contrast to external reads ($\rrfe$),
+internal reads are not necessarily recorded in the dependency relation,
+mirroring the special status of internal reads ($\rrfi$) in \armeight.
 
-This allows a compiler or processor to reorder the write with respect to the code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
-DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.  
+This allows a compiler or processor to reorder the write with respect to the
+code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the
+  benefits of viewing a memory model in terms of (sequential) program
+  transformations,
+  eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
+    DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without
+  explicitly being formalized as such.}.
 
-The logical perspective  provides a clear intuition why our model validates reordering of independent statements,  Irrelevant read introduction, RaR, RaW, WaW and Read Reordering and motivates the expressivity wrt the \jmm\ causality test cases.  For example, consider Test Case 17  from Pugh.
+The logical perspective provides a clear intuition why our model validates
+reordering of independent statements, Irrelevant read introduction, RaR, RaW,
+WaW and Read Reordering and motivates the expressivity wrt the \jmm\
+causality test cases.  For example, consider Test Case 17 from Pugh.
 \[
 \begin{array}{ll}
-\aThrd & \aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \bLoc \GETS \aReg_1  \\
-\bThrd & \aReg_2 \GETS \bLoc \SEMI \aLoc \GETS \aReg 
+ &\aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \bLoc \GETS \aReg_1  \\
+ \PAR & \aReg_2 \GETS \bLoc \SEMI \aLoc \GETS \aReg 
 \end{array}
 \]
-\jmm\ permits the behavior $\aReg_1 = \aReg_2 = \aReg_3 =42$ for $\aThrd \PAR \bThrd$. 
+\jmm\ permits the behavior $\aReg_1 = \aReg_2 = \aReg_3 =42$.
 
 We deduce:
 \[
@@ -49,17 +76,26 @@ and so:
 \[
 \hoare{\TRUE}{\aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc  \SEMI \bLoc \GETS \aReg_1  }{\bLoc =42}
 \]
-validating the transformation of $\aThrd$ to:
-\[ \aThrd: \bLoc \GETS 42 \SEMI \aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \]
+validating the transformation of the first thread to:
+\[ \bLoc \GETS 42 \SEMI \aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \]
 from which the required execution follows.
 
-Thread compositionality provides a perspective on how our model forbids ``Out Of Thin Air'' (\oota); after all, it is stating that parallel composition does not create unexpected new behaviors.   More concretely, as envisioned in \cite[\textsection3.3]{AlglaveThesis}, \emph{\mca{}
-  permits a single, global notion of time, manifest in the dependency order} that captures all cross-thread
-dependencies.    The absence of cycles in the dependency order forbids \oota\ behaviors in our model.  Consider the well-known  litmus test, with all variables initialized to $0$:
+Thread compositionality provides a perspective on how our model forbids ``Out
+Of Thin Air'' (\oota); after all, it is stating that parallel composition
+does not create unexpected new behaviors.  More concretely, as envisioned in
+\cite[\textsection3.3]{AlglaveThesis}, \emph{\mca{} permits a single, global
+  notion of time, manifest in the dependency order} that captures all
+cross-thread dependencies.  The absence of cycles in the dependency order
+forbids \oota\ behaviors in our model.  Consider the well-known litmus test,
+with all variables initialized to $0$:
 \begin{equation}
   %x\GETS0\SEMI y\GETS0\SEMI
   (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
 \end{equation}
-We rule out an assignment of $1$ to both locations as follows. 
-The write of $\aLoc$ in the LHS is dependent on the read to $\bLoc$.  Similarly, the write of $\bLoc$ in the RHS is dependent on the read to $\aLoc$.  Since the only way to satisfy the reads is via an external read, both reads are part of the dependency order, leading to a cycle in the dependency order, a contradiction.  
+We rule out an assignment of $1$ to both locations as follows.  The write of
+$\aLoc$ in the LHS is dependent on the read to $\bLoc$.  Similarly, the write
+of $\bLoc$ in the RHS is dependent on the read to $\aLoc$.  Since the only
+way to satisfy the reads is via an external read, both reads are part of the
+dependency order, leading to a cycle in the dependency order, a
+contradiction.
 

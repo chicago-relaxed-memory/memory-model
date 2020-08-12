@@ -41,7 +41,7 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-The model is based on \emph{partially ordered multisets}~\cite{???},
+The model is based on \emph{partially ordered multisets}~\cite{{GISCHER1988199,Plotkin:1997:TSP:266557.266600}},
 where events are labelled with reads and writes, and
 the partial order tracks control and data dependencies, coherence, concurrent reads and writes using shared memory, and fencing.
 Here, we are only using one order, which stands in stark contrast with
@@ -49,7 +49,6 @@ other models that use many different relations.
 
 For example the semantics of \ref{OOTA?} (including explicit initialization with zero, and explicit $\DSTOP$ to indicate termination)
 contains the expected pomset
-
 \begin{tikzdisplay}[node distance=2em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
