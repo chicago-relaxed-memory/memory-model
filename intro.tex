@@ -131,7 +131,7 @@ Compare \ref{OOTA?} with:
   \PAR
     \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS2 \FI
 \end{gather}
-which does not have an execution where $a=1$. Note that the only 
+which has an execution where $a=2$, but does not have an execution where $a=1$. Note that the only 
 difference between \ref{OOTA?} and \ref{OOTA!} is the code in the branch
 which was not taken. This means that any model of relaxed memory that supports
 common compiler optimizations (such as those from \ref{OOTA?} to \ref{OOTA?''})

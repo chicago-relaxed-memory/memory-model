@@ -161,15 +161,15 @@ $(\DR{x}{1})\xpo(\aReg=1\mid\DW{y}{1})$.
 We say that $\aPS$ is a \emph{generation-minimal} in $\aPSS$ if $\aPS\in\aPSS$ and
 there is no $\aPS\neq\aPS'\in\aPSS$ that generates $\aPS$.
 
-Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
+% Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
 
-Let $\semmin{\aCmd}=\PRE{}\{\aPS\in\sem{\aCmd} \mid \aPS$ is top-level and
+Let $\semmin{\aCmd}=\{\aPS\in\sem{\aCmd} \mid \aPS$ is top-level and
   generation-minimal in $\sem{\aCmd}\}$.
 
 %For the remainder of this section, fix a command $\aCmd$.
 
 We say that $\aPS'$ \emph{$\aCmd$-extends} $\aPS$ if $\aPS\in\semmin{\aCmd}$,
-$\aPS'\in\semmin{\aCmd}$, and $\aPS\in\PRE{\aPS'}$.
+$\aPS'\in\semmin{\aCmd}$, and $aPS$ is a downset of $\aPS'$. %$\aPS\in\PRE{\aPS'}$.
 %Let $\POST{\aPS'}{\aPSS}$ be the set of extensions to $\aPS'$ in $\aPSS$.
 
 We say that $\aPS$ is \emph{$L$-unstable in $\aCmd$} if
