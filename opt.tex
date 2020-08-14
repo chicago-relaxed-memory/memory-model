@@ -1,250 +1,18 @@
 \section{Single-Threaded Optimizations}
 \label{sec:opt}
 
-We discuss compiler optimizations both concretely and abstractly.
-Concretely, we show the validity of specific optimizations, such as the roach
-motel laws for synchronization.  Abstractly, we establish sufficient
-conditions to replace any command $\aCmd$ by an equivalent $\bCmd$: if
-$\aCmd$ and $\bCmd$ are synchronization\hyp{}free and sequentially
-equivalent, and furthermore $\bCmd$ is \emph{linear}---performs at most one
-read and at most one write on each location in each execution---then $\aCmd$
-can be refined to $\bCmd$.
+When $\sem{\aCmd} \supseteq \sem{\aCmd'}$, we say that $\aCmd'$ is a
+\emph{valid transformation} of $\aCmd$.  In this section, we show the
+validity of specific optimizations and discuss ``optimizations'' that fail,
+such as \ref{RFUB}.
 
-The linearity restriction ensures that the context cannot interfere with the
-atomic execution of the command, and, dually, that the atomic execution of
-the command cannot interfere with the context.  To see the need for this,
-consider that the introduction of redundant relevant reads is valid sequentially, but
-not valid concurrently. For example,
-$\aReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \aReg}\THEN \bLoc \GETS 1 \FI$
-cannot be refined to
-$\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \bReg}
-\THEN \bLoc \GETS 1 \FI$.  In a concurrent context, the latter program may
-see different values for the two reads.
+\paragraph{Valid Rewrites.}
+%\label{sec:valid}
 
-A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
-\emph{synchronization-free} if lacks fences and $\modeRA/\modeSC$ access.  We
-argue that our model is fully flexible with respect to optimization of such
-programs, as long as the optimizations do not introduce new writes or
-``relevant'' reads.  To do so, \textsection\ref{sec:hoare} formalizes the
-relation between Hoare triples and pomsets with preconditions.
-\textsection\ref{sec:linear} then isolates a \emph{linear} fragment of our
-language and shows
-the soundness of {\em all} transformations of synchronization-free sequential
-programs into this fragment.
-%
-\textsection\ref{sec:valid} discusses specific optimizations, some of which
-relax the linearity assumption and include synchronization.  Finally,
-\textsection\ref{sec:invalid}, discusses ``optimizations'' that fail, such as
-\citeauthor{BoehmOOTA}'s [\citeyear{BoehmOOTA}] \ref{RFUB} example.
-
-\subsection{Pomsets for Hoare Logic}
-\label{sec:hoare}
-In \textsection\ref{sec:model}, we used Hoare logic
-\cite{Hoare:1969:ABC:363235.363259,gordonHoare} to reason about
-\emph{dependency analysis} for sequential code.  Here, we use an alternative
-interpretation of Hoare logic to establish the soundness of \emph{program
-  transformations}.  We develop a pomset semantics for pairs of formulae
-$\semRW{\aForm}{\bForm}$, and show a relation between $\sem{\aCmd}$ and
-$\semRW{\aForm}{\bForm}$ for valid Hoare triples
-$\hoare{\aForm}{\aCmd}{\bForm}$.  In \textsection\ref{sec:model},
-preconditions were discharged by read events.  Here, instead, preconditions
-are derived from the read events themselves.
-
-\begin{definition}
-  \label{def:prepost}
-  Let $\aPS\in\semRW{\aForm\land\cForm}{\bForm}$
-  %We say that $\aPS$ \emph{satisfies} precondition $\aForm$ and postcondition $\bForm$ (notation $\aPS\in\semRW{\aForm}{\bForm}$)
-  when it is possible to satisfy the following:
-
-  Let $\aLocs$ be the set of locations such that $\aLoc\in\aLocs$ exactly
-  when $\aForm$ depends on $\aLoc$.  For each $\aLoc\in\aLocs$, choose
-  $\bEv_\aLoc\in\Event$ that reads $\aLoc$.
-  Let $\bEvs_\aLocs=\{\bEv_\aLoc\mid\aLoc\in\aLocs\}$.
-  Let $\aSub$ be the substitution generated % from $\aLocs$
-  as follows:
-  % For $\aLoc\in\aLocs$, 
-  $\aLoc\aSub = \aVal$ exactly when $\bEv_\aLoc$ reads $\aVal$ from $\aLoc$.
-
-  Let $\bLocs$ be the set of locations such that $\bLoc\in\bLocs$ exactly
-  when $\bForm$ depends on $\bLoc$.  For each $\bLoc\in\bLocs$, choose
-  $\aEv_\bLoc\in\Event$ that writes $\bLoc$.
-  Let $\aEvs_\bLocs=\{\aEv_\bLoc\mid\bLoc\in\bLocs\}$.
-  Let $\bSub$ be the substitution generated % from $\bLocs$
-  as follows:
-  % For $\bLoc\in\bLocs$, 
-  $\bLoc\bSub = \aVal$ exactly when $\aEv_\bLoc$ writes $\aVal$ to $\bLoc$.
-
-  Require that $\aForm\aSub$ and $\bForm\bSub$ are satisfiable.
-
-  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$ (for each $\aEv_\bLoc$).
-  
-  Require that if $\cEv\le\aEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\bEvs_\aLocs$.
-
-  Require that if $\aEv_\bLoc\le\cEv$ and $\cEv$ is a write to $\bLocs$, then $\cEv\in\aEvs_\bLocs$.
-\end{definition}
-Pictorially, we have:
-\begin{tikzdisplay}[node distance=.1ex and 2em]
-  \event{r}{\bEvs_\aLocs}{}
-  \event{w2}{\cForm\mid\aEvs_\bLocs}{below right=of r}
-  \event{w1}{\cEvs_\bLocs}{above right=of w2}
-  \po{r}{w2}
-  \wk{w1}{w2}
-\end{tikzdisplay}
-Here, $\aEvs_\bLocs$ are the final writes to $\bLocs$, with precondition $\cForm$.
-$\cEvs_\bLocs$ are other writes to $\bLocs$, which must be ordered before $\aEvs_\bLocs$.
-$\bEvs_\aLocs$ are the reads that the writes depend upon.
-
-Under this interpretation, precondition strengthening in Hoare logic
-validates read introduction.  In our semantics, reads have no side effects.
-Thus, it should be sound to introduce irrelevant reads.  Yet,
-$\sem{x\GETS\aExp\SEMI r\GETS x\SEMI \aCmd}\neq \sem{x\GETS\aExp\SEMI\aCmd}$, even when $r$ does not appear in
-$\aCmd$.  To make such equations hold, we define $\readc(\aPSS)$ to saturate
-$\aPSS$ with reads.
-
-% Recall that postconditions are properties of \emph{completed} executions.
-% For example, in $\hoare{\TRUE}{x\GETS1\SEMI x\GETS2}{x{=}2}$, the
-% postcondition does not hold for the prefix $x\GETS1$.  % As a result, we
-% restrict attention to completed executions.  % A pomset
-% $\aPS\in\aPSS$ is \emph{maximal} if there is no $\aPS'\in\aPSS$ such that
-% $\aPS$ is a proper prefix of $\aPS'$.
-
-
-\labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
-$\exists\aPS\in\aPSS$ and  $\exists D$ such that $\Event'= \Event'\uplus D$,
-${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
-$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
-$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
-
-\begin{theorem}
-  \label{thm:hoare}
-  If $\aCmd$ is synchronization-free and sequential,
-  $\hoare{\aForm}{\aCmd}{\bForm}\Longleftrightarrow\notdisjoint{\semRW{\aForm}{\bForm}}{\readsem{\aCmd}}$.
-\begin{proof}
-  The proof proceeds by induction on the derivation of the Hoare triple.
-
-  We first consider the structural rules.  Precondition strengthening follows
-  from augmentation closure.   The structural rule for
-  disjunction
-  {\small\begin{math}
-    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1}\quad  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
-  \end{math}}
-follows from disjunction closure (Definition~\ref{def:dis}). The structural rule for conjunction
-  {\small\begin{math}
-    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1}\quad \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
-  \end{math}}
-  follows from the fact that pomsets have only concurrency and no conflict.  
-
-  The remaining cases follow directly from the semantics.  The only subtlety
-  is the write rule, which uses $\parallel$ to ensure disjunction closure.
-\end{proof}
-\end{theorem}
-% To illustrate multiple writes consider:
-% \begin{gather*}
-%   \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
-%   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
-%       \event{w1}{\DW{x}{1}}{}
-%       \event{w2}{\DW{x}{2}}{right=of w1}
-%       \wk{w1}{w2}
-%     \end{tikzinline}}
-% \end{gather*}
-
-Preconditions can be placed in $\aForm$ or $\cForm$ in
-Definition~\ref{def:prepost}, resulting in different pomsets:
-\begin{gather*}
-  \hoare{x=1}{y \GETS x}{y=1}
-  \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{r}{\DR{x}{1}}{}
-        \event{w}{\DW{y}{1}}{right=of r}
-        \po{r}{w}
-      \end{tikzinline}}
-    \qquad\qquad
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{r}{\DR{x}{1}}{}
-        \event{w}{x=1 \mid \DW{y}{1}}{right=1ex of r}
-      \end{tikzinline}}
-\end{gather*}
-Control dependencies are calculated correctly:
-\begin{gather*}
-  \hoare{\TRUE}{\IF{x} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} 
-  \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{r}{\DR{x}{1}}{}
-        \event{w}{\DW{y}{1}}{right=1ex of r}
-      \end{tikzinline}}
-\end{gather*}
-% In contrast, in a semantics that forbids load buffering, where the best that one can prove is
-% $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
-% $.
-
-For any consistent set of preconditions, we can always find a single pomset:
-\begin{gather*}
-  \hoare{x_1=1}{y_1 \GETS x_1}{y_1=1}
-  \qquad
-  \hoare{x_2=1}{y_2 \GETS x_2}{y_2=1}
-  \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{rx}{\DR{x_1}{1}}{}
-        \event{wy}{\DW{y_1}{1}}{right=of rx}
-        \event{ru}{\DR{x_2}{1}}{right=1ex of wy}
-        \event{wv}{\DW{y_2}{1}}{right=of ru}
-        \rf{rx}{wy}
-        \rf{ru}{wv}
-      \end{tikzinline}}
-\end{gather*}
-\begin{corollary}
-  If $\bigwedge_{i\in I}\aForm_i$ is satisfiable,
-  \begin{math}
-    \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
-    \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
-  \end{math}
-\end{corollary}
-
-\subsection{Linearity}
-\label{sec:linear}
-A command $\aCmd$ is \emph{linear} if for every $\aPS\in\sem{\aCmd}$, there is
-at most one read and at most one write on any location.  Intuitively, this
-means that the context around $\aCmd$ is unable to interfere with the atomic
-execution of $\aCmd$; dually, neither can the atomic execution of $\aCmd$
-interfere with the context.  From an arbitrary command, it is a
-straightforward exercise to construct a linear command that is sequentially
-equivalent.
-
-We say that $\aCmd$ and $\aCmd'$ \emph{satisfy the same Hoare triples} when
-$\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
-$\hoare{\aForm}{\aCmd'}{\bForm}$, for every $\aForm$ and $\bForm$.
-
-\begin{corollary}\label{seqcompleteness}
-  Let $\aCmd$ and $\aCmd'$ be synchronization-free and sequential.  Further,
-  let $\aCmd'$ be linear.
-  Then $\aCmd$ and $\aCmd'$ satisfy the same Hoare
-  triples if and only if $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
-  % If $\aCmd$ and $\aCmd'$ satisfy the same Hoare
-  % triples then $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
-%   \begin{proof}
-%     The pomsets in the semantics of a linear sequential program fragment,
-%     such as $\sem{\bCmd}$, are generated by the augmentation closure of
-%     pomsets that have a special format that only include edges of the
-%     form: \begin{tikzdisplay}[node distance=1em]
-%       \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
-%       \eventl{\aEv}{w}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
-%       \po{r}{w}
-%     \end{tikzdisplay}
-%     where $\vec{\bLoc}\GETS \vec{\aLoc}$ has no conflicting assignments to the same variable, and where each $\aLoc$ appears in at most one write event. Thus, using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd}$ is completely determined by the Hoare triples satisfied by $\bCmd$.  
-%    
-%     By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $\bCmd$.  Using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd} \subseteq \fsat(\sem{\aCmd})$. 
-% \end{proof}
-\end{corollary}
-
-\subsection{Valid Rewrites}
-\label{sec:valid} When $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$, we say that $\aCmd'$ is
-a \emph{valid transformation} of $\aCmd$.
-
-To enable reasoning about program fragments, transformation validity must be
-preserved by \emph{contexts}.  In \textsection\ref{sec:model}, we defined the
-semantics by prefixing one action at a time.  This helps to make the
-semantics understandable, but it also creates impoverished contexts.
+% To enable reasoning about program fragments, transformation validity must be
+% preserved by \emph{contexts}.  In \textsection\ref{sec:model}, we defined the
+% semantics by prefixing one action at a time.  This helps to make the
+% semantics understandable, but it also creates impoverished contexts.
 
 % To allow for richer contexts, we appeal to the alternate presentation of the
 % language given in \textsection\ref{sec:semicolon}.  We refactor the syntax
@@ -332,20 +100,15 @@ sets can be defined similarly.
 %
 Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 
-Theorem \ref{thm:hoare} immediately validates peephole optimizations, such as
-redundant load elimination \eqref{RL}, store forwarding \eqref{SF}, dead
-store elimination \eqref{DS}, and independent reorderings (\ref{WW}, \ref{RW}
-and \ref{RR}).  Using the semantics directly, we can prove some properties
-without using $\readc$.  Note that if $\aPSS'\supseteq\aPSS$, then
-$\readc(\aPSS')\supseteq \readc(\aPSS)$.
+The semantics validates several peephole optimizations.
 \begin{align*}
   \taglabel{RL}
-  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
-  \readsem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
   \\
   \taglabel{SF}
-  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
-  \readsem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp\SEMI\aCmd}
+  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp\SEMI\aCmd}
   \\
   \taglabel{DS}
   \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp\SEMI\aCmd} &\supseteq 
@@ -370,29 +133,46 @@ $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 %   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
 % $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-\ref{RL} and \ref{SF} follow from read closure.  \ref{DS} follows from
-\emph{write elimination} (Definition \ref{def:cover}).
+Redundant load elimination \eqref{RL} and store forwarding \eqref{SF} follow
+from item \ref{1} in the definition of prefixing, taking $\bEv\in\Event$.
+Dead store elimination \eqref{DS} follows from Definition \ref{def:cover}, of
+$\relfilt{}$.  The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
+follow from item \ref{item:5} in the definition of prefixing, since no order
+is imposed.  Item \ref{item:5} also validates roach-motel reorderings.  For
+example, the rules for relaxed writes are as follows:
+  \begin{align*}
+    \taglabel{AcqW} 
+    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
+    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    &&\textif x\neq y&&\hbox{}
+    \\
+    \taglabel{RelW}
+    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
+    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
+    &&\textif x\neq y&&\hbox{}
+  \end{align*}
 
-% Reads on the same location are ordered in our model; thus, read optimizations
+  % Reads on the same location are ordered in our model; thus, read optimizations
 % are limited by the power of aliasing analysis
 % \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
-Since reads are unordered in our model, read optimizations are not limited by
-the power of aliasing analysis.  When $\aReg_2\neq\bReg$, we validate
-\ref{CSE}, from \textsection\ref{sec:intro}.
-\begin{gather*}
+  Since item \ref{item:5} does not impose order between reads of the same
+  location (recall \ref{Co2}), \ref{RR} can allow the possibility that
+  $\aLoc=\bLoc$.  As a result, read optimizations are not limited by the
+  power of aliasing analysis.   By composing \ref{RR} and \ref{RL}, we validate
+  \ref{CSE1}, from \textsection\ref{sec:intro}:
+\begin{align*}
   \taglabel{CSE}
-  \readsem{r_1\GETS \aLoc \SEMI
+  \sem{r_1\GETS \aLoc \SEMI
   s\GETS \bLoc \SEMI  
   r_2\GETS \aLoc\SEMI\aCmd}
   \supseteq
-  \readsem{r_1\GETS \aLoc \SEMI     
+  \sem{r_1\GETS \aLoc \SEMI     
     r_2\GETS r_1\SEMI
     s\GETS \bLoc \SEMI\aCmd}
-\end{gather*}
+    &&\textif \aReg_2\neq\bReg&&\hbox{}
+\end{align*}
 %However, this fails if $\aLoc=\bLoc$.
-This holds by composing \ref{RR} and \ref{RL},
-regardless of whether $\aLoc=\bLoc$.
-(To see this, recall \ref{Co2}.)
+
 
 % \begin{displaymathsmall}
 %   \sem{r_1\GETS \REF{\aExp} \SEMI
@@ -415,19 +195,6 @@ regardless of whether $\aLoc=\bLoc$.
 % Appealing directly to the semantics, we can establish general properties for
 % redundant load \ref{RLp}, store forwarding \ref{SFp}, and roach-motel
 % \ref{A}, \ref{R}:
-The semantics also validates roach-motel reorderings.  The rules for relaxed
-writes are as follows:
-  \begin{align*}
-    \taglabel{AcqW} 
-    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
-    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
-    &&\textif x\neq y&&\hbox{}
-    \\
-    \taglabel{RelW}
-    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
-    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
-    &&\textif x\neq y&&\hbox{}
-  \end{align*}
 % Let $\aCmd$ be
 % synchronization-free, with disjoint ids as before:
 % \begin{align*}
@@ -631,14 +398,25 @@ extrusion on page \pageref{page:extrusion}.
 %\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
 
-\subsection{Invalid Rewrites}
-\label{sec:invalid}
+\paragraph{Invalid Rewrites}
+%\label{sec:invalid}
 
-We discussed the invalidity of variable renaming on page
-\pageref{page:extrusion} and the invalidity of thread inlining on page
-\pageref{page:inlining} .  Rewrites that introduce accesses are generally
-invalid --- irrelevant read introduction is the exception.  For example, \emph{relevant}
-read introduction is invalid:
+Write introduction is invalid:
+\begin{align*}
+  \sem{\aLoc \GETS 1} 
+  &\not\supseteq
+  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1}
+\end{align*}
+Observationally, these are distinguished by the context
+\begin{math}
+  \hole{} \PAR
+  r\GETS x \SEMI
+  x\GETS2 \SEMI
+  s\GETS x\SEMI
+  \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI.
+\end{math}
+
+Read introduction is also invalid.  Consider first a \emph{relevant} read:
 \begin{align*}
   %\tag{Read-Intro-Invalid}
   \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
@@ -649,24 +427,25 @@ These are distinguished by the context
 \begin{math}
   \hole{} \PAR x\GETS1\PAR x\GETS2.
 \end{math}
-Write introduction is always invalid:
-\begin{align*}
-  \sem{\aLoc \GETS 1} 
-  &\not\supseteq
-  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1}
-\end{align*}
-These are distinguished by the context
-\begin{math}
-  \hole{} \PAR
-  r\GETS x \SEMI
-  x\GETS2 \SEMI
-  s\GETS x\SEMI
-  \IF{\aReg {=} \aReg} \THEN \cLoc \GETS 1 \FI.
-\end{math}
+
+But even \emph{irrelevant} read introduction is invalid:
+$\sem{\SKIP}\not\supseteq\sem{r\GETS x}\not\supseteq\sem{r\GETS x\SEMI r\GETS x}$.  These inequations hold even though there is no context in our
+language that distinguishes these programs.
 % With weaker notions of coherence
 % \cite{Manson:2005:JMM:1047659.1040336}, these
 % commands are indistinguishable.
 
+\ref{RL} and \ref{SF} show that redundant accesses can be removed.  The same
+does not hold for \emph{non-redundant} access:
+$\sem{r\GETS x}\not\supseteq\sem{\SKIP}$ (consider a completed pomsets for
+$\SKIP$).
+% , since $\sem{\SKIP}$ includes the
+% pomset with a single event, labeled $\DSTOP$.
+
+
+We discussed the invalidity of variable renaming on page
+\pageref{page:extrusion} and thread inlining on page
+\pageref{page:inlining}.
 
 
 % // p and q might be aliased
@@ -783,6 +562,246 @@ in our semantics.
 % From the soundness and completeness of Hoare logic for sequential operational semantics (eg. see formalization in~\citet{gordonHoare}), we deduce for any $\aForm, \bForm$: 
 % \[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
 % }
+
+\section{Relation to Hoare Logic}
+Note that if $\aPSS'\supseteq\aPSS$, then
+$\readc(\aPSS')\supseteq \readc(\aPSS)$.
+
+% We give an abstract characterization of valid optimizations, establishing
+% sufficient conditions to replace any command $\aCmd$ by an equivalent
+% $\bCmd$: If $\aCmd$ and $\bCmd$ are synchronization\hyp{}free and
+% sequentially equivalent, and furthermore $\bCmd$ is \emph{linear}---performs
+% at most one read and at most one write on each location in each
+% execution---then $\aCmd$ can be refined to $\bCmd$.
+
+A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
+\emph{synchronization-free} if lacks fences and $\modeRA/\modeSC$ access.  We
+argue that our model is fully flexible with respect to optimization of such
+programs, as long as the optimizations do not introduce new writes or
+``relevant'' reads.  To do so, we first formalize a
+relation between Hoare triples and pomsets with preconditions.
+We then isolate a fragment of our
+language and show
+the soundness of {\em all} transformations of synchronization-free sequential
+programs into this fragment.
+
+%
+\paragraph{Pomsets for Hoare Logic}
+%\label{sec:hoare}
+In \textsection\ref{sec:model}, we used Hoare logic
+\cite{Hoare:1969:ABC:363235.363259,gordonHoare} to reason about
+\emph{dependency analysis} for sequential code.  Here, we use an alternative
+interpretation of Hoare logic to establish the soundness of \emph{program
+  transformations}.  We develop a pomset semantics for pairs of formulae
+$\semRW{\aForm}{\bForm}$, and show a relation between $\sem{\aCmd}$ and
+$\semRW{\aForm}{\bForm}$ for valid Hoare triples
+$\hoare{\aForm}{\aCmd}{\bForm}$.  In \textsection\ref{sec:model},
+preconditions were discharged by read events.  Here, instead, preconditions
+are derived from the read events themselves.
+
+\begin{definition}
+  \label{def:prepost}
+  Let $\aPS\in\semRW{\aForm\land\cForm}{\bForm}$
+  %We say that $\aPS$ \emph{satisfies} precondition $\aForm$ and postcondition $\bForm$ (notation $\aPS\in\semRW{\aForm}{\bForm}$)
+  when it is possible to satisfy the following:
+
+  Let $\aLocs$ be the set of locations such that $\aLoc\in\aLocs$ exactly
+  when $\aForm$ depends on $\aLoc$.  For each $\aLoc\in\aLocs$, choose
+  $\bEv_\aLoc\in\Event$ that reads $\aLoc$.
+  Let $\bEvs_\aLocs=\{\bEv_\aLoc\mid\aLoc\in\aLocs\}$.
+  Let $\aSub$ be the substitution generated % from $\aLocs$
+  as follows:
+  % For $\aLoc\in\aLocs$, 
+  $\aLoc\aSub = \aVal$ exactly when $\bEv_\aLoc$ reads $\aVal$ from $\aLoc$.
+
+  Let $\bLocs$ be the set of locations such that $\bLoc\in\bLocs$ exactly
+  when $\bForm$ depends on $\bLoc$.  For each $\bLoc\in\bLocs$, choose
+  $\aEv_\bLoc\in\Event$ that writes $\bLoc$.
+  Let $\aEvs_\bLocs=\{\aEv_\bLoc\mid\bLoc\in\bLocs\}$.
+  Let $\bSub$ be the substitution generated % from $\bLocs$
+  as follows:
+  % For $\bLoc\in\bLocs$, 
+  $\bLoc\bSub = \aVal$ exactly when $\aEv_\bLoc$ writes $\aVal$ to $\bLoc$.
+
+  Require that $\aForm\aSub$ and $\bForm\bSub$ are satisfiable.
+
+  Require that $\labelingForm(\aEv_\bLoc)$ implies $\cForm$ (for each $\aEv_\bLoc$).
+  
+  Require that if $\cEv\le\aEv_\bLoc$ and $\cEv$ is a read, then $\cEv\in\bEvs_\aLocs$.
+
+  Require that if $\aEv_\bLoc\le\cEv$ and $\cEv$ is a write to $\bLocs$, then $\cEv\in\aEvs_\bLocs$.
+\end{definition}
+Pictorially, we have:
+\begin{tikzdisplay}[node distance=.1ex and 2em]
+  \event{r}{\bEvs_\aLocs}{}
+  \event{w2}{\cForm\mid\aEvs_\bLocs}{below right=of r}
+  \event{w1}{\cEvs_\bLocs}{above right=of w2}
+  \po{r}{w2}
+  \wk{w1}{w2}
+\end{tikzdisplay}
+Here, $\aEvs_\bLocs$ are the final writes to $\bLocs$, with precondition $\cForm$.
+$\cEvs_\bLocs$ are other writes to $\bLocs$, which must be ordered before $\aEvs_\bLocs$.
+$\bEvs_\aLocs$ are the reads that the writes depend upon.
+
+Precondition strengthening in Hoare logic validates read introduction, which
+is invalid in our semantics.  Thus, in this section we consider pomsets that
+are saturated with irrelevant reads.
+
+% Recall that postconditions are properties of \emph{completed} executions.
+% For example, in $\hoare{\TRUE}{x\GETS1\SEMI x\GETS2}{x{=}2}$, the
+% postcondition does not hold for the prefix $x\GETS1$.  % As a result, we
+% restrict attention to completed executions.  % A pomset
+% $\aPS\in\aPSS$ is \emph{maximal} if there is no $\aPS'\in\aPSS$ such that
+% $\aPS$ is a proper prefix of $\aPS'$.
+
+
+\labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when
+$\exists\aPS\in\aPSS$ and  $\exists D$ such that $\Event'= \Event'\uplus D$,
+${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
+$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
+$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+
+\todo{Let xs=ws, ys=vs be such that xi=wi not in ys vs. Then:
+   {ys=vs} C {xs=ws}  <==>  [ys=vs | xs=ws] cap read(C) not= emptyset}
+\begin{theorem}
+  \label{thm:hoare}
+  If $\aCmd$ is synchronization-free and sequential,
+  $\hoare{\aForm}{\aCmd}{\bForm}\Longleftrightarrow\notdisjoint{\semRW{\aForm}{\bForm}}{\readsem{\aCmd}}$.
+\begin{proof}
+  The proof proceeds by induction on the derivation of the Hoare triple.
+
+  We first consider the structural rules.  Precondition strengthening follows
+  from augmentation closure.   The structural rule for
+  disjunction
+  {\small\begin{math}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1}\quad  \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \lor \aForm_2}{\aCmd}{\bForm_1\lor \bForm_2}} 
+  \end{math}}
+follows from disjunction closure (Definition~\ref{def:dis}). The structural rule for conjunction
+  {\small\begin{math}
+    \frac{\hoare{\aForm_1}{\aCmd}{\bForm_1}\quad \hoare{\aForm_2}{\aCmd}{\bForm_2}}{ \hoare{\aForm_1 \land \aForm_2}{\aCmd}{\bForm_1\land \bForm_2}} 
+  \end{math}}
+  follows from the fact that pomsets have only concurrency and no conflict.  
+
+  The remaining cases follow directly from the semantics.  The only subtlety
+  is the write rule, which uses $\parallel$ to ensure disjunction closure.
+\end{proof}
+\end{theorem}
+% To illustrate multiple writes consider:
+% \begin{gather*}
+%   \hoare{\TRUE}{x\GETS 1 \SEMI x \GETS 2}{x=2}
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{w1}{\DW{x}{1}}{}
+%       \event{w2}{\DW{x}{2}}{right=of w1}
+%       \wk{w1}{w2}
+%     \end{tikzinline}}
+% \end{gather*}
+
+Preconditions can be placed in $\aForm$ or $\cForm$ in
+Definition~\ref{def:prepost}, resulting in different pomsets:
+\begin{gather*}
+  \hoare{x=1}{y \GETS x}{y=1}
+  \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{r}{\DR{x}{1}}{}
+        \event{w}{\DW{y}{1}}{right=of r}
+        \po{r}{w}
+      \end{tikzinline}}
+    \qquad\qquad
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{r}{\DR{x}{1}}{}
+        \event{w}{x=1 \mid \DW{y}{1}}{right=1ex of r}
+      \end{tikzinline}}
+\end{gather*}
+Control dependencies are calculated correctly:
+\begin{gather*}
+  \hoare{\TRUE}{\IF{x} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y=1} 
+  \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{r}{\DR{x}{1}}{}
+        \event{w}{\DW{y}{1}}{right=1ex of r}
+      \end{tikzinline}}
+\end{gather*}
+% In contrast, in a semantics that forbids load buffering, where the best that one can prove is
+% $\hoare{x=v} {r \GETS x \SEMI \IF{r=1} \THEN y \GETS 1 \ELSE y \GETS 1 \FI}{y= 1}
+% $.
+
+For any consistent set of preconditions, we can always find a single pomset:
+\begin{gather*}
+  \hoare{x_1=1}{y_1 \GETS x_1}{y_1=1}
+  \qquad
+  \hoare{x_2=1}{y_2 \GETS x_2}{y_2=1}
+  \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{rx}{\DR{x_1}{1}}{}
+        \event{wy}{\DW{y_1}{1}}{right=of rx}
+        \event{ru}{\DR{x_2}{1}}{right=1ex of wy}
+        \event{wv}{\DW{y_2}{1}}{right=of ru}
+        \rf{rx}{wy}
+        \rf{ru}{wv}
+      \end{tikzinline}}
+\end{gather*}
+% \begin{corollary}
+%   If $\bigwedge_{i\in I}\aForm_i$ is satisfiable,
+%   \begin{math}
+%     \textstyle\bigwedge_{i\in I}\hoare{\aForm_i}{\aCmd}{\bForm_i} \Longleftrightarrow
+%     \notdisjoint{\textstyle\bigcap_{i\in I}\semRW{\aForm_i}{\bForm_i}}{\readsem{\aCmd}}.
+%   \end{math}
+% \end{corollary}
+
+\paragraph{Linearity}
+%\label{sec:linear}
+A command $\aCmd$ is \emph{linear} if for every $\aPS\in\sem{\aCmd}$, (1) there is
+at most one read and at most one write on any location, and (2) if there is
+both a read and a write to the same location, then the reads is ordered
+before the write.
+
+Intuitively, this means that the context around $\aCmd$ is unable to
+interfere with the atomic execution of $\aCmd$; dually, neither can the
+atomic execution of $\aCmd$ interfere with the context.  From an arbitrary
+command, it is a straightforward exercise to construct a linear command that
+is sequentially equivalent.
+
+We say that $\aCmd$ and $\aCmd'$ \emph{satisfy the same Hoare triples} when
+$\hoare{\aForm}{\aCmd}{\bForm}$ if and only if
+$\hoare{\aForm}{\aCmd'}{\bForm}$, for every $\aForm$ and $\bForm$.
+
+\begin{corollary}\label{seqcompleteness}
+  Let $\aCmd$ and $\aCmd'$ be synchronization-free and sequential.  Further,
+  let $\aCmd'$ be linear.
+  Then $\aCmd$ and $\aCmd'$ satisfy the same Hoare
+  triples if and only if $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
+  % If $\aCmd$ and $\aCmd'$ satisfy the same Hoare
+  % triples then $\readsem{\aCmd} \supseteq \readsem{\aCmd'}$.
+%   \begin{proof}
+%     The pomsets in the semantics of a linear sequential program fragment,
+%     such as $\sem{\bCmd}$, are generated by the augmentation closure of
+%     pomsets that have a special format that only include edges of the
+%     form: \begin{tikzdisplay}[node distance=1em]
+%       \event{r}{\smash{\vec{\bForm}}\mid\DR{\vec{\bLoc}}{\vec{\aVal}}}{}
+%       \eventl{\aEv}{w}{\aForm\mid\DW{\aLoc}{\bVal}}{below right=of r}
+%       \po{r}{w}
+%     \end{tikzdisplay}
+%     where $\vec{\bLoc}\GETS \vec{\aLoc}$ has no conflicting assignments to the same variable, and where each $\aLoc$ appears in at most one write event. Thus, using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd}$ is completely determined by the Hoare triples satisfied by $\bCmd$.  
+%    
+%     By the hypothesis of this theorem, $\aCmd$ satisfies the same Hoare triples as $\bCmd$.  Using  theorem~\ref{hoareGen}, we deduce that $\sem{\bCmd} \subseteq \fsat(\sem{\aCmd})$. 
+% \end{proof}
+\end{corollary}
+
+The linearity restriction ensures that the context cannot interfere with the
+atomic execution of the command, and, dually, that the atomic execution of
+the command cannot interfere with the context.  To see the need for this,
+consider that the introduction of redundant relevant reads is valid sequentially, but
+not valid concurrently. For example,
+$\aReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \aReg}\THEN \bLoc \GETS 1 \FI$
+cannot be refined to
+$\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc \SEMI \IF{\aReg \NOTEQ \bReg}
+\THEN \bLoc \GETS 1 \FI$.  In a concurrent context, the latter program may
+see different values for the two reads.
+
+Order is necessary to exclude optimizations such as
+$x\GETS 1 \SEMI r \GETS x$ to $x\GETS 1$. They are both linear. Satisfy the
+same Hoare triples.  \todo{But have different read(C).}
 
 \endinput 
 
