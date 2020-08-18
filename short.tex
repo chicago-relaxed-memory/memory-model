@@ -300,10 +300,11 @@ includes a race involving $\aEv$.
 
     If there is a $({\rpox}\cup{\rrfe})$-maximal access, we select one of
     these as $\aEv$.  If $\aEv$ is a write, we reverse the outgoing order in
-    $\rxw$.  If $\aEv$ is a read, we switch its fulfilling write to a
-    ``newer'' one, updating $\rxw$.  For example, for $\aPS''$ on the left
-    below, we choose the $\aPS'''$ on the right: $\aEv$ reads $x$ and
-    races with $(\DW{x}{1})$.  % Program order
+    $\rxw$; the ability to reverse this order witnesses the race.  If $\aEv$
+    is a read, we switch its fulfilling write to a ``newer'' one, updating
+    $\rxw$; the ability to switch fulfilling writes witnesses the race.  For
+    example, for $\aPS''$ on the left below, we choose the $\aPS'''$ on the
+    right: $\aEv$ reads $x$ and races with $(\DW{x}{1})$.  % Program order
     % goes from left to right, with the left thread above the right one.% ; we
     % only show program order explicitly when it is relevant to the example.
     \begin{gather*}
