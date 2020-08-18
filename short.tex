@@ -298,10 +298,12 @@ includes a race involving $\aEv$.
     would be $L$-sequential; if there were elements outside the cycle, then
     there would be a subset of $\Event''$ that satisfies these criteria.
 
-    If there is $({\rpox}\cup{\rrfe})$-maximal access, we select it as
-    $\aEv$.  If it is a read, we switch its fulfilling write to a ``newer'' one.
-    For example, we switch from $\aPS''$ on the left to below to $\aPS'''$ on
-    the right.  % Program order
+    If there is a $({\rpox}\cup{\rrfe})$-maximal access, we select one of
+    these as $\aEv$.  If $\aEv$ is a write, we reverse the outgoing order in
+    $\rxw$.  If $\aEv$ is a read, we switch its fulfilling write to a
+    ``newer'' one and update $\rxw$.  For example, we switch
+    from $\aPS''$ on the left to below to $\aPS'''$ on the
+    right.  % Program order
     % goes from left to right, with the left thread above the right one.% ; we
     % only show program order explicitly when it is relevant to the example.
     \begin{gather*}
@@ -359,10 +361,10 @@ includes a race involving $\aEv$.
     $({\rppo}\cup{\rrfe})$-maximal.  The latter criterion also applies to the
     read of $y$, but there is no similar pomset that reads $0$ for $y$.
 
-    If there is no $({\rpox}\cup{\rrfe})$-maximal access, then all cross-thread
-    order must be from $\rrfe$.  In this case, we select a
+    If there is no $({\rpox}\cup{\rrfe})$-maximal access, then all
+    cross-thread order must be from $\rrfe$.  In this case, we select a
     $({\rppo}\cup{\rrfe})$-maximal read, switching its fulfilling write to an
-    ``older'' one. As an example, consider the following:
+    ``older'' one.  As an example, consider the following:
     \begin{gather*}
       y\GETS 0 \SEMI x\GETS 0 \SEMI (\aReg \GETS y  \SEMI x \GETS 1
       \PAR
