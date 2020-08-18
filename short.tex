@@ -358,9 +358,10 @@ includes a race involving $\aEv$.
           \pox{wy0}[below]{ry1}
         \end{tikzinline}}
     \end{gather*}    
-    Note that it is important that $({\rpox}\cup{\rrfe})$-maximal, not just
-    $({\rppo}\cup{\rrfe})$-maximal.  The latter criterion also applies to the
-    read of $y$, but there is no similar pomset that reads $0$ for $y$.
+    It is important that $\aEv$ be $({\rpox}\cup{\rrfe})$-maximal, not just
+    $({\rppo}\cup{\rrfe})$-maximal.  The latter criterion would allow us to
+    select $\aEv$ to be the read of $y$, but there is no $\aEv$-similar
+    pomset that reads $0$ for $y$, since the write to $x$ would be lost.
 
     If there is no $({\rpox}\cup{\rrfe})$-maximal access, then all
     cross-thread order must be from $\rrfe$.  In this case, we select a
