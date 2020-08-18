@@ -183,8 +183,8 @@ $\aPS\neq\aPS'\in\semmin{\aCmd}$ and $\aPS$ is a downset of $\aPS'$.
 \paragraph{Similarity}
 We say that \emph{$\aPS'$ is $\aEv$-similar to $\aPS$} if they differ at most
 in (1) the value associated with read event $\aEv$ and (2) pomset order
-adjacent to $\aEv$.  We say they are \emph{similar} if they are
-$\aEv$-similar for some $\aEv$.  Formally:
+adjacent to $\aEv$.  % We say they are \emph{similar} if they are $\aEv$-similar for some $\aEv$.
+Formally:
 $\Event'=\Event$,
 $\labelingForm'=\labelingForm$,
 ${\le'}\restrict{\Event\setminus\{\aEv\}}={\le}\restrict{\Event\setminus\{\aEv\}}$,
@@ -244,21 +244,22 @@ $\pole{L}$ is acyclic in $\Event'\setminus\Event$.
 % (2) there is a $\aCmd$-extension of $\aPS$ with a \emph{crossing} $L$-race\footnote{That is, there is some $\aPS'$ $\aCmd$-extending
 % $\aPS$, some $\bEv\in\Event$, and some $\aEv\in\Event'\setminus\Event$ such that $\bEv\lrace{L}\aEv$.}.
 
+The following theorem provides an inductive characterization of \emph{Local
+  Data-Race Freedom (LDRF)}: Any extension of a $L$-stable pomset is either
+$L$-sequential, or is $\aEv$-similar to a $L$-sequential extension that
+includes a race involving $\aEv$.
 \begin{theorem}
   Let $\aPS$ be $L$-stable in $\aCmd$.  Let $\aPS'$ be a $\aCmd$-extension of
   $\aPS$ that is $L$-sequential after $\aPS$.  Let $\aPS''$ be a
   $\aCmd$-extension of $\aPS'$ that is $\rpox$-convex, such that no subset of
   $\Event''$ satisfies these criteria.
-
+  %
   Then either (1) $\aPS''$ is $L$-sequential after $\aPS$ or (2) there is
-  some $\aCmd$-extension $\aPS'''$ of $\aPS'$ that is 
-  $L$-sequential after $\aPS$ such that (a) $\aPS'''$ is similar to $\aPS''$
-  and (b)
-  \begin{math}
-    \exists\bEv\in(\Event''\setminus\Event'):\;
-    \exists\aEv\in(\Event''\setminus\Event):\;
-    \;\bEv\lrace{L}\aEv).
-  \end{math}
+  some $\aCmd$-extension $\aPS'''$ of $\aPS'$ and some
+  $\aEv\in(\Event''\setminus\Event)$ such that (a) $\aPS'''$ is
+  $L$-sequential after $\aPS$, (b) $\aPS'''$ is $\aEv$-similar to $\aPS''$, and
+  (c) $\bEv\lrace{L}\aEv$ for some $\bEv\in(\Event''\setminus\Event')$.
+\end{theorem}
 \begin{proof}[Proof Sketch]
     In order to develop a technique to find $\aPS'''$ from $\aPS''$, we
     analyze pomset order in generation-minimal top-level pomsets.  First, we
@@ -298,9 +299,9 @@ $\pole{L}$ is acyclic in $\Event'\setminus\Event$.
 
     If there is $({\rpox}\cup{\rrfe})$-maximal read, we select it, switching
     the read from an ``older'' write to newer one.  For example, we switch from
-    $\aPS''$ on the left to below to $\aPS'''$ on the right.  Program order
-    goes from left to right, with the left thread above the right one; we
-    only show program order explicitly when it is relevant to the example.
+    $\aPS''$ on the left to below to $\aPS'''$ on the right.  % Program order
+    % goes from left to right, with the left thread above the right one.% ; we
+    % only show program order explicitly when it is relevant to the example.
     \begin{gather*}
       x\GETS 0 \SEMI y\GETS 0 \SEMI  (x \GETS 1  \SEMI y \GETS 1
       \PAR
@@ -312,18 +313,21 @@ $\pole{L}$ is acyclic in $\Event'\setminus\Event$.
           \event{wx1}{\DW{x}{1}}{right=3em of wy0}
           \event{wy1}{\DW{y}{1}}{right=of wx1}
           \event{ry1}{\DR{y}{1}}{below=of wx1}
-          \event{rx0}{\DR{x}{0}}{below=of wy1}
-          \rf[bend right]{wx0}{rx0}
+          \event{rx}{\DR{x}{0}}{below=of wy1}
+          \rf[bend right]{wx0}{rx}
           \rf{wy1}{ry1}
           \wk[bend left]{wy0}{wy1}
           \pox{wx1}{wy1}
-          \pox{ry1}[below]{rx0}
-          \wk{rx0}{wx1}
+          \pox{ry1}[below]{rx}
+          \wk{rx}{wx1}
           \node(ix)[left=of wx0]{};
           \node(iy)[left=of wy0]{};
           \bgoval[yellow!50]{(ix)(iy)}{P}
           \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
-          \bgoval[green!10]{(ry1)(wx1)(rx0)(wy1)}{P'''\setminus P'}
+          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P'''\setminus P'}
+          \pox{wx0}{wy0}
+          \pox{wy0}{wx1}
+          \pox{wy0}[below]{ry1}
         \end{tikzinline}}
       \qquad
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
@@ -332,18 +336,21 @@ $\pole{L}$ is acyclic in $\Event'\setminus\Event$.
           \event{wx1}{\DW{x}{1}}{right=3em of wy0}
           \event{wy1}{\DW{y}{1}}{right=of wx1}
           \event{ry1}{\DR{y}{1}}{below=of wx1}
-          \event{rx1}{\DR{x}{1}}{below=of wy1}
-          \rf{wx1}{rx1}
+          \event{rx}{\DR{x}{1}}{below=of wy1}
+          \rf{wx1}{rx}
           \rf{wy1}{ry1}
           \wk[bend left]{wy0}{wy1}
           \pox{wx1}{wy1}
-          \pox{ry1}[below]{rx1}
+          \pox{ry1}[below]{rx}
           \wk{wx0}{wx1}
           \node(ix)[left=of wx0]{};
           \node(iy)[left=of wy0]{};
           \bgoval[yellow!50]{(ix)(iy)}{P}
           \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
-          \bgoval[green!10]{(ry1)(wx1)(rx1)(wy1)}{P'''\setminus P'}
+          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P'''\setminus P'}
+          \pox{wx0}{wy0}
+          \pox{wy0}{wx1}
+          \pox{wy0}[below]{ry1}
         \end{tikzinline}}
     \end{gather*}    
     Note that it is important that $({\rpox}\cup{\rrfe})$-maximal, not just
@@ -355,54 +362,59 @@ $\pole{L}$ is acyclic in $\Event'\setminus\Event$.
     $({\rppo}\cup{\rrfe})$-maximal read, switching
     the read from an ``newer'' write to older one. As an example, consider the following:
     \begin{gather*}
-      x\GETS 0 \SEMI y\GETS 0 \SEMI (\aReg \GETS y  \SEMI x \GETS 1
+      y\GETS 0 \SEMI x\GETS 0 \SEMI (\aReg \GETS y  \SEMI x \GETS 1
       \PAR
       \bReg \GETS x \SEMI y \GETS \bReg)
       \\
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
           \event{wx0}{\DW{x}{0}}{}
-          \event{ry1}{\DR{y}{1}}{right=3em of wx0}
-          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \event{ry}{\DR{y}{1}}{right=3em of wx0}
+          \event{wx1}{\DW{x}{1}}{right=of ry}
           \event{wy0}{\DW{y}{0}}{below=of wx0}
           \event{rx1}{\DR{x}{1}}{right=3em of wy0}
           \event{wy1}{\DW{y}{1}}{right=of rx1}
           \rf{wx1}{rx1}
-          \rf{wy1}{ry1}
+          \rf{wy1}{ry}
           \po{rx1}{wy1}
-          \pox{ry1}{wx1}
+          \pox{ry}{wx1}
           \wk[bend left]{wx0}{wx1}
           \wk[bend right]{wy0}{wy1}
           % \wk{wx0}{rx1}
-          % \wk{wy0}{ry1}
+          % \wk{wy0}{ry}
           \node(ix)[left=of wx0]{};
           \node(iy)[left=of wy0]{};
           \bgoval[yellow!50]{(ix)(iy)}{P}
           \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
-          \bgoval[green!10]{(ry1)(wx1)(rx1)(wy1)}{P''\setminus P'}
+          \bgoval[green!10]{(ry)(wx1)(rx1)(wy1)}{P''\setminus P'}
+          \pox{wy0}{wx0}
+          \pox{wx0}{ry}
+          \pox{wx0}[below]{rx1}
         \end{tikzinline}}
       \qquad
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
           \event{wx0}{\DW{x}{0}}{}
-          \event{ry1}{\DR{y}{0}}{right=3em of wx0}
-          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \event{ry}{\DR{y}{0}}{right=3em of wx0}
+          \event{wx1}{\DW{x}{1}}{right=of ry}
           \event{wy0}{\DW{y}{0}}{below=of wx0}
           \event{rx1}{\DR{x}{1}}{right=3em of wy0}
           \event{wy1}{\DW{y}{1}}{right=of rx1}
-          \pox{ry1}{wx1}
+          \pox{ry}{wx1}
           \wk[bend left]{wx0}{wx1}
           \rf{wx1}{rx1}
-          \rf{wy0}{ry1}
+          \rf{wy0}{ry}
           \po{rx1}{wy1}
-          \wk{ry1}{wy1}
+          \wk{ry}{wy1}
           \node(ix)[left=of wx0]{};
           \node(iy)[left=of wy0]{};
           \bgoval[yellow!50]{(ix)(iy)}{P}
           \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
-          \bgoval[green!10]{(ry1)(wx1)(rx1)(wy1)}{P'''\setminus P'}
+          \bgoval[green!10]{(ry)(wx1)(rx1)(wy1)}{P'''\setminus P'}
+          \pox{wy0}{wx0}
+          \pox{wx0}{ry}
+          \pox{wx0}[below]{rx1}
         \end{tikzinline}}
     \end{gather*}
 \end{proof}
-\end{theorem}
 
     % {$\pole{L}$-covers}\footnote{$\aEv$ $\pole{L}$-covers $\aPS'$ if
     %   $\not\exists\bEv\in(\Event''\setminus\Event'):\;\bEv\pole{L}\aEv$.}
