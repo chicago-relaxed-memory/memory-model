@@ -130,24 +130,26 @@ unfamiliar with \citep{Dolan:2018:BDR:3192366.3192421} may prefer to skip to
 the examples in the proof sketch, referring back as needed.
 
 \paragraph{Data Race}
-Data races are defined using \emph{program} order, not \emph{pomset}
-order. %, and thus is stable with respect to augmentation.
-In \ref{SB}, for example,
-$(\DR{x}{0})$ has an $x$-race with $(\DW{x}{1})$, but not $(\DW{x}{0})$,
-which is $\rpox$-before it.
+Data races are defined using \emph{program} order $(\rpox)$, not
+\emph{pomset} order $(\le)$. %, and thus is stable with respect to augmentation.
+In \ref{SB}, for example, $(\DR{x}{0})$ has an $x$-race with $(\DW{x}{1})$,
+but not $(\DW{x}{0})$, which is $\rpox$-before it.
 
-When constructing a pomset, define \emph{program order} $(\rpox)$ in the
-obvious way.  As usual\nofootnote{To allow this simple definition of $\rsw$, we
-  consider the base language of \textsection\ref{sec:model}, which does not
-  include fences or \RMW{}s.}, we say that $\bEv$ \emph{synchronizes with}
-$\aEv$ (notation $\bEv\xsw\aEv$) exactly when $\bEv$ fulfills $\aEv$, $\bEv$
-is a release, $\aEv$ is an acquire, and $\lnot(\bEv\xpox\aEv)$.  Let
-${\rhb}=({\rpox}\cup{\rsw})^+$ be the \emph{happens-before} relation.  In
-\ref{Pub1}, for example, $(\DW{x}{1})$ happens-before $(\DR{x}{0})$, but
-this fails if either $\modeRA$ access is relaxed.
+When constructing a pomset, we define $\rpox$ in the obvious way.
+
+Because we ignore the features of
+\textsection\ref{sec:variants}, we can adopt the simplest definition of
+\emph{synchronizes-with} ($\rsw$): Let $\bEv\xsw\aEv$ exactly when
+$\bEv$ fulfills $\aEv$, $\bEv$ is a release, $\aEv$ is an acquire, and
+$\lnot(\bEv\xpox\aEv)$.
+
+Let ${\rhb}=({\rpox}\cup{\rsw})^+$ be the \emph{happens-before} relation.  In
+\ref{Pub1}, for example, $(\DW{x}{1})$ happens-before $(\DR{x}{0})$, but this
+fails if either $\modeRA$ access is relaxed.
 
 Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
-  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they conflict at
+  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they conflict
+(Definition \ref{def:rf}) at
 some location in $L$, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
 $\aEv\xhb\bEv$.  
 % A pomset has a \emph{data race} if there are conflicting events that are
@@ -182,15 +184,16 @@ $\aPS\neq\aPS'\in\semmin{\aCmd}$ and $\aPS$ is a downset of $\aPS'$.
 
 \paragraph{Similarity}
 We say that \emph{$\aPS'$ is $\aEv$-similar to $\aPS$} if they differ at most
-in (1) the value associated with read event $\aEv$ and (2) pomset order
-adjacent to $\aEv$.  % We say they are \emph{similar} if they are $\aEv$-similar for some $\aEv$.
-Formally:
-$\Event'=\Event$,
-$\labelingForm'=\labelingForm$,
+in (1) pomset order adjacent to $\aEv$ and (2) the value associated with
+event $\aEv$, if it is a
+read.  % We say they are \emph{similar} if they are $\aEv$-similar for some $\aEv$.
+Formally: $\Event'=\Event$, $\labelingForm'=\labelingForm$,
 ${\le'}\restrict{\Event\setminus\{\aEv\}}={\le}\restrict{\Event\setminus\{\aEv\}}$,
-$\labelingAct'\restrict{\Event\setminus\{\aEv\}}=\labelingAct\restrict{\Event\setminus\{\aEv\}}$,
-and $\labelingAct'(\aEv) =
-\labelingAct(\aEv)[\aVal'/\aVal]$ are reads, for some $\aVal'$, $\aVal$.
+if $\aEv$ is not a read then $\labelingAct'=\labelingAct$, and if $\aEv$ is a
+read then
+$\labelingAct'\restrict{\Event\setminus\{\aEv\}}=\labelingAct\restrict{\Event\setminus\{\aEv\}}$
+and $\labelingAct'(\aEv) = \labelingAct(\aEv)[\aVal'/\aVal]$, for some
+$\aVal'$, $\aVal$.
 
 
 
@@ -264,7 +267,7 @@ includes a race involving $\aEv$.
 \begin{proof}[Proof Sketch]
     In order to develop a technique to find $\aPS'''$ from $\aPS''$, we
     analyze pomset order in generation-minimal top-level pomsets.  First, we
-    not that $\le_*$ (the transitive reduction $\le$) can be decomposed into
+    note that $\le_*$ (the transitive reduction $\le$) can be decomposed into
     three disjoint relations.  Let ${\rppo}=({\le_*}\cap{\rpox})$ denote
     \emph{preserved} program order, as required by prefixing (Definition
     \ref{def:prefix}).  The other two relations are cross-thread\footnote{Within a
@@ -272,7 +275,7 @@ includes a race involving $\aEv$.
       is included in ${\rppo}$.} subsets of $({\le_*}\setminus{\rpox})$, as
     required by fulfillment (Definition \ref{def:rf}): $\rrfe$ orders writes
     before reads, as required by item 3 of the definition; $\rxw$ orders
-    accesses before writes, as required by item 4.
+    read and write accesses before writes, as required by item 4.
     % Then ${\le_*}={\rppo}\cup{\rrfe}\cup{\rxw}$.
 
     Using this decomposition, we can show the following.
@@ -285,11 +288,15 @@ includes a race involving $\aEv$.
       $\aPS'''\in\semmin{\aCmd}$.
     \end{lemma}
     The proof of the lemma follows an inductive construction of
-    $\semmin{\aCmd}$, starting from a larger set and pruning: We begin with
-    all pomsets generated by the semantics without imposing the requirements
-    of fulfillment (including only $\rppo$).  We then prune reads which
-    cannot be fulfilled, starting with those that are minimally ordered.
-    This proof is simplified by precluding local declarations.  
+    $\semmin{\aCmd}$, starting from a large set with little order, and
+    pruning the set as order is added: We begin with all pomsets generated by
+    the semantics without imposing the requirements of fulfillment (including
+    only $\rppo$).  We then prune reads which cannot be fulfilled, starting
+    with those that are minimally ordered.  This proof is simplified by
+    precluding local declarations.
+
+    We can prove a similar result for $({\rpox}\cup{\rrfe})$-maximal read
+    and write accesses.
 
     Turning to the proof of the theorem, if $\aPS''$ is $L$-sequential after
     $\aPS$, then the result follows from (1).  Otherwise, there must be a
@@ -302,9 +309,9 @@ includes a race involving $\aEv$.
     these as $\aEv$.  If $\aEv$ is a write, we reverse the outgoing order in
     $\rxw$; the ability to reverse this order witnesses the race.  If $\aEv$
     is a read, we switch its fulfilling write to a ``newer'' one, updating
-    $\rxw$; the ability to switch fulfilling writes witnesses the race.  For
+    $\rxw$; the ability to switch witnesses the race.  For
     example, for $\aPS''$ on the left below, we choose the $\aPS'''$ on the
-    right: $\aEv$ reads $x$ and races with $(\DW{x}{1})$.  % Program order
+    right;  $\aEv$ is the read of $x$, which races with $(\DW{x}{1})$.  % Program order
     % goes from left to right, with the left thread above the right one.% ; we
     % only show program order explicitly when it is relevant to the example.
     \begin{gather*}
@@ -360,14 +367,15 @@ includes a race involving $\aEv$.
     \end{gather*}    
     It is important that $\aEv$ be $({\rpox}\cup{\rrfe})$-maximal, not just
     $({\rppo}\cup{\rrfe})$-maximal.  The latter criterion would allow us to
-    the read of $y$ for $\aEv$, but there is no $\aEv$-similar pomset that
-    reads $0$ for $y$, since the write to $x$ would be lost.
+    choose $\aEv$ to be the read of $y$, but then there would be no
+    $\aEv$-similar pomset: if an execution reads $0$ for $y$ then there is no
+    read of $x$, due to the conditional.
 
     If there is no $({\rpox}\cup{\rrfe})$-maximal access, then all
     cross-thread order must be from $\rrfe$.  In this case, we select a
     $({\rppo}\cup{\rrfe})$-maximal read, switching its fulfilling write to an
     ``older'' one.  As an example, consider the following; once again,
-    $\aEv$ reads $x$ and races with $(\DW{x}{1})$.
+    $\aEv$ is the read of $x$, which races with $(\DW{x}{1})$.
     \begin{gather*}
       x\GETS 0 \SEMI y\GETS 0 \SEMI (\aReg \GETS x  \SEMI y \GETS 1
       \PAR
@@ -421,6 +429,7 @@ includes a race involving $\aEv$.
           \pox{wx0}[below]{rx1}
         \end{tikzinline}}
     \end{gather*}
+    This concludes the proof sketch.
 \end{proof}
 
     % {$\pole{L}$-covers}\footnote{$\aEv$ $\pole{L}$-covers $\aPS'$ if
@@ -771,8 +780,10 @@ $L$-sequential:
 \end{gather*}
 In this execution, the $L$-stable point $P$ is not $L$-sequential.
 Nonetheless, the theorem guarantees that any races in $P''$ can be found
-sequentially in some $P'''$.  Further, the theorem guarantees that the race
-found in $P'''$ does not involve any actions in the stable past $P$.
+sequentially in some $P'''$ --- in this case, by changing either read of $2$
+to $1$.  Further, the theorem guarantees that the race found in $P'''$ is
+between to actions outside of $P$ --- in this case, between the new read of
+$1$ and the write of $2$.
 
 \endinput
 
