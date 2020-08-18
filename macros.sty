@@ -386,7 +386,7 @@
 \newcommand{\Term}{\mathsf{Term}}
 \newcommand{\SC}{\mathsf{SC}}
 \newcommand{\sem}[1]{\llbracket#1\rrbracket}
-\newcommand{\semmin}[1]{\textsf{min}\llbracket#1\rrbracket}
+\newcommand{\semmin}[1]{\textsf{gen}\llbracket#1\rrbracket}
 \newcommand{\semdown}[1]{\nabla\llbracket#1\rrbracket}
 \newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\SC}}
 %\newcommand{\semsc}[1]{\textit{SC}\llbracket#1\rrbracket}
@@ -611,6 +611,11 @@
 \newcommand{\rrb}{\ensuremath{\mathrel{\textcolor{red!90!black}{\mathsf{fr}}}}}%
 \newcommand{\xrb}{\xarrowtikz{rb}{fr}}%
 
+\tikzstyle{xw} = [-latex,color=red!50!black,thick,dashed]
+\NewDocumentCommand \xw {O{} m O{} m} {\draw[xw,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{xw}$}  (#4);}
+\newcommand{\rxw}{\ensuremath{\mathrel{\textcolor{red!50!black}{\mathsf{xw}}}}}%
+\newcommand{\xxw}{\xarrowtikz{xw}{xw}}%
+
 \tikzstyle{rf} = [-latex,thick,color=green!50!black,]
 \newcommand{\rf}[3][]{\draw[rf,#1](#2)to(#3);}
 \newcommand{\rrf}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{rf}}}}}%
@@ -620,9 +625,9 @@
 \newcommand{\rrfx}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{rf}}}}}%
 \newcommand{\xrfx}{\xarrowtikz{rf}{rf}}%
 \tikzstyle{rfe} = [-latex,color=green!50!black,thick]
-\NewDocumentCommand \rfe {O{} m O{} m} {\draw[rfe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rfe}$}  (#4);}
-\newcommand{\rrfe}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{rfe}}}}}%
-\newcommand{\xrfe}{\xarrowtikz{rfe}{rfe}}%
+\NewDocumentCommand \rfe {O{} m O{} m} {\draw[rfe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{wr}$}  (#4);}
+\newcommand{\rrfe}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{wr}}}}}%
+\newcommand{\xrfe}{\xarrowtikz{rfe}{wr}}%
 \tikzstyle{rfi} = [-latex,color=green!50!black,thick]
 \NewDocumentCommand \rfi {O{} m O{} m} {\draw[rfi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rfi}$}  (#4);}
 \newcommand{\rrfi}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{rfi}}}}}%

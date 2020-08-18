@@ -709,16 +709,10 @@ Of the other operators, it will not be surprising to students of concurrency
 theory that the most interesting are local declarations ($\VAR\aLoc\SEMI\aCmd$)
 and parallel composition ($\aCmd \PAR \bCmd$).
 
+\paragraph{Local Declarations}
 At the point that $\aLoc$ is bound, we can require that every read of $\aLoc$
 be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
 \emph{coherence} play in other relaxed memory models, yet it is not the same.
-
-Parallel composition is roughly pomset union, allowing that some events may
-\emph{coalesce}, with the resulting precondition being the disjunction of the
-precondition taken from the two sides.  Composition is used to define
-conditionals (as in \cite{2019-sp}).  We also use it to define write
-prefixing (\textsection\ref{sec:pop}).  In both cases, the use of composition
-is required to ensure disjunction closure (Definition~\ref{def:dis}).
 
 \begin{definition}
    \label{def:rf}
@@ -938,8 +932,15 @@ for address calculation, which is required by realistic memory allocators.
 % \end{displaymath}
 
 %\subsection{Composition, Concurrency and Conditional}
+\paragraph{Composition}
+Parallel composition is roughly pomset union, allowing that some events may
+\emph{coalesce}, with the resulting precondition being the disjunction of the
+precondition taken from the two sides.  Composition is used to define
+conditionals (as in \cite{2019-sp}).  We also use it to define write
+prefixing (\textsection\ref{sec:pop}).  In both cases, the use of composition
+is required to ensure disjunction closure (Definition~\ref{def:dis}).
 
-Concurrent composition is roughly union.  Because of consistency
+Because of consistency
 (Definition~\ref{def:mmpomset}), we do not include events with contradictory
 preconditions.
 % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
@@ -1164,6 +1165,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 %   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
 % \end{displaymath}
 
+\paragraph{Conditional, Register Assignment, and Skip}
 Conditional execution is defined using parallel composition and
 \emph{filtering}: $(\aForm \guard \aPSS)$ selects the subset of pomsets in
 $\aPSS$ that are implied by $\aForm$.  Register assignment is defined using
@@ -1281,9 +1283,10 @@ including all of program order in pomset order.
 The definition ensures that program order is included in the pomset order.
 Due to the requirements of fulfillment, we also have that $\reco$ is included
 in pomset order.  As a result, all executions are sequentially consistent.
-For example, consider the \emph{store buffering} litmus test:
+For example, consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
 \begin{gather*}
-  \taglabel{SB}
+  \taglabel{SB/LB}
+  \begin{gathered}
   x\GETS0\SEMI
   y\GETS0\SEMI
   (
@@ -1300,22 +1303,44 @@ For example, consider the \emph{store buffering} litmus test:
       \event{rx}{\DR{x}{0}}{right=of wy}
       \wk{wx0}{wx}
       \wk{wy0}{wy}
-      \po{wy}{rx}
-      \po{wx}{ry}
       \rf{wy0}{ry}
       \rf{wx0}{rx}
       \wk[out=-150,in=15]{ry}{wy}
       \wk[out=150,in=-15]{rx}{wx}
       % \po{rx}{wy}
+      \pox{wy}[below]{rx}
+      \pox{wx}{ry}
     \end{tikzinline}}
+\end{gathered}
+\qquad
+  \begin{gathered}
+  \aReg\GETS y\SEMI x\GETS1
+  \PAR
+  \aReg\GETS x\SEMI y\GETS1
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \event{ry}{\DR{y}{1}}{}
+      \event{rx}{\DR{x}{1}}{below=of ry}
+      \event{wx}{\DW{x}{1}}{right=of ry}
+      \event{wy}{\DW{y}{1}}{right=of rx}
+      \rf{wy}{ry}
+      \rf{wx}{rx}
+      \pox{rx}[below]{wy}
+      \pox{ry}{wx}
+      % \po{rx}{wy}
+    \end{tikzinline}}
+\end{gathered}
 \end{gather*}
-The read to write order is required by the definition of fulfillment.
-This candidate execution is \emph{not} a pomset due to the resulting cycle;
-thus it is disallowed by Candidate~\ref{def:rw:sc1}.
+All of the cross-thread order is required by the definition of fulfillment.
+Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
+program order in pomset order, resulting in the cycles shown above.
+To allow these executions, we drop the order marked $\rpox$.
 
-For programs with general expressions, we must introduce preconditions.  We
-write the definition of the prefixing operator more carefully this time, and highlight
-some of the changes in the candidate semantics:
+We cannot drop all of program order, however, since some actions within a
+thread are causally related. Preconditions allow us to detect these
+relationships.  We write the definition of the prefixing operator more
+carefully this time, and highlight some of the changes in the candidate
+semantics:
 
 %\subsection{Program Order Prefixing}
 \begin{definition}
