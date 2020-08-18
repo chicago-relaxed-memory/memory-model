@@ -301,9 +301,9 @@ includes a race involving $\aEv$.
     If there is a $({\rpox}\cup{\rrfe})$-maximal access, we select one of
     these as $\aEv$.  If $\aEv$ is a write, we reverse the outgoing order in
     $\rxw$.  If $\aEv$ is a read, we switch its fulfilling write to a
-    ``newer'' one and update $\rxw$.  For example, we switch
-    from $\aPS''$ on the left to below to $\aPS'''$ on the
-    right.  % Program order
+    ``newer'' one, updating $\rxw$.  For example, for $\aPS''$ on the left
+    below, we choose the $\aPS'''$ on the right: $\aEv$ reads $x$ and
+    races with $(\DW{x}{1})$.  % Program order
     % goes from left to right, with the left thread above the right one.% ; we
     % only show program order explicitly when it is relevant to the example.
     \begin{gather*}
@@ -364,19 +364,20 @@ includes a race involving $\aEv$.
     If there is no $({\rpox}\cup{\rrfe})$-maximal access, then all
     cross-thread order must be from $\rrfe$.  In this case, we select a
     $({\rppo}\cup{\rrfe})$-maximal read, switching its fulfilling write to an
-    ``older'' one.  As an example, consider the following:
+    ``older'' one.  As an example, consider the following; once again,
+    $\aEv$ reads $x$ and races with $(\DW{x}{1})$.
     \begin{gather*}
-      y\GETS 0 \SEMI x\GETS 0 \SEMI (\aReg \GETS y  \SEMI x \GETS 1
+      x\GETS 0 \SEMI y\GETS 0 \SEMI (\aReg \GETS x  \SEMI y \GETS 1
       \PAR
-      \bReg \GETS x \SEMI y \GETS \bReg)
+      \bReg \GETS y \SEMI x \GETS \bReg)
       \\
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
-          \event{wx0}{\DW{x}{0}}{}
-          \event{ry}{\DR{y}{1}}{right=3em of wx0}
-          \event{wx1}{\DW{x}{1}}{right=of ry}
-          \event{wy0}{\DW{y}{0}}{below=of wx0}
-          \event{rx1}{\DR{x}{1}}{right=3em of wy0}
-          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \event{wx0}{\DW{y}{0}}{}
+          \event{ry}{\DR{x}{1}}{right=3em of wx0}
+          \event{wx1}{\DW{y}{1}}{right=of ry}
+          \event{wy0}{\DW{x}{0}}{below=of wx0}
+          \event{rx1}{\DR{y}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{x}{1}}{right=of rx1}
           \rf{wx1}{rx1}
           \rf{wy1}{ry}
           \po{rx1}{wy1}
@@ -396,12 +397,12 @@ includes a race involving $\aEv$.
         \end{tikzinline}}
       \qquad
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
-          \event{wx0}{\DW{x}{0}}{}
-          \event{ry}{\DR{y}{0}}{right=3em of wx0}
-          \event{wx1}{\DW{x}{1}}{right=of ry}
-          \event{wy0}{\DW{y}{0}}{below=of wx0}
-          \event{rx1}{\DR{x}{1}}{right=3em of wy0}
-          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \event{wx0}{\DW{y}{0}}{}
+          \event{ry}{\DR{x}{0}}{right=3em of wx0}
+          \event{wx1}{\DW{y}{1}}{right=of ry}
+          \event{wy0}{\DW{x}{0}}{below=of wx0}
+          \event{rx1}{\DR{y}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{x}{1}}{right=of rx1}
           \pox{ry}{wx1}
           \wk[bend left]{wx0}{wx1}
           \rf{wx1}{rx1}
