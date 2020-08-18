@@ -244,10 +244,7 @@ $\pole{L}$ is acyclic in $\Event'\setminus\Event$.
 % (2) there is a $\aCmd$-extension of $\aPS$ with a \emph{crossing} $L$-race\footnote{That is, there is some $\aPS'$ $\aCmd$-extending
 % $\aPS$, some $\bEv\in\Event$, and some $\aEv\in\Event'\setminus\Event$ such that $\bEv\lrace{L}\aEv$.}.
 
-The following theorem provides an inductive characterization of \emph{Local
-  Data-Race Freedom (LDRF)}: Any extension of a $L$-stable pomset is either
-$L$-sequential, or is $\aEv$-similar to a $L$-sequential extension that
-includes a race involving $\aEv$.
+
 \begin{theorem}
   Let $\aPS$ be $L$-stable in $\aCmd$.  Let $\aPS'$ be a $\aCmd$-extension of
   $\aPS$ that is $L$-sequential after $\aPS$.  Let $\aPS''$ be a
@@ -260,6 +257,10 @@ includes a race involving $\aEv$.
   $L$-sequential after $\aPS$, (b) $\aPS'''$ is $\aEv$-similar to $\aPS''$, and
   (c) $\bEv\lrace{L}\aEv$ for some $\bEv\in(\Event''\setminus\Event')$.
 \end{theorem}
+The theorem provides an inductive characterization of \emph{Local
+  Data-Race Freedom (LDRF)}: Any extension of a $L$-stable pomset is either
+$L$-sequential, or is $\aEv$-similar to a $L$-sequential extension that
+includes a race involving $\aEv$.
 \begin{proof}[Proof Sketch]
     In order to develop a technique to find $\aPS'''$ from $\aPS''$, we
     analyze pomset order in generation-minimal top-level pomsets.  First, we
