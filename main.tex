@@ -171,7 +171,15 @@
 
 
 %% Paper note
-\thanks{Radha Jagadeesan and James Riely were supported in part by NSF CCR}
+\thanks{
+This paper has been greatly improved by the comments of
+the anonymous reviewers.
+
+% Jagadeesan and Riely are supported by National Science Foundation
+% CCR-1617175.
+This material is based upon work supported by the National Science Foundation under Grant No. CCR-1617175. Any opinions, findings, and conclusions or
+recommendations expressed in this material are those of the author and do not
+necessarily reflect the views of the National Science Foundation.}
 %% The \thanks command may be used to createame a "paper note" ---
 %% similar to a title note or an author note, but not explicitly
 %% associated with a particular element.  It will appear immediately
@@ -281,7 +289,8 @@
 \input{variants}
 \input{logic}
 \input{short}
-\input{opt}%\input{oldopt}
+\input{opt}
+\input{hoare}
 \input{outro}
 \clearpage
 \begin{small}
@@ -317,29 +326,6 @@ A sentence I like but deleted (originally near RFUB):
 This example shows the wisdom of using existing tools, such as Hoare logic,
 to model new problems, such as relaxed memory.  We don't need to abandon
 established techniques, we only need to adapt them.
-
-Comments from Radha:
-
-Linear is incorrect as stated. eg. skip is Hoare equiv to r=x;x =r (which is
-linear) but cannot be substituted by it.  It is necessary to add the proviso
-linear AND (writes only if original program writes)
-
-Thm 7.2 to:
-
-    
-a. Defn of linear needs to forbid reads after writes. 
-
-The theorem does not hold for:
-   x=1; r=x
-vs
-   x=1
-
-They are both linear. Satisfy the same hoare triples.  But have different
-read(C)
-
-
-b. For the record.  I'm uncomfortable about DRF proof sketch.  If it comes to
-that, I'd like a careful flushing out of the "assumed closure conditions"
 
 REF A:
 
