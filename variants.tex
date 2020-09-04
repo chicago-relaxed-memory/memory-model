@@ -338,7 +338,7 @@ expression $\REF{\cExp}^\amode$ satisfies $\cExp=\cVal$, for some $\cVal$), the
 following semantics produces exactly the same executions as before.
 \begin{align*}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-  \textstyle\bigcup_\cVal\bigcup_\aVal\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix (\;\mathhl{\cExp=\cVal} \guard\sem{\aCmd}[\REF{\cVal}/\aReg])
+  \textstyle\bigcup_\cVal\bigcup_\aVal\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]
   % \\[-.5ex] & \mkern2mu\cup
   % \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
   % \sem{\aCmd}[\REF{\cVal}/\aReg]
@@ -378,17 +378,18 @@ Note that
 \begin{math}
   \sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}
 \end{math}
-includes both of the following pomsets (``$\BANG \aExp$'' evaluates to $1$ if
+includes both of the following pomsets (``$\BANG$'' is logical
+negation: ``$\BANG \aExp$'' evaluates to $1$ if
 $\aExp$ is $0$, and $0$ otherwise):
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=.2em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
       \event{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
-      \co{a}{b}
+      \wk{a}{b}
     \end{tikzinline}}%\;\;\cdots
-  \qquad
+  \qquad \qquad
   %\\[-1.5ex]\intertext{and:}\\[-5ex]
-  \hbox{\begin{tikzinline}[node distance=.2em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
       \event{b}{r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
     \end{tikzinline}}%\;\;\cdots
@@ -397,17 +398,17 @@ $\aExp$ is $0$, and $0$ otherwise):
 By using \!$\PAR$\!, it also includes:
 \begin{gather}
   \label{alanAddress}
-  \hbox{\begin{tikzinline}[node distance=.5em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
       \event{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
-      \co{a}{b}
+      \wk{a}{b}
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
-  \qquad
-  \hbox{\begin{tikzinline}[node distance=.5em]
-      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
-      \event{b}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of a}
-      \co{a}{b}
+  \qquad \qquad
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
+      \event{b}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
+      %\co{a}{b}
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
 \end{gather}
