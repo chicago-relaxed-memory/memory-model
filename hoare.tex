@@ -22,7 +22,113 @@
 % \[ \hoare{\aForm}{\aCmd}{\bForm}  \Longleftrightarrow\  \hoare{\aForm}{\linV{\aCmd}}{\bForm} \]
 % }
 
+\newcommand{\aMem}{M}
+\newcommand{\bMem}{N}
+\newcommand{\upd}[3]{#1[#2 \mapsto #3]}
+\newcommand{\aStore}{S}
+\newcommand{\bStore}{T}
+\newcommand{\config}[3]{((#1,#2), #3)}
+\newcommand{\aConfig}{\config{\aMem}{\aStore}{\aCmd}}
+\newcommand{\bConfig}{\config{\bMem}{\bStore}{\bCmd}}
+\newcommand{\trans}{\xrightarrow}
+\newcommand{\configCmd}[1]{\aCmd_{#1}}
+\newcommand{\aconfigCmd}[1]{{\rm Cmd}_{\aConfig}}
+\newcommand{\aConfigV}{{\mathcal C}}
+\newcommand{\bConfigV}{{\mathcal D}}
+\newcommand{\seqsem}[1]{{\rm SEQ}\sem{#1}}
+
 \section{Relation to Hoare Logic}
+In this section, we consider commands without synchronization, concurrency and local registers, i.e.:
+\begin{align*}
+  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  % \\
+\aCmd,\,\bCmd
+\BNFDEF& \SKIP
+\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
+\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
+\BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+\end{align*}
+where $\amode$ is only $\modeRLX$.  So, in the rest of the section, we elide all access modifiers.  
+For the purposes of this section, we assume that registers are single assignment.   
+
+For such commands, we consider the evident sequential operational semantics relating configurations with a memory and a store; we use $\aConfigV, \bConfigV$ to range over configurations.  The transition relation is of the form
+\[ \aConfig \trans{} \bConfig \] and is described below. 
+We write $\upd{\aMem}{\aLoc}{\aVal}$ for the memory that results by updating the value of $\aLoc$ by $\aVal$ (and leaving the other locations untouched).
+\begin{align*}
+\config{\aMem}{\aStore}{\aReg\GETS\aVal \SEMI \aCmd} & \trans\  
+\config{\aMem}{\aStore}{\aCmd[\aVal/\aReg]} \\
+\config{\upd{\aMem}{\aLoc}{\aVal}}{\aStore}{\aReg\GETS\aLoc \SEMI \aCmd} & \trans\ 
+\config{\upd{\aMem}{\aLoc}{\aVal}}{\aStore}{\aCmd[\aVal/\aReg]} \\
+\config{\aMem}{\aStore}{\aLoc \GETS \aVal \SEMI \aCmd}
+& \trans\  
+\config{\upd{\aMem}{\aLoc}{\aVal}}{\aStore}{ \aCmd} \\
+\config{\aMem}{\aStore}{\IF{0==0} \THEN \aCmd \ELSE \bCmd}
+& \trans\  
+\config{\aMem}{\aStore}{ \bCmd} \\
+\config{\aMem}{\aStore}{\IF{n==0} \THEN \aCmd \ELSE \bCmd}
+& \trans\ 
+\config{\aMem}{\aStore}{ \aCmd}, n \neq 0 
+\end{align*}
+
+With a configuration $\aConfigV = \aConfig$, we associate a command $\aMem \SEMI \aStore \aCmd$, that converts the initial memory and store into assingnments, and define:
+\[ \sem{\aConfig} = \eqdef\sem{\aMem \SEMI \aStore \aCmd}  \]
+
+\begin{definition}[Sequential Pomsets]
+A pomset $\aPS$ is {\em sequential} if for any $\aLoc$:
+\begin{itemize}
+\item $\aPS$ has atmost one write to $\aLoc$, and
+\item All reads of $\aLoc$ read the same value, and 
+\item there are no edges out of any read to $\aLoc$
+\item All preconditions are true
+\end{itemize}
+$\seqsem{\aCmd}  = \{ \aPS \mid \aPS \in \sem{\aCmd}, \aPS\ \mbox{ is sequential} \}$
+\end{definition}
+
+\begin{lemma}\label{soundp}
+If $\aConfigV \trans \bConfigV$, then $\freadsat(\seqsem{\aConfigV}) = \freadsat(\seqsem{\bConfigV})$.
+\end{lemma}
+\begin{proof}
+The proof follows from the peephole optimizations from section~\ref{sec:opt}, where the resriction to sequential pomsets strengthens the inequalities to equalities.    
+
+\eqref{RL} becomes a equality for sequential pomsets because all reads of $\aLoc$ read the same value.  
+
+\eqref{SF} becomes a equality for sequential pomsets because there are no edges out of a read. Since there are no non-trvial preconditions, this forces the value of the read to agree with the prior write.   The proof is completed by noting that read-saturation acccounts for the read missing from the right hand side.
+
+\eqref{DS}  becomes a equality for sequential pomsets because they only track the final write. 
+
+{\bf COmment to James.  Add law for:  r=M; C and C[M/r]}
+\end{proof}
+
+\begin{corollary}
+Let $\aForm$ be a conjunction of atoms of the form $\aLoc = \aVal$.  Then, for any configurations $\aConfigV, \bConfigV$:
+\[ (\forall \aForm) \hoare{\TRUE}{\aConfigV}{\aForm} \Leftrightarrow\   \hoare{\TRUE}{\bConfigV}{\aForm}  \]
+IFF
+\[ \freadsat(\seqsem{\aConfigV}) = \freadsat(\seqsem{\bConfigV}) \]
+\end{corollary}
+\begin{proof}
+By the soundness and completeness of standard Hoare logic, as applied to our language where sequential composition is restricted to prefixing, we deduce that:
+\[ (\forall \aForm) \hoare{\TRUE}{\aConfigV}{\aForm} \Leftrightarrow\   \hoare{\TRUE}{\bConfigV}{\aForm} 
+\]
+IFF
+\[ \aConfigV \trans{} \config{\aMem}{\aStore}{\SKIP} \Leftrightarrow\  \bConfigV \trans{} \config{\aMem}{\bStore}{\SKIP} \]
+
+Result follows from lemma~\ref{soundp} by observing that $\seqsem{\config{\aMem}{\aStore}{\SKIP}}$ is the set of writes determined by $\aMem$.
+\end{proof}
+
+
+\endinput
+
+
+
+
+
+
+For such commands, we establish the relationship between the sequential semantics and the pomset semantics. 
+
+
+
+In this section, we explore the 
 
 Comments from Radha:
 
