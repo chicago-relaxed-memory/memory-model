@@ -6,6 +6,7 @@ When $\sem{\aCmd} \supseteq \sem{\aCmd'}$, we say that $\aCmd'$ is a
 validity of specific optimizations and discuss ``optimizations'' that fail,
 such as \ref{RFUB}.
 
+
 \paragraph{Valid Rewrites}
 %\label{sec:valid}
 
@@ -106,10 +107,6 @@ The semantics validates several peephole optimizations.
   \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
   \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
   \\
-  \taglabel{SF}
-  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
-  \sem{\aLoc \GETS \aExp \SEMI \bReg  \GETS \aExp\SEMI\aCmd}
-  \\
   \taglabel{DS}
   \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp\SEMI\aCmd} &\supseteq 
   \sem{\aLoc \GETS \bExp\SEMI\aCmd}    
@@ -133,7 +130,7 @@ The semantics validates several peephole optimizations.
 %   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
 % $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-Redundant load elimination \eqref{RL} and store forwarding \eqref{SF} follow
+Redundant load elimination \eqref{RL} follows
 from item \ref{1} in the definition of prefixing, taking $\bEv\in\Event$.
 Dead store elimination \eqref{DS} follows from Definition \ref{def:cover}, of
 $\relfilt{}$.  The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
@@ -397,11 +394,121 @@ extrusion on page \pageref{page:extrusion}.
 
 %\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
+\paragraph{Irrelevant Reads}
+In our work on microarchitecture \citep{2019-sp}, irrelevant relaxed read
+actions could be observed using cache effects.  Thus far, we have maintained
+this perspective---for example, $\sem{r\GETS x}\not\supseteq\sem{\SKIP}$
+since $\sem{\SKIP}$ has a pomset with only the terminal action, and there is
+no such pomset in $\sem{r\GETS x}$.
+% $\not\supseteq\sem{r\GETS x\SEMI r\GETS{}x}$.
+This inequation holds even though there is no context in the
+language of this paper that can distinguish these programs.
+
+Some traditional optimizations are only valid ``modulo irrelevant reads.'' In
+order to characterize these, we define \emph{read saturation} as follows:
+%
+% \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
+% $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and $\exists D$ such that
+% $\Event'= \Event\uplus D$, ${\le'} \supseteq{\le}$,
+% ${\labeling'} \supseteq{\labeling}$, and for every $\bEv\in D$ there are
+% $\aLoc$ and $\aVal$ such that
+% $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+%
+\labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
+$\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
+$\Event''\subset\Event$ and $D$ such that $\Event'= \Event''\uplus D$,
+${\le'}\supseteq{\le\restrict{\Event''}}$,
+${\labeling'} \supseteq{\labeling\restrict{\Event''}}$, and for every
+$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
+$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+%
+% and
+% %$\aPS[\aVal/\aLoc]$ is consistent.
+% $\bigwedge_{\aEv\in\Event}\labelingForm(\aEv)[\aVal/\aLoc]$ is satisfiable.
+% The last requirement ensures consistency with item \ref{4b} in the
+% definition of prefixing.
+%
+Note that if $\aPSS'\supseteq\aPSS$, then
+$\readc(\aPSS')\supseteq \readc(\aPSS)$.
+We have:
+\begin{align*}
+  \taglabel{SF}
+  \readc\sem{\aLoc \GETS \aExp \SEMI \aReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \readc\sem{\aLoc \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
+  \\
+  \taglabel{IRE}
+  \readc\sem{\aReg  \GETS \aLoc\SEMI\aCmd} & \supseteq
+  \readc\sem{\aCmd}  
+  &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}
+\end{align*}
+Like \ref{RL}, store forwarding \eqref{SF} follows from item \ref{1} in the
+definition of prefixing, taking $\bEv\in\Event$.  Note that this inclusion
+does not hold in the plain semantics: for example,
+$\sem{\aLoc \GETS \aExp \SEMI \aReg \GETS \aExp}$ has a pomset containing
+only a write and the terminal action, whereas
+$\sem{\aLoc \GETS \aExp \SEMI \aReg \GETS \aLoc}$ contains no such pomset.
+
+Irrelevant read elimination \eqref{IRE} follows from the definition
+of $\readc$ and prefixing.
+
+Irrelevant read introduction fails generally, since $\sem{\SKIP}$ has pomset
+with only the termination action, whereas
+.  Consider the following example
+\cite[\textsection1.4.5]{SevcikThesis}:
+\begin{align*}
+  \readc\sem{\IF{\aReg} \THEN \bReg \GETS \aLoc \SEMI \bLoc \GETS \bReg \FI}
+  &=
+  \readc\sem{\bReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS \bReg \FI}
+\end{align*}
+The right-hand program is derived from the left by introducing an irrelevant
+read in the else-branch, and then moving the common code out of the
+conditional.  Read saturation allows us to add actions of the form
+$(\DR{x}{v})$ to the left-hand pomsets and $(r\neq0\mid\DR{x}{v})$ to the
+right, thus equating them.
+
+
+% \ref{RL} and \ref{SF} show that redundant accesses can be removed.  The same
+% does not hold for \emph{non-redundant} access:
+% $\sem{r\GETS x}\not\supseteq\sem{\SKIP}$ (consider a completed pomsets for
+% $\SKIP$).
+% % , since $\sem{\SKIP}$ includes the
+% % pomset with a single event, labeled $\DSTOP$.
+
 
 \paragraph{Invalid Rewrites}
 %\label{sec:invalid}
 
-Write introduction is invalid:
+Relevant read introduction is invalid:
+\begin{align*}
+  %\tag{Read-Intro-Invalid}
+  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
+  &\not\supseteq
+  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
+\end{align*}
+These are distinguished by the context
+\begin{math}
+  \hole{} \PAR x\GETS1\PAR x\GETS2.
+\end{math}
+
+% But even \emph{irrelevant} read introduction is invalid.
+% Consider the following example \cite[\textsection1.4.5]{SevcikThesis}:
+% \begin{align*}
+%   \sem{\IF{\aReg} \THEN \bReg \GETS \aLoc \SEMI \bLoc \GETS \bReg \FI}
+%   &\not\supseteq
+%   \sem{\bReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS \bReg \FI}
+% \end{align*}
+% This inequation holds even though there is no context in our
+% language that distinguishes these programs.
+
+
+\eqref{DS} shows that redundant writes can be eliminated.  General write
+elimination is, of course, invalid; for example
+\begin{math}
+  \sem{\aLoc\GETS 1} 
+  \not\supseteq
+  \sem{\SKIP}.
+\end{math}
+Write introduction is also invalid:
 \begin{align*}
   \sem{\aLoc \GETS 1} 
   &\not\supseteq
@@ -416,31 +523,14 @@ Observationally, these are distinguished by the context
   \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI.
 \end{math}
 
-Read introduction is also invalid.  Consider first a \emph{relevant} read:
-\begin{align*}
-  %\tag{Read-Intro-Invalid}
-  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
-  &\not\supseteq
-  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
-\end{align*}
-These are distinguished by the context
-\begin{math}
-  \hole{} \PAR x\GETS1\PAR x\GETS2.
-\end{math}
 
-But even \emph{irrelevant} read introduction is invalid:
-$\sem{\SKIP}\not\supseteq\sem{r\GETS x}\not\supseteq\sem{r\GETS x\SEMI r\GETS x}$.  These inequations hold even though there is no context in our
-language that distinguishes these programs.
-% With weaker notions of coherence
-% \cite{Manson:2005:JMM:1047659.1040336}, these
-% commands are indistinguishable.
+% But even \emph{irrelevant} read introduction is invalid:
+% $\sem{\SKIP}\not\supseteq\sem{r\GETS x}\not\supseteq\sem{r\GETS x\SEMI r\GETS x}$.  These inequations hold even though there is no context in our
+% language that distinguishes these programs.
+% % With weaker notions of coherence
+% % \cite{Manson:2005:JMM:1047659.1040336}, these
+% % commands are indistinguishable.
 
-\ref{RL} and \ref{SF} show that redundant accesses can be removed.  The same
-does not hold for \emph{non-redundant} access:
-$\sem{r\GETS x}\not\supseteq\sem{\SKIP}$ (consider a completed pomsets for
-$\SKIP$).
-% , since $\sem{\SKIP}$ includes the
-% pomset with a single event, labeled $\DSTOP$.
 
 
 We discussed the invalidity of variable renaming on page

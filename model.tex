@@ -1323,6 +1323,12 @@ $\stopPS$ is the set of pomsets that contain a single termination event.
 % \end{displaymath}
 \subsection{Program Order Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
+
+\todo{explain how the semantics handles this:}
+\begin{verbatim}
+{true} x=1; r=x; y=r {y=1}
+\end{verbatim}
+
 We present several candidate definitions for prefixing before giving the
 final definition.  The candidates are progressively more general and less
 ordered.  We begin by considering programs with trivial expressions,

@@ -100,6 +100,19 @@ The proof follows from the peephole optimizations from section~\ref{sec:opt}, wh
 {\bf COmment to James.  Add law for:  r=M; C and C[M/r]}
 \end{proof}
 
+\begin{verbatim}
+ReadSat(SEQ([| C }) = ReadSat(SEQ([ final memory of C --> }) 
+
+
+So: ReadSat(SEQ([| C }) = ReadSat(SEQ([| D })
+
+  ==> ReadSat(SEQ([ final memory of C --> })  = ReadSat(SEQ([ final memory of D --> }) 
+
+ 
+
+From which we conclude by Hoare completeness
+\end{verbatim}
+
 \begin{corollary}
 Let $\aForm$ be a conjunction of atoms of the form $\aLoc = \aVal$.  Then, for any configurations $\aConfigV, \bConfigV$:
 \[ (\forall \aForm) \hoare{\TRUE}{\aConfigV}{\aForm} \Leftrightarrow\   \hoare{\TRUE}{\bConfigV}{\aForm}  \]
