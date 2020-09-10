@@ -117,13 +117,17 @@ We adapt \citeauthor{Dolan:2018:BDR:3192366.3192421}'s
 [\citeyear{Dolan:2018:BDR:3192366.3192421}] notion of \emph{Local Data Race
   Freedom (LDRF)} to our setting.
 
-To simplify the result, we use the base language from
-\textsection\ref{sec:model} and assume all locations are top-level; that is,
-there are no local declarations of the form $(\VAR\aLoc\SEMI \aCmd)$.  We
-also assume all locations are properly initialized; a sufficient requirement
-is that all programs have the form
-``$\aLoc_1\GETS\aVal_1\SEMI \cdots \aLoc_n\GETS\aVal_n\SEMI\aCmd$''
-such that every location mentioned in $\aCmd$ is some $\aLoc_i$.
+The result requires that locations are properly initialized.  We assume a
+sufficient condition: that programs have the form
+``$\aLoc_1\GETS\aVal_1\SEMI \cdots \aLoc_n\GETS\aVal_n\SEMI\aCmd$'' where
+every location mentioned in $\aCmd$ is some $\aLoc_i$.
+
+We make two further restrictions to simplify the exposition.  To simplify the
+definition of \emph{happens-before}, we ban fences and \RMWs.  To simplify
+the proof, we assume all locations are top-level; that is, there are no local
+declarations of the form $(\VAR\aLoc\SEMI \aCmd)$.
+% We do not believe that
+% either of these restrictions is important.
 
 To state the theorem, we require several technical definitions.  The reader
 unfamiliar with \citep{Dolan:2018:BDR:3192366.3192421} may prefer to skip to
@@ -173,9 +177,16 @@ Let $\semmin{\aCmd}=\{\aPS\in\sem{\aCmd} \mid \aPS$ is top-level and
   generation-minimal in $\sem{\aCmd}\}$.
 
 \paragraph{Extensions}
-In order to relate pomsets with syntax, we enrich both actions and commands
-with program counter labels, extending the semantics in the obvious way.
-Program counter labels make the notion of downset sensitive to syntax.
+% In order to relate pomsets with syntax, we enrich commands with program
+% counter labels (\pcs), and we enrich actions with sets of \pcs.  We extend
+% the semantics to record these labels.  We take the union of labels when
+% coalescing actions via composition or prefixing.
+% Program counter labels make the notion of downset sensitive to syntax.
+
+% % In order to relate pomsets with syntax, we enrich both actions and commands
+% % with program counter labels (\pcs), extending the semantics of the basic
+% % model in the obvious way.  For the refined model of
+% % \textsection\ref{sec:refine}, we must handle disjunctions.  
 
 We say that $\aPS'$ \emph{$\aCmd$-extends} $\aPS$ if %$\aPS\in\semmin{\aCmd}$,
 $\aPS\neq\aPS'\in\semmin{\aCmd}$ and $\aPS$ is a downset of $\aPS'$.
@@ -265,17 +276,18 @@ The theorem provides an inductive characterization of \emph{Local
 $L$-sequential, or is $\aEv$-similar to a $L$-sequential extension that
 includes a race involving $\aEv$.
 \begin{proof}[Proof Sketch]
-    In order to develop a technique to find $\aPS'''$ from $\aPS''$, we
-    analyze pomset order in generation-minimal top-level pomsets.  First, we
-    note that $\le_*$ (the transitive reduction $\le$) can be decomposed into
-    three disjoint relations.  Let ${\rppo}=({\le_*}\cap{\rpox})$ denote
-    \emph{preserved} program order, as required by prefixing (Definition
-    \ref{def:prefix}).  The other two relations are cross-thread\footnote{Within a
-      thread, items 3 and 4 follow from prefixing requirement \ref{5b}, which
-      is included in ${\rppo}$.} subsets of $({\le_*}\setminus{\rpox})$, as
-    required by fulfillment (Definition \ref{def:rf}): $\rrfe$ orders writes
-    before reads, as required by item 3 of the definition; $\rxw$ orders
-    read and write accesses before writes, as required by item 4.
+  In order to develop a technique to find $\aPS'''$ from $\aPS''$, we analyze
+  pomset order in generation-minimal top-level pomsets.  First, we note that
+  $\le_*$ (the transitive reduction $\le$) can be decomposed into three
+  disjoint relations.  Let ${\rppo}=({\le_*}\cap{\rpox})$ denote
+  \emph{preserved} program order, as required by prefixing (Definition
+  \ref{def:prefix}).  The other two relations are cross-thread subsets of
+  $({\le_*}\setminus{\rpox})$, as required by fulfillment (Definition
+  \ref{def:rf}): $\rrfe$ orders writes before reads, satisfying fulfillment
+  requirement \ref{rf3}; $\rxw$ orders read and write accesses before writes,
+  satisfying requirement \ref{rf4}\footnote{Within a thread,
+  fulfillment requirements \ref{rf3} and \ref{rf4} follow from prefixing
+  requirement \ref{5b}, which is included in ${\rppo}$.}.
     % Then ${\le_*}={\rppo}\cup{\rrfe}\cup{\rxw}$.
 
     Using this decomposition, we can show the following.
@@ -730,8 +742,9 @@ When considering this pomset, we must perform the decomposition on the right.
 \end{gather*}
 This affects the inductive order in which we move across pomsets, but does
 not affect the set of pomsets that are considered.  This simplification is
-enabled by denotational reasoning and a precise characterization of
-dependency.
+enabled by denotational reasoning.
+% and a precise characterization of
+% dependency.
 
 %Write swap (WW$\rightarrow$WW):
 
@@ -783,8 +796,17 @@ In this execution, the $L$-stable point $P$ is not $L$-sequential.
 Nonetheless, the theorem guarantees that any races in $P''$ can be found
 sequentially in some $P'''$ --- in this case, by changing either read of $2$
 to $1$.  Further, the theorem guarantees that the race found in $P'''$ is
-between to actions outside of $P$ --- in this case, between the new read of
+between two actions outside of $P$ --- in this case, between the new read of
 $1$ and the write of $2$.
+
+Our definition of $L$-sequentiality does not quite correspond to SC
+executions, since actions may be elided by read or write elimination
+(\textsection\ref{sec:refine}).  However, for any properly initialized
+$L$-sequential pomset that uses elimination, there is larger $L$-sequential
+pomset that does not use elimination. This can be shown inductively: writes
+that are introduced this way can be ignored by existing reads; reads that are
+introduced this way can be fulfilled by some preceding write, using its
+value.
 
 \endinput
 

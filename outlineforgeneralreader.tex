@@ -90,10 +90,10 @@ does not create unexpected new behaviors.  More concretely, as envisioned in
 cross-thread dependencies.  The absence of cycles in the dependency order
 forbids \oota\ behaviors in our model.  Consider the well-known litmus test,
 with all variables initialized to $0$:
-\begin{equation}
+\begin{displaymath}
   %x\GETS0\SEMI y\GETS0\SEMI
   (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
-\end{equation}
+\end{displaymath}
 We rule out an assignment of $1$ to both locations as follows.  The write of
 $\aLoc$ in the LHS is dependent on the read to $\bLoc$.  Similarly, the write
 of $\bLoc$ in the RHS is dependent on the read to $\aLoc$.  Since the only

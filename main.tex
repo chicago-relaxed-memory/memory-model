@@ -286,10 +286,12 @@ necessarily reflect the views of the National Science Foundation.}
 
 \input{intro}
 \input{model}
+\input{litmus}
+\input{refinements}
 \input{variants}
 \input{logic}
 \input{short}
-\input{opt}
+%\input{opt}
 \input{hoare}
 \input{outro}
 \clearpage
@@ -310,12 +312,6 @@ paragraphs.  When discussing (*), mention the substitution in 2.11
 Section 2.7 should say that the second rule for write does not require a new action.
 
 Everywhere we have SB, it could be SB/LB.  I think there is space for both.
-
-At Co2, point out that this is not arbitrary, but needed to validate CSE.
-
-At Co3, point out that this stops races from the past from sneaking in.
-
-TC16 is coherence... we don't do that one.
 
 
 Should say explicitly that we allow load buffering

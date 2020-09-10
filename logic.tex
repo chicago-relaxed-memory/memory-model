@@ -437,18 +437,43 @@ as required.
 % \oota{} behavior.
 
 Many examples are superficially similar, but in fact have fewer dependencies,
-such as \ref{OOTA?} from \textsection\ref{sec:intro}.
-On page \pageref{page:rfub}, we discuss \citeauthor{BoehmOOTA}'s
-[\citeyear{BoehmOOTA}] \ref{RFUB} example, which presents another potential
-form of \oota{} behavior, in the context of compiler optimization.  Our
-analysis shows that there is no \oota{} behavior in \ref{RFUB}, instead
-\citeauthor{BoehmOOTA}'s analysis has a false dependency.
+such as \eqref{OOTA?} from \textsection\ref{sec:intro}.
+
+\citeauthor{BoehmOOTA}'s [\citeyear{BoehmOOTA}] \ref{RFUB} example presents
+another potential form of \oota{} behavior, in the context of compiler
+optimization.  Our analysis shows that there is no \oota{} behavior in
+\ref{RFUB}, instead \citeauthor{BoehmOOTA}'s analysis has a false dependency:
+%\citet{BoehmOOTA} \labeltext{considers}{page:rfub} the following programs:
+\begin{gather*}
+  \tag{RFUB}\label{RFUB}
+  \sem{r\GETS y\SEMI x\GETS r}
+  \not\supseteq
+  \sem{r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI \SEMI x\GETS r}
+\end{gather*}
+The left command is half of \ref{OOTA3}. %, from \textsection\ref{sec:logic}.
+The right command is dubbed \rfub{}, for \emph{Register assignment From an
+  Unexecuted Branch}.  \citeauthor{BoehmOOTA} observes that in the context
+$x\GETS y \PAR \hole{}$, these programs have different behaviors.  Yet the
+\oota{} example on the left never writes $1$.  Why should the unexecuted
+branch change that?  As it turns out, both branches of the conditional in
+\ref{RFUB} can execute, since the write to $x$ is independent of the read
+from $y$.  It useful to considering the Hoare logic formulas satisfied by the
+two threads above: we have $\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
+$\hoare{\TRUE}{\text{\oota}}{x=1}$.  The change in the thread from
+\ref{OOTA3} to \ref{RFUB} is not a valid refinement under Hoare logic; as a
+result, it is expected that \ref{RFUB} may have additional behaviors.
+
+% On page \pageref{page:rfub}, we discuss \citeauthor{BoehmOOTA}'s
+% [\citeyear{BoehmOOTA}] \ref{RFUB} example, which presents another potential
+% form of \oota{} behavior, in the context of compiler optimization.  Our
+% analysis shows that there is no \oota{} behavior in \ref{RFUB}, instead
+% \citeauthor{BoehmOOTA}'s analysis has a false dependency.
 
 Understanding \oota{} behavior is notoriously difficult, even for the
-greatest minds in the field!  We believe the \emph{logic} is the only tool
+greatest minds in the field!  We believe that \emph{logic} is the only tool
 that can cut the horrible knot that semanticists have tied themselves in.
-Preconditions provide a \emph{natural} solution to working out
-these dependencies.
+Preconditions provide a \emph{natural} solution to working out these
+dependencies.
 
 % \endinput
 

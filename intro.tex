@@ -94,7 +94,7 @@ Java 1.1 failed to validate Common Subexpression Elimination (CSE) in the
 presence of aliasing. For example, given that $\aReg_2\neq\bReg$, is it valid
 to transform the program on the left to that on the right?
 \begin{align*}
-  \tag{CSE}\label{CSE1}
+  \tag{CSE}\label{CSE}
   ({r_1\GETS \aLoc \SEMI
   s\GETS \bLoc \SEMI  
   r_2\GETS \aLoc\SEMI\aCmd})
@@ -149,7 +149,7 @@ This means that these models \emph{cannot support both type safety and
 % Due to the shortcomings of the JMM, many subsequent models preferred an
 % axiomatic approach.  
 The C++ Memory Model \cite{Batty:2011:MCC:1926385.1926394} does not attempt
-to validate \ref{CSE1}, at least not for relaxed atomic access (consider the
+to validate \ref{CSE}, at least not for relaxed atomic access (consider the
 case where $x$ and $y$ are aliased above).  C++ \emph{does} allow the
 transformation for \emph{plain} access, but this comes with the threat of
 \emph{undefined behavior} should any plain access ever possibly engage in a

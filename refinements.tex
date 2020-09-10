@@ -1,0 +1,671 @@
+\section{Refinements}
+\label{sec:refine}
+
+The previous section shows the simplicity and beauty of pomsets with
+preconditions as a model weak memory.  In this section we look at some of the
+complications and ugliness.
+
+Candidate \ref{cand:ord} does not validate case analysis, irrelevant read
+elimination, or irrelevant write elimination.  Here, we discuss refinements
+to the definition of prefixing that validate these rewrites.  We also discuss
+irrelevant read introduction.
+
+We limit attention to relaxed access---Candidate \ref{cand:ord} provides our
+final definition of prefixing for $\modeRA$/$\modeSC$ access.  In particular,
+we do not attempt to validate laws that eliminate $\modeRA$/$\modeSC$
+accesses.
+
+\paragraph{Case analysis}
+
+% \begin{align*}
+%   \sem{\IF{r{=}1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI}
+%   \supseteq
+%   \sem{x\GETS 1 \SEMI \IF{r{=}1}\THEN x\GETS r\FI}
+% \end{align*}
+
+% From the semantics of conditional it is obvious that Candidate \ref{cand:ord}
+% satisfies the following:
+% \begin{align*}
+%   \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} 
+%   &\supseteq
+%   \sem{\aCmd} 
+% \end{align*}
+The reverse of \ref{CL} (\textsection\ref{sec:valid}) is case analysis \eqref{CA}:
+\begin{align*}
+  \taglabel{CA}
+  \sem{\aCmd} &\supseteq
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} 
+\end{align*}
+\ref{CA} fails for Candidate \ref{cand:ord} due to read coherence.  Consider the following commands $\cmdR$ and $\cmdW$:
+\begin{align*}
+  \begin{gathered}
+    \cmdR = s\GETS x \SEMI \IF{r}\THEN s\GETS x \FI\\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{\DR{x}{0}}{}
+        \event{b}{r\mathbin{\mid}\DR{x}{0}}{right=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI\\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{\DW{x}{1}}{}
+        \event{b}{r\mathbin{\mid}\DW{x}{1}}{right=of a}
+        \wk{a}{b}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+$\cmdR$ reads twice, and $\cmdW$ writes twice.  Whereas the writes are
+ordered by \ref{5b}, the reads are not.  In the definition of composition,
+any actions with the same label and downset can coalesce, causing \ref{CA} to
+fail for $\cmdR$.  Consider the two sides of the composition defined by the
+conditional:
+\begin{align*}
+  \begin{gathered}
+    \IF{s}\THEN \cmdR \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
+        \event{b}{s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    \IF{\lnot s}\THEN \cmdR \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{\lnot s \mathbin{\mid}\DR{x}{0}}{}
+        \event{b}{\lnot s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+Because the reads are unordered, they can be confused when we coalescing, resulting in:
+\begin{align*}
+  \begin{gathered}
+    \IF{s}\THEN \cmdR
+    \ELSE       \cmdR
+    \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{s\lor (\lnot s \land r) \mathbin{\mid}\DR{x}{0}}{}
+        \event{b}{(s \land r)\lor \lnot s \mathbin{\mid}\DR{x}{0}}{right=of a}
+      \end{tikzinline}}    
+  \end{gathered}
+\end{align*}
+which is:
+\begin{align*}
+  \begin{gathered}
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{a}{s\lor r\mathbin{\mid}\DR{x}{0}}{}
+        \event{b}{\lnot s\lor r\mathbin{\mid}\DR{x}{0}}{right=of a}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+But this pomset does not occur in $\sem{\cmdR}$.  This problem does not
+happen in $\cmdW$, due to the order between the writes.  
+
+The key property required to prove \ref{CA} is \emph{disjunction closure}.
+The example shows that disjunction closure fails for Candidate
+\ref{cand:ord}, due to the lack of coherence between reads.  Note that this
+is not a problem for pairs of $\modeRA$ or $\modeSC$ reads, since these are
+ordered by \ref{5c}.
+
+\ref{CA} does hold if one is willing to strengthen \ref{5b} to include
+read-read coherence, and thus sacrifice \ref{CSE}
+(\textsection\ref{sec:valid}).  This compromise is considered reasonable for
+C11 atomics, which are meant to be used sparingly.  It is less attractive for
+plain access in Java-like languages.  As we will see, \ref{CA} also fails for
+naive approaches to read/write elimination and address calculation.
+Therefore, we choose to address \ref{CA} directly without imposing read-read
+coherence.
+
+Our solution is to weaken preconditions on identical writes when prefixing, so that
+$\sem{\cmdR}$ contains:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DR{x}{0}}{}
+      \event{b}{\DR{x}{0}}{right=of a}
+    \end{tikzinline}}
+\end{gather*}
+We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
+precondition of any $<$-minimal $\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
+
+% \begin{gather*}
+%   \labelingForm'(\aEv) \text{ implies }
+%   \begin{cases}
+%     \TRUE & \text{if } \labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal} \textand
+%     \text{there is no } \bEv \text{ such that } 
+%     % \not\exists\bEv\in\Event.\;
+%     \bEv<\aEv
+%     \\
+%     \labelingForm(\aEv) & \text{otherwise} 
+%   \end{cases}
+% \end{gather*}
+% The definition of read prefixing for relaxed access is then:
+% \begin{align*}
+%   \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & = \textstyle\bigcup_\aVal\;
+%   (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
+% \end{align*}
+% We give the final definition of prefixing after considering access elimination.
+% Case analysis \eqref{CA} follows from disjunction closure
+% (Definition \ref{def:dis}).
+
+
+% The semantics is also closed with respect to \emph{disjunction}, which
+% weakens pomsets by taking the disjunction of the formulae in their common
+% downset.  For example, since $\sem{x \GETS 1{+}r{*}r{-}r}$ includes
+% $(r\EQ0\mid\DW{x}{1})$ and $(r\EQ1\mid\DW{x}{1})$, it must also include
+% $(r\EQ0\lor r\EQ1\mid\DW{x}{1})$ (see page \pageref{page:disjunction}).
+% Likewise, $\sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}$ must include
+% \begin{math}
+%   (r\EQ0\lor r\EQ1\mid\DW{[0]}{0}) 
+% \end{math}
+% despite the fact that
+% \begin{math}
+%   (r\EQ0\mid\DW{[0]}{0}) 
+% \end{math}
+% is generated by $[r] \GETS 0 $ and
+% \begin{math}
+%   (r\EQ1\mid\DW{[0]}{0}) 
+% \end{math}
+% is generated by $[0]\GETS \BANG r$
+% % \begin{math}
+% %   (r\EQ0\lor r\EQ1\mid\DW{[0]}{0}) (r\EQ0\mathbin\mid\DW{[0]}{1})
+% % \end{math}
+% % and
+% % \begin{math}
+% %   (r\EQ0\lor r\EQ1\mid\DW{[0]}{0}) (r\EQ1\mathbin\mid\DW{[1]}{0})
+% % \end{math}
+% (see page \pageref{page:disjunction2}).
+
+% \labeltext{The}{page:disjunction} semantics is again driven by Hoare
+% logic---for the preconditions of writes, the relevant rule is left
+% disjunction:
+% \begin{displaymath}
+%   \frac{
+%     \hoare{\aForm^1}{\aCmd}{\bForm}
+%     \quad
+%     \hoare{\aForm^2}{\aCmd}{\bForm}
+%   }{
+%     \hoare{\aForm^1\lor\aForm^2}{\aCmd}{\bForm}
+%   }
+% \end{displaymath}
+% \todo{This is stupid:}
+% Note that
+% \begin{math}
+%   \sem{x \GETS 1{+}r{*}r{-}r}
+% \end{math}
+% includes both % of the pomsets:
+% % \begin{align*}
+% %   \hbox{\begin{tikzinline}[node distance=.2em]
+% %       \event{a}{r\EQ0\mathbin{\mid}\DW{x}{1}}{}
+% %     \end{tikzinline}}%\;\;\cdots
+% %   \qquad
+% %   %\\[-1.5ex]\intertext{and:}\\[-5ex]
+% %   \hbox{\begin{tikzinline}[node distance=.2em]
+% %       \event{a}{r\EQ1\mathbin{\mid}\DW{x}{1}}{}
+% %     \end{tikzinline}}%\;\;\cdots
+% % \end{align*}
+% \begin{math}
+%   \hbox{\begin{tikzinline}[node distance=.2em]
+%       \event{a}{r\EQ0\mathbin{\mid}\DW{x}{1}}{}
+%     \end{tikzinline}}%\;\;\cdots
+% \end{math}
+% and
+% % \begin{math}
+% %   \\[-1.5ex]\intertext{and:}\\[-5ex]
+% \hbox{\begin{tikzinline}[node distance=.2em]
+%     \event{a}{r\EQ1\mathbin{\mid}\DW{x}{1}}{}
+%   \end{tikzinline}}. %\;\;\cdots
+% % \end{math}
+% % \end{align*}
+% By using $\parallel_\aVal$ in the definition of write, it also includes:
+% % (where,
+% % contrary to convention, we show disjoint events):
+% \begin{math}
+%   \hbox{\begin{tikzinline}[node distance=.5em]
+%       \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{x}{1}}{}
+%     \end{tikzinline}}%\;\;\cdots
+% \end{math}.
+% An alternate definition using $\cup_\aVal$ would exclude this pomset.
+
+% Given that the conditional is defined using $\parallel$, the use of $\parallel$
+% in the definition of write is necessary to validate \emph{case analysis}:
+% \begin{math}
+%   \sem{\aCmd}
+%   =
+%   \sem{\IF{\aExp}\THEN \aCmd\ELSE \aCmd\FI}.
+% \end{math}
+
+
+
+
+
+
+  % We say that $\aPS^0$ is a \emph{disjunct} of $\aPS^1$ and $\aPS^2$ when
+  % $\Event^0=\Event^1 =\Event^2$, ${\le^0}={\le^1}={\le^2}$,
+  % $\labelingAct^0=\labelingAct^1 =\labelingAct^2$, and
+  % $\labelingForm^0(\aEv)$ implies $\clabelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$.
+
+  % We say that $\aPS^0$ is a \emph{downset weakening of $\aPS^1$ by $\aPS^2$} when
+  % $\Event^0=\Event^1 \supseteq\Event^2$, ${\le^0}={\le^1}\supseteq{\le^2}$,
+  % $\labelingAct^0=\labelingAct^1 \supseteq\labelingAct^2$, and
+  % $\labelingForm^0(\aEv)$ implies either
+  % $\labelingForm^2(\aEv)$ where $\aEv\in\Event^2$, or $\labelingForm^1(\aEv)$
+  % where $\aEv\not\in\Event^2$.
+
+  % for all $\aEv\in \Event^1\setminus\Event^2$: $\labelingForm(\aEv)$ implies
+  % $\labelingForm^1(\aEv)$.
+  % \begin{displaymath}
+  %   \labelingForm(\aEv) \text{ implies }
+  %   \begin{cases}
+  %     \labelingForm^2(\aEv) & \text{if } \aEv\in\Event^2
+  %     \\
+  %     \labelingForm^1(\aEv) & \text{otherwise} %\text{if } \aEv\in(\Event^1\setminus\Event^2)
+  %   \end{cases}
+  % \end{displaymath}
+
+  % We say that $\aPS$ is a \emph{disjunct} of $\aPS^1$ and $\aPS^2$ if 
+  % (1) $\Event = \Event^1$, ${\le}={\le^1}$, and
+  % $\labelingAct=\labelingAct^1$, (2) 
+  % $\Event^2\subseteq\Event^1$,
+  % ${\le^2}={\le^1}\restrict{\Event^2}$, and
+  % $\labelingAct^2=\labelingAct^1 \restrict{\Event^2}$, (3) for each
+  % $\aEv\in(\Event^1\setminus\Event^2)$:
+  % $\labelingForm(\aEv)$ implies $\labelingForm^1(\aEv)$, and (4)
+  % for each $\aEv\in\Event^2$:
+  % $\labelingForm(\aEv)$ implies $\labelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$.
+
+  % We say that $\aPS$ is a \emph{disjunct} of $\aPS^i$ ($i\in I$) if there is
+  % some $k\in I$ and some downset $\aPS^i_{\nabla}$ of each $\aPS^i$ such that
+  % (1) $\Event = \Event^k$, ${\le}={\le^k}$, and
+  % $\labelingAct=\labelingAct^k$, (2) for every $i\in I$,
+  % $\Event^k_{\nabla} = \Event^i_{\nabla}$,
+  % ${\le^k}_{\nabla}={\le^i}_{\nabla}$, and
+  % $\labelingAct^k_{\nabla}=\labelingAct^i_{\nabla}$, (3) for each
+  % $\aEv\in(\Event^k\setminus\Event^k_{\nabla})$:
+  % $\labelingForm(\aEv)$ implies $\labelingForm^k(\aEv)$, and (4)
+  % for each $\aEv\in\Event^k_{\nabla}$:
+  % $\labelingForm(\aEv)$ implies $\bigvee_i \labelingForm^i_{\nabla}(\aEv)$.
+
+  % Let $\aPS''$ be a \emph{disjunct} of $\aPS^i$ for $i\in I$ if there is some
+  % $\aPS'\in\PRE{\aPS''}$ such that $\Event' = \Event^i$, ${\le'}={\le^i}$,
+  % $\labelingAct'=\labelingAct^i$, and $\labelingForm'(\aEv)$ implies
+  % $\bigvee_i \labelingForm^i(\aEv)$.
+  %
+  % We say that $\aPS'$ is a \emph{disjunct} of $\aPS^i$  $(i\in I)$ if
+  % $\Event' = \Event^i$, ${\le'}={\le^i}$, $\labelingAct'=\labelingAct^i$, and
+  % $\labelingForm'(\aEv)$ implies $\bigvee_i \labelingForm^i(\aEv)$.
+  % 
+  % Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a
+  % downset of some $\aPS \in \aPSS\}$.
+  %
+  % Let $\aPS^{i}_{\nabla}$ denote a downset of ${\aPS^{i}}$, for $i\in\{1,2\}$.  We
+  % say that $\aPS^{2}$ is a \emph{downset weakening} of $\aPS^1$ by
+  % $\aPS^{2}_{\nabla}$ if there is some $\aPS^{1}_{\nabla}$ that implies $\aPS^{2}_{\nabla}$ and
+  % $\aPS^1$ implies $\aPS^{2}$.
+  % Let $\aPS^{2}$ be a \emph{downset weakening} of $\aPS^1$ by
+  % $\aPS^{2}_{\nabla}\in\PRE{\aPS^{2}}$ if $\aPS^1$ implies $\aPS^{2}$ and there is
+  % some $\aPS^{1}_{\nabla}\in\PRE{\aPS^{1}}$ such that $\aPS^{1}_{\nabla}$ implies
+  % $\aPS^{2}_{\nabla}$.
+  % Let
+  % $\aPS'$ be an \emph{isomorphism} of $\aPS$ if there is a bijection
+  % $f:\Event\fun\Event'$ such that $\labeling(\aEv)=\labeling'(f(\aEv))$, and
+  % $\aEv\le\bEv$ iff $f(\aEv)\le'f(\bEv)$. %, and $\aEv\gtN\bEv$ iff $f(\aEv)\gtN'f(\bEv)$.
+
+
+% Proof of disjunction closure:
+% Four properties, 16 cases:
+% d1 in E1'
+% d2 in E1'
+% d1 in E2'
+% d2 in E2'
+
+
+%\paragraph{Irrelevant Read Elimination}
+
+
+\paragraph{Irrelevant Write Elimination}
+
+Example for cover:
+\begin{gather*}
+  x\GETS 1\SEMI x\GETS r\\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW{x}{1}}{}
+      \event{b}{r{=}1\mathbin{\mid}\DW{x}{1}}{right=of a}
+      \wk{a}{b}
+    \end{tikzinline}}
+  \qquad\qquad
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{b}{r{=}1\mathbin{\mid}\DW{x}{1}}{}
+    \end{tikzinline}}
+\end{gather*}
+To validate \ref{CA} for this command, the semantics must also include the
+singleton $(\DW{x}{1})$.  The singleton is included in
+$\sem{\IF x\GETS 1\SEMI x\GETS r\ELSE x\GETS 1\SEMI x\GETS r \FI}$ by
+combining the right pomset above with the singleton downset $(\DW{x}{1})$
+from the left.
+
+% We discuss compiler optimization in \textsection\ref{sec:opt}.  % Irrelevant
+% reads have no effect in our model, thus we can define correctness with
+% respect to pomsets that have been saturated with arbitrary irrelevant reads.
+% The same does not hold for writes.
+
+% In our final definition of the semantics, we allow for the possibility of
+% relaxed read and write elimination:
+
+% In the semantics thus far, we have supposed that every read must be fulfilled
+% by a matching write action, and that the order between them must therefore be
+% part of the global pomset order.  This is overly restrictive for reads that
+% are fulfilled locally.
+
+% Consider Example 3.6 from
+% \citet{DBLP:journals/pacmpl/PodkopaevLV19}:
+% \begin{gather*}
+%   %\tag{$\dagger$}
+%   \label{Internal2}
+%   \aReg\GETS x\SEMI
+%   y\REL\GETS 1\SEMI
+%   \bReg\GETS y\SEMI
+%   z\GETS \bReg
+%   %z\GETS y
+%   \PAR
+%   x\GETS z
+%   \\
+%   \nonumber
+%   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+%   \event{a1}{\DR{x}{1}}{}
+%   \event{a2}{\DWRel{y}{1}}{right=of a1}
+%   \po{a1}{a2}
+%   \event{a3}{\DR{y}{1}}{right=of a2}
+%   \event{a4}{\DW{z}{1}}{right=of a3}
+%   \rf{a2}{a3}
+%   %\po{a3}{a4}
+%   \event{b1}{\DR{z}{1}}{right=2em of a4}
+%   \event{b2}{\DW{x}{1}}{right=of b1}
+%   %\po[out=10,in=170]{a2}{a4}
+%   \po{b1}{b2}
+%   \rf{a4}{b1}
+%   \rf[out=170,in=10]{b2}{a1}
+%     \end{tikzinline}}
+% \end{gather*}
+% This behavior is allowed by \armeight, but disallowed in the model presented
+% thus far, due to the evident cycle.
+
+% To allow this outcome, we remove the requirement for an explicit read action
+% when a read is matched by a local write---and, symmetrically, for an explicit
+% write action when a write is only used to match local reads.  We treat
+% only relaxed local access in this section, extending to $\modeRA$/$\modeSC$
+% local access after
+% introducing fences in \textsection\ref{sec:variants}.
+% % We first give the semantics of read.
+% % \begin{definition} \ \vspace{-1ex}
+% %   %\label{def:rw:local}
+% %   \begin{align*}
+% %     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+% %     \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+% %     % \\[-.5ex] &
+% %     % % \mkern2mu\cup
+% %     % \;\mathhl{\cup\;
+% %     %   % (\iDRmode{\aLoc}{}) \prefix
+% %     %   \text{if $\amode\mathbin\neq\modeRLXquiet$ then }\text{$\emptyset$ else }
+% %     %   \sem{\aCmd}[\aLoc/\aReg]
+% %     %   % \text{ else $\emptyset$}
+% %     % }
+% %   \end{align*}
+% % \end{definition}
+
+% As in \eqref{ex555}, Item \ref{4b} (Definition \ref{def:pre-sc}) ensures that
+% intervening writes are respected.  For example, 
+% \begin{math}
+%   {x\GETS 0\SEMI x\GETS 1\SEMI y\GETS x}
+% \end{math}
+% cannot write $0$ to $y$.
+% %does not $\DW{y}{0}$.
+% % NEED TO MAKE THIS POINT:
+% % So consider the single threaded program
+
+% % x=4; x=5; y=x;
+
+% % Clearly, this should not be able to give us Wy1.
+% % Here is why that is not possible:
+
+% % [[ y=1 ]] contains (Wy1)
+
+% % [[ if(r==4){y=1} ]] contains (r==4|Wy1)
+
+% % [[ r=x; if(r==4){y=1} ]] contains (Rx5)  (x==4|Wy1) // with no order
+
+% % [[ x=5; r=x; if(r==4){y=1} ]] contains (Wx5)-->(Rx5)  (5==4|Wy1) // 5 is forced.
+
+
+% % Consider the program variant:
+
+% % x=0; r=x; if(r<2){y=1} || x=5
+
+% % [[ y=1 ]] contains (Wy1)
+
+% % [[ if(r<2){y=1} ]] contains (r<2|Wy1)
+
+% % [[ r=x; if(r<2){y=1} ]] contains (Rx5)  (x<2|Wy1)  //with no order
+
+% % [[ x=0; r=x; if(r<2){y=1} ]] contains (Wx0)  (Rx5)  (x<2|Wy1) //does not work, since violates (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥].
+
+
+% % 6. if 𝑎 externally reads 𝑣 from 𝑥 then both 
+% % (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥], and 
+% % (6b) if 𝑒 is a write then either 𝑐 <′ 𝑒 or 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)
+
+\begin{definition}
+  \label{def:cover}
+  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ %$\aPSS'$
+  where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
+  items \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
+  \begin{itemize}
+  \item[{\labeltext[6]{(6)}{6}}]
+    if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+    is location independent.
+  \end{itemize}  
+  
+  Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+  $\labelingAct' = \labelingAct$, 
+  $\labelingForm'(\aEv)$ implies $\TRUE$ if  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ and
+  there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  
+  Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+  $\labelingAct' = \labelingAct$, 
+  $\labelingForm'(\aEv)$ implies $\aExp=\aVal\lor\labelingForm(\aEv)$ if $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$ and
+  there is no $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  
+  Let $(\relfilt[]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
+  $\aPS'\in\aPSS'$ when for every release $\aEv'\in\Event'$, there is some
+  $\bEv'\in\Event'$ such that $\bEv' \le\aEv'$ and $\bEv'$ \externally writes
+  $\aLoc$.
+  % 
+  % Let $(\relfilt[\modeRLXquiet]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
+  % $\aPS'\in\aPSS'$
+  % when %$\Event$ contains a write to $\aLoc$ and
+  % %there is some $\cEv'\in\Event'$ that writes $\aLoc$ and
+  % for every release $\aEv'\in\Event'$, %that does not write $\aLoc$,
+  % there is some $\bEv'\in\Event'$ 
+  % such that $\bEv' \le\aEv'$ and $\bEv'$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLXquiet$, let
+  %
+  % Let $(\relfilt[\modeRA]{\aLoc} \aPSS)=(\relfilt[\modeSC]{\aLoc} \aPSS)=\emptyset$.
+  %
+  %Let $(\relfilt[\amode]{\aLoc} \aPSS)=\emptyset$ when $\amode\neq\modeRLXquiet$.
+  % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
+  \begin{align*}
+    \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
+    \;\mathhl{\sem{\aCmd}[\aLoc/\aReg]}\;
+    \cup
+    \textstyle\bigcup_\aVal\;
+    (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
+    % \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & =
+    % \textstyle\bigcup_\aVal\; (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+    % \\[-.5ex] &
+    % \;\mathhl{\cup\;
+    %   \sem{\aCmd}[\aLoc/\aReg] %  \text{ if } \amode=\modeRLXquiet
+    % }
+    \\
+    \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
+    \;\mathhl{\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]}\;
+    \cup
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Wdis{\aLoc}{\aExp}}\;\,\sem{\aCmd}[\aExp/\aLoc]
+  \end{align*}
+\end{definition}
+
+
+\begin{definition}
+  \label{def:dis}
+  We say that $\aPS^0$ is a \emph{disjunct of $\aPS^1$ and downset $\aPS^2$} when
+  $\Event^0=\Event^1 \supseteq\Event^2$, ${\le^0}={\le^1}\supseteq{\le^2}$,
+  $\labelingAct^0=\labelingAct^1 \supseteq\labelingAct^2$, and:
+  % for all $\aEv\in\Event^2$: $\labelingForm(\aEv)$ implies
+  % $\labelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$, and
+  % for all $\aEv\in \Event^1\setminus\Event^2$: $\labelingForm(\aEv)$ implies
+  % $\labelingForm^1(\aEv)$.
+  \begin{displaymath}
+    \labelingForm^0(\aEv) \text{ implies }
+    \begin{cases}
+      \labelingForm^1(\aEv)\lor \labelingForm^2(\aEv) & \text{if } \aEv\in\Event^2
+      \\
+      \labelingForm^1(\aEv) & \text{otherwise} %\text{if } \aEv\in(\Event^1\setminus\Event^2)
+    \end{cases}
+  \end{displaymath}
+  We say that $\aPSS$ is \emph{downset-disjunction closed} if
+  $\aPS^0\in\aPSS$ whenever there are $\{\aPS^1,\,\aPS^2\}\subseteq \aPSS$
+  such that $\aPS^0$ is a disjunct of $\aPS^1$ and downset $\aPS^2$.
+\end{definition}
+
+
+Suppose you want to validate the following:
+% \begin{displaymath}
+%   \sem{r\GETS y\SEMI \IF{r}\THEN s\GETS x\FI \SEMI x\GETS 1 \SEMI z\GETS r}
+%   \supseteq
+%   \sem{x\GETS 1 \SEMI r\GETS y\SEMI  z\GETS r}
+% \end{displaymath}
+\begin{displaymath}
+  \sem{\IF{y}\THEN r\GETS x\SEMI x\GETS 1 \ELSE x\GETS 1 \FI}
+  \supseteq
+  \sem{x\GETS 1}
+\end{displaymath}
+Note that there is a spurious dependency from Read y to write x in the case
+that y reads non-zero value.  This is caused by causal strengthening on the
+coherence order.
+
+
+The use of $\relfilt{}$ in the definition prevents the eliminated write
+rule from applying immediately before a release.  This prevents bad
+executions such as:
+\begin{gather*}
+  \taglabel{Cover}
+  x\GETS 1\SEMI
+  x\GETS 2\SEMI
+  y\REL\GETS 1
+  \PAR
+  \aReg\GETS y\ACQ \SEMI \bReg\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DW{x}{1}}{}
+  \internal{a2}{\DW{x}{2}}{right=of a1}
+  \graywk{a1}{a2}
+  \event{a3}{\DWRel{y}{1}}{right=of a2}
+  \graypo{a2}{a3}
+  \event{b1}{\DRAcq{y}{1}}{right=2em of a3}
+  \rf{a3}{b1}
+  \event{b2}{\DR{x}{1}}{right=of b1}
+  \sync{b1}{b2}
+  \rf[out=10,in=170]{a1}{b2}
+  \sync[out=-10,in=-170]{a1}{a3}
+    \end{tikzinline}}
+\end{gather*}
+In this drawing, we have included a ``non-event''---dashed border---to mark
+the eliminated write.
+
+ In our work on microarchitecture \citep{2019-sp}, irrelevant relaxed read
+actions could be observed using cache effects.  Thus far, we have maintained
+this perspective---for example, $\sem{r\GETS x}\not\supseteq\sem{\SKIP}$
+since $\sem{\SKIP}$ has a pomset with only the terminal action, and there is
+no such pomset in $\sem{r\GETS x}$.
+% $\not\supseteq\sem{r\GETS x\SEMI r\GETS{}x}$.
+This inequation holds even though there is no context in the
+language of this paper that can distinguish these programs.
+
+We have:
+\begin{align*}
+  \taglabel{DS}
+  \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp\SEMI\aCmd} &\supseteq 
+  \sem{\aLoc \GETS \bExp\SEMI\aCmd}    
+  \\
+  \taglabel{SF}
+  \sem{\aLoc \GETS \aExp \SEMI \aReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aLoc \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
+  \\
+  \taglabel{RE}
+  \sem{\aReg  \GETS \aLoc\SEMI\aCmd} & \supseteq
+  \sem{\aCmd}  
+  &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}
+\end{align*}
+Like \ref{RL}, store forwarding \eqref{SF} follows from item \ref{1} in the
+definition of prefixing, taking $\bEv\in\Event$.  Note that this inclusion
+does not hold in the plain semantics: for example,
+$\sem{\aLoc \GETS \aExp \SEMI \aReg \GETS \aExp}$ has a pomset containing
+only a write and the terminal action, whereas
+$\sem{\aLoc \GETS \aExp \SEMI \aReg \GETS \aLoc}$ contains no such pomset.
+
+Dead store elimination \eqref{DS} follows from Definition \ref{def:cover}, of
+$\relfilt{}$.  
+
+\paragraph{Irrelevant Read Introduction}
+Irrelevant read introduction fails generally, since $\sem{\SKIP}$ has pomset
+with only the termination action, whereas
+.  Consider the following example
+\cite[\textsection1.4.5]{SevcikThesis}:
+\begin{align*}
+  \sem{\IF{\aReg} \THEN \bReg \GETS \aLoc \SEMI \bLoc \GETS \bReg \FI}
+  &\not\supseteq
+  \sem{\bReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS \bReg \FI}
+\end{align*}
+The right-hand program is derived from the left by introducing an irrelevant
+read in the else-branch, and then moving the common code out of the
+conditional.  Read saturation allows us to add actions of the form
+$(\DR{x}{v})$ to the left-hand pomsets and $(r\neq0\mid\DR{x}{v})$ to the
+right, thus equating them.
+
+
+Some traditional optimizations are only valid ``modulo irrelevant reads.'' In
+order to characterize these, we define \emph{read saturation} as follows:
+%
+% \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
+% $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and $\exists D$ such that
+% $\Event'= \Event\uplus D$, ${\le'} \supseteq{\le}$,
+% ${\labeling'} \supseteq{\labeling}$, and for every $\bEv\in D$ there are
+% $\aLoc$ and $\aVal$ such that
+% $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
+%
+\labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
+$\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
+$\Event''\subset\Event$ and $D$ such that $\Event'= \Event''\uplus D$,
+${\le'}\supseteq{\le\restrict{\Event''}}$,
+${\labeling'} \supseteq{\labeling\restrict{\Event''}}$, and for every
+$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
+$\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
+%
+% and
+% %$\aPS[\aVal/\aLoc]$ is consistent.
+% $\bigwedge_{\aEv\in\Event}\labelingForm(\aEv)[\aVal/\aLoc]$ is satisfiable.
+% The last requirement ensures consistency with item \ref{4b} in the
+% definition of prefixing.
+%
+Note that if $\aPSS'\supseteq\aPSS$, then
+$\readc(\aPSS')\supseteq \readc(\aPSS)$.
+
+Read introduction \eqref{RI}.
+\begin{align*}
+  \taglabel{RI}
+  \sem{\aCmd} & \supseteq
+  \sem{\aReg  \GETS \aLoc\SEMI\aCmd}  
+  &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}  
+\end{align*}

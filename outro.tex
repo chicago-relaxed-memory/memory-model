@@ -1,4 +1,6 @@
 \section{Other Related Work}\label{sec:related}
+\todo{The authors should compare their model to the thin-air solution of "Modular Relaxed Dependencies in Weak Memory Concurrency" from ESOP 2020.}
+
 We survey related work not discussed in
 \textsection\ref{sec:intro}-\ref{sec:logic} and \textsection\ref{sec:outro}.
 
@@ -172,6 +174,17 @@ dependencies (\ref{OOTA2}). This model of coherence does not correspond to
 either Java or C++, and therefore is unfamiliar.  \emph{We consider this all
   upside.  C++ invalidates \ref{CSE} on relaxed access.  Java invalidates
   the local \drfsc{} theorem \cite{Dolan:2018:BDR:3192366.3192421}.}
+
+\todo{The model does not include address or data dependencies between reads.
+  Note that we cannot get java final field semantics without distinguishing
+  address dependency from other things, or keeping thread ids in actions.
+  ARM requires that we do not order writes that only have a control
+  dependency or that are fulfilled by an external writes.}
+
+Final fields example without address dependency:
+r=new C; r.f=1; Fence1; x=r   ||   s1=x; Fence2; if (s1) {s2=s1.f}
+r=100; [r]=1; Fence1; x=r     ||   s1=x; Fence2; if (s1) {s2=[s1]}
+without Fence2 we allow the outcome s1=100, s2=0
 
 We treat loops via unrolling: loops introduce
 complexities\allowbreak{}---such as liveness and continuity---that are
