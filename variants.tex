@@ -433,25 +433,58 @@ In our example language, we update the syntax of commands:
 For degenerate programs that include only constant references (every
 expression $\REF{\cExp}^\amode$ satisfies $\cExp=\cVal$, for some $\cVal$), the
 following semantics produces exactly the same executions as before.
-\begin{align*}
+% \begin{align*}
+%   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+%   \textstyle\parallel_\cVal\bigcup_\aVal\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\REF{\cVal}/\aReg]
+%   % \\[-.5ex] & \mkern2mu\cup
+%   % \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
+%   % \sem{\aCmd}[\REF{\cVal}/\aReg]
+%   \\
+%   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+%   \\[-1ex]
+%   &\mkern-68mu\hbox to 0pt{$\begin{aligned}
+%     &\textstyle\parallel_\cVal\bigcup_\aVal\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix (\;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\aExp/\REF{\cVal}])
+%     \\[-.5ex]  \cup\!&
+%     \textstyle\parallel_{\cVal}\phantom{\bigcup_\aVal}\; %(\;\mathhl{\cExp=\cVal}\mid\DFW[\REF{\cVal}]{\amode}) \prefix
+%     (\relfilt{\REF{\cVal}} (\;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\aExp/\REF{\cVal}]))
+%   \end{aligned}$}
+%   % \\[-9.5ex]
+%   % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
+%   % \\[6ex]
+% \end{align*}
+\todo{We encode address calculation as conditional execution.  For example,
+  Candidate \ref{cand:ord} becomes the following, and similarly for the
+  definitions in \textsection\ref{sec:refine}.}
+  \begin{align*}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
-  \textstyle\parallel_\cVal\bigcup_\aVal\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\REF{\cVal}/\aReg]
-  % \\[-.5ex] & \mkern2mu\cup
-  % \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
-  % \sem{\aCmd}[\REF{\cVal}/\aReg]
-  \\
+    \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
+    \textstyle\bigcup_\aVal\;
+    (\DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd} [\REF{\cVal}]/\aReg]
+    \bigr)
+    \\
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
-  \\[-1ex]
-  &\mkern-68mu\hbox to 0pt{$\begin{aligned}
-    &\textstyle\parallel_\cVal\bigcup_\aVal\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix (\;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\aExp/\REF{\cVal}])
-    \\[-.5ex]  \cup\!&
-    \textstyle\parallel_{\cVal}\phantom{\bigcup_\aVal}\; %(\;\mathhl{\cExp=\cVal}\mid\DFW[\REF{\cVal}]{\amode}) \prefix
-    (\relfilt{\REF{\cVal}} (\;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\aExp/\REF{\cVal}]))
-  \end{aligned}$}
-  % \\[-9.5ex]
-  % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
-  % \\[6ex]
-\end{align*}
+    \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
+    \bigl(\textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+  \end{align*}
+%   \begin{align*}
+%     \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
+%     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
+%     \sem{\aCmd}[\REF{\cVal}]/\aReg]
+%     \cup
+%     \textstyle\bigcup_\aVal\;
+%     (\DR[\modeRLXquiet]\REF{\cVal}]\aVal) \prefix \Rdis{\REF{\cVal}]}{\aVal}\sem{\aCmd} [\REF{\cVal}]/\aReg]
+%     \bigr)
+%     \\
+%     \sem{\REF{\cVal}]^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
+%     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
+%     \begin{aligned}[t]
+%       \bigl(\textstyle\bigcup_\aVal\;& (\aExp=\aVal \mid \DW[\modeRLXquiet]\REF{\cVal}]\aVal) \prefix \Wdis{\REF{\cVal}]}{\aExp}\sem{\aCmd}[\aExp/\REF{\cVal}]]
+%       \\[-.5ex]
+%       \cup\;\;\;\; &\relfilt[]{\REF{\cVal}]} \sem{\aCmd}[\aExp/\REF{\cVal}]]
+%       \bigr)
+%     \end{aligned}
+% \end{align*}
+
 % \begin{aligned}
 %   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
 %   \textstyle\bigcup_{\cVal,\aVal}\; (\cExp=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
