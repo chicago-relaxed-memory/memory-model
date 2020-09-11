@@ -5,15 +5,77 @@ The previous section shows the simplicity and beauty of pomsets with
 preconditions as a model weak memory.  In this section we look at some of the
 complications and ugliness.
 
-Candidate \ref{cand:ord} does not validate case analysis, irrelevant read
-elimination, or irrelevant write elimination.  Here, we discuss refinements
-to the definition of prefixing that validate these rewrites.  We also discuss
-irrelevant read introduction.
-
 We limit attention to relaxed access---Candidate \ref{cand:ord} provides our
 final definition of prefixing for $\modeRA$/$\modeSC$ access.  In particular,
 we do not attempt to validate laws that eliminate $\modeRA$/$\modeSC$
-accesses.
+accesses.  We first give the final definition of prefixing for relaxed
+access, then explain it; we elide the $\modeRLX$ annotation.
+
+\begin{definition}
+  \label{def:cover}
+  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ %$\aPSS'$
+  where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
+  items \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
+  \begin{itemize}
+  \item[{\labeltext[6]{(6)}{6}}]
+    if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+    is location independent.
+  \end{itemize}  
+  
+  Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+  $\labelingAct' = \labelingAct$, 
+  $\labelingForm'(\aEv)$ implies $\TRUE$ if  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ and
+  there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  
+  Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+  $\labelingAct' = \labelingAct$, 
+  $\labelingForm'(\aEv)$ implies $\aExp=\aVal\lor\labelingForm(\aEv)$ if $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$ and
+  there is no $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  
+  Let $(\relfilt[]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
+  $\aPS'\in\aPSS'$ when for every release $\aEv'\in\Event'$, there is some
+  $\bEv'\in\Event'$ such that $\bEv' \le\aEv'$ and $\bEv'$ \externally writes
+  $\aLoc$.
+  % 
+  % Let $(\relfilt[\modeRLXquiet]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
+  % $\aPS'\in\aPSS'$
+  % when %$\Event$ contains a write to $\aLoc$ and
+  % %there is some $\cEv'\in\Event'$ that writes $\aLoc$ and
+  % for every release $\aEv'\in\Event'$, %that does not write $\aLoc$,
+  % there is some $\bEv'\in\Event'$ 
+  % such that $\bEv' \le\aEv'$ and $\bEv'$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLXquiet$, let
+  %
+  % Let $(\relfilt[\modeRA]{\aLoc} \aPSS)=(\relfilt[\modeSC]{\aLoc} \aPSS)=\emptyset$.
+  %
+  %Let $(\relfilt[\amode]{\aLoc} \aPSS)=\emptyset$ when $\amode\neq\modeRLXquiet$.
+  % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
+  \begin{align*}
+    \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
+    \;\mathhl{\sem{\aCmd}[\aLoc/\aReg]}\;
+    \cup
+    \textstyle\bigcup_\aVal\;
+    (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
+    % \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & =
+    % \textstyle\bigcup_\aVal\; (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+    % \\[-.5ex] &
+    % \;\mathhl{\cup\;
+    %   \sem{\aCmd}[\aLoc/\aReg] %  \text{ if } \amode=\modeRLXquiet
+    % }
+    \\
+    \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
+    \;\mathhl{\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]}\;
+    \cup
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Wdis{\aLoc}{\aExp}}\;\,\sem{\aCmd}[\aExp/\aLoc]
+  \end{align*}
+\end{definition}
+Unlike Candidate \ref{cand:ord}, this definition validates case analysis,
+irrelevant read elimination, and irrelevant write elimination.  We discuss
+each of these below.  This close this section with a brief discussion of
+irrelevant read introduction.
+
+
 
 \paragraph{Case analysis}
 
@@ -123,8 +185,8 @@ Our solution is to weaken preconditions on identical writes when prefixing, so t
 $\sem{\cmdR}$ contains:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DR{x}{0}}{}
-      \event{b}{\DR{x}{0}}{right=of a}
+      \event{a}{\TRUE\mathbin{\mid}\DR{x}{0}}{}
+      \event{b}{\TRUE\mathbin{\mid}\DR{x}{0}}{right=of a}
     \end{tikzinline}}
 \end{gather*}
 We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
@@ -456,65 +518,6 @@ from the left.
 % % (6a) 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)[𝑣/𝑥], and 
 % % (6b) if 𝑒 is a write then either 𝑐 <′ 𝑒 or 𝜆Φ′(𝑒) implies 𝜆Φ(𝑒)
 
-\begin{definition}
-  \label{def:cover}
-  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ %$\aPSS'$
-  where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
-  items \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
-  \begin{itemize}
-  \item[{\labeltext[6]{(6)}{6}}]
-    if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
-    is location independent.
-  \end{itemize}  
-  
-  Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  $\labelingAct' = \labelingAct$, 
-  $\labelingForm'(\aEv)$ implies $\TRUE$ if  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ and
-  there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
-  
-  Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  $\labelingAct' = \labelingAct$, 
-  $\labelingForm'(\aEv)$ implies $\aExp=\aVal\lor\labelingForm(\aEv)$ if $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$ and
-  there is no $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
-  
-  Let $(\relfilt[]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
-  $\aPS'\in\aPSS'$ when for every release $\aEv'\in\Event'$, there is some
-  $\bEv'\in\Event'$ such that $\bEv' \le\aEv'$ and $\bEv'$ \externally writes
-  $\aLoc$.
-  % 
-  % Let $(\relfilt[\modeRLXquiet]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
-  % $\aPS'\in\aPSS'$
-  % when %$\Event$ contains a write to $\aLoc$ and
-  % %there is some $\cEv'\in\Event'$ that writes $\aLoc$ and
-  % for every release $\aEv'\in\Event'$, %that does not write $\aLoc$,
-  % there is some $\bEv'\in\Event'$ 
-  % such that $\bEv' \le\aEv'$ and $\bEv'$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLXquiet$, let
-  %
-  % Let $(\relfilt[\modeRA]{\aLoc} \aPSS)=(\relfilt[\modeSC]{\aLoc} \aPSS)=\emptyset$.
-  %
-  %Let $(\relfilt[\amode]{\aLoc} \aPSS)=\emptyset$ when $\amode\neq\modeRLXquiet$.
-  % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
-  \begin{align*}
-    \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
-    \;\mathhl{\sem{\aCmd}[\aLoc/\aReg]}\;
-    \cup
-    \textstyle\bigcup_\aVal\;
-    (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
-    % \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & =
-    % \textstyle\bigcup_\aVal\; (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
-    % \\[-.5ex] &
-    % \;\mathhl{\cup\;
-    %   \sem{\aCmd}[\aLoc/\aReg] %  \text{ if } \amode=\modeRLXquiet
-    % }
-    \\
-    \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
-    \;\mathhl{\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]}\;
-    \cup
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Wdis{\aLoc}{\aExp}}\;\,\sem{\aCmd}[\aExp/\aLoc]
-  \end{align*}
-\end{definition}
 
 
 \begin{definition}
