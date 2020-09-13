@@ -186,6 +186,8 @@ A \emph{data model} consists of:
 \item a set of \emph{memory locations} $\Loc$, ranged over by $\aLoc$ and
   $\bLoc$, 
 \item a set of \emph{actions} $\Act$, ranged over by $\aAct$ and $\bAct$, and
+% \item a set of \emph{thread ids} $\Thrd$, ranged over by
+%   $\aThrd$ and $\bThrd$, and
 \item a set of \emph{logical formulae} $\Formulae$, ranged over by
   $\aForm$ and $\bForm$.
 \end{itemize}
@@ -210,16 +212,27 @@ We require that data models satisfy the following:
     includes memory locations.  By composition, formulae must also be closed
     under that substitutions of the form
     $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
-\item there is a relation $\vDash$ between formulae.
+\item there is a relation $\vDash$ between formulae, with the expected semantics.
 \end{itemize}
 
 For the actions of a data model, we require that
 % \begin{itemize}
 % \item
-  there are partial functions $\rreads$ and
-  $\rwrites: \Act \fun (\Loc \times \Val)$, and
-%\item
-  there are subsets of $\Act$: $\Acq$, $\Rel$, $\SC$, and $\Term$.
+% there is a function $\f: \Act \fun (\Loc \times \Val)$
+there are partial functions $\rreads$ and
+$\rwrites: \Act \fun (\Loc \times \Val)$, and there are subsets of $\Act$:
+$\Acq$, $\Rel$, $\SC$, and $\Term$.
+% We derive the partial function
+% $\floc: \Act \fun \Loc$ as follows: $\floc(\aAct)= \aLoc$ if
+% $\rreads(\aAct) = (\aLoc,\dontcare)$ or
+% $\rwrites(\aAct) = (\aLoc,\dontcare)$.
+% there are partial functions $\rreads$ and
+% $\rwrites: \Act \fun (\Thrd \times \Loc \times \Val)$, and there are subsets
+% of $\Act$: $\Acq$, $\Rel$, $\SC$, and $\Term$.  We derive the partial
+% functions $\fthrd: \Act \fun \Thrd$ and $\floc: \Act \fun \Loc$ from
+% $\rreads$ and $\rwrites$.  For example, define $\floc(\aAct)= \aLoc$ if
+% $\rreads(\aAct) = (\dontcare,\aLoc,\dontcare)$ or
+% $\rwrites(\aAct) = (\dontcare,\aLoc,\dontcare)$.
   % such that
   % $\SC\cap\fdom(\rreads)\subseteq\Acq$,
   % $\SC\cap\fdom(\rwrites)\subseteq\Rel$,
@@ -242,10 +255,11 @@ For the actions of a data model, we require that
   \begin{itemize}    
   \item We say that action $\aAct$ is a \emph{read} if
     $\aAct\in\fdom(\rreads)$ and $\aAct$ is a \emph{write} if
-    $\aAct\in\fdom(\rwrites)$.  When $\rreads(\aAct) = (\aLoc,\aVal)$, we say
-    that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$, and similarly for
-    writes.  We say that $\aAct$ \emph{accesses} $\aLoc$ if it either reads
-    or writes $\aLoc$.
+    $\aAct\in\fdom(\rwrites)$.  When $\rreads(\aAct) = (\aLoc,\aVal)$,
+    we say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$, and
+    similarly for writes.  We say that $\aAct$ \emph{accesses} $\aLoc$ if it
+    reads or writes $\aLoc$.
+
   \item Actions in $\Acq$, $\Rel$ and $\SC$, are \emph{synchronization} and
     \emph{fencing} actions.  We say that $\aAct$ is an \emph{acquire} if
     $\aAct\in\Acq$, $\aAct$ is a \emph{release} if $\aAct\in\Rel$, and
@@ -263,6 +277,27 @@ For the actions of a data model, we require that
   \item Actions in $\Term$ are \emph{termination} actions. We require that
     termination events are releasing.
   \end{itemize}
+
+  Our example language includes actions of the form $(\DSTOP)$, which is a
+  \emph{termination}, $(\DR[\amode][\aThrd]{\aLoc}{\aVal})$, which
+  \emph{reads} $\aVal$ from $\aLoc$ and
+  $(\DW[\amode][\aThrd]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
+  $\aLoc$.
+% The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
+% \emph{release-acquire} ($\modeRA$) or \emph{sequentially-consistent} ($\modeSC$).
+The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \modeRLX \!\BNFSEP\! \modeRA \!\BNFSEP\! \modeSC)$ is
+either \emph{relaxed}, \emph{release-acquire}, or
+\emph{sequentially-consistent}.
+$\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are releases.
+%We elide thread identifiers when possible.
+We systematically elide the $\modeRLX$-mode annotation, writing $(\DR{\aLoc}{\aVal})$
+as shorthand for $(\DR[\modeRLX]{\aLoc}{\aVal})$.
+
+We do not explicitly include C-style \emph{plain} access.  Plain access is
+the same as relaxed access for race-free programs; for racy programs, plain
+access results in undefined behavior.
+% We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
+
   % $\disjoint{\Term}{(\Acq\cup\Rel\cup\SC\cup\fdom(\rreads)\cup\fdom(\rwrites))}$.
 
 
@@ -275,7 +310,7 @@ For the actions of a data model, we require that
 % discussion.  We inappropriately refer to them as synchronizations for
 % simplicity.}.
 
-Logical formulae include equations over locations and registers, such
+\paragraph{Formulae} Logical formulae include equations over locations and registers, such
 $(\aLoc{=}1)$ and $(\aReg{=}\bReg{+}1)$.  Formulae are \emph{open}, in that
 occurrences of register names and memory locations are subject to
 substitutions of the form $\aForm[\aLoc/\aReg]$ and $\aForm[\bExp/\aLoc]$.
@@ -330,32 +365,18 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 
 % Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
 
-For the formulae of the data model,
-we say that $\aForm$ is \emph{independent of $\aLoc$} when, for every $\aVal$,
-$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$. We say that
-$\aForm$ is \emph{dependent on $\aLoc$} otherwise.  We say that $\aForm$ is
+%For the formulae of the data model,
+We say that $\aForm$ is \emph{independent of $\aLoc$} when, for every $\aVal$,
+$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$; it is \emph{dependent} otherwise.
+%We say that $\aForm$ is \emph{dependent on $\aLoc$} otherwise.
+We say that $\aForm$ is
 \emph{location independent} if it is independent of every location.
-
+%
 We say that $\aForm$ \emph{implies} $\bForm$ when $\aForm\vDash\bForm$,
 that $\aForm$ is a \emph{tautology} when $\TRUE\vDash\aForm$, and that
 $\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
 
 \subsection{Example Language}
-Our example language includes actions of the form
-$(\DSTOP)$, which is a \emph{termination},
-$(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads}  $\aVal$ from
-$\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
-$\aLoc$.
-% The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
-% \emph{release-acquire} ($\modeRA$) or \emph{sequentially-consistent} ($\modeSC$).
-The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \modeRLX \!\BNFSEP\! \modeRA \!\BNFSEP\! \modeSC)$ is
-either \emph{relaxed}, \emph{release-acquire}, or
-\emph{sequentially-consistent}.
-$\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are releases.
-We elide the $\modeRLX$-mode annotation in examples.
-(Note that C-style \emph{plain} access is the same as relaxed access for race-free 
-programs; for racy programs, plain access results in undefined behavior.)
-% We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
 \begin{comment}
 \footnote{We only consider executions where register state is empty in
   forked threads.  Given item~\ref{pre-acquire} of
@@ -399,7 +420,7 @@ We define the language by prefixing individual reads and writes.  % In
 \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
 \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \\[-.5ex]
-\BNFSEP&\aCmd \PAR \bCmd
+\BNFSEP&\aCmd \PAR[\aThrd][\bThrd] \bCmd
 \BNFSEP \VAR\aLoc\SEMI \aCmd
 \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
@@ -425,15 +446,17 @@ $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 % We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
 % We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
+The semantic function $\sem[\aThrd]{-}$ takes a command and
+yields a set of pomsets, ranged over by $\aPSS$.
 
+% Unless it is important to the context, we elide the thread identifier,
+% writing simply $\sem{\aCmd}$.
 
 \subsection{Semantic domain}
-We model \emph{executions} as \emph{pomsets with preconditions},
-ranged over by $\aPS$.  We call these \emph{pomsets}, for short.  These
+We model single {executions} as \emph{pomsets with
+  preconditions}---\emph{pomsets}, for short---ranged over by $\aPS$.  These
 extend the well-known model of partially ordered
 multisets~\cite{GISCHER1988199} with formulae and a termination event.
-We model \emph{programs} (notation $\sem{\aCmd}$) as \emph{sets} of pomsets with
-preconditions, ranged over by $\aPSS$.
 
 The pomset order relation, $\le$, represents \emph{causality}.  We visualize
 pomsets as directed graphs.  For example, the semantics of
@@ -549,15 +572,15 @@ $\bReg$ (see page \pageref{page:strengthening}).  Note that, by causal
 strengthening, the termination event of a completed pomset must imply all
 other events.
 
-
 \begin{definition}
   \label{def:mmpomset}
   A \emph{pomset with preconditions} is a tuple
-  $(\Event, {\le}, %{\gtN},
+  $(\Event, {\le}, %{\leloc},
   \labeling)$: %, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{states},
   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
+  % \item ${\le} \subseteq (\Event\times\Event)$ and ${\leloc} \subseteq (\Event\times\Event)$ are partial orders, 
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
     from which we derive functions $\labelingForm:\Event\fun\Formulae$ and $\labelingAct:\Event\fun\Act$,
     % define $\labelingForm(\aEv)=\aForm$ and $\labelingAct(\aEv)=\aAct$ when
@@ -567,7 +590,9 @@ other events.
   \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
     \emph{(consistency)}, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$ \emph{(causal strengthening)}.
+    $\labelingForm(\bEv)$ \emph{(causal strengthening)}, and
+  % \item if $\floc(\labelingAct(\bEv))=\floc(\labelingAct(\aEv))$ and
+  %   $\bEv\le\aEv$ then $\bEv\leloc\aEv$ \emph{(observation)}.
   \end{itemize}
   % A pomset is \emph{completed} if $\exists\aEv.\;\labelingAct(\aEv)=\DSTOP$. % and $\forall\bEv.\;\bEv\le\aEv$.
 \end{definition}
@@ -576,14 +601,16 @@ other events.
 
 We write pairs in $(\Formulae\times\Act)$ as $(\aForm \mid \aAct)$, eliding
 $\aForm$ when it is a tautology.
-
+%
 We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
+%We write $\bEv\ltloc\aEv$ when $\bEv\leloc\aEv$ and $\bEv\neq\aEv$.
+%
+We often elide explicit universal quantifiers in phrases such as ``\emph{for
+  all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''  We
+lift terminology and notation from actions and formulae to events.  For
+example, we may say that $\aEv$ is a read when $\labelingAct(\aEv)$ is a
+read.
 
-We lift terminology from logical formulae and actions to events, saying, for example,
-that $\aEv$ is \emph{unsatisfiable} if $\labelingForm(\aEv)$ is unsatisfiable,
-and that $\aEv$ is a \emph{termination} when $\labelingAct(\aEv)$ is a termination.
-We often elide explicit universal quantifiers in phrases such as
-``\emph{for all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''
 
 
 
@@ -675,16 +702,24 @@ We say $\bEv$ \emph{fulfills $\aEv$ (on $\aLoc$)} if
 % \item
 \labeltext[F3]{(F3)}{rf3} $\bEv \lt \aEv$, and
 % \item
-\labeltext[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
+\labeltext[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either $\cEv
+\gtN \bEv$ or $\aEv \gtN \cEv$. %, or $\fthrd(\aEv)=\fthrd(\cEv)$ and $\aEv \leloc \cEv$.
 % \end{itemize}
 \end{definition}
-Item \ref{rf3} requires that a write $\bEv$ is ordered before any read $\aEv$ it
-fulfills; we draw order required by this item (aka \emph{reads-from}) with
-bold green arrows.  Item \ref{rf4} requires that any conflicting write $\cEv$ is
-ordered before $\bEv$ or after $\aEv$; we draw order required by this item
-with dashed red arrows (aka \emph{extended coherence}).  In our model, these
-are not separate orders.  We include the \emph{reason} for the order only to improve
-readability. As an example, consider:
+% Throughout this section, we will ignore the last disjunct in \ref{rf4}; we
+% discuss it in \textsection\ref{
+
+Item \ref{rf3} requires that a write $\bEv$ is ordered before any read $\aEv$
+it fulfills; this order is typically called \emph{reads from}.  Item
+\ref{rf4} requires that any conflicting write $\cEv$ is ordered before $\bEv$
+or after $\aEv$; this order is typically called \emph{extended coherence}.
+For readability, we draw the order required by \ref{rf3} using bold green
+arrows and the order required by \ref{rf4} using dashed red arrows.
+% The causal order required by \ref{rf4} is part
+% of, and we draw it with dashed red
+% arrows.  % In our model, these are not separate orders.  We include the
+% % \emph{reason} for the order only to improve readability. 
+As an example, consider:
 \begin{gather*}
   \taglabel{Co1}
   x\GETS 1
@@ -751,8 +786,8 @@ discuss coherence further on page \pageref{page:coherence2}.
   Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ such that $\aPS'{\in}\aPSS'$
   when $\aPS'$ is $\aLoc$-closed.
 \begin{align*}
-  \sem{\VAR\aLoc\SEMI \aCmd} & \eqdef
-  \nu \aLoc \DOT \sem{\aCmd}  
+  \sem[\aThrd]{\VAR\aLoc\SEMI \aCmd} & \eqdef
+  \nu \aLoc \DOT \sem[\aThrd]{\aCmd}  
 \end{align*}
   A pomset is \emph{top-level} if it is $\aLoc$-closed for every location
   $\aLoc$.  
@@ -949,8 +984,8 @@ either:
 % \labelingForm^2(\aEv)$ is unsatisfiable.
 %\begin{gather*}
 \begin{aligned}
-  \sem{\aCmd \PAR \bCmd} & \eqdef
-  \sem{\aCmd} \parallel \sem{\bCmd} 
+  \sem[\aThrd]{\aCmd \PAR[\bThrd][\bThrd'] \bCmd} & \eqdef
+  \sem[\bThrd]{\aCmd} \parallel \sem[\bThrd']{\bCmd} 
 \end{aligned}
 \end{gather*}
 \end{definition}
@@ -1122,13 +1157,13 @@ $\stopPS$ is the set of pomsets that contain a single termination event.
   \ \ Let $\aPS\in\stopPS$ when $\Event$ has one element labelled with action
   $\DSTOP$\!\!.
 \begin{align*}
-  \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
-  \bigl(\aExp \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem{\bCmd}\bigr) 
+  \sem[\aThrd]{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
+  \bigl(\aExp \guard \sem[\aThrd]{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem[\aThrd]{\bCmd}\bigr) 
   &
-  \sem{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
-  \sem{\aCmd}[\aExp/\aReg] 
+  \sem[\aThrd]{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
+  \sem[\aThrd]{\aCmd}[\aExp/\aReg] 
   &  
-  \sem{\SKIP} & \eqdef
+  \sem[\aThrd]{\SKIP} & \eqdef
   \stopPS
 \end{align*}
 \end{definition}
@@ -1367,8 +1402,8 @@ there is $\aPS\in\aPSS$ such that
 \hbox{{\labeltext[1]{(1)}{1}} $\Event' = \Event \cup \{\bEv\}$,}
 {\labeltext[2]{(2)}{2}}  ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
 {\labeltext[3]{(3a)}{3}}  $\labelingAct'(\bEv) = \aAct$,
-(3b) $\labelingForm'(\bEv)$ implies $\aForm$, 
-{\labeltext[4]{(4a)}{4}} $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
+(3b) $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
+{\labeltext[4a]{(4a)}{4a}}{\labeltext[4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
 \begin{enumerate}
 % \item[(1)]\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
 % \item[(2)]\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
@@ -1399,26 +1434,21 @@ there is $\aPS\in\aPSS$ such that
     \end{aligned}
   \end{gather*}
 \end{candidate}
-Item \ref{1} introduces a new event.  Item \ref{2} ensures that no order is removed from old
-events. Item \ref{3} describes the label of the new event, which must imply
-$\aForm$. Item \ref{4} describes the labels of old events, as discussed below.
-Item \ref{5} ensures that program order is included for the new event.
+The semantics of read and write introduce a pomset for each possible value.
+Note that the value in write actions is fixed.  The dependence on $\aExp$
+appears in the precondition: $\aExp=\aVal$.
 
-%We first discuss writes, then reads.
+Item \ref{1} introduces a new event.  Item \ref{2} ensures that no order is
+removed from old events. Item \ref{3} specifies the action labelling the new
+and old events, and item \ref{4} specifies the preconditions.  Item \ref{5}
+ensures that program order is included for the new event.
 
-For writes, item \ref{4} is simple: For old events, the new precondition in $\aPS'$
-must imply the old precondition in $\aPS$.  (This is very similar to the
-treatment of the new event in item \ref{3}.)
-
-The semantics of write introduces a write action for each possible value of
-the expression $\aExp$.  Note that the value of the write action is fixed.
-The dependence on $\aExp$ is moved into the disjoint preconditions: $\aExp=\aVal$.
-% To ensure that at most one write is enabled, these
-% are given disjoint preconditions.
-
-For reads, item \ref{4b} %(Candidate \ref{def:pre-sc})
-allows some preconditions to weaken and requires others to strength\-en.
-Recall the pomsets given previously \eqref{ex-1} for $y\GETS r$ and
+For the new event, \ref{4a} requires that the precondition in $\aPS'$ implies
+$\aForm$.
+For old writes, \ref{4c} requires that the new precondition in
+$\aPS'$ must imply the old precondition in $\aPS$.
+For reads, \ref{4b} allows some preconditions to weaken and requires
+others to strengthen.  Recall the pomsets given previously \eqref{ex-1} for $y\GETS r$ and
 $\IF{r<0}\THEN y\GETS1 \FI$. % from the beginning of this section:
 % \begin{align*}
 %   \begin{gathered}
@@ -1514,6 +1544,9 @@ causally dependent on the read.  By prefixing a read event, the precondition
 $x=1$ has moved from the sequential realm of Hoare logic to the concurrent
 memory model.  Rather than a precondition that must be \emph{satisfied}, the
 resulting pomset has a read event that must be \emph{fulfilled}.
+
+% To ensure that at most one write is enabled, these
+% are given disjoint preconditions.
 
 %The use of $\parallel$ is unnecessary  for reads.
 % : the read rule does not introduce read preconditions, and item \ref{5a} of

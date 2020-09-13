@@ -1,3 +1,35 @@
+%\usepackage[defblank]{paralist}
+\usepackage{amssymb}
+\usepackage{hyphenat}
+\usepackage{xparse}
+\usepackage[T1]{fontenc}
+\usepackage{alltt}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{hyperref}
+\usepackage{makecell}
+\usepackage{mathtools}
+\usepackage{stmaryrd}
+\usepackage{verbatim}
+\usepackage{xcolor}
+\newcommand{\mathhl}[1]{\!\!\smash{\colorbox{gray!20!white}{$\displaystyle \mathstrut\smash{#1}$}}\!\!}
+\newcommand{\mathhlscript}[1]{\!\!\smash{\colorbox{gray!20!white}{$\scriptstyle {#1}$}}\!\!}
+%\usepackage{soul}
+%\newcommand{\hlfancy}[2]{\sethlcolor{#1}\hl{#2}}
+
+
+
+% \newcommand{\floc}{\mathsf{loc}}
+% \newcommand{\fthrd}{\mathsf{thread}}
+% \newcommand{\Thrd}{\mathcal{T}}
+% \newcommand{\aThrd}{\alpha}
+% \newcommand{\bThrd}{\kappa}%\upsilon}
+% \newcommand{\leloc}{\sqsubseteq}
+% \newcommand{\ltloc}{\sqsubset}
+% \newcommand{\geloc}{\sqsupseteq}
+% \newcommand{\gtloc}{\sqsupset}
+
+
 \newcommand{\modeRLXquiet}{{}}
 \newcommand{\Rdis}[2]{\mathsf{weaken}_{\mathsf{R}#1#2}}
 \newcommand{\Wdis}[2]{\mathsf{weaken}_{\mathsf{W}#1#2}}
@@ -8,7 +40,16 @@
 \newcommand{\pc}{\textsc{pc}}
 \newcommand{\pcs}{\textsc{pc}s}
 
-% https://tex.stackexchange.com/questions/438876/how-to-cross-reference-text-with-a-custom-label-reference-text
+\newcommand{\sem}[2][]{\llbracket#2\rrbracket}
+\NewDocumentCommand\DR{O{} O{} m m}{\mathsf{R}^{#1}\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}
+\NewDocumentCommand\DW{O{} O{} m m}{\mathsf{W}^{#1}\ifnotempty{#3}{\mkern0mu#3\ifnotempty{#4}{\mkern1mu#4}}}
+\NewDocumentCommand \PAR {O{} O{}}{\,\mathbin{\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}}\,}
+% \newcommand{\sem}[2][]{\llbracket#2\rrbracket_{#1}}
+% \NewDocumentCommand\DR{O{} O{} m m}{#2\mathsf{R}^{#1}\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}
+% \NewDocumentCommand\DW{O{} O{} m m}{#2\mathsf{W}^{#1}\ifnotempty{#3}{\mkern0mu#3\ifnotempty{#4}{\mkern1mu#4}}}
+% \NewDocumentCommand \PAR {O{} O{}}{\,\mathbin{{}_{#1}\mkern-2mu\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}\mkern-1mu{}_{#2}}\,}
+
+%https://tex.stackexchange.com/questions/438876/how-to-cross-reference-text-with-a-custom-label-reference-text
 % \labeltext[optional short ref]{the labeled text}{label name}
 \newcommand{\labeltext}[3][]{%
     \@bsphack%
@@ -310,8 +351,6 @@
 \newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DRreg}[4][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}}
-\newcommand{\DR}[3][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3}}}
-\newcommand{\DW}[3][]{\mathsf{W}^{#1}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#3}{\mkern1mu#3}}}
 \newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
 \newcommand{\DFS}[1]{\smash{\mathsf{F}^{#1}}}
 % \newcommand{\DFS}[1]{\smash{\mathsf{F}_{\mathsf{S}}^{#1}}}
@@ -396,7 +435,6 @@
 
 \newcommand{\Term}{\mathsf{Term}}
 \newcommand{\SC}{\mathsf{SC}}
-\newcommand{\sem}[1]{\llbracket#1\rrbracket}
 \newcommand{\semmin}[1]{\textsf{gen}\llbracket#1\rrbracket}
 \newcommand{\semdown}[1]{\nabla\llbracket#1\rrbracket}
 \newcommand{\semsc}[1]{\llbracket#1\rrbracket_{\SC}}
@@ -429,7 +467,6 @@
 \newcommand{\brELSE}{\texttt{\}}\\\texttt{else}\,\texttt{\{}}
 \newcommand{\brELIF}[1]{\texttt{\}}\\\texttt{else}\,\IF{#1}}
 \newcommand{\FI}{\texttt{\}}}
-\newcommand{\PAR}{\,\mathbin{\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}}\,}
 \newcommand{\RPAR}{\,\mathbin{\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}\mkern-5mu\raisebox{.7ex}{\texttt{\textbf{-}}}\mkern-3mu}\,}
 \newcommand{\LPAR}{\,\mathbin{\rrceil}\,}
 \newcommand{\VAR}{\texttt{var}\,}
@@ -450,25 +487,6 @@
 \newcommand{\GCC}{\texttt{gcc}}
 \newcommand{\CLANG}{\texttt{clang}}
 
-%\usepackage[defblank]{paralist}
-\usepackage{amssymb}
-\usepackage{hyphenat}
-\usepackage{xparse}
-\usepackage[T1]{fontenc}
-\usepackage{alltt}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{hyperref}
-\usepackage{makecell}
-\usepackage{mathtools}
-\usepackage{stmaryrd}
-\usepackage{verbatim}
-
-\usepackage{xcolor}
-\newcommand{\mathhl}[1]{\!\!\smash{\colorbox{gray!20!white}{$\displaystyle \mathstrut\smash{#1}$}}\!\!}
-\newcommand{\mathhlscript}[1]{\!\!\smash{\colorbox{gray!20!white}{$\scriptstyle {#1}$}}\!\!}
-%\usepackage{soul}
-%\newcommand{\hlfancy}[2]{\sethlcolor{#1}\hl{#2}}
 
 %% \wk[out=-30,in=-70,transform canvas={xshift=-1ex}]{wx0}{wx1}
 \usepackage{tikz}
@@ -512,7 +530,8 @@
 \newcommand{\event}[3]{\node[event](#1)[#3]{$\mathstrut#2$};}
 \tikzstyle{zlbl} = [black]
 \newcommand{\@zz}[1]{\makebox[0ex]{\smash{\raisebox{-.5ex}{{${#1}{:}\;$}}}}}
-\newcommand{\eventl}[4]{\node[event](#2)[#4,label={[zlbl]left:\@zz{#1}}]{$\mathstrut#3$};}
+\newcommand{\@zzl}[1]{\makebox[0ex][r]{\smash{\raisebox{-.5ex}{{${#1}{:}$}}}}}
+\newcommand{\eventl}[4]{\node[event](#2)[#4,label={[zlbl]left:\@zzl{#1}}]{$\mathstrut#3$};}
 \newcommand{\eventr}[4]{\node[event](#2)[#4,label={[zlbl]right:\@zz{#1}}]{$\mathstrut#3$};}
 \tikzstyle{internal} = [color=gray, draw=gray, dashed, fill=gray!10, rectangle, rounded corners, minimum size=3ex]
 \newcommand{\internal}[3]{\node[internal](#1)[#3]{$\mathstrut#2$};}

@@ -4,567 +4,11 @@
 It is amazing how much Candidate \ref{cand:ord} ``gets right'' out of the
 box, including ``internal reads'', which greatly complicate other models
 \cite{DBLP:journals/pacmpl/PulteFDFSS18}.  Before refining the model, we walk
-through several valid rewrites, invalid rewrites, and litmus tests.
-
-\subsection{Valid and Invalid Rewrites}
-\label{sec:valid}
-
-When $\sem{\aCmd} \supseteq \sem{\aCmd'}$, we say that $\aCmd'$ is a
-\emph{valid transformation} of $\aCmd$.  In this subsection, we show the
-validity of specific optimizations.  
-Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
-
-% To enable reasoning about program fragments, transformation validity must be
-% preserved by \emph{contexts}.  In \textsection\ref{sec:model}, we defined the
-% semantics by prefixing one action at a time.  This helps to make the
-% semantics understandable, but it also creates impoverished contexts.
-
-% To allow for richer contexts, we appeal to the alternate presentation of the
-% language given in \textsection\ref{sec:semicolon}.  We refactor the syntax
-% of commands and define contexts:
-% \begin{align*}
-%   \aCmd,\,\bCmd
-%   \BNFDEF& \SKIP
-%   \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
-%   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
-%   % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
-%   % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
-%   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
-%   \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
-%   \\[-.5ex]
-%   \BNFSEP&\aCmd \PAR \bCmd
-%   \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
-%   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
-%   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-%   \\
-%   \aCtxt,\,\bCtxt
-%   \BNFDEF& \hole{}
-%   \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
-%   \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
-%   \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
-%   \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
-%   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
-%   \\[-.5ex]
-%   \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-%   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-% \end{align*}
-
-
-% \begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
-%   Let $\bCtxt$ be a context
-%   % \footnote{%
-%   %   The results of this section hold for contexts of the example language
-%   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-%   %   % \begin{math}
-%   %   %   \begin{array}[t]{rcl}
-%   %   %     \aCtxt,\,\bCtxt
-%   %   %     &\BNFDEF& \hole{}
-%   %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
-%   %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
-%   %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
-%   %   %     \\[-.5ex]
-%   %   %     &\BNFSEP&\aCtxt \PAR \bCmd
-%   %   %     \BNFSEP \aCmd \PAR \bCtxt
-%   %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
-%   %   %     \\[-.5ex]
-%   %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-%   %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-%   %   %   \end{array}
-%   %   % \end{math}
-%   %   The results of this section hold for contexts of the example language
-%   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-%   %   The results also hold for the more general contexts of
-%   %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
-%   %   \begin{displaymath}
-%   %     \begin{array}[t]{rcl}
-%   %       \aCtxt,\,\bCtxt
-%   %       &\BNFDEF& \hole{}
-%   %       \BNFSEP \aCtxt \SEMI \bCmd
-%   %       \BNFSEP \aCmd \SEMI \bCtxt
-%   %       \BNFSEP \aCtxt \PAR \bCmd
-%   %       \BNFSEP \aCmd \PAR \bCtxt
-%   %       \BNFSEP 
-%   %       \\[-.5ex]
-%   %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
-%   %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-%   %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-%   %     \end{array}
-%   %   \end{displaymath}}
-% and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
-% \begin{displaymath}
-%   \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
-% \end{displaymath}
-% \end{lemma}
-
-%
-
-The semantics validates several peephole optimizations.
-\begin{align*}
-  \taglabel{RL}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
-  \\
-  \taglabel{WW}
-  \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
-  \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
-  \\
-  \taglabel{RW}
-  \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
-  \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
-  \\
-  \taglabel{RR}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
-  \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
-\end{align*}
-% \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
-% have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
-%     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
-% \ref{RR} requires either $\aReg\neq\bReg$ or
-%   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
-% semicolon have disjoint ids; for example, \ref{RW} requires
-% $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-Redundant load elimination \eqref{RL} follows
-from item \ref{1} in the definition of prefixing, taking $\bEv\in\Event$.
-The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
-follow from item \ref{item:5} in the definition of prefixing, since no order
-is imposed.  Item \ref{item:5} also validates roach-motel reorderings.  For
-example, the rules for relaxed writes are as follows:
-  \begin{align*}
-    \taglabel{AcqW} 
-    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
-    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
-    &&\textif x\neq y&&\hbox{}
-    \\
-    \taglabel{RelW}
-    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
-    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
-    &&\textif x\neq y&&\hbox{}
-  \end{align*}
-
-  % Reads on the same location are ordered in our model; thus, read optimizations
-% are limited by the power of aliasing analysis
-% \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
-  Since item \ref{5b} does not impose order between reads of the same
-  location, \ref{RR} can allow the possibility that $\aLoc=\bLoc$.  As a
-  result, read optimizations are not limited by the power of aliasing
-  analysis.  By composing \ref{RR} and \ref{RL}, we validate \ref{CSE}, from
-  \textsection\ref{sec:intro}:
-\begin{align*}
-  %\taglabel{CSE}
-  \sem{r_1\GETS \aLoc \SEMI
-  s\GETS \bLoc \SEMI  
-  r_2\GETS \aLoc\SEMI\aCmd}
-  \supseteq
-  \sem{r_1\GETS \aLoc \SEMI     
-    r_2\GETS r_1\SEMI
-    s\GETS \bLoc \SEMI\aCmd}
-    &&\textif \aReg_2\neq\bReg&&\hbox{}
-\end{align*}
-%However, this fails if $\aLoc=\bLoc$.
-
-
-% \begin{displaymathsmall}
-%   \sem{r_1\GETS \REF{\aExp} \SEMI
-%   s\GETS \REF{\bExp} \SEMI  
-%   r_2\GETS \REF{\aExp}}
-%   \supseteq
-%   \sem{r_1\GETS \REF{\aExp} \SEMI
-%   s\GETS \REF{\bExp} \SEMI  
-%   r_2\GETS r_1}
-% \end{displaymathsmall}
-% This holds regardless of whether $\aExp=\bExp$.
-
-
-% By induction on the length of the pomsets in $\aCmd$, we can use the
-% reorderings to establish, more generally, that when $\aCmd$ and $\bCmd$ are
-% assignment sequences and $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
-% \begin{gather*}
-%   \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
-% \end{gather*}
-% Appealing directly to the semantics, we can establish general properties for
-% redundant load \ref{RLp}, store forwarding \ref{SFp}, and roach-motel
-% \ref{A}, \ref{R}:
-% Let $\aCmd$ be
-% synchronization-free, with disjoint ids as before:
-% \begin{align*}
-%   % \taglabelp{RL}
-%   % \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
-%   % \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
-%   % \\
-%   % \taglabelp{SF} 
-%   % \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
-%   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
-%   % \\
-%   \taglabel{A}
-%   \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
-%   \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
-%   \\
-%   \taglabel{R}
-%   \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
-%   \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
-% \end{align*}
-% Roach-motel reorderings that increase the scope of synchronization are valid.
-% \begin{lemma}%[Reorderings]
-%   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
-%   \begin{align*}
-%     \tag{R-Acq}
-%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
-%     \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
-% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
-%     \\
-%     \tag{W-Acq} 
-%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
-%     \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
-%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
-%     \\
-% \tag{Rel-R} 
-% \sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
-%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
-%     \\
-%     \tag{Rel-W}
-%     \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
-%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
-%   \end{align*}
-% \begin{proof}
-% The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
-% \end{proof}
-% \end{lemma}
-
-% Again, we suppose that $\aCmd$ is an assignment sequence and disjoint
-% identifiers.
-% \ref{A} and \ref{R} require
-% disjoint names, as in \ref{WW} and
-% \ref{RW}. In addition, \ref{A} and \ref{R} require that $\aCmd$ is
-% synchronization-free.
-
-
-Many laws hold for the conditional, such as dead code elimination \eqref{DC}
-and code lifting \eqref{CL}:
-\begin{align*}
-  \taglabel{DC}
-  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
-  \sem{\aCmd}
-  &&\textif \aExp \text{ is a tautology}
-  \\
-  \taglabel{CL}
-  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &\supseteq
-  \sem{\aCmd}
-\end{align*}
-Code lifting also applies to program fragments inside a conditional.  For example:
-\begin{align*}
-  \sem{\IF{\aExp}\THEN x\GETS \bExp \SEMI\aCmd\ELSE x\GETS \bExp \SEMI\bCmd\FI} &\supseteq
-  \sem{x\GETS \bExp \SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
-  % \sem{\IF{r{=}1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI}
-  % \supseteq
-  % \sem{x\GETS 1 \SEMI \IF{r{=}1}\THEN x\GETS r\FI}
-\end{align*}
-We discuss the inverse of \ref{CL} in \textsection\ref{sec:case}.
-% \begin{align*}
-%   \begin{gathered}
-%     \IF{r=1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI
-%     \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
-%         \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
-%         \event{b}{s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
-%       \end{tikzinline}}
-%   \end{gathered}
-%   &&
-%   \begin{gathered}
-%     \IF{\lnot s}\THEN \cmdR \FI
-%     \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
-%         \event{a}{\lnot s \mathbin{\mid}\DR{x}{0}}{}
-%         \event{b}{\lnot s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
-%       \end{tikzinline}}
-%   \end{gathered}
-% \end{align*}
-
-% The fact that $\sem{\aCmd}\supseteq \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI}$
-% follows because the semantics is closed with respect to disjunction:
-% \begin{definition}
-%   \label{def:dis1}
-%   We say that $\aPS^0$ is a \emph{disjunct of $\aPS^1$ and $\aPS^2$} when
-%   $\Event^0=\Event^1=\Event^2$, ${\le^0}={\le^1}={\le^2}$,
-%   $\labelingAct^0=\labelingAct^1 =\labelingAct^2$, and
-%   $\labelingForm^0(\aEv)$ implies 
-%   $\labelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$.
-%   % We say that $\aPSS$ is \emph{disjunction closed} if
-%   % $\aPS^0\in\aPSS$ whenever there are $\{\aPS^1,\,\aPS^2\}\subseteq \aPSS$
-%   % such that $\aPS^0$ is a disjunct of $\aPS^1$ and $\aPS^2$.
-% \end{definition}
-% In proving disjunction closure, the difficult case is prefixing.
-
-% \ref{DC} requires that $\aExp$ be a tautology.
-
-% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
-%reorderings hold.
-%  \begin{align*}
-% \begin{align*}
-%    \tag{R-R}
-%    \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} 
-%\SEMI \aCmd} &=
-%    \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
- %   \\
- %   \tag{R-W}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
-%\SEMI \aCmd} &=
-%    \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
-%    \\
- %   \tag{W-W}
- %   \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI 
-%\aCmd} &=
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI 
-%\aCmd}
-%  \end{align*}
-% \begin{proof}
-% The semantics of sequential composition $\aCmd \SEMI \bCmd$, where 
-% the only enforced $\lt$ relationships come from conflict on locations or 
-%release or acquire actions.    The roach-motel reorderings that increase 
-%the scope of synchronization are valid because the pomsets in the 
-%semantics of the right hand sides are augmentations of a pomset on the 
-%left hand side. 
-%\end{proof}
-%\end{lemma}
-
-
-% \begin{lemma}%[Reorderings]
-% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
-%reorderings hold.
- % \begin{align*}
-%    \tag{R-Acq}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ 
-%\SEMI \aCmd} &\supseteq
- %   \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd}
-% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
- %   \\
- %   \tag{W-Acq} 
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ 
-%\SEMI\aCmd} &\supseteq
-%    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp 
-%\SEMI \aCmd} 
-%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
- %   \\
-% \tag{Rel-R} 
-%\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd} &\supseteq
- %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp 
-%\SEMI \aCmd}
-%   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
- %   \\
- %   \tag{Rel-W}
- %   \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp 
-%\SEMI \aCmd}
-%  \end{align*}
-%\begin{proof}
-%The proof follows from noticing that the pomsets in the semantics of the 
-%right hand sides are augmentations of a pomset on the left hand side.  
-%\end{proof}
-%\end{lemma}
-
-% \paragraph*{Compiler optimizations.} Reordering and peephole optimizations
-% can be combined to describe common compiler optimizations.  We illustrate
-% using common subexpression elimination,
-% following~\citet{Dolan:2018:BDR:3192366.3192421}:
-% Consider the command 
-% \begin{math}
-%   (\aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2)
-% \end{math}
-% where $\aCmd$ is independent of $\aReg$.  Reordering yields
-% \begin{math}
-%   (\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2),
-% \end{math}
-% followed by redundant load to yield
-% \begin{math}
-%   (\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg).
-% \end{math}
-
-% Similarly, the treatment of loop-invariant code motion, dead-store
-% elimination and constant propagation
-% from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
-
-% Since our model is more generous about permitted reorderings, we 
-% permit optimizations that they forbid.  Consider:
-%\begin{math}
- % (\aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS 
-%\aReg).
-%\end{math}
-%Reordering, permitted by us, but forbidden by them, yields
-%\begin{math}
-%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS 
-%\cLoc),
-%\end{math}
-%followed by the valid elimination of redundant load
-%\begin{math}
-%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS %
-%\cLoc).
-%\end{math}
-
-As expected, %sequential and
-parallel composition commutes with conditionals and declarations, and
-conditionals and declarations commute with each other.  For example,
-we have \emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
-\begin{align*}
-  \taglabel{SE}
-  \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd} &=
-  \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
-  &&\text{if } \aLoc\not\in\free(\aCmd)
-\end{align*}
-As we noted in \cite[\textsection B]{2019-sp}, scope extrusion fails if
-fulfillment requirement \ref{rf4}---for every conflicting write $\cEv$,
-either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
-existential---there is no conflicting write $\cEv$ such that
-$\bEv<\cEv<\aEv$.  Such conflicting writes are called ``blockers''.  The
-universal quantification ensures that parallel threads cannot turn a
-non-blocker into a blocker.  In that paper, we advocated the use of
-\emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
-order for \ref{rf4}.  The pomsets studied in this paper are far simpler.
-
-
-%$\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
-% $\nu\aLoc\DOT(\aPSS\parallel\nu\aLoc\DOT\bPSS)$ is generally
-% not the same as
-% $\nu\aLoc\DOT(\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.
-%\todo{Scope extrusion fails for some definitions of fulfillment, see S\& P}
-%For example,  % We show sequential scope extrusion \ref{SSE}, which concerns
-% sequential composition and location binding:
-% \begin{math}
-%   % \taglabel{PSE}
-%   \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd}\allowbreak =
-%   \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
-%   % \\
-%   % \taglabel{SSE}
-%   % \sem{\aCmd\SEMI \VAR\aLoc\SEMI\bCmd}\allowbreak &=
-%   % \sem{\VAR\aLoc\SEMI(\aCmd\SEMI\bCmd)}
-%   % \\
-%   % \taglabel{CSE}
-%   % \sem{\IF{\aExp}\THEN\aCmd\ELSE \VAR\aLoc\SEMI\bCmd\FI}\allowbreak &=
-%   % \sem{\VAR\aLoc\SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
-% \end{math}
-% if $\aLoc$ does not appear in $\aCmd$.
-
-%\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
-
-\paragraph{Invalid Rewrites}
-%\label{sec:invalid}
-
-The definition of location binding does not validate renaming of locations:
-if $\aLoc\neq\bLoc$ then
-$\sem{\VAR\bLoc\SEMI\aCmd}\neq\sem{\VAR\aLoc\SEMI\aCmd[\aLoc/\bLoc]}$, even
-if $\aCmd$ does not mention~$\aLoc$.  This is consistent with support for
-address calculation, which is required by realistic memory allocators.
-
-% \labeltext{As}{page:inlining} a side note,
-\ref{Internal2} shows that---like most relaxed models---our model
-fails to validate \emph{thread inlining}: The execution above is impossible
-for
-\begin{math}
-  \aReg\GETS x\SEMI
-  y\REL\GETS 1\PAR
-  \bReg\GETS y\SEMI
-  z\GETS \bReg
-  \PAR
-  x\GETS z.
-\end{math}
-The write in the first thread cannot discharge the precondition in the
-second.
-
-% We discussed the invalidity of variable renaming on page
-% \pageref{page:extrusion} and thread inlining on page
-% \pageref{page:inlining}.
-
-Some sequentially valid rewrites are invalid in a concurrent setting, such as
-relevant read introduction:
-\begin{displaymath}
-  %\tag{Read-Intro-Invalid}
-  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
-  \not\supseteq
-  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
-\end{displaymath}
-Observationally, These are distinguished by the context %
-\begin{math}
-  \hole{} \PAR x\GETS1\PAR x\GETS2.
-\end{math}
-
-% But even \emph{irrelevant} read introduction is invalid.
-% Consider the following example \cite[\textsection1.4.5]{SevcikThesis}:
-% \begin{align*}
-%   \sem{\IF{\aReg} \THEN \bReg \GETS \aLoc \SEMI \bLoc \GETS \bReg \FI}
-%   &\not\supseteq
-%   \sem{\bReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS \bReg \FI}
-% \end{align*}
-% This inequation holds even though there is no context in our
-% language that distinguishes these programs.
-
-Write introduction is also invalid, even when duplicating an existing write:
-\begin{displaymath}
-  \sem{\aLoc \GETS 1} 
-  \not\supseteq
-  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1}
-\end{displaymath}
-These are distinguished by the context:
-\begin{math}
-  \hole{} \PAR
-  r\GETS x \SEMI
-  x\GETS2 \SEMI
-  s\GETS x\SEMI
-  \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI
-\end{math}
-
-% General write elimination is invalid, even for non-racy programs:
-% \begin{displaymath}
-%   \sem{\aLoc\GETS 0 \SEMI\aLoc\GETS 1 \SEMI\bLoc^\modeRA\GETS 1} 
-%   \not\supseteq
-%   \sem{\aLoc\GETS 0 \SEMI\bLoc^\modeRA\GETS 1}
-% \end{displaymath}
-% These are distinguished by the context:
-% \begin{math}
-%   \hole{} \PAR
-%   \IF{\bLoc^\modeRA}\THEN \aReg \GETS \aLoc \FI
-% \end{math}
-
-
-% But even \emph{irrelevant} read introduction is invalid:
-% $\sem{\SKIP}\not\supseteq\sem{r\GETS x}\not\supseteq\sem{r\GETS x\SEMI r\GETS x}$.  These inequations hold even though there is no context in our
-% language that distinguishes these programs.
-% % With weaker notions of coherence
-% % \cite{Manson:2005:JMM:1047659.1040336}, these
-% % commands are indistinguishable.
-
-
-
-
-% // p and q might be aliased
-% int i = p
-% // concurrent write to p.x by another thread
-% int j = q 
-% int k = p
-
-% Since p and q only might be aliased, but are not definitely aliased, then the
-% use of q cannot be optimized away (if it were known that p and q pointed to
-% the same object, then it would be legal to replace the assignments to j and k
-% with assignments of the value of i). Consider the case where p and q are in
-% fact aliased, and another thread writes to the memory location for p/q
-% between the first use of p and the use of q; the use of q will see the
-% new value. It will be illegal for the second use of p (stored into k) to
-% get the same value as was stored into i. However, a fairly standard compiler
-% optimization would involve eliminating the getfield for k and replacing it
-% with a reuse of the value stored into i. Un- fortunately, that optimization
-% is illegal in any language that requires Coherence.
-
-% One way to think of it is that since a read of a memory location may cause
-% the thread to become aware of a write by another thread, it must be treated
-% in the compiler as a possible write.
-
-
+through several litmus tests, valid rewrites and invalid rewrites.
 
 \subsection{Litmus Tests}
+\label{sec:litmus}
+
 
 \todo{  Maybe not  Sevcik 5.3.4 Irrelevant Read Introduction.
   Pugh, not 19/20 which have join.  Not 16 on coherence.}
@@ -576,6 +20,10 @@ controversial behaviors'' of \citet[\textsection
 8]{Manson:2005:JMM:1047659.1040336}.
 
 \paragraph{Coherence}
+
+Our model of coherence does not correspond to either Java or C11.  We have
+chosen the model to validate \ref{CSE} (unlike C11 relaxed atomics) and the
+local \drfsc{} theorem (unlike Java).
 
 \todo{There is a tension between read-read coherence and CSE.  Java favors CSE,
 whereas C11 prefers read-read coherence.  
@@ -941,8 +389,8 @@ complicates the proof for \armeight{} (\textsection\ref{sec:arm}).
 
 
 
-\paragraph{MCA} We present two examples that are hallmarks of \mca{}
-architectures.  The analysis follows from a few simple principles.
+\paragraph{MCA} We present a few examples that are hallmarks of \mca{}
+architectures.  
 % \begin{gather*}
 %   \renewcommand{\arraycolsep}{1pt}
 %   \hbox{\small
@@ -980,48 +428,101 @@ architectures.  The analysis follows from a few simple principles.
 % \end{gather*}
 \begin{gather*}
   \taglabel{MCA1}
-  \\[-2.5ex]
-  \renewcommand{\arraycolsep}{1pt}
-  \hbox{\small
-    $\begin{array}{ccccc}
-    &x\GETS0\SEMI x\GETS 1
-    &\PAR&
-    r\GETS x\ACQ \SEMI s\GETS y
-    %\IF{x}\THEN r\GETS y \FI
-    \\
-    \PAR
-    &y\GETS0\SEMI y\GETS 1
-    &\PAR&
-    r\GETS y\ACQ \SEMI s\GETS x
-    %\IF{y}\THEN s\GETS x \FI
-  \end{array}$}
-  \quad
-  \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
+  \begin{gathered}
+  x\GETS0\SEMI x\GETS 1
+  \PAR
+  y\GETS x
+  \PAR
+  r\GETS y\ACQ \SEMI s\GETS x
+  \\[-1.5ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
-  \event{wy1}{\DW{y}{1}}{right=of wy0}
-  \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-  \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
-  \event{ry0}{\DR{y}{0}}{right=of rx1}
   \wk{wx0}{wx1}
-  \wk{wy0}{wy1}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \po{rx1}{wy1}
+  \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
   \rf{wx1}{rx1}
-  \rf[bend left]{wy0}{ry0}
   \rf{wy1}{ry1}
-  \rf[bend right]{wx0}{rx0}
-  \wk{rx0}{wx1}
-  \wk{ry0}{wy1}
-  \sync{rx1}{ry0}
   \sync{ry1}{rx0}
-    \end{tikzinlinesmall}}}
-  \\[-1ex]
+  \wk[out=170,in=10]{rx0}{wx1}
+  \end{tikzinline}}
+  \end{gathered}
+  \\[2ex]
+  % \taglabel{MCA1}
+  % %\\[-2.5ex]
+  % \renewcommand{\arraycolsep}{1pt}
+  % \begin{array}{ccccc}
+  %   &x\GETS0\SEMI x\GETS 1
+  %   &\PAR&
+  %   r\GETS x\ACQ \SEMI s\GETS y
+  %   %\IF{x}\THEN r\GETS y \FI
+  %   \\
+  %   \PAR
+  %   &y\GETS0\SEMI y\GETS 1
+  %   &\PAR&
+  %   r\GETS y\ACQ \SEMI s\GETS x
+  %   %\IF{y}\THEN s\GETS x \FI
+  % \end{array}
+  % \quad
+  % \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
+  % \event{wx0}{\DW{x}{0}}{}
+  % \event{wx1}{\DW{x}{1}}{right=of wx0}
+  % \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
+  % \event{wy1}{\DW{y}{1}}{right=of wy0}
+  % \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+  % \event{rx0}{\DR{x}{0}}{right=of ry1}
+  % \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
+  % \event{ry0}{\DR{y}{0}}{right=of rx1}
+  % \wk{wx0}{wx1}
+  % \wk{wy0}{wy1}
+  % \rf{wx1}{rx1}
+  % \rf[bend left]{wy0}{ry0}
+  % \rf{wy1}{ry1}
+  % \rf[bend right]{wx0}{rx0}
+  % \wk{rx0}{wx1}
+  % \wk{ry0}{wy1}
+  % \sync{rx1}{ry0}
+  % \sync{ry1}{rx0}
+  %   \end{tikzinlinesmall}}}
+  %\\[2ex]
+  \taglabel{MCA2}
+  \begin{gathered}
+  \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+  {\PAR}
+  \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
+  {\PAR}
+  \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
+  \\[-1.5ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a1}{\DR{x}{1}}{}
+  \event{a2}{\DW{y}{0}}{right=of a1}
+  \po{a1}{a2}
+  \event{a3}{\DW{y}{1}}{right=of a2}
+  \wk{a2}{a3}
+  \event{b1}{\DR{y}{1}}{right=3em of a3}
+  \event{b2}{\DW{z}{0}}{right=of b1}
+  \po{b1}{b2}
+  \event{b3}{\DW{z}{1}}{right=of b2}
+  \wk{b2}{b3}
+  \event{c1}{\DR{z}{1}}{right=3em of b3}
+  \event{c2}{\DW{x}{0}}{right=of c1}
+  \po{c1}{c2}
+  \event{c3}{\DW{x}{1}}{right=of c2}
+  \wk{c2}{c3}
+  \rf{a3}{b1}
+  \rf{b3}{c1}
+  \rf[out=173,in=7]{c3}{a1}  
+    \end{tikzinline}}
+\end{gathered}
 \end{gather*}
-In this variant of \iriw\ (Independent Reads of Independent Writes), order 
-is imposed by \emph{coherence} (between the writes), \emph{fulfillment}
-(between read and write), and \emph{fencing} (from acquiring read to relaxed read).
-Given the evident cycle, the candidate execution is invalid.
+% The analysis follows from a few simple principles.
+% In this variant of \iriw\ (Independent Reads of Independent Writes), order 
+% is imposed by \emph{coherence} (between the writes), \emph{fulfillment}
+% (between read and write), and \emph{fencing} (from acquiring read to relaxed read).
+These candidate executions are invalid, due to cycles.
 % Note that if you enforce the dependency between the reads, then the execution
 % is disallowed, because the is a cycle on weak edges restricted to $x$:
 % \begin{math}
@@ -1039,41 +540,14 @@ Given the evident cycle, the candidate execution is invalid.
 % \begin{math}
 %   (\DW{x}{1}) \gtN  (\DW{y}{1});
 % \end{math}
-It is also impossible for all threads to read $1$ in the following, due to
-\emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
-\begin{gather*}
-  \taglabel{MCA2}
-  \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
-  {\PAR}
-  \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
-  {\PAR}
-  \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
-  \\[-.5ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{a1}{\DR{x}{1}}{}
-  \event{a2}{\DW{y}{0}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DW{y}{1}}{right=of a2}
-  \wk{a2}{a3}
-  \event{b1}{\DR{y}{1}}{right=of a3}
-  \event{b2}{\DW{z}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{z}{1}}{right=of b2}
-  \wk{b2}{b3}
-  \event{c1}{\DR{z}{1}}{right=of b3}
-  \event{c2}{\DW{x}{0}}{right=of c1}
-  \po{c1}{c2}
-  \event{c3}{\DW{x}{1}}{right=of c2}
-  \wk{c2}{c3}
-  \rf{a3}{b1}
-  \rf{b3}{c1}
-  \rf[out=173,in=7]{c3}{a1}  
-    \end{tikzinline}}
-\end{gather*}
-
-In either example, the execution is allowed if the cycle is broken---for
-example, by changing $x\ACQ$ to $x\RLX$ in 
-\ref{MCA1}.
+% It is also impossible for all threads to read $1$ in the following, due to
+% \emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
+If $y\ACQ$ is changed to $y\RLX$ in \ref{MCA1}, then there would be no order
+from $(\DR[\modeRLX]{y}{1})$ to $(\DR{x}{0})$, and the execution would be
+allowed.  Since read-read dependencies do not appear in pomset order, the
+execution would still be allowed if a control or address dependency were to
+be introduced between the reads. See \textsection\ref{sec:limits} for further
+discussion.
 
 
 % \citet{PughWebsite} developed a set of twenty {causality test cases} in the
@@ -1132,4 +606,561 @@ example, by changing $x\ACQ$ to $x\RLX$ in
 %     %\text{ else $\emptyset$}
 % \end{align*}
 % \end{definition}
+
+\subsection{Valid and Invalid Rewrites}
+\label{sec:valid}
+
+When $\sem{\aCmd} \supseteq \sem{\aCmd'}$, we say that $\aCmd'$ is a
+\emph{valid transformation} of $\aCmd$.  In this subsection, we show the
+validity of specific optimizations.  
+Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
+
+% To enable reasoning about program fragments, transformation validity must be
+% preserved by \emph{contexts}.  In \textsection\ref{sec:model}, we defined the
+% semantics by prefixing one action at a time.  This helps to make the
+% semantics understandable, but it also creates impoverished contexts.
+
+% To allow for richer contexts, we appeal to the alternate presentation of the
+% language given in \textsection\ref{sec:semicolon}.  We refactor the syntax
+% of commands and define contexts:
+% \begin{align*}
+%   \aCmd,\,\bCmd
+%   \BNFDEF& \SKIP
+%   \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
+%   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
+%   % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
+%   % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
+%   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
+%   \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
+%   \\[-.5ex]
+%   \BNFSEP&\aCmd \PAR \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu\aCmd \SEMI \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+%   \\
+%   \aCtxt,\,\bCtxt
+%   \BNFDEF& \hole{}
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \PAR \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCmd \PAR \bCtxt
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCtxt \SEMI \bCmd
+%   \mkern-2mu\BNFSEP\mkern-2mu \aCmd \SEMI \bCtxt
+%   \mkern-2mu\BNFSEP\mkern-2mu \VAR\aLoc\SEMI \aCtxt
+%   \\[-.5ex]
+%   \BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   \mkern-2mu\BNFSEP\mkern-2mu \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+% \end{align*}
+
+
+% \begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
+%   Let $\bCtxt$ be a context
+%   % \footnote{%
+%   %   The results of this section hold for contexts of the example language
+%   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+%   %   % \begin{math}
+%   %   %   \begin{array}[t]{rcl}
+%   %   %     \aCtxt,\,\bCtxt
+%   %   %     &\BNFDEF& \hole{}
+%   %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
+%   %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
+%   %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
+%   %   %     \\[-.5ex]
+%   %   %     &\BNFSEP&\aCtxt \PAR \bCmd
+%   %   %     \BNFSEP \aCmd \PAR \bCtxt
+%   %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
+%   %   %     \\[-.5ex]
+%   %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+%   %   %   \end{array}
+%   %   % \end{math}
+%   %   The results of this section hold for contexts of the example language
+%   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
+%   %   The results also hold for the more general contexts of
+%   %   \textsection\ref{sec:semicolon}, which includes full sequential composition:
+%   %   \begin{displaymath}
+%   %     \begin{array}[t]{rcl}
+%   %       \aCtxt,\,\bCtxt
+%   %       &\BNFDEF& \hole{}
+%   %       \BNFSEP \aCtxt \SEMI \bCmd
+%   %       \BNFSEP \aCmd \SEMI \bCtxt
+%   %       \BNFSEP \aCtxt \PAR \bCmd
+%   %       \BNFSEP \aCmd \PAR \bCtxt
+%   %       \BNFSEP 
+%   %       \\[-.5ex]
+%   %       &\BNFSEP& \VAR\aLoc\SEMI \aCtxt
+%   %       \BNFSEP \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+%   %     \end{array}
+%   %   \end{displaymath}}
+% and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
+% \begin{displaymath}
+%   \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
+% \end{displaymath}
+% \end{lemma}
+
+%
+
+The semantics validates several peephole optimizations.
+\begin{align*}
+  \taglabel{RL}
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+  \\
+  \taglabel{WW}
+  \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
+  \\
+  \taglabel{RW}
+  \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
+  \\
+  \taglabel{RR}
+  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
+  \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
+\end{align*}
+% \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
+% have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
+%     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
+% \ref{RR} requires either $\aReg\neq\bReg$ or
+%   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
+% semicolon have disjoint ids; for example, \ref{RW} requires
+% $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
+Redundant load elimination \eqref{RL} follows
+from item \ref{1} in the definition of prefixing, taking $\bEv\in\Event$.
+The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
+follow from item \ref{item:5} in the definition of prefixing, since no order
+is imposed.  Item \ref{item:5} also validates roach-motel reorderings.  For
+example, the rules for relaxed writes are as follows:
+  \begin{align*}
+    \taglabel{AcqW} 
+    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
+    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    &&\textif x\neq y&&\hbox{}
+    \\
+    \taglabel{RelW}
+    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
+    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
+    &&\textif x\neq y&&\hbox{}
+  \end{align*}
+
+  % Reads on the same location are ordered in our model; thus, read optimizations
+% are limited by the power of aliasing analysis
+% \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
+  Since item \ref{5b} does not impose order between reads of the same
+  location, \ref{RR} can allow the possibility that $\aLoc=\bLoc$.  As a
+  result, read optimizations are not limited by the power of aliasing
+  analysis.  By composing \ref{RR} and \ref{RL}, we validate \ref{CSE}:
+\begin{align*}
+  \taglabel{CSE}
+  \sem{r_1\GETS \aLoc \SEMI
+  s\GETS \bLoc \SEMI  
+  r_2\GETS \aLoc\SEMI\aCmd}
+  \supseteq
+  \sem{r_1\GETS \aLoc \SEMI     
+    r_2\GETS r_1\SEMI
+    s\GETS \bLoc \SEMI\aCmd}
+    &&\textif \aReg_2\neq\bReg&&\hbox{}
+\end{align*}
+%However, this fails if $\aLoc=\bLoc$.
+
+
+% \begin{displaymathsmall}
+%   \sem{r_1\GETS \REF{\aExp} \SEMI
+%   s\GETS \REF{\bExp} \SEMI  
+%   r_2\GETS \REF{\aExp}}
+%   \supseteq
+%   \sem{r_1\GETS \REF{\aExp} \SEMI
+%   s\GETS \REF{\bExp} \SEMI  
+%   r_2\GETS r_1}
+% \end{displaymathsmall}
+% This holds regardless of whether $\aExp=\bExp$.
+
+
+% By induction on the length of the pomsets in $\aCmd$, we can use the
+% reorderings to establish, more generally, that when $\aCmd$ and $\bCmd$ are
+% assignment sequences and $\disjoint{\free(\aCmd)}{\free(\bCmd)}$:
+% \begin{gather*}
+%   \sem{\aCmd \SEMI \bCmd} = \sem{\bCmd \SEMI \aCmd} 
+% \end{gather*}
+% Appealing directly to the semantics, we can establish general properties for
+% redundant load \ref{RLp}, store forwarding \ref{SFp}, and roach-motel
+% \ref{A}, \ref{R}:
+% Let $\aCmd$ be
+% synchronization-free, with disjoint ids as before:
+% \begin{align*}
+%   % \taglabelp{RL}
+%   % \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
+%   % \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
+%   % \\
+%   % \taglabelp{SF} 
+%   % \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
+%   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
+%   % \\
+%   \taglabel{A}
+%   \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
+%   \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
+%   \\
+%   \taglabel{R}
+%   \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
+%   \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
+% \end{align*}
+% Roach-motel reorderings that increase the scope of synchronization are valid.
+% \begin{lemma}%[Reorderings]
+%   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
+%   \begin{align*}
+%     \tag{R-Acq}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
+%     \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     \\
+%     \tag{W-Acq} 
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
+%     \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
+%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+% \tag{Rel-R} 
+% \sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
+%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
+%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+%     \tag{Rel-W}
+%     \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
+%   \end{align*}
+% \begin{proof}
+% The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
+% \end{proof}
+% \end{lemma}
+
+% Again, we suppose that $\aCmd$ is an assignment sequence and disjoint
+% identifiers.
+% \ref{A} and \ref{R} require
+% disjoint names, as in \ref{WW} and
+% \ref{RW}. In addition, \ref{A} and \ref{R} require that $\aCmd$ is
+% synchronization-free.
+
+
+Many laws hold for the conditional, such as dead code elimination \eqref{DC}
+and code lifting \eqref{CL}:
+\begin{align*}
+  \taglabel{DC}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+  \sem{\aCmd}
+  &&\textif \aExp \text{ is a tautology}
+  \\
+  \taglabel{CL}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &\supseteq
+  \sem{\aCmd}
+\end{align*}
+Code lifting also applies to program fragments inside a conditional.  For example:
+\begin{align*}
+  \sem{\IF{\aExp}\THEN x\GETS \bExp \SEMI\aCmd\ELSE x\GETS \bExp \SEMI\bCmd\FI} &\supseteq
+  \sem{x\GETS \bExp \SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
+  % \sem{\IF{r{=}1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI}
+  % \supseteq
+  % \sem{x\GETS 1 \SEMI \IF{r{=}1}\THEN x\GETS r\FI}
+\end{align*}
+We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
+% \begin{align*}
+%   \begin{gathered}
+%     \IF{r=1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI
+%     \\
+%     \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
+%         \event{b}{s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
+%       \end{tikzinline}}
+%   \end{gathered}
+%   &&
+%   \begin{gathered}
+%     \IF{\lnot s}\THEN \cmdR \FI
+%     \\
+%     \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{a}{\lnot s \mathbin{\mid}\DR{x}{0}}{}
+%         \event{b}{\lnot s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
+%       \end{tikzinline}}
+%   \end{gathered}
+% \end{align*}
+
+% The fact that $\sem{\aCmd}\supseteq \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI}$
+% follows because the semantics is closed with respect to disjunction:
+% \begin{definition}
+%   \label{def:dis1}
+%   We say that $\aPS^0$ is a \emph{disjunct of $\aPS^1$ and $\aPS^2$} when
+%   $\Event^0=\Event^1=\Event^2$, ${\le^0}={\le^1}={\le^2}$,
+%   $\labelingAct^0=\labelingAct^1 =\labelingAct^2$, and
+%   $\labelingForm^0(\aEv)$ implies 
+%   $\labelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$.
+%   % We say that $\aPSS$ is \emph{disjunction closed} if
+%   % $\aPS^0\in\aPSS$ whenever there are $\{\aPS^1,\,\aPS^2\}\subseteq \aPSS$
+%   % such that $\aPS^0$ is a disjunct of $\aPS^1$ and $\aPS^2$.
+% \end{definition}
+% In proving disjunction closure, the difficult case is prefixing.
+
+% \ref{DC} requires that $\aExp$ be a tautology.
+
+% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
+%reorderings hold.
+%  \begin{align*}
+% \begin{align*}
+%    \tag{R-R}
+%    \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} 
+%\SEMI \aCmd} &=
+%    \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd}
+%    &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+ %   \\
+ %   \tag{R-W}
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
+%\SEMI \aCmd} &=
+%    \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd}
+%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%    \\
+ %   \tag{W-W}
+ %   \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI 
+%\aCmd} &=
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI 
+%\aCmd}
+%  \end{align*}
+% \begin{proof}
+% The semantics of sequential composition $\aCmd \SEMI \bCmd$, where 
+% the only enforced $\lt$ relationships come from conflict on locations or 
+%release or acquire actions.    The roach-motel reorderings that increase 
+%the scope of synchronization are valid because the pomsets in the 
+%semantics of the right hand sides are augmentations of a pomset on the 
+%left hand side. 
+%\end{proof}
+%\end{lemma}
+
+
+% \begin{lemma}%[Reorderings]
+% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
+%reorderings hold.
+ % \begin{align*}
+%    \tag{R-Acq}
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ 
+%\SEMI \aCmd} &\supseteq
+ %   \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd}
+% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+ %   \\
+ %   \tag{W-Acq} 
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ 
+%\SEMI\aCmd} &\supseteq
+%    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp 
+%\SEMI \aCmd} 
+%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+ %   \\
+% \tag{Rel-R} 
+%\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
+%\SEMI \aCmd} &\supseteq
+ %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp 
+%\SEMI \aCmd}
+%   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+ %   \\
+ %   \tag{Rel-W}
+ %   \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp 
+%\SEMI \aCmd}
+%  \end{align*}
+%\begin{proof}
+%The proof follows from noticing that the pomsets in the semantics of the 
+%right hand sides are augmentations of a pomset on the left hand side.  
+%\end{proof}
+%\end{lemma}
+
+% \paragraph*{Compiler optimizations.} Reordering and peephole optimizations
+% can be combined to describe common compiler optimizations.  We illustrate
+% using common subexpression elimination,
+% following~\citet{Dolan:2018:BDR:3192366.3192421}:
+% Consider the command 
+% \begin{math}
+%   (\aReg \GETS \aLoc *2  \SEMI \aCmd \SEMI \bReg \GETS \aLoc * 2)
+% \end{math}
+% where $\aCmd$ is independent of $\aReg$.  Reordering yields
+% \begin{math}
+%   (\aCmd \SEMI \aReg \GETS \aLoc *2  \SEMI  \bReg \GETS \aLoc * 2),
+% \end{math}
+% followed by redundant load to yield
+% \begin{math}
+%   (\aCmd \SEMI \aReg \GETS \aLoc * 2 \SEMI  \bReg \GETS \aReg).
+% \end{math}
+
+% Similarly, the treatment of loop-invariant code motion, dead-store
+% elimination and constant propagation
+% from~\citet{Dolan:2018:BDR:3192366.3192421} follow.
+
+% Since our model is more generous about permitted reorderings, we 
+% permit optimizations that they forbid.  Consider:
+%\begin{math}
+ % (\aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS 
+%\aReg).
+%\end{math}
+%Reordering, permitted by us, but forbidden by them, yields
+%\begin{math}
+%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS 
+%\cLoc),
+%\end{math}
+%followed by the valid elimination of redundant load
+%\begin{math}
+%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS %
+%\cLoc).
+%\end{math}
+
+As expected, %sequential and
+parallel composition commutes with conditionals and declarations, and
+conditionals and declarations commute with each other.  For example,
+we have \emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
+\begin{align*}
+  \taglabel{SE}
+  \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd} &=
+  \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
+  &&\text{if } \aLoc\not\in\free(\aCmd)
+\end{align*}
+As we noted in \cite[\textsection B]{2019-sp}, scope extrusion fails if
+fulfillment requirement \ref{rf4}---for every conflicting write $\cEv$,
+either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
+existential---there is no conflicting write $\cEv$ such that
+$\bEv<\cEv<\aEv$.  Such conflicting writes are called ``blockers''.  The
+universal quantification ensures that parallel threads cannot turn a
+non-blocker into a blocker.  In that paper, we advocated the use of
+\emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
+order for \ref{rf4}.  The pomsets studied in this paper are far simpler.
+
+
+%$\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
+% $\nu\aLoc\DOT(\aPSS\parallel\nu\aLoc\DOT\bPSS)$ is generally
+% not the same as
+% $\nu\aLoc\DOT(\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.
+%\todo{Scope extrusion fails for some definitions of fulfillment, see S\& P}
+%For example,  % We show sequential scope extrusion \ref{SSE}, which concerns
+% sequential composition and location binding:
+% \begin{math}
+%   % \taglabel{PSE}
+%   \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd}\allowbreak =
+%   \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
+%   % \\
+%   % \taglabel{SSE}
+%   % \sem{\aCmd\SEMI \VAR\aLoc\SEMI\bCmd}\allowbreak &=
+%   % \sem{\VAR\aLoc\SEMI(\aCmd\SEMI\bCmd)}
+%   % \\
+%   % \taglabel{CSE}
+%   % \sem{\IF{\aExp}\THEN\aCmd\ELSE \VAR\aLoc\SEMI\bCmd\FI}\allowbreak &=
+%   % \sem{\VAR\aLoc\SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
+% \end{math}
+% if $\aLoc$ does not appear in $\aCmd$.
+
+%\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
+
+\paragraph{Invalid Rewrites}
+%\label{sec:invalid}
+
+The definition of location binding does not validate renaming of locations:
+if $\aLoc\neq\bLoc$ then
+$\sem{\VAR\bLoc\SEMI\aCmd}\neq\sem{\VAR\aLoc\SEMI\aCmd[\aLoc/\bLoc]}$, even
+if $\aCmd$ does not mention~$\aLoc$.  This is consistent with support for
+address calculation, which is required by realistic memory allocators.
+
+% \labeltext{As}{page:inlining} a side note,
+\ref{Internal2} shows that---like most relaxed models---our model
+fails to validate \emph{thread inlining}: The execution above is impossible
+for
+\begin{math}
+  \aReg\GETS x\SEMI
+  y\REL\GETS 1\PAR
+  \bReg\GETS y\SEMI
+  z\GETS \bReg
+  \PAR
+  x\GETS z.
+\end{math}
+The write in the first thread cannot discharge the precondition in the
+second.
+
+% We discussed the invalidity of variable renaming on page
+% \pageref{page:extrusion} and thread inlining on page
+% \pageref{page:inlining}.
+
+Some sequentially valid rewrites are invalid in a concurrent setting, such as
+relevant read introduction:
+\begin{displaymath}
+  %\tag{Read-Intro-Invalid}
+  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
+  \not\supseteq
+  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
+\end{displaymath}
+Observationally, These are distinguished by the context %
+\begin{math}
+  \hole{} \PAR x\GETS1\PAR x\GETS2.
+\end{math}
+
+% But even \emph{irrelevant} read introduction is invalid.
+% Consider the following example \cite[\textsection1.4.5]{SevcikThesis}:
+% \begin{align*}
+%   \sem{\IF{\aReg} \THEN \bReg \GETS \aLoc \SEMI \bLoc \GETS \bReg \FI}
+%   &\not\supseteq
+%   \sem{\bReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS \bReg \FI}
+% \end{align*}
+% This inequation holds even though there is no context in our
+% language that distinguishes these programs.
+
+Write introduction is also invalid, even when duplicating an existing write:
+\begin{displaymath}
+  \sem{\aLoc \GETS 1} 
+  \not\supseteq
+  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1}
+\end{displaymath}
+These are distinguished by the context:
+\begin{math}
+  \hole{} \PAR
+  r\GETS x \SEMI
+  x\GETS2 \SEMI
+  s\GETS x\SEMI
+  \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI
+\end{math}
+
+% General write elimination is invalid, even for non-racy programs:
+% \begin{displaymath}
+%   \sem{\aLoc\GETS 0 \SEMI\aLoc\GETS 1 \SEMI\bLoc^\modeRA\GETS 1} 
+%   \not\supseteq
+%   \sem{\aLoc\GETS 0 \SEMI\bLoc^\modeRA\GETS 1}
+% \end{displaymath}
+% These are distinguished by the context:
+% \begin{math}
+%   \hole{} \PAR
+%   \IF{\bLoc^\modeRA}\THEN \aReg \GETS \aLoc \FI
+% \end{math}
+
+
+% But even \emph{irrelevant} read introduction is invalid:
+% $\sem{\SKIP}\not\supseteq\sem{r\GETS x}\not\supseteq\sem{r\GETS x\SEMI r\GETS x}$.  These inequations hold even though there is no context in our
+% language that distinguishes these programs.
+% % With weaker notions of coherence
+% % \cite{Manson:2005:JMM:1047659.1040336}, these
+% % commands are indistinguishable.
+
+
+
+
+% // p and q might be aliased
+% int i = p
+% // concurrent write to p.x by another thread
+% int j = q 
+% int k = p
+
+% Since p and q only might be aliased, but are not definitely aliased, then the
+% use of q cannot be optimized away (if it were known that p and q pointed to
+% the same object, then it would be legal to replace the assignments to j and k
+% with assignments of the value of i). Consider the case where p and q are in
+% fact aliased, and another thread writes to the memory location for p/q
+% between the first use of p and the use of q; the use of q will see the
+% new value. It will be illegal for the second use of p (stored into k) to
+% get the same value as was stored into i. However, a fairly standard compiler
+% optimization would involve eliminating the getfield for k and replacing it
+% with a reuse of the value stored into i. Un- fortunately, that optimization
+% is illegal in any language that requires Coherence.
+
+% One way to think of it is that since a read of a memory location may cause
+% the thread to become aware of a write by another thread, it must be treated
+% in the compiler as a possible write.
+
+
 

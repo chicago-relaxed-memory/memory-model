@@ -83,12 +83,12 @@ Given a pomset $\aPS$ and event $\aEv$, define\footnote{Let $\FALSE$, $\lor$,
   
 Let
   \begin{math}
-    \afo, \aPSS \models \bfo  \text{ if } \{ \bPS \mid \bPS \models \afo \} \parallel \aPSS \models \bfo.
+    \afo, \aPSS \models \bfo  \text{ if } \{ \aPS \mid \aPS \models \afo \} \parallel \aPSS \models \bfo.
   \end{math}
 %\end{definition}
 
   Let $\afo$ be \emph{downclosed} when
-  $\{ \bPS \mid \bPS \models \afo \}$ is.
+  $\{ \aPS \mid \aPS \models \afo \}$ is.
 
 % Thus, $\aPS\models \afo \land \always\afo$ whenever $\aPS \models
   % \afo$. This fact relies on the use of universal quantification in the definition.
@@ -282,9 +282,9 @@ then chaining: %, yields
 \end{math}
 By coinduction, 
 \begin{math}
-  \lnot\DW{x}{1},
+  \lnot\DW{x}{1}.
 \end{math}
-as required.
+%as required.
 \end{example}
 
 \begin{example}
@@ -313,14 +313,12 @@ as required.
     y\GETS x
   \PAR
     \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
-\end{align*}
-\ref{OOTA4} retains the essential temporal aspects of
-\citeauthor{DBLP:journals/toplas/Lochbihler13}'s example, discussed in
-\textsection\ref{sec:intro}.  In this case, all threads satisfy the invariant
-``any write to location $a$ is preceded by a reading $1$ for $z$,'' rather
-than ``allocation at type \texttt{C} is preceded by reading $1$ for $z$''
-
-As a warmup, note that attempting to write $1$ to $a$ results in a cycle:
+  \end{align*}
+  The essential temporal property of \ref{OOTA1} is ``allocation at type
+  \texttt{C} is preceded by a read of $1$ for $z$.''  \ref{OOTA4} retains
+  this structure: ``any write to location $a$ is preceded by a read of $1$
+  for $z$.''  As a warmup, note that attempting to write $1$ to $a$ results
+  in a cycle:
 \begin{tikzdisplay}[node distance=1em]
   \event{rx}{\DR{x}{1}}{}
   \event{wz1}{\DW{z}{1}}{left=2em of rx}
@@ -331,10 +329,10 @@ As a warmup, note that attempting to write $1$ to $a$ results in a cycle:
   \event{wx}{\DW{x}{1}}{right=of ry}
   \event{wa}{\DW{a}{1}}{right=of wx}
   \po{ry}{wx}
-  \rf[out=-15,in=-165]{wy}{ry}
-  \rf[out=170,in=10]{wx}{rx}
-  \po[out=10,in=170]{rz}{wa}
-  \po[out=-15,in=-165]{ry}{wa}
+  \rf[out=15,in=165]{wy}{ry}
+  \rf[out=-170,in=-10]{wx}{rx}
+  \po[out=-10,in=-170]{rz}{wa}
+  \po[out=15,in=165]{ry}{wa}
 \end{tikzdisplay}
 % \begin{tikzdisplay}[node distance=1em]
 %   \event{wy0}{\DW{y}{0}}{}
@@ -411,6 +409,87 @@ Simplifying:
 \end{math}
 as required.
 \end{example}
+
+
+% \begin{example}
+%   It is impossible to fulfill $(\DR{y}{1})$ in the following
+%   \cite[RNG]{DBLP:conf/esop/SvendsenPDLV18}:
+%   % presented a \labeltext{The}{page:logic:limits} logic we presented in
+%   % \textsection\ref{sec:logic} is only strong enough to prove a few
+%   % examples. different a logic, capable of showing that the following program
+%   % cannot write 2: 
+% % Some \oota\ examples can be proven if we extend the
+% % logic with value quantification---we leave the details to future work.
+% % Consider \cite[(\textsc{rng})]{DBLP:conf/esop/SvendsenPDLV18}:
+% \begin{align*}
+%   \taglabel{OOTA5}
+%   % \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI %\\[-.5ex]
+%     ( y\GETS x+1
+%     \PAR
+%     x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{rx}{\DR{x}{1}}{}
+%         \event{wy}{\DW{y}{2}}{right=of rx}
+%         \po{rx}{wy}
+%         \event{ry}{\DR{y}{1}}{right=3em of wy}
+%         \event{wx}{\DW{x}{1}}{right=of ry}
+%         \po{ry}{wx}
+%         % \rf{wy}{ry}
+%         \rf[out=170,in=10]{wx}{rx}
+%       \end{tikzinline}}
+%   % \\
+%   % \hbox{$
+%   %   \begin{gathered}
+%   %     [\forall u,v.\;(\once\DW{y}{u} \land \once\DW{y}{v}) \Rightarrow ((u \EQ v) \vee (u \EQ 0) \vee (v \EQ 0))]
+%   %     \\[-.5ex]
+%   %     \land [\DW{x}{1} \Rightarrow \once\DR{y}{1}]
+%   %     \land [\DW{y}{2} \Rightarrow \once\DR{x}{1}]
+%   %     % \land [\DW{z}{2} \Rightarrow \once\DR{y}{2}]
+%   %   \end{gathered}$}
+% \end{align*}
+% %   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
+% %   (
+% %     y\GETS x+1\SEMI z \GETS y
+% %   \PAR
+% %     x\GETS y
+% %     %   )
+% % \end{displaymath}
+% % \begin{verbatim}
+% %      (W y 2) => <>(R x 1)
+% %      (W y 1) => <>(R x 0)
+% %      (W x 1) => <>(R y 1)
+% %    <>(W x 1) => not(<>(W x 2))
+% % \end{verbatim}
+% The proof proceeds as before, starting with the following invariant:
+% \begin{gather*}
+%   %[(\once\DW{y}{v_1} \land \once\DW{y}{v_2}) \Rightarrow ((v_1 = v_2) \vee (v_1 = 0) \vee (v_2 = 0))] \land\\[-.5ex]
+%   [\DW{y}{2} \Rightarrow \once\DR{x}{1}] \land
+%   [\DW{y}{1} \Rightarrow \once\DR{x}{0}] \land
+%   [\DW{x}{1} \Rightarrow \once\DR{y}{1}] \land
+%   [\once\DW{x}{0} \Rightarrow \lnot(\once\DW{x}{1})]
+% \end{gather*}
+% % The attempted execution is \emph{not} allowed by our semantics since there is no write
+% % to fulfill $(\DR{y}{1})$.  Proving this requires the ability to reason about
+% % values.
+% %
+% % Closing $x$ and $y$ and using the last two conjuncts in the
+% % invariant above:
+% % % last conjunct, we have
+% % % \begin{math}
+% % %   % \once\DW{z}{2} \Rightarrow \once\DR{y}{2}
+% % %   % \once\DW{z}{2} \Rightarrow \once\DW{y}{2}
+% % %   \DW{y}{2} \Rightarrow \once\DR{x}{1}.
+% % % \end{math}
+% % % Closing $x$, we then have
+% % \begin{math}
+% %   % \once\DW{z}{2} \Rightarrow \once\DW{x}{1}
+% %   \DW{y}{2} \Rightarrow \once\DW{y}{1}.
+% % \end{math}
+% % From the first conjunct, we then derive
+% % \begin{math}
+% %   \DW{y}{2} \Rightarrow \FALSE,
+% % \end{math}
+% % as required.
+% \end{example}
 
 % Many examples are superficially similar, but in fact have fewer dependencies.
 % A referee for a previous version of this paper expected that the following example is

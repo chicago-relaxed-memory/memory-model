@@ -414,11 +414,6 @@ following, which is allowed by \armeight{}
 
 \paragraph{Address Calculation}
 
-\todo{The rewrites work.}  The extension is simple: For address expressions
-$\REF{\aExp}$ and $\REF{\bExp}$, replace $\aLoc=\bLoc$ by provable equality
-of $\aExp$ and $\bExp$, and $\aLoc\neq\bLoc$ by provable inequality.
-Operations on sets can be defined similarly.
-
 In the definition of a data model, we require
 that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$
 is a value.  Expressions may include neither memory locations nor the
@@ -430,9 +425,9 @@ In our example language, we update the syntax of commands:
   \BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
   \BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
 \end{gather*}
-For degenerate programs that include only constant references (every
-expression $\REF{\cExp}^\amode$ satisfies $\cExp=\cVal$, for some $\cVal$), the
-following semantics produces exactly the same executions as before.
+Address calculation can be encoded using the conditional.  We give the
+semantics simply by expanding this encoding.  Applying this technique to Candidate
+\ref{cand:ord}, we arrive at the following:
 % \begin{align*}
 %   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
 %   \textstyle\parallel_\cVal\bigcup_\aVal\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\REF{\cVal}/\aReg]
@@ -452,9 +447,6 @@ following semantics produces exactly the same executions as before.
 %   % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
 %   % \\[6ex]
 % \end{align*}
-\todo{We encode address calculation as conditional execution.  For example,
-  Candidate \ref{cand:ord} becomes the following, and similarly for the
-  definitions in \textsection\ref{sec:refine}.}
   \begin{align*}
   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
@@ -466,6 +458,11 @@ following semantics produces exactly the same executions as before.
     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
     \bigl(\textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
   \end{align*}
+  The same technique to can be applied to Definition \ref{def:cover}---we
+  elide the lengthy but obvious definition. For degenerate programs that include only
+  constant references (every expression $\REF{\cExp}^\amode$ satisfies
+  $\cExp=\cVal$, for some $\cVal$), the resulting definition produces exactly
+  the same executions as before.
 %   \begin{align*}
 %     \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
 %     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
@@ -502,56 +499,65 @@ following semantics produces exactly the same executions as before.
 %   \end{aligned}$}
 % \end{aligned}
 
-\labeltext{Let}{page:disjunction2} us revisit the discussion of the use of \!$\PAR$\!
-in Candidate~\ref{cand:sc}.
-Note that 
-\begin{math}
-  \sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}
-\end{math}
+The rewrites listed in \textsection\ref{sec:props}-\ref{sec:refine} remain valid, with the
+following generalization: For address expressions $\REF{\aExp}$ and
+$\REF{\bExp}$, replace $\aLoc=\bLoc$ by provable equality of $\aExp$ and
+$\bExp$, and $\aLoc\neq\bLoc$ by provable inequality.  % Operations on sets can
+% be defined similarly.
+
+In Definition \ref{def:cover}, we were able to ensure disjunction closure
+  by performing targeted, local weakening via $\Rdis{\aLoc}{\aVal}$ and
+  $\Wdis{\aLoc}{\aExp}$.  This is much more difficult to do with address
+  calculation, since a single bit of syntax can refer to multiple locations.
+  Consider that 
+  \begin{math}
+    \sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}
+  \end{math}
 includes both of the following pomsets (``$\BANG$'' is logical
 negation: ``$\BANG \aExp$'' evaluates to $1$ if
 $\aExp$ is $0$, and $0$ otherwise):
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
-      \wk{a}{b}
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{a}{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{b}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      \wk[out=-15,in=-165]{a}{b}
     \end{tikzinline}}%\;\;\cdots
-  \qquad \qquad
+  &&
   %\\[-1.5ex]\intertext{and:}\\[-5ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
-      \event{b}{r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{c}{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
+      \eventl{d}{b}{r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
     \end{tikzinline}}%\;\;\cdots
 \end{align*}
-\todo{talk about how these pomsets come up}
-By using \!$\PAR$\!, it also includes:
-\begin{gather}
-  \label{alanAddress}
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
-      \event{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
-      \wk{a}{b}
+Thus, the disjunction closure also includes both of the following: % By using \!$\PAR$\!, it also includes:
+\begin{align*}
+  %\label{alanAddress}
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{a,d}{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{b}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      \wk[out=-15,in=-165]{a}{b}
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
-  \qquad \qquad
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
-      \event{b}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
+  &&
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{d,a}{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{c}{b}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of a}
       %\co{a}{b}
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
-\end{gather}
+\end{align*}
 In this example, the events that coalesce correspond to different statements
 in the syntax.
 
 
-\labeltext{Because}{page:strengthening} we do not enforce order between reads, there is some danger that
-address calculations could introduce anomalous behaviors that arise \emph{out of thin air}
-(\oota) \cite{DBLP:conf/esop/BattyMNPS15}.  Consider the following attempted
-execution, where all memory addresses are initialized to $0$, except that
-$\REF{2}$ is $1$ and $\REF{1}$ is $2$:
+\labeltext{Because}{page:strengthening} we do not enforce order between
+reads, there is some danger that address calculations could introduce
+anomalous behaviors that arise \emph{out of thin air} (\oota)
+\cite{DBLP:conf/esop/BattyMNPS15}.  Consider the following program, where
+initially $x=0$, $y=0$, $\REF{0}=0$, $\REF{1}=2$, and $\REF{2}=1$.  It should
+only be possible to read $0$, disallowing the attempted execution below:
 \begin{gather*}
+  \begin{gathered}
   \taglabel{OOTA2}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
@@ -572,19 +578,21 @@ $\REF{2}$ is $1$ and $\REF{1}$ is $2$:
   \rf[out=-170,in=-10]{b3}{a1}
   \rf{a3}{b1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
-Although there is no order enforced between the reads, the read-to-write
-order induced by the semantics is sufficient to prohibit this \oota{}
-behavior.  Note the intermediate state:
+Although no order is enforced between reads, the read-to-write order induced
+by the semantics is sufficient to prohibit this \oota{} behavior.  Note the
+intermediate state of $\sem{\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg}$:
 \begin{gather*}
-  \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
-  \\
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
   \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
   \po{a2}{a3}
     \end{tikzinline}}
 \end{gather*}
-The precondition on the write is required by causal strengthening in
-Definition~\ref{def:mmpomset}: if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
-implies $\labelingForm(\bEv)$.
+The precondition on $(\DW{x}{1})$ is required by causal strengthening
+(Definition~\ref{def:mmpomset}). % : if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
+% implies $\labelingForm(\bEv)$.
+
+
+

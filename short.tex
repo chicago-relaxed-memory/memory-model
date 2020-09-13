@@ -1,12 +1,45 @@
 \section{Efficient Implementation on ARMv8}
 \label{sec:arm}
 
+We show that our semantics compiles efficiently to the ARMv8 model of
+\citet{DBLP:journals/pacmpl/PulteFDFSS18}.  Efficient compilation is not
+possible for earlier models of ARMv8.  For example, the model of
+\citet{DBLP:conf/popl/FlurGPSSMDS16} allowed the following outcome
+\cite[Fig.~4]{DBLP:conf/fm/LahavV16}, which is disallowed here:
+\begin{gather*}
+  %\taglabel{ARMv8-2016}
+  \begin{gathered}
+  r\GETS x\SEMI x\GETS 1
+  \PAR
+  y\GETS x 
+  \PAR
+  x\GETS y 
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DR{x}{1}}{}
+      \event{b}{\DW{x}{1}}{right=of a}
+      \wk{a}{b}
+      \event{c}{\DR{x}{1}}{right=3em of b}
+      \event{d}{\DW{y}{1}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{y}{1}}{right=3em of d}
+      \event{f}{\DW{x}{1}}{right=of e}
+      \po{e}{f}
+      \rf{b}{c}
+      \rf{d}{e}
+      \rf[out=170,in=10]{f}{a}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+This type of ``big detour'' \cite{alglave} is outlawed by
+\citet{DBLP:journals/pacmpl/PulteFDFSS18}.
+
+
 We consider the fragment of our language where concurrent composition occurs
 only at top level and there are no location declarations.  Using the
 translation strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}, we show
 that any \emph{consistent} \armeight{} execution graph for this sublanguage
-can be considered a top-level execution of our semantics.  Consistency is
-defined by \citet{DBLP:journals/pacmpl/PulteFDFSS18}.  The key step is
+can be considered a top-level execution of our semantics. The key step is
 constructing the order for the derived pomset candidate.  We would like to
 take ${\gtN} = ({\rob} \cup {\reco})^*$, where $\rob$ is the \armeight{}
 acyclicity relation, and ${\reco}$ is the \armeight{} extended coherence
@@ -46,7 +79,7 @@ Let $\robi$ be defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
 
 For pomset order, we then take ${\gtN}=({\robi}\cup{\reco})^*$.
 
-We prove the following theorem in \textsection\ref{sec:arm:proof}.
+%We prove the following theorem in \textsection\ref{sec:arm:proof}.
 \begin{theorem}
   For any consistent \armeight{} execution graph, the constructed candidate
   is a top-level memory model pomset.
@@ -289,9 +322,9 @@ includes a race involving $\aEv$.
   $({\le_*}\setminus{\rpox})$, as required by fulfillment (Definition
   \ref{def:rf}): $\rrfe$ orders writes before reads, satisfying fulfillment
   requirement \ref{rf3}; $\rxw$ orders read and write accesses before writes,
-  satisfying requirement \ref{rf4}\footnote{Within a thread,
-  fulfillment requirements \ref{rf3} and \ref{rf4} follow from prefixing
-  requirement \ref{5b}, which is included in ${\rppo}$.}.
+  satisfying requirement \ref{rf4}\footnote{Within a thread, \ref{rf3} and
+    \ref{rf4} follow from prefixing requirement \ref{5b}, which is included
+    in ${\rppo}$.}.
     % Then ${\le_*}={\rppo}\cup{\rrfe}\cup{\rxw}$.
 
     Using this decomposition, we can show the following.
@@ -334,7 +367,7 @@ includes a race involving $\aEv$.
       x\GETS 0 \SEMI y\GETS 0 \SEMI  (x \GETS 1  \SEMI y \GETS 1
       \PAR
       \IF{y}\THEN \aReg \GETS x \FI
-      \\
+      \\[-.5ex]
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
           \event{wy0}{\DW{y}{0}}{}
           \event{wx0}{\DW{x}{0}}{below=of wy0}
@@ -396,7 +429,7 @@ includes a race involving $\aEv$.
       x\GETS 0 \SEMI y\GETS 0 \SEMI (\aReg \GETS x  \SEMI y \GETS 1
       \PAR
       \bReg \GETS y \SEMI x \GETS \bReg)
-      \\
+      \\[-.5ex]
       \hbox{\begin{tikzinline}[node distance=1em and 2em]
           \event{wx0}{\DW{y}{0}}{}
           \event{ry}{\DR{x}{1}}{right=3em of wx0}
@@ -716,7 +749,7 @@ When considering this pomset, we must perform the decomposition on the right.
   (x\GETS 0 \SEMI   x\REL \GETS 1)
   \PAR
   (\aReg\GETS x\ACQ)
-  \\
+  \\[-2ex]
   \hbox{\begin{tikzinline}[node distance=1em and 2em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DWRel{x}{1}}{right=of wx0}
@@ -729,6 +762,7 @@ When considering this pomset, we must perform the decomposition on the right.
       \bgoval[pink!50]{(wx0)(wx1)}{P'\setminus P}
       \bgovalright[green!10]{(rx)}{P''\setminus P'}
     \end{tikzinline}}
+  \qquad
   \qquad
   \qquad
   \hbox{\begin{tikzinline}[node distance=1em and 2em]
@@ -750,58 +784,123 @@ enabled by denotational reasoning.
 % and a precise characterization of
 % dependency.
 
-%Write swap (WW$\rightarrow$WW):
-
-$L$-stability allows the theorem to encompass histories that are not entirely
-$L$-sequential:
+In our language, past races are always resolved at a stable point.  Consider
+the following outcome, which is disallowed here, but allowed by Java
+\cite[Example 2]{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
-  (\aReg\GETS y\SEMI x\REL\GETS1
+  \begin{gathered}
+  (x\GETS 1 \SEMI   y\REL \GETS 1)
   \PAR
-  \aReg\GETS x\SEMI y\REL\GETS1)
-  \PAR
-  \big(\aReg\GETS x\ACQ \SEMI \aReg\GETS y\ACQ \SEMI
-  (\aReg\GETS y\SEMI x\GETS2
-  \PAR
-  \aReg\GETS x\SEMI y\GETS2)\big)
-\\
-\hbox{\begin{tikzinline}[node distance=1em and 2em]
-    \event{ry}{\DR{y}{1}}{}
-    \event{rx}{\DR{x}{1}}{below=of ry}
-    \event{wx}{\DWRel{x}{1}}{right=of ry}
-    \event{wy}{\DWRel{y}{1}}{right=of rx}
-    \rf{wy}{ry}
-    \rf{wx}{rx}
-    \pox{rx}[below]{wy}
-    \pox{ry}{wx}
-    \event{ax}{\DRAcq{x}{1}}{right=3em of wx}
-    \event{ay}{\DRAcq{x}{1}}{below=of ax}
-    \rf{wx}{ax}
-    \rf{wy}{ay}
-    \node(ix)[right=3em of ax]{$\mathstrut$};
-    \node(iy)[below=of ix]{$\mathstrut$};
-    \event{ry2}{\DR{y}{2}}{right=6em of ax}
-    \event{rx2}{\DR{x}{2}}{below=of ry2}
-    \event{wx2}{\DW{x}{2}}{right=of ry2}
-    \event{wy2}{\DW{y}{2}}{right=of rx2}
-    \sync{ax}{ry2}
-    \sync{ax}{rx2}
-    \sync{ay}{ry2}
-    \sync{ay}{rx2}
-    \rf{wy2}{ry2}
-    \rf{wx2}{rx2}
-    \pox{rx2}[below]{wy2}
-    \pox{ry2}{wx2}
-    \bgoval[yellow!50]{(ry)(rx)(ax)(ay)}{P}
-    \bgoval[pink!50]{(ix)(iy)}{P'\setminus P}
-    \bgoval[green!10]{(ry2)(rx2)(wx2)(wy2)}{P''\setminus P'}
-\end{tikzinline}}
+  (x\GETS 2 \SEMI \IF{y^\modeSC}\THEN r\GETS x \SEMI s\GETS x\FI)
+  \\[-2ex]
+  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \event{wx1}{\DW{x}{1}}{}
+      \event{wy1}{\DWRel{y}{1}}{right=of wx0}
+      \sync{wx1}{wy1}
+      \event{wx2}{\DW{x}{2}}{right=3em of wy1}
+      % \event{f}{\DFS{\modeSC}}{right=of wx2}
+      % \sync{wx2}{f}
+      \event{ry1}{\DRSC{y}{1}}{right=of wx2}
+      \sync{wx2}{ry1}
+      \event{rx1}{\DR{x}{1}}{right=5em of ry1}
+      \event{rx2}{\DR{x}{2}}{right=of rx1}
+      \sync{ry1}{rx1}
+      \sync[out=15,in=165]{ry1}{rx2}
+      \rf[out=10,in=170]{wy1}{ry1}
+      \wk[out=10,in=170]{wx1}{wx2}
+      \wk[out=-170,in=-10]{rx1}{wx2}
+      \bgoval[yellow!50]{(wx1)(ry1)}{}
+    \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
-In this execution, the $L$-stable point $P$ is not $L$-sequential.
-Nonetheless, the theorem guarantees that any races in $P''$ can be found
-sequentially in some $P'''$ --- in this case, by changing either read of $2$
-to $1$.  Further, the theorem guarantees that the race found in $P'''$ is
-between two actions outside of $P$ --- in this case, between the new read of
-$1$ and the write of $2$.
+The highlighted events are $L$-stable.  The order from $(\DR{x}{1})$ to
+$(\DW{x}{2})$ is required by fulfillment, causing the cycle.  If we changed
+$y^\modeSC$ to $y^\modeRA$, there would be no order from $(\DW{x}{2})$ to
+$(\DRAcq{y}{1})$, the highlighted events would no longer be $L$-stable, and
+the execution would be allowed.  This more relaxed notion of ``past'' is not
+expressible using \citeauthor{Dolan:2018:BDR:3192366.3192421}'s
+synchronization primitives.
+
+The notion of ``future'' is also richer here.  Consider \cite[Example
+3]{Dolan:2018:BDR:3192366.3192421}:
+\begin{gather*}
+  \begin{gathered}
+  (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\modeRA\GETS r)
+  \PAR
+  (r\GETS x \SEMI \REF{r}\GETS 7)
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \event{a1}{\DW{\REF{1}}{42}}{}
+      \event{a2}{\DR{\REF{1}}{7}}{right=of a1}
+      \wk{a1}{a2}
+      % \event{a3}{\DFS{\modeREL}}{right=of a2}
+      % \sync{a2}{a3}
+      \event{a4}{\DWRel{x}{1}}{right=of a2}
+      \sync{a2}{a4}
+      \event{b1}{\DR{x}{1}}{right=2em of a4}
+      \event{b2}{\DW{\REF{1}}{7}}{right=of b1}
+      \po{b1}{b2}
+      \rf{a4}{b1}
+      \wk[out=170,in=10]{b2}{a2}
+    \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+There is no interesting stable point here.  The execution is disallowed
+because of a read from the causal future.  If we changed $x^\modeRA$ to
+$x^\modeRLX$, then there would be no order from $(\DR{\REF{1}}{7})$ to
+$(\DW[\modeRLX]{x}{1})$, and the execution would be allowed.  The distinction
+between ``causal future'' and ``temporal future'' is not expressible in
+\citeauthor{Dolan:2018:BDR:3192366.3192421}'s operational semantics.
+% $L$-stability allows the theorem to encompass histories that are not entirely
+% $L$-sequential:
+% \begin{gather*}
+%   (\aReg\GETS y\SEMI x\REL\GETS1
+%   \PAR
+%   \aReg\GETS x\SEMI y\REL\GETS1)
+%   \PAR
+%   \big(\aReg\GETS x\ACQ \SEMI \aReg\GETS y\ACQ \SEMI
+%   (\aReg\GETS y\SEMI x\GETS2
+%   \PAR
+%   \aReg\GETS x\SEMI y\GETS2)\big)
+% \\
+% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%     \event{ry}{\DR{y}{1}}{}
+%     \event{rx}{\DR{x}{1}}{below=of ry}
+%     \event{wx}{\DWRel{x}{1}}{right=of ry}
+%     \event{wy}{\DWRel{y}{1}}{right=of rx}
+%     \rf{wy}{ry}
+%     \rf{wx}{rx}
+%     \pox{rx}[below]{wy}
+%     \pox{ry}{wx}
+%     \event{ax}{\DRAcq{x}{1}}{right=3em of wx}
+%     \event{ay}{\DRAcq{x}{1}}{below=of ax}
+%     \rf{wx}{ax}
+%     \rf{wy}{ay}
+%     \node(ix)[right=3em of ax]{$\mathstrut$};
+%     \node(iy)[below=of ix]{$\mathstrut$};
+%     \event{ry2}{\DR{y}{2}}{right=6em of ax}
+%     \event{rx2}{\DR{x}{2}}{below=of ry2}
+%     \event{wx2}{\DW{x}{2}}{right=of ry2}
+%     \event{wy2}{\DW{y}{2}}{right=of rx2}
+%     \sync{ax}{ry2}
+%     \sync{ax}{rx2}
+%     \sync{ay}{ry2}
+%     \sync{ay}{rx2}
+%     \rf{wy2}{ry2}
+%     \rf{wx2}{rx2}
+%     \pox{rx2}[below]{wy2}
+%     \pox{ry2}{wx2}
+%     \bgoval[yellow!50]{(ry)(rx)(ax)(ay)}{P}
+%     \bgoval[pink!50]{(ix)(iy)}{P'\setminus P}
+%     \bgoval[green!10]{(ry2)(rx2)(wx2)(wy2)}{P''\setminus P'}
+% \end{tikzinline}}
+% \end{gather*}
+% In this execution, the $L$-stable point $P$ is not $L$-sequential.
+% Nonetheless, the theorem guarantees that any races in $P''$ can be found
+% sequentially in some $P'''$ --- in this case, by changing either read of $2$
+% to $1$.  Further, the theorem guarantees that the race found in $P'''$ is
+% between two actions outside of $P$ --- in this case, between the new read of
+% $1$ and the write of $2$.
 
 Our definition of $L$-sequentiality does not quite correspond to SC
 executions, since actions may be elided by read or write elimination
