@@ -916,13 +916,14 @@ Because of consistency
 preconditions.
 % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
 % $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
-Consider:
+The make coalescing more explicit in the following examples, we show the
+element of the carrier set $\Event$ to left of its label.  Consider:
 \begin{align*}
 \begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx1}{r<0\mid\DW{y}{1}}{}
+  \eventl{e}{wx1}{r<0\mid\DW{y}{1}}{}
     \end{tikzinline}}
 \end{gathered}
 &&
@@ -930,7 +931,7 @@ Consider:
   \IF{r\geq0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
+  \eventl{e}{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
     \end{tikzinline}}
 \end{gathered}
 \end{align*}
@@ -939,13 +940,14 @@ both.  However,  events with the same label may coalesce, taking the
 disjunction of their preconditions.  Thus, the semantics of the combined
 program also includes
 \begin{math}
+  e{:}(r<0\lor r\geq0\mid\DW{y}{1})
   % \IF{r<0}\THEN y\GETS1\FI
   % \PAR
   % \IF{r\geq0}\THEN y\GETS1\FI
   % \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
-    \end{tikzinline}}
+  %\hbox{\begin{tikzinline}[node distance=1em]
+  %(\eventl{a}{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
+  % \end{tikzinline}}
 \end{math}.
 Coalesced events inherit order from both sides.
 \begin{definition}

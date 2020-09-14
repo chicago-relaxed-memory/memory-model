@@ -518,8 +518,8 @@ negation: ``$\BANG \aExp$'' evaluates to $1$ if
 $\aExp$ is $0$, and $0$ otherwise):
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=2em]
-      \eventl{a}{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
-      \eventl{b}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      \eventl{d}{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{e}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
       \wk[out=-15,in=-165]{a}{b}
     \end{tikzinline}}%\;\;\cdots
   &&
@@ -533,20 +533,20 @@ Thus, the disjunction closure also includes both of the following: % By using \!
 \begin{align*}
   %\label{alanAddress}
   \hbox{\begin{tikzinline}[node distance=2em]
-      \eventl{a,d}{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
-      \eventl{b}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      \eventl{d}{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{e}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
       \wk[out=-15,in=-165]{a}{b}
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
   &&
   \hbox{\begin{tikzinline}[node distance=2em]
-      \eventl{d,a}{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
-      \eventl{c}{b}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of a}
+      \eventl{c}{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
+      \eventl{d}{b}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
       %\co{a}{b}
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
 \end{align*}
-In this example, the events that coalesce correspond to different statements
+In this example, the $d$ events that coalesce correspond to different statements
 in the syntax.
 
 

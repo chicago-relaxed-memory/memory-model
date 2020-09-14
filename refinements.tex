@@ -33,7 +33,14 @@ irrelevant read introduction \eqref{RI}.
   $\labelingAct' = \labelingAct$, 
   $\labelingForm'(\aEv)$ implies $\TRUE$ if  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ and
   there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
-  
+
+  Let $(\Rdis{\aLoc}{}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+  $\labelingAct' = \labelingAct$, 
+  $\labelingForm'(\aEv)$ implies $\TRUE$ if
+  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$) and
+  there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+
   Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
   $\labelingAct' = \labelingAct$, 
@@ -59,7 +66,7 @@ irrelevant read introduction \eqref{RI}.
   % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}
     \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
-    \;\mathhl{\sem{\aCmd}[\aLoc/\aReg]}\;
+    \;\mathhl{\Rdis{\aLoc}{}\sem{\aCmd}[\aLoc/\aReg]}\;
     \cup
     \textstyle\bigcup_\aVal\;
     (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
@@ -71,20 +78,37 @@ irrelevant read introduction \eqref{RI}.
     % }
     \\
     \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
-    \;\mathhl{\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]}\;
+    \;\mathhl{\Wdis{\aLoc}{\aExp}\bigl(\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]\bigr)}\;
     \cup
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Wdis{\aLoc}{\aExp}}\;\,\sem{\aCmd}[\aExp/\aLoc]
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
   \end{align*}
+  % \begin{align*}
+  %   \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
+  %   \;\mathhl{\sem{\aCmd}[\aLoc/\aReg]}\;
+  %   \cup
+  %   \textstyle\bigcup_\aVal\;
+  %   % \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & =
+  %   % \textstyle\bigcup_\aVal\; (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+  %   % \\[-.5ex] &
+  %   % \;\mathhl{\cup\;
+  %   %   \sem{\aCmd}[\aLoc/\aReg] %  \text{ if } \amode=\modeRLXquiet
+  %   % }
+  %   \\
+  %   \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
+  %   \;\mathhl{\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]}\;
+  %   \cup
+  %   \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Wdis{\aLoc}{\aExp}}\;\,\sem{\aCmd}[\aExp/\aLoc]
+  % \end{align*}
 \end{definition}
-There are five changes in the definition: To validate read elimination, we
+There are six changes in the definition: To validate read elimination, we
 include $\sem{\aCmd}[\aLoc/\aReg]$.  To ensure that this does not allow stale
 reads, we add item \ref{6} to the definition of prefixing.  To validate case
-analysis in the absence of read elimination, we could either strengthen
-\ref{5b} to require read-read coherence or apply $\Rdis{\aLoc}{\aVal}$ to
-$\sem{\aCmd} [\aLoc/\aReg]$ before prefixing; we chose the latter since it is
-robust with respect to read elimination.  To validate write elimination, we
-include $\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$. To validate case
-analysis with write elimination, we apply $\Wdis{\aLoc}{\aVal}$.
+analysis on reads actions, we apply $\Rdis{\aLoc}{\aVal}$ to
+$\sem{\aCmd} [\aLoc/\aReg]$ before prefixing.  To validate case analysis with
+eliminated reads, we apply $\Rdis{\aLoc}{}$ to $\sem{\aCmd} [\aLoc/\aReg]$.
+To validate write elimination, we include
+$\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$. To validate case analysis with
+eliminated writes, we apply $\Wdis{\aLoc}{\aVal}$.
 
 \paragraph{Read Elimination and Store Forwarding}
 
@@ -324,13 +348,36 @@ the eliminated write.
 
 
 \paragraph{Case Analysis}
+Definition \ref{def:cover} satisfies \emph{disjunction closure}.
+\begin{definition}
+  \label{def:dis}
+  We say that $\aPS$ is a \emph{disjunct of $\aPS'$ and downset $\aPS''$} when
+  $\Event=\Event' \supseteq\Event''$, % \supseteq \{ \bEv \in \Event' \mid \exists\aEv\in\Event''.\; \bEv\le\aEv\}$,
+  ${\le}={\le'}\supseteq{\le''}$,
+  $\labelingAct=\labelingAct' \supseteq\labelingAct''$, 
+  $\labelingForm(\aEv)$ implies
+  $\labelingForm'(\aEv)\lor \labelingForm''(\aEv)$ if $\aEv\in\Event''$, and
+  $\labelingForm(\aEv)$ implies
+  $\labelingForm'(\aEv)$ otherwise.
+  % and:
+  % \begin{displaymath}
+  %   \labelingForm(\aEv) \text{ implies }
+  %   \begin{cases}
+  %     \labelingForm'(\aEv)\lor \labelingForm''(\aEv) & \text{if } \aEv\in\Event''
+  %     \\
+  %     \labelingForm'(\aEv) & \text{otherwise} %\text{if } \aEv\in(\Event'\setminus\Event'')
+  %   \end{cases}
+  % \end{displaymath}
 
+  We say that $\aPSS$ is \emph{disjunction closed} if
+  $\aPS\in\aPSS$ whenever there are $\{\aPS',\,\aPS''\}\subseteq \aPSS$
+  such that $\aPS$ is a disjunct of $\aPS'$ and downset $\aPS''$.
+\end{definition}
 % \begin{align*}
 %   \sem{\IF{r{=}1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI}
 %   \supseteq
 %   \sem{x\GETS 1 \SEMI \IF{r{=}1}\THEN x\GETS r\FI}
 % \end{align*}
-
 % From the semantics of conditional it is obvious that Candidate \ref{cand:ord}
 % satisfies the following:
 % \begin{align*}
@@ -340,171 +387,175 @@ the eliminated write.
 % \end{align*}
 % The reverse of code lifting \ref{CL} (\textsection\ref{sec:valid}) is case
 % analysis \eqref{CA}:
-Case analysis \eqref{CA} allows code to be optimized for common special cases:
+In the definition of composition, any actions with the same label and downset
+can coalesce.  Disjunction closure is sufficient to establish case analysis
+\eqref{CA}:
 \begin{align*}
   \taglabel{CA}
   \sem{\aCmd} &\supseteq
   \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} 
 \end{align*}
-\ref{CA} fails for Candidate \ref{cand:ord} due to the lack of read-read coherence.  Consider  commands $\cmdR$ and $\cmdW$:
+As we discuss below, Candidate \ref{cand:ord} is not disjunction closed;
+however, it \emph{becomes} closed if \ref{5b} is strengthened to include
+read-read coherence, thus sacrificing sacrifice \ref{CSE}.  This compromise
+is considered reasonable for C atomics, which are meant to be used sparingly.
+It is less attractive for plain access in Java-like languages.
+
+We start the discussion in this section assuming Candidate \ref{cand:ord}
+with read-coherence.  We then look at three relaxations in turn: write
+elimination, reads elimination, and finally dropping read-read coherence.
+Definition \ref{def:cover} performs a bit of disjunctive closure in each
+case.
+
+Write elimination causes disjunction closure to fail.  For example, consider
+the following executions of $\cmdW$; the second uses write elimination:
+\begin{gather*}
+  \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{d}{a}{\DW{x}{1}}{}
+      \eventl{e}{b}{r\mid\DW{x}{1}}{right=of a}
+      \wk[out=-15,in=-165]{a}{b}
+    \end{tikzinline}}
+  \qquad\qquad\qquad\qquad
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{d}{b}{r\mid\DW{x}{1}}{}
+    \end{tikzinline}}
+\end{gather*}
+Using disjunction, $\sem{\IF{s}\THEN \cmdW \ELSE \cmdW \FI}$ includes the
+singleton $d{:}(\DW{x}{1})$, but $\sem{\cmdW}$ does not.  Our solution is to
+weaken the preconditions on writes to the same location when eliminating a
+write.  We do this using the function $\Wdis{\aLoc}{\aExp}$, which weakens
+the precondition of any $<$-minimal $\DW[\modeRLXquiet]{\aLoc}{\aVal}$ to
+$(\aExp=\aVal \lor \aForm)$, where $\aForm$ is formula before prefixing.
+When prefixing $(\DW{x}{1})\prefix(r\mid\DW{x}{1})$ in the example above, we
+arrive at the formula $(1=1\lor r)$ for the ``old'' write, which is a
+tautology.
+
+With read-read coherence, reads and read elimination are completely symmetric.
+
+% With write elimination, a symmetric argument can be applied to pomsets of $\cmdW$:
+%  However, \ref{CA} fails for the semantics with read elimination, even with
+% read-read coherence.  For example, consider the following executions of
+% $\cmdR$; the second uses read elimination:
+% \begin{align*}
+%   \hbox{\begin{tikzinline}[node distance=2em]
+%       \eventl{d}{a}{\DR{x}{0}}{}
+%       \eventl{e}{b}{r\mid\DR{x}{0}}{right=of a}
+%       \wk[out=-15,in=-165]{a}{b}
+%     \end{tikzinline}}
+%   &&
+%   \hbox{\begin{tikzinline}[node distance=2em]
+%       \eventl{d}{b}{r\mid\DR{x}{0}}{right=of a}
+%     \end{tikzinline}}
+% \end{align*}
+% Taking the disjunction of their downsets, we expect the semantics of
+% $\IF{s}\THEN \cmdR \ELSE \cmdR \FI$ to include $d{:}(\DR{x}{0})$, but it
+% does not under Candidate \ref{cand:ord} with only read elimination.
+% Using case analysis a second time, we expect $\sem{\cmdR}$ to contain:
+% \begin{gather*}
+%   \hbox{\begin{tikzinline}[node distance=2em]
+%       \eventl{d}{a}{\DR{x}{0}}{}
+%       \eventl{e}{b}{\DR{x}{0}}{right=of a}
+%     \end{tikzinline}}
+% \end{gather*}
+% Our solution is to weaken preconditions on identical reads when prefixing.
+% We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
+% precondition of any $<$-minimal $\DR[\modeRLXquiet]{\aLoc}{\aVal}$ to
+% $\TRUE$.
+%
+
+Relaxing read-read coherence causes disjunction closure to fail.  For
+example, 
+% \begin{align*}
+%   \begin{gathered}
+%     \cmdR = \bExp\GETS x \SEMI \IF{\aExp}\THEN \bExp\GETS x \FI\\
+%     \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{a}{\DR{x}{0}}{}
+%         \event{b}{\aExp\mid\DR{x}{0}}{right=of a}
+%       \end{tikzinline}}
+%   \end{gathered}
+%   &&
+%   \begin{gathered}
+%     \cmdW = x\GETS 1 \SEMI \IF{\aExp}\THEN x\GETS 1 \FI\\
+%     \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{a}{\DW{x}{1}}{}
+%         \event{b}{\aExp\mid\DW{x}{1}}{right=of a}
+%         \wk{a}{b}
+%       \end{tikzinline}}
+%   \end{gathered}
+% \end{align*}
+% $\cmdR$ reads twice, and $\cmdW$ writes twice.  Whereas the writes are
+% ordered by \ref{5b}, the reads are not.  In the definition of composition,
+% any actions with the same label and downset can coalesce, causing \ref{CA} to
+% fail for $\cmdR$.  
+consider the two sides of the composition defined by the conditional, where
+$\cmdR = \aReg\GETS x \SEMI \IF{\aExp}\THEN \bReg\GETS x \FI$.
 \begin{align*}
   \begin{gathered}
-    \cmdR = s\GETS x \SEMI \IF{r}\THEN s\GETS x \FI\\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{\DR{x}{0}}{}
-        \event{b}{r\mid\DR{x}{0}}{right=of a}
+    \IF{\bExp}\THEN \cmdR \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=2em]
+        \eventl{d}{a}{\bExp \mid\DR{x}{0}}{}
+        \eventl{e}{b}{\bExp \land \aExp\mid\DR{x}{0}}{right=of a}
       \end{tikzinline}}
   \end{gathered}
   &&
   \begin{gathered}
-    \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI\\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{\DW{x}{1}}{}
-        \event{b}{r\mid\DW{x}{1}}{right=of a}
-        \wk{a}{b}
+    \IF{\lnot \bExp}\THEN \cmdR \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=2em]
+        \eventl{e}{a}{\lnot \bExp \mid\DR{x}{0}}{}
+        \eventl{d}{b}{\lnot \bExp \land \aExp\mid\DR{x}{0}}{right=of a}
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
-$\cmdR$ reads twice, and $\cmdW$ writes twice.  Whereas the writes are
-ordered by \ref{5b}, the reads are not.  In the definition of composition,
-any actions with the same label and downset can coalesce, causing \ref{CA} to
-fail for $\cmdR$.  Consider the two sides of the composition defined by the
-conditional:
+Because the reads are unordered, they can be confused when coalescing, resulting in:
 \begin{align*}
   \begin{gathered}
-    \IF{s}\THEN \cmdR \FI
+    \IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI
     \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{s \mid\DR{x}{0}}{}
-        \event{b}{s \land r\mid\DR{x}{0}}{right=of a}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-    \IF{\lnot s}\THEN \cmdR \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{\lnot s \mid\DR{x}{0}}{}
-        \event{b}{\lnot s \land r\mid\DR{x}{0}}{right=of a}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align*}
-Because the reads are unordered, they can be confused when we coalescing, resulting in:
-\begin{align*}
-  \begin{gathered}
-    \IF{s}\THEN \cmdR
-    \ELSE       \cmdR
-    \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{s\lor (\lnot s \land r) \mid\DR{x}{0}}{}
-        \event{b}{(s \land r)\lor \lnot s \mid\DR{x}{0}}{right=of a}
+    \hbox{\begin{tikzinline}[node distance=2em]
+        \eventl{d}{a}{\bExp\lor (\lnot \bExp \land \aExp) \mid\DR{x}{0}}{}
+        \eventl{e}{b}{(\bExp \land \aExp)\lor \lnot \bExp \mid\DR{x}{0}}{right=of a}
       \end{tikzinline}}    
   \end{gathered}
 \end{align*}
 which is:
 \begin{align*}
   \begin{gathered}
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{a}{s\lor r\mid\DR{x}{0}}{}
-        \event{b}{\lnot s\lor r\mid\DR{x}{0}}{right=of a}
+    \hbox{\begin{tikzinline}[node distance=2em]
+        \eventl{d}{a}{\bExp\lor \aExp\mid\DR{x}{0}}{}
+        \eventl{e}{b}{\lnot \bExp\lor \aExp\mid\DR{x}{0}}{right=of a}
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
-But this pomset does not occur in $\sem{\cmdR}$.  This problem does not
-happen in $\cmdW$, due to the order between the writes.  
-
-The key property required to prove \ref{CA} is \emph{disjunction closure}.
-The example shows that disjunction closure fails for Candidate
-\ref{cand:ord}, due to the lack of read-read coherence.  Note that this is
-not a problem for pairs of $\modeRA$ or $\modeSC$ reads, since these are
-ordered by \ref{5c}.
-
-Without read or write elimination, \ref{CA} does hold if one is willing to
-strengthen \ref{5b} to include read-read coherence and, thus, sacrifice
-\ref{CSE} (\textsection\ref{sec:valid}).  This compromise is considered
-reasonable for C11 atomics, which are meant to be used sparingly.  It is less
-attractive for plain access in Java-like languages.  However, \ref{CA} fails
-for the semantics with read elimination, even with read-read coherence.  For
-example, consider the following executions of $\cmdR$:
+But this pomset does not occur in $\sem{\cmdR}$.  
+Our solution is to weaken the preconditions on reads so that both
+$\sem{\cmdR}$ and $\sem{\IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI}$ include: 
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DR{x}{0}}{}
-      \event{b}{r\mid\DR{x}{0}}{right=of a}
-      \wk{a}{b}
-    \end{tikzinline}}
-  &&
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{b}{r\mid\DR{x}{0}}{right=of a}
-    \end{tikzinline}}
+  \begin{gathered}
+    \hbox{\begin{tikzinline}[node distance=2em]
+        \eventl{d}{a}{\DR{x}{0}}{}
+        \eventl{e}{b}{\DR{x}{0}}{right=of a}
+      \end{tikzinline}}
+  \end{gathered}
 \end{align*}
-Taking the disjunction of their downsets, we expect the semantics of
-$\IF{s}\THEN \cmdR \ELSE \cmdR \FI$ to include $(\TRUE\mid\DR{x}{0})$, but it
-does not under Candidate \ref{cand:ord}.  
-Our solution is to weaken preconditions on identical reads when prefixing; thus
-$\sem{\cmdR}$ contains:
-\begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DR{x}{0}}{}
-      \event{b}{\DR{x}{0}}{right=of a}
-    \end{tikzinline}}
-\end{gather*}
-We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
-precondition of any $<$-minimal $\DR[\modeRLXquiet]{\aLoc}{\aVal}$ to
-$\TRUE$.
-%
-With write elimination, a symmetric argument can be applied to pomsets of $\cmdW$:
-\begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DW{x}{1}}{}
-      \event{b}{r\mid\DW{x}{1}}{right=of a}
-      \wk{a}{b}
-    \end{tikzinline}}
-  &&
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{b}{r\mid\DW{x}{1}}{}
-    \end{tikzinline}}
-\end{align*}
-Taking the disjunction of their downsets, we expect the semantics of
-$\IF{s}\THEN \cmdW \ELSE \cmdW \FI$ to include $(\TRUE\mid\DW{x}{1})$, but it
-does not under Candidate \ref{cand:ord}.  As before, our solution is to
-weaken the preconditions on identical writes when prefixing.  We do this
-using the function $\Wdis{\aLoc}{\aExp}$, which weakens the precondition of
-any $<$-minimal $\DW[\modeRLXquiet]{\aLoc}{\aVal}$ to
-$(\aExp=\aVal \lor \aForm)$, where $\aForm$ is formula before prefixing.
-When prefixing $(\DW{x}{1})\prefix(r\mid\DW{x}{1})$ in the example above, we
-arrive at the formula $(1=1\lor r)$ for the ``old'' write, which is a tautology.
+This problem does not
+happen in $\cmdW$, due to the order between the writes.
+
+% The key property required to prove \ref{CA} is \emph{disjunction closure}.
+% The example shows that disjunction closure fails for Candidate
+% \ref{cand:ord}, due to the lack of read-read coherence.  Note that this is
+% not a problem for pairs of $\modeRA$ or $\modeSC$ reads, since these are
+% ordered by \ref{5c}.
+
 % To validate \ref{CA} for this command, the semantics must also include the
 % singleton $(\DW{x}{1})$.  The singleton is included in
 % $\sem{\IF x\GETS 1\SEMI x\GETS r\ELSE x\GETS 1\SEMI x\GETS r \FI}$ by
 % combining the right pomset above with the singleton downset $(\DW{x}{1})$
 % from the left.
 
-The key property satisfied by Definition \ref{def:cover} is \emph{disjunction
-  closure}.
-\begin{definition}
-  \label{def:dis}
-  We say that $\aPS^0$ is a \emph{disjunct of $\aPS^1$ and downset $\aPS^2$} when
-  $\Event^0=\Event^1 \supseteq\Event^2$, ${\le^0}={\le^1}\supseteq{\le^2}$,
-  $\labelingAct^0=\labelingAct^1 \supseteq\labelingAct^2$, 
-  $\labelingForm^0(\aEv)$ implies
-  $\labelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$ if $\aEv\in\Event^2$, and
-  $\labelingForm^0(\aEv)$ implies
-  $\labelingForm^1(\aEv)$ otherwise.
-  % and:
-  % \begin{displaymath}
-  %   \labelingForm^0(\aEv) \text{ implies }
-  %   \begin{cases}
-  %     \labelingForm^1(\aEv)\lor \labelingForm^2(\aEv) & \text{if } \aEv\in\Event^2
-  %     \\
-  %     \labelingForm^1(\aEv) & \text{otherwise} %\text{if } \aEv\in(\Event^1\setminus\Event^2)
-  %   \end{cases}
-  % \end{displaymath}
-
-  We say that $\aPSS$ is \emph{disjunction closed} if
-  $\aPS^0\in\aPSS$ whenever there are $\{\aPS^1,\,\aPS^2\}\subseteq \aPSS$
-  such that $\aPS^0$ is a disjunct of $\aPS^1$ and downset $\aPS^2$.
-\end{definition}
 
 
 % \begin{gather*}
