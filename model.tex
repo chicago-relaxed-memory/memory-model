@@ -366,15 +366,18 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 % Fix an alphabet $\Alphabet=(\Formulae\times\Act)$.
 
 %For the formulae of the data model,
-We say that $\aForm$ is \emph{independent of $\aLoc$} when, for every $\aVal$,
-$\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$; it is \emph{dependent} otherwise.
-%We say that $\aForm$ is \emph{dependent on $\aLoc$} otherwise.
-We say that $\aForm$ is
-\emph{location independent} if it is independent of every location.
+\begin{definition}
+  We say that $\aForm$ is \emph{independent of $\aLoc$} when, for every
+  $\aVal$, $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$; it is
+  \emph{dependent} otherwise.
+  % We say that $\aForm$ is \emph{dependent on $\aLoc$} otherwise.
+  We say that $\aForm$ is \emph{location independent} if it is independent of
+  every location.
 %
-We say that $\aForm$ \emph{implies} $\bForm$ when $\aForm\vDash\bForm$,
-that $\aForm$ is a \emph{tautology} when $\TRUE\vDash\aForm$, and that
-$\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
+  We say that $\aForm$ \emph{implies} $\bForm$ when $\aForm\vDash\bForm$,
+  that $\aForm$ is a \emph{tautology} when $\TRUE\vDash\aForm$, and that
+  $\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
+\end{definition}
 
 \subsection{Example Language}
 \begin{comment}
@@ -916,7 +919,7 @@ Because of consistency
 preconditions.
 % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
 % $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
-The make coalescing more explicit in the following examples, we show the
+To make coalescing more explicit in the following examples, we show the
 element of the carrier set $\Event$ to left of its label.  Consider:
 \begin{align*}
 \begin{gathered}
@@ -1144,7 +1147,7 @@ Conditional execution is defined using parallel composition and
 $\aPSS$ that are implied by $\aForm$.  Register assignment is defined using
 substitution: $(\aPSS\aSub)$ performs the substitution $\aSub$ on every
 pomset in $\aPSS$.  The semantics of $\SKIP$ is defined using singletons:
-$\stopPS$ is the set of pomsets that contain a single termination event.
+$\stopPS$ is the set of pomsets that each contain a single termination event.
 \begin{definition}
   Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
   $\aPS'\in\aPSS'$ when $\aForm$ implies $\labelingForm(\aEv')$ %, %for every
@@ -1690,33 +1693,6 @@ additional order required by SC actions\footnote{Recall that SC reads are
   acquires and SC writes are
   releases.}.  %(We explain item 6 in the next subsection.)
 
-Items \ref{5b} and \ref{5c} ensure correct publication.  For
-example, they disallow the following candidate execution, which sees a stale
-value for $x$:
-\vspace{-1ex}
-\begin{gather}
-  \taglabel{Pub1}
-  x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
-  \\[-1ex]
-  \nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wx0}{\DW{x}{0}}{}
-      \event{wx1}{\DW{x}{1}}{right=of wx0}
-      \event{wy1}{\DWRel{y}{1}}{right=of wx1}
-      \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-      \event{rx0}{\DR{x}{0}}{right=of ry1}
-      \sync{wx1}{wy1}
-      \sync{ry1}{rx0}
-      \rf{wy1}{ry1}
-      \rf[out=10,in=170]{wx0}{rx0}
-      \wk{wx0}{wx1}
-    \end{tikzinline}}
-\end{gather}
-By Definition \ref{def:rf}, $(\DR x0)$ is \emph{unfulfilled} in this
-pomset. It fails the last requirement of the definition, since
-$(\DW x0) \gtN (\DW x1) \lt (\DR x0)$.  In order to satisfy this requirement,
-$(\DR x0)$ must be ordered before $(\DW x1)$, but this creates a cycle.
 
 %This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
 Item \ref{5d} ensures that program order between SC operations is always

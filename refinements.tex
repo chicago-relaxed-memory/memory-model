@@ -17,6 +17,7 @@ store elimination \eqref{DS}, and case analysis \eqref{CA}.  We end this
 section with a brief discussion of a read-enriched semantics that validates
 irrelevant read introduction \eqref{RI}.
 
+
 \begin{definition}
   \label{def:cover}
   Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ %$\aPSS'$
@@ -29,23 +30,36 @@ irrelevant read introduction \eqref{RI}.
   \end{itemize}  
   
   Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  $\labelingAct' = \labelingAct$, 
-  $\labelingForm'(\aEv)$ implies $\TRUE$ if  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ and
-  there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$,
+  ${\le'} = {\le}$, $\labelingAct' = \labelingAct$, and either
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
+  $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
+    such that $\bEv\le\aEv$} and
+  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
+  % $\labelingForm'(\aEv)$ implies $\TRUE$ if  and
+  % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
 
   Let $(\Rdis{\aLoc}{}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  $\labelingAct' = \labelingAct$, 
-  $\labelingForm'(\aEv)$ implies $\TRUE$ if
-  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$) and
-  there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  $\labelingAct' = \labelingAct$,
+  and either
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
+  $\le$-minimal and
+  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$).
+  % $\labelingForm'(\aEv)$ implies $\TRUE$ if
+  % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$) and
+  % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
 
   Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
   $\labelingAct' = \labelingAct$, 
-  $\labelingForm'(\aEv)$ implies $\aExp=\aVal\lor\labelingForm(\aEv)$ if $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$ and
-  there is no $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  and either
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
+  $\le$-minimal,
+  $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$, and
+  $\labelingForm'(\aEv)$ implies $(\aExp=\aVal\lor\labelingForm(\aEv))$
+  % $\labelingForm'(\aEv)$ implies $\aExp=\aVal\lor\labelingForm(\aEv)$ if $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$ and
+  % there is no $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
   
   Let $(\relfilt[]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
   $\aPS'\in\aPSS'$ when for every release $\aEv'\in\Event'$, there is some
@@ -808,6 +822,23 @@ Read introduction \eqref{RI} is valid under the saturated semantics.
   &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}  
 \end{align*}
 
+With \ref{RI}, the model satisfies all of the transformations of
+\citet[\textsection 5.3-4]{SevcikThesis} except redundant write after read
+elimination (which is unsound) and reordering with external actions (which we
+do not model.)
+% \citet[\textsection 5.3]{SevcikThesis}
+% Sevcik 5.3:
+% !!!! Redundant Write after Read Elimination
+% Redundant Read after Read Elimination 
+% Roach Motel
+% Irrelevant Read Introduction
+% !!!! Reordering with external actions
+
+% Sevcik 5.4:
+% irrelevant read elimination,
+% read after write elimination,
+% write after write elimination,
+% reordering of independent accesses
 
 
 %
