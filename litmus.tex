@@ -74,7 +74,7 @@ program order in pomset order, resulting in the cycles shown above.
 To allow these executions, we drop the order marked $\rpox$.
 
 
-\paragraph{Publication}
+\paragraph{Publication and SC Access}
 
 Items \ref{5b} and \ref{5c} ensure correct publication.  For
 example, they disallow the following candidate execution, which sees a stale
@@ -103,6 +103,17 @@ By Definition \ref{def:rf}, $(\DR x0)$ is \emph{unfulfilled} in this
 pomset. It fails the last requirement of the definition, since
 $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$.  In order to satisfy this requirement,
 $(\DR x0)$ must be ordered before $(\DW x1)$, but this creates a cycle.
+
+%This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
+Item \ref{5d} ensures that program order between SC operations is always
+preserved.  Combined with the requirements for fulfillment, this is
+sufficient to establish that programs with only SC access have only SC
+executions; for example, execution candidate \ref{SB} is banned when the
+actions of the two threads are all $\modeSC$ (but allowed with less order
+otherwise, as discussed below).  It is also immediate that SC actions can be
+totally ordered, using any linearization of pomset order.  Just as SC access in
+\armeight{} is simplified by \mca, it is simplified here by the
+global pomset order.
 
 SC access is not as restrict as Java volatile style access.  For example, our
 model allows the following, which is disallowed by \citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:

@@ -623,7 +623,6 @@ The notion of \emph{downset} for pomsets is similar to the notion of
 We say that $\aPSS$ is \emph{downset-closed} if $\aPS\in\aPSS$ and $\aPS'$ is
 a downset of $\aPS$ implies $\aPS'\in\aPSS$.
 
-Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
 
 % (We identify
 % pomsets up to isomorphism on the event set.)
@@ -851,6 +850,7 @@ discuss coherence further on page \pageref{page:coherence2}.
   ($\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$).
   Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ such that $\aPS'{\in}\aPSS'$
   when $\aPS'$ is $\aLoc$-closed.
+  We define:
 \begin{align*}
   \sem[\aThrd]{\VAR\aLoc\SEMI \aCmd} & \eqdef
   \nu \aLoc \DOT \sem[\aThrd]{\aCmd}  
@@ -1045,17 +1045,17 @@ either:
     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
   \end{aligned}
-  \\
-%\end{gather*}
+\end{gather*}
+% \end{gather*}
 % if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
 % $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
 % \labelingForm^2(\aEv)$ is unsatisfiable.
 %\begin{gather*}
-\begin{aligned}
+  We then define:
+\begin{align*}
   \sem[\aThrd]{\aCmd \PAR[\bThrd][\bThrd'] \bCmd} & \eqdef
   \sem[\bThrd]{\aCmd} \parallel \sem[\bThrd']{\bCmd} 
-\end{aligned}
-\end{gather*}
+\end{align*}
 \end{definition}
 The definition requires that if $\aPS'\in(\aPS^1 \parallel \aPS^2)$ is completed,
 then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination events
@@ -1224,6 +1224,7 @@ pomsets with label $\DSTOP$.
   %
   \ \ Let $\aPS\in\stopPS$ when $\Event$ has one element labelled with action
   $\DSTOP$\!\!.
+  We then define:
 \begin{align*}
   \sem[\aThrd]{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
   \bigl(\aExp \guard \sem[\aThrd]{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem[\aThrd]{\bCmd}\bigr) 
@@ -1362,6 +1363,191 @@ violates consistency.
 \subsection{Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
 
+We present a candidate definition for prefixing.  The full definition follows
+in \textsection\ref{sec:refine}.
+
+% \begin{candidate}
+%   \label{def:pre-sc}
+%   Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set
+%   $\PRE{\aPSS'}$ %$\aPSS'$ 
+%   where
+% $\aPS'\in\aPSS'$ when 
+% there is $\aPS\in\aPSS$ such that
+% \hbox{{\labeltext[1]{(1)}{1}} $\Event' = \Event \cup \{\bEv\}$,}
+% {\labeltext[2]{(2)}{2}}  ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+% {\labeltext[3]{(3a)}{3}}  $\labelingAct'(\bEv) = \aAct$,
+% (3b) $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
+% {\labeltext[4a]{(4a)}{4a}}{\labeltext[4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
+% \begin{enumerate}
+% % \item[(1)]\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
+% % \item[(2)]\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+% % \item[(3a)] $\labelingAct'(\bEv) = \aAct$,
+% % \item[(3b)] $\labelingForm'(\bEv)$ implies $\aForm$,
+% % \item[(4a)] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
+% \item[{\labeltext[4b]{(4b)}{4b}}] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+% \item[{\labeltext[4c]{(4c)}{4c}}] if $\bEv$ does not \externally read then
+%   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
+% \item[{\labeltext[5]{(5)}{5}}] $\bEv \lt' \aEv$, 
+% \end{enumerate}
+% \end{candidate}
+
+
+  
+
+% We present several candidate definitions for prefixing before giving the
+% final definition.  The candidates are progressively more general and less
+% ordered.  We begin by considering programs with trivial expressions,
+% including all of program order in pomset order.
+% To simplify the definition, we construct the set of pomsets with the new
+% action, then downset close.
+
+% For programs with only trivial expressions, the simplest candidate
+% definitions of read and write result in top-level executions being
+% sequentially consistent.
+% \begin{candidate}
+%   \label{def:rw:sc1}
+%   Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set
+%   $\PRE{\aPSS'}$ %$\aPSS'$ 
+%   where
+%   $\aPS'\in\aPSS'$ when there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
+%   new event %with the given label
+%   that precedes all of the events in $\aPS$.
+%   \begin{align*}
+%     % \tag{$\dagger$}\label{sc-read}
+%     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+%     \smash{\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsimp \sem{\aCmd}}
+%     \\
+%     % \tag{$\ddagger$}\label{sc-write}
+%     \sem{\aLoc^\amode\GETS\aVal\SEMI \aCmd} & =
+%     %\textstyle\bigcup_\aVal\; (\bVal=\aVal \mid
+%     \smash{\DWmode\aLoc\aVal \prefixsimp \sem{\aCmd}}
+%   \end{align*}
+% \end{candidate}
+%For now, ignore the preconditions and substitutions. We explain them in the subsections below.
+
+% The definition ensures that program order is included in the pomset order.
+% Due to the requirements of fulfillment, we also have that $\reco$ is included
+% in pomset order.  As a result, all executions are sequentially consistent.
+% For example, consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
+% \begin{gather*}
+%   \taglabel{SB/LB}
+%   \begin{gathered}
+%   x\GETS0\SEMI
+%   y\GETS0\SEMI
+%   (
+%   x\GETS1\SEMI\aReg\GETS y
+%   \PAR
+%   y\GETS1\SEMI \aReg\GETS x)
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%       \event{wx0}{\DW{x}{0}}{}
+%       \event{wy0}{\DW{y}{0}}{below=of wx0}
+%       \event{wx}{\DW{x}{1}}{right=of wx0}
+%       \event{wy}{\DW{y}{1}}{right=of wy0}
+%       \event{ry}{\DR{y}{0}}{right=of wx}
+%       \event{rx}{\DR{x}{0}}{right=of wy}
+%       \wk{wx0}{wx}
+%       \wk{wy0}{wy}
+%       \rf{wy0}{ry}
+%       \rf{wx0}{rx}
+%       \wk[out=-150,in=15]{ry}{wy}
+%       \wk[out=150,in=-15]{rx}{wx}
+%       % \po{rx}{wy}
+%       \pox{wy}[below]{rx}
+%       \pox{wx}{ry}
+%     \end{tikzinline}}
+% \end{gathered}
+% \qquad
+%   \begin{gathered}
+%   \aReg\GETS y\SEMI x\GETS1
+%   \PAR
+%   \aReg\GETS x\SEMI y\GETS1
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%       \event{ry}{\DR{y}{1}}{}
+%       \event{rx}{\DR{x}{1}}{below=of ry}
+%       \event{wx}{\DW{x}{1}}{right=of ry}
+%       \event{wy}{\DW{y}{1}}{right=of rx}
+%       \rf{wy}{ry}
+%       \rf{wx}{rx}
+%       \pox{rx}[below]{wy}
+%       \pox{ry}{wx}
+%       % \po{rx}{wy}
+%     \end{tikzinline}}
+% \end{gathered}
+% \end{gather*}
+% All of the cross-thread order is required by the definition of fulfillment.
+% Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
+% program order in pomset order, resulting in the cycles shown above.
+% To allow these executions, we drop the order marked $\rpox$.
+
+% We cannot drop all of program order, however, since some actions within a
+% thread are causally related. Preconditions allow us to detect these
+% relationships.  We write the definition of the prefixing operator more
+% carefully this time, and highlight some of the changes in the candidate
+% semantics:
+
+%\subsection{Program Order Prefixing}
+\begin{candidate}
+  \label{def:pre-sc}
+  Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
+  
+  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+  $\PRE{\aPSS'}$ %$\aPSS'$ 
+  where
+$\aPS'\in\aPSS'$ when 
+there is $\aPS\in\aPSS$ such that
+\hbox{{\labeltext[1]{(1)}{1}} $\Event' = \Event \cup \{\bEv\}$,}
+{\labeltext[2]{(2)}{2}}  ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+{\labeltext[3]{(3a)}{3}}  $\labelingAct'(\bEv) = \aAct$,
+(3b) $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
+\begin{enumerate}
+% \item[(1)]\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
+% \item[(2)]\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+% \item[(3a)] $\labelingAct'(\bEv) = \aAct$,
+% \item[(3b)] $\labelingForm'(\bEv)$ implies $\aForm$,
+% \item[(4a)] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
+\item[{\labeltext[4a]{(4a)}{4a}}]{\labeltext[4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
+\item[{\labeltext[4b]{(4b)}{4b}}] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+\item[{\labeltext[4c]{(4c)}{4c}}] if $\bEv$ does not \externally read then
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
+\item[{\labeltext[5a]{(5a)}{5a}}] %$\bEv$ \externally reads and
+  \labeltext[5]{if}{5} $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+% \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
+%   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
+%   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+% \item[5a.] if %$\bEv$ \externally reads and
+%   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
+%   $\bEv\lt'\aEv$,
+\item[{\labeltext[5b]{(5b)}{5b}}] if $\bEv$ and $\aEv$ are \external actions in conflict,
+    then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
+\item[{\labeltext[5c]{(5c)}{5c}}] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+\item[{\labeltext[5d]{(5d)}{5d}}] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
+%\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
+% \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+%   is location independent.
+\end{enumerate}
+% \end{definition}
+% %\vspace{-2ex}
+% \begin{candidate}%\ \vspace{-1ex}
+  \label{cand:ord}
+  We then define:
+  \begin{gather*}
+    \begin{aligned}[t]
+      % \tag{$\dagger$}\label{sc-read}
+      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
+      (\DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
+      \\
+      % \tag{$\ddagger$}\label{sc-write}
+      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
+      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
+      \prefix \sem{\aCmd}[\aExp/\aLoc]
+    \end{aligned}
+  \end{gather*}
+\end{candidate}
+
 The unexpected execution of \ref{OOTA?}:
 \begin{gather*}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
@@ -1388,152 +1574,41 @@ The unexpected execution of \ref{OOTA?}:
   \sync{wa1}{stop}
 \end{tikzinline}}
 \end{gather*}
-  
 
-We present several candidate definitions for prefixing before giving the
-final definition.  The candidates are progressively more general and less
-ordered.  We begin by considering programs with trivial expressions,
-including all of program order in pomset order.
-% To simplify the definition, we construct the set of pomsets with the new
-% action, then downset close.
-
-% For programs with only trivial expressions, the simplest candidate
-% definitions of read and write result in top-level executions being
-% sequentially consistent.
-\begin{candidate}
-  \label{def:rw:sc1}
-  Let $(\aForm \mid \aAct) \prefixsimp \aPSS$ be the set
-  $\PRE{\aPSS'}$ %$\aPSS'$ 
-  where
-  $\aPS'\in\aPSS'$ when there is $\aPS\in\aPSS$ such that $\aPS'$ adds a
-  new event %with the given label
-  that precedes all of the events in $\aPS$.
-  \begin{align*}
-    % \tag{$\dagger$}\label{sc-read}
-    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-    \smash{\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsimp \sem{\aCmd}}
-    \\
-    % \tag{$\ddagger$}\label{sc-write}
-    \sem{\aLoc^\amode\GETS\aVal\SEMI \aCmd} & =
-    %\textstyle\bigcup_\aVal\; (\bVal=\aVal \mid
-    \smash{\DWmode\aLoc\aVal \prefixsimp \sem{\aCmd}}
-  \end{align*}
-\end{candidate}
-%For now, ignore the preconditions and substitutions. We explain them in the subsections below.
-
-The definition ensures that program order is included in the pomset order.
-Due to the requirements of fulfillment, we also have that $\reco$ is included
-in pomset order.  As a result, all executions are sequentially consistent.
-For example, consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
-\begin{gather*}
-  \taglabel{SB/LB}
-  \begin{gathered}
-  x\GETS0\SEMI
-  y\GETS0\SEMI
-  (
-  x\GETS1\SEMI\aReg\GETS y
-  \PAR
-  y\GETS1\SEMI \aReg\GETS x)
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
-      \event{wx0}{\DW{x}{0}}{}
-      \event{wy0}{\DW{y}{0}}{below=of wx0}
-      \event{wx}{\DW{x}{1}}{right=of wx0}
-      \event{wy}{\DW{y}{1}}{right=of wy0}
-      \event{ry}{\DR{y}{0}}{right=of wx}
-      \event{rx}{\DR{x}{0}}{right=of wy}
-      \wk{wx0}{wx}
-      \wk{wy0}{wy}
-      \rf{wy0}{ry}
-      \rf{wx0}{rx}
-      \wk[out=-150,in=15]{ry}{wy}
-      \wk[out=150,in=-15]{rx}{wx}
-      % \po{rx}{wy}
-      \pox{wy}[below]{rx}
-      \pox{wx}{ry}
-    \end{tikzinline}}
-\end{gathered}
-\qquad
-  \begin{gathered}
-  \aReg\GETS y\SEMI x\GETS1
-  \PAR
-  \aReg\GETS x\SEMI y\GETS1
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
-      \event{ry}{\DR{y}{1}}{}
-      \event{rx}{\DR{x}{1}}{below=of ry}
-      \event{wx}{\DW{x}{1}}{right=of ry}
-      \event{wy}{\DW{y}{1}}{right=of rx}
-      \rf{wy}{ry}
-      \rf{wx}{rx}
-      \pox{rx}[below]{wy}
-      \pox{ry}{wx}
-      % \po{rx}{wy}
-    \end{tikzinline}}
-\end{gathered}
-\end{gather*}
-All of the cross-thread order is required by the definition of fulfillment.
-Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
-program order in pomset order, resulting in the cycles shown above.
-To allow these executions, we drop the order marked $\rpox$.
-
-We cannot drop all of program order, however, since some actions within a
-thread are causally related. Preconditions allow us to detect these
-relationships.  We write the definition of the prefixing operator more
-carefully this time, and highlight some of the changes in the candidate
-semantics:
-
-%\subsection{Program Order Prefixing}
-\begin{candidate}
-  \label{def:pre-sc}
-  Let $(\aForm \mid \aAct) \prefixsc \aPSS$ be the set
-  $\PRE{\aPSS'}$ %$\aPSS'$ 
-  where
-$\aPS'\in\aPSS'$ when 
-there is $\aPS\in\aPSS$ such that
-\hbox{{\labeltext[1]{(1)}{1}} $\Event' = \Event \cup \{\bEv\}$,}
-{\labeltext[2]{(2)}{2}}  ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-{\labeltext[3]{(3a)}{3}}  $\labelingAct'(\bEv) = \aAct$,
-(3b) $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
-{\labeltext[4a]{(4a)}{4a}}{\labeltext[4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
-\begin{enumerate}
-% \item[(1)]\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
-% \item[(2)]\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-% \item[(3a)] $\labelingAct'(\bEv) = \aAct$,
-% \item[(3b)] $\labelingForm'(\bEv)$ implies $\aForm$,
-% \item[(4a)] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-\item[{\labeltext[4b]{(4b)}{4b}}] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item[{\labeltext[4c]{(4c)}{4c}}] if $\bEv$ does not \externally read then
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, and
-\item[{\labeltext[5]{(5)}{5}}] $\bEv \lt' \aEv$, 
-\end{enumerate}
-% \end{definition}
-%
-% \begin{candidate} %\ \vspace{-1ex}
-  \label{cand:sc}
-  \begin{gather*}
-    \begin{aligned}[t]
-      % \tag{$\dagger$}\label{sc-read}
-      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
-      \smash{\;\textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefixsc
-        \sem{\aCmd}\mkern4mu\, \mathhl{[\aLoc/\aReg] }}
-      \\
-      % \tag{$\ddagger$}\label{sc-write}
-      \sem{\aLoc^\amode\GETS{\aExp}\SEMI \aCmd} & =
-      \;\smash{\mathhl{\textstyle\bigcup_\aVal\; (\aExp=\aVal}\, \mid
-        \DWmode\aLoc\aVal) \prefixsc\; \sem{\aCmd}}
-    \end{aligned}
-  \end{gather*}
-\end{candidate}
 The semantics of read and write introduce a pomset for each possible value.
-Note that the value in write actions is fixed.  The dependence on $\aExp$
-appears in the precondition: $\aExp=\aVal$.
+Note that the value in the actions is fixed.  For writes, the dependence on
+$\aExp$ appears in the precondition: $\aExp=\aVal$.
 
-Item \ref{1} introduces a new event.  Item \ref{2} ensures that no order is
-removed from old events. Item \ref{3} specifies the action labelling the new
-and old events, and item \ref{4} specifies the preconditions.  Item \ref{5}
-ensures that program order is included for the new event.
+The main work happens in the definition of prefixing ($\prefix$): Item
+\ref{1} introduces a new event.  Item \ref{2} ensures that no order is
+removed from old events. Item \ref{3} specifies the actions labelling the
+events; item \ref{4} specifies the preconditions.  Item \ref{5}
+specifies the preserved program order.
+
+In the next section, we explain item \ref{5} using standard litmus tests:
+Read fulfillment is constrained by the program order that is preserved by
+\ref{5}.
+Item \ref{5a} captures \emph{read to write dependency}\footnote{When $\bEv$
+  is not a read, \ref{4c} trivially implies \ref{5a}.}.  It only requires
+order from read to write when the precondition of the write is
+\emph{weakened} using \ref{4b}.  Item \ref{5b} captures the extended
+coherence requirement on actions that touch the same location.  Item \ref{5c}
+imposes the order required by acquire and release actions\footnote{Recall
+  that termination actions are releases.}.  Item \ref{5d} imposes the
+additional order required by SC actions\footnote{Recall that SC reads are
+  acquires and SC writes are
+  releases.}.  %(We explain item 6 in the next subsection.)
+
+
+% Program order need only be preserved from a read to a dependent
+% write (\ref{5a}), between conflicting events (\ref{5b}), and around fences
+% and synchronization (\ref{5c}, \ref{5d}).
+
+In the remainder of this section, we concentrate on the sequential semantics:
+Preconditions are satisfied using the substitutions in the semantic rules and
+in \ref{4b}.  We close by discussing the interaction between preconditions
+and \reef{5a}.
+
 
 For the new event, \ref{4a} requires that the precondition in $\aPS'$ implies
 $\aForm$.
@@ -1704,93 +1779,93 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 %   \IF{r\EQ1}\THEN \aCmd\ELSE \aCmd\FI.
 % \end{math}
 
-\subsection{General Prefixing}
-\label{sec:gp}
+% \subsection{General Prefixing}
+% \label{sec:gp}
 
-We now relax item \ref{5} so that only some program order is {preserved}.
-The final definition has a small delta with respect to
-Candidate \ref{def:pre-sc}.  Program order need only be preserved from
-a read to a dependent write (\ref{5a}), between conflicting events
-(\ref{5b}), and around fences (\ref{5c}, \ref{5d}).
-% %\ref{5a}
-% weakening a dependent precondition,
-% %\ref{5b}
-% conflict (aka, coherence), 
-% %\ref{5c}
-% $\modeRA$-fences, and 
-% %\ref{5d}
-% $\modeSC$-fences.
+% We now relax item \ref{5} so that only some program order is {preserved}.
+% The final definition has a small delta with respect to
+% Candidate \ref{def:pre-sc}.  Program order need only be preserved from
+% a read to a dependent write (\ref{5a}), between conflicting events
+% (\ref{5b}), and around fences (\ref{5c}, \ref{5d}).
+% % %\ref{5a}
+% % weakening a dependent precondition,
+% % %\ref{5b}
+% % conflict (aka, coherence), 
+% % %\ref{5c}
+% % $\modeRA$-fences, and 
+% % %\ref{5d}
+% % $\modeSC$-fences.
 
-% and our last failed candidate semantics.
-\begin{candidate}
-  \label{def:prefix}
-Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
-  $\PRE{\aPSS'}$ %$\aPSS'$ 
-where
-$\aPS'\in\aPSS'$ when
-there is some $\aPS\in\aPSS$ that satisfies items \ref{1}-\ref{4} of
-Candidate \ref{def:pre-sc} such that:
-\begin{enumerate}
-\item[{\labeltext[5a]{(5a)}{5a}}] %$\bEv$ \externally reads and
-  \labeltext[5]{if}{item:5} $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
-% \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
-%   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
-%   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-% \item[5a.] if %$\bEv$ \externally reads and
-%   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
-%   $\bEv\lt'\aEv$,
-\item[{\labeltext[5b]{(5b)}{5b}}] if $\bEv$ and $\aEv$ are \external actions in conflict,
-    then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
-\item[{\labeltext[5c]{(5c)}{5c}}] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
-\item[{\labeltext[5d]{(5d)}{5d}}] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
-%\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
-% \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
-%   is location independent.
-\end{enumerate}
-% \end{definition}
-% %\vspace{-2ex}
-% \begin{candidate}%\ \vspace{-1ex}
-  \label{cand:ord}
-  \begin{gather*}
-    \begin{aligned}[t]
-      % \tag{$\dagger$}\label{sc-read}
-      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & = \textstyle\bigcup_\aVal\;
-      (\DRmode\aLoc\aVal) \mathhl{\prefix}\; \sem{\aCmd} [\aLoc/\aReg]
-      \\
-      % \tag{$\ddagger$}\label{sc-write}
-      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
-      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
-      \mathhl{\prefix}\; \sem{\aCmd}\mkern3.5mu\mathhl{[\aExp/\aLoc]}
-    \end{aligned}
-  \end{gather*}
-\end{candidate}
+% % and our last failed candidate semantics.
+% \begin{candidate}
+%   \label{def:prefix}
+% Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+%   $\PRE{\aPSS'}$ %$\aPSS'$ 
+% where
+% $\aPS'\in\aPSS'$ when
+% there is some $\aPS\in\aPSS$ that satisfies items \ref{1}-\ref{4} of
+% Candidate \ref{def:pre-sc} such that:
+% \begin{enumerate}
+% \item[{\labeltext[5a]{(5a)}{5a}}] %$\bEv$ \externally reads and
+%   \labeltext[5]{if}{item:5} $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+% % \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
+% %   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
+% %   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+% % \item[5a.] if %$\bEv$ \externally reads and
+% %   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
+% %   $\bEv\lt'\aEv$,
+% \item[{\labeltext[5b]{(5b)}{5b}}] if $\bEv$ and $\aEv$ are \external actions in conflict,
+%     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
+% \item[{\labeltext[5c]{(5c)}{5c}}] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+% \item[{\labeltext[5d]{(5d)}{5d}}] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
+% %\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
+% % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
+% %   is location independent.
+% \end{enumerate}
+% % \end{definition}
+% % %\vspace{-2ex}
+% % \begin{candidate}%\ \vspace{-1ex}
+%   \label{cand:ord}
+%   \begin{gather*}
+%     \begin{aligned}[t]
+%       % \tag{$\dagger$}\label{sc-read}
+%       \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & = \textstyle\bigcup_\aVal\;
+%       (\DRmode\aLoc\aVal) \mathhl{\prefix}\; \sem{\aCmd} [\aLoc/\aReg]
+%       \\
+%       % \tag{$\ddagger$}\label{sc-write}
+%       \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+%       \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
+%       \mathhl{\prefix}\; \sem{\aCmd}\mkern3.5mu\mathhl{[\aExp/\aLoc]}
+%     \end{aligned}
+%   \end{gather*}
+% \end{candidate}
 
 % \end{definition}
 % \begin{candidate}
 %   Replace $\prefixsc$ in Candidate~\ref{def:rw:sc1} by $\prefix$.
 % \end{candidate}
-Item \ref{5a} captures \emph{read to write dependency}\footnote{When $\bEv$
-  is not a read, \ref{4c} trivially implies \ref{5a}.}.  It only requires
-order from read to write when the precondition of the write is
-\emph{weakened} using \ref{4b}.  Item \ref{5b} captures the extended
-coherence requirement on actions that touch the same location.  Item \ref{5c}
-imposes the order required by acquire and release actions\footnote{Recall
-  that termination actions are releases.}.  Item \ref{5d} imposes the
-additional order required by SC actions\footnote{Recall that SC reads are
-  acquires and SC writes are
-  releases.}.  %(We explain item 6 in the next subsection.)
+% Item \ref{5a} captures \emph{read to write dependency}\footnote{When $\bEv$
+%   is not a read, \ref{4c} trivially implies \ref{5a}.}.  It only requires
+% order from read to write when the precondition of the write is
+% \emph{weakened} using \ref{4b}.  Item \ref{5b} captures the extended
+% coherence requirement on actions that touch the same location.  Item \ref{5c}
+% imposes the order required by acquire and release actions\footnote{Recall
+%   that termination actions are releases.}.  Item \ref{5d} imposes the
+% additional order required by SC actions\footnote{Recall that SC reads are
+%   acquires and SC writes are
+%   releases.}.  %(We explain item 6 in the next subsection.)
 
 
 %This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
-Item \ref{5d} ensures that program order between SC operations is always
-preserved.  Combined with the requirements for fulfillment, this is
-sufficient to establish that programs with only SC access have only SC
-executions; for example, execution candidate \ref{SB} is banned when the
-actions of the two threads are all $\modeSC$ (but allowed with less order
-otherwise, as discussed below).  It is also immediate that SC actions can be
-totally ordered, using any linearization of pomset order.  Just as SC access in
-\armeight{} is simplified by \mca, it is simplified here by the
-global pomset order.
+% Item \ref{5d} ensures that program order between SC operations is always
+% preserved.  Combined with the requirements for fulfillment, this is
+% sufficient to establish that programs with only SC access have only SC
+% executions; for example, execution candidate \ref{SB} is banned when the
+% actions of the two threads are all $\modeSC$ (but allowed with less order
+% otherwise, as discussed below).  It is also immediate that SC actions can be
+% totally ordered, using any linearization of pomset order.  Just as SC access in
+% \armeight{} is simplified by \mca, it is simplified here by the
+% global pomset order.
 % \begin{gather*}
 %   x\GETS0\SEMI x\GETS1\SEMI\aReg\GETS y
 %   \PAR
@@ -1815,21 +1890,21 @@ global pomset order.
 %     \end{tikzinline}}
 % \end{gather*}
 
-We relax program order on non-SC accesses in order to allow outcomes like
-that of execution candidate \ref{SB}.
-Order is relaxed between reads, between writes to different
-locations, and from a read to an independent write:
-\begin{gather*}
-  \aCmd=(\aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI)
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wy1}{\DW{y}{1}}{}
-      \event{rx1}{\DR{x}{1}}{left=of wy1}
-    \end{tikzinline}}
-\end{gather*}
-The existence of this pomset is justified
-by the Hoare triple
-$\hoare{\TRUE}{\aCmd}{y=1}$.
+% We relax program order on non-SC accesses in order to allow outcomes like
+% that of execution candidate \ref{SB}.
+% Order is relaxed between reads, between writes to different
+% locations, and from a read to an independent write:
+% \begin{gather*}
+%   \aCmd=(\aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI)
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{wy1}{\DW{y}{1}}{}
+%       \event{rx1}{\DR{x}{1}}{left=of wy1}
+%     \end{tikzinline}}
+% \end{gather*}
+% The existence of this pomset is justified
+% by the Hoare triple
+% $\hoare{\TRUE}{\aCmd}{y=1}$.
 
 
 

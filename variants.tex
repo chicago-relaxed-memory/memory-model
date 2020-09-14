@@ -14,7 +14,7 @@ is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
 $(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
 $(\DFS{\modeSC})$ is both a release and an acquire.
 \begin{align*}
-  \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
+  \sem{\FENCE^{\fmode}\SEMI \aCmd} & \eqdef
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
 Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-accesses.
@@ -448,13 +448,13 @@ semantics simply by expanding this encoding.  Applying this technique to Candida
 %   % \\[6ex]
 % \end{align*}
   \begin{align*}
-  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & \eqdef
     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
     \textstyle\bigcup_\aVal\;
     (\DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd} [\REF{\cVal}]/\aReg]
     \bigr)
     \\
-  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
     \bigl(\textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
   \end{align*}
