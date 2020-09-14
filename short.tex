@@ -3,9 +3,8 @@
 
 We show that our semantics compiles efficiently to the ARMv8 model of
 \citet{DBLP:journals/pacmpl/PulteFDFSS18}.  Efficient compilation is not
-possible for earlier models of ARMv8.  For example, the model of
-\citet{DBLP:conf/popl/FlurGPSSMDS16} allowed the following outcome
-\cite[Fig.~4]{DBLP:conf/fm/LahavV16}, which is disallowed here:
+possible for \cite{DBLP:conf/popl/FlurGPSSMDS16}, referenced in
+\cite[Fig.~4]{DBLP:conf/fm/LahavV16}:
 \begin{gather*}
   %\taglabel{ARMv8-2016}
   \begin{gathered}
@@ -32,7 +31,7 @@ possible for earlier models of ARMv8.  For example, the model of
 \end{gathered}
 \end{gather*}
 This type of ``big detour'' \cite{alglave} is outlawed by
-\citet{DBLP:journals/pacmpl/PulteFDFSS18}\footnote{There is either a cycle
+ARMv8\footnote{There is either a cycle
   $\DR{x}{1}\xpoloc d\xcoe e \xrfex \DR{x}{1}$ % SC-pER-LOC
   or % in ob
   $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}.
