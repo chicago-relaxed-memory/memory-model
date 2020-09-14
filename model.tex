@@ -549,18 +549,21 @@ $(r<0\land r\geq0)$ is unsatisfiable.
 
 Preconditions are linked to pomset order via \emph{causal strengthening},
 which requires that formulae do not weaken over time, as measured by $\le$.
-For example, the semantics of $\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$ includes:
-\begin{displaymath}
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
-  \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
-  \po{a2}{a3}
-    \end{tikzinline}}
-\end{displaymath}
-The precondition on $\DW{x}{1}$ is required by the data dependency induced by
-$\bReg$ (see page \pageref{page:strengthening}).  Note that, by causal
-strengthening, the termination event of a completed pomset must imply all
-other events.
+We give an example that requires causal strengthening on page \pageref{page:strengthening}.
+% The precondition on $\DW{x}{1}$ is required by the data dependency induced by
+% $\bReg$ (see page \pageref{page:strengthening}).
+% For example, the semantics of $\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$ includes:
+% \begin{displaymath}
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
+%   \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
+%   \po{a2}{a3}
+%     \end{tikzinline}}
+% \end{displaymath}
+% The precondition on $\DW{x}{1}$ is required by the data dependency induced by
+% $\bReg$ (see page \pageref{page:strengthening}).
+Note that, by causal strengthening, the termination event of a completed
+pomset must imply all other events.
 
 \begin{definition}
   \label{def:mmpomset}
