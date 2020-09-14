@@ -27,7 +27,7 @@ Other changes:
    corrected the discussion of JMM litmus tests
    added TC16
    added more discussion of coherence
-
+   changed MCA1 to match the example in   
 + section 3.2:
    strengthened RL and CSE to get rid of read saturation
    split CA to clarify which direction works in the simple model
