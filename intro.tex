@@ -185,46 +185,149 @@ reads, even on \armeight.
 
 
 
-Our approach has two key ingredients.  
+In our approach, a program is a set of execution.  Each execution is a
+partial order on a set of read and write events.  The order is intended to be
+read as a ``dependency'' relation.  The dependency relation can vary between
+executions, so it is dynamic; events that are not related in an execution are
+``independent'' and can be seen by a sequential observer in either order.
 
-First, we focus on \emph{multi-copy atomicity} (\mca), which holds that when
-a write becomes visible to one thread it must become visible to
-all\nofootnote{\mca\ is traditionally explored in hardware memory models.
-  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent
-  architectures, such as \armeight\ (see,
-  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older
-  architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11})
-  or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
-\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in
-\cite[\textsection3.3]{AlglaveThesis}, this allows us to capture cross-thread
-dependencies in a single partial order.  The key insight is that \emph{\mca{}
-  permits a single, global notion of time, manifest in the pomset order}.
-This is a dramatic simplification over other models.
-% acyclicity of the pomset providing a global notion of time.  Just as \mca{}
-% dramatically simplifies the programmer model for
-% hardware, % \citep{DBLP:journals/pacmpl/PulteFDFSS18},
-% this global notion of time dramatically simplifies our model for the language
-% level.
-% As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  We believe it has the same appeal at the language-level.  
+The executions of a program are computed compositionally, by induction on the
+structure of the program.  Thus, our model falls into the style of relaxed
+memory models advocated by~\citet{Batty17}.
 
-Second, we weaken the program-order within a thread to capture only
-\emph{essential dependencies}.  These are represented in the pomset order.
-This reduction from program order to pomset order is similar to the reduction
-to \emph{preserved} program order (\textsf{ppo}) in hardware models.  However, rather
-than calculating dependencies syntactically, we compute them using 
-%Previous language models have used syntactic notions of dependency \cite{Batty:2011:MCC:1926385.1926394}.
-classical Hoare logic. The key insight is that \emph{logic is better than syntax}.
-Consider the following program fragments: %\begingroup \allowdisplaybreaks
+Cross thread dependencies arise from conflicting actions on the same
+variable.  Thus, any two actions, at least one of which is a write, on the
+same location and not in the same thread, are ordered.  In the parlance of
+hardware memory models~\citep{alglave}, $\rcoe,\rfre,\rrfe$ are included in
+the dependency ordering.  Thus, our model is realizes \emph{multi-copy
+  atomicity} (\mca); when a write becomes visible to one thread it must
+become visible to all\nofootnote{\mca\ is traditionally explored in hardware
+  memory models.  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10})
+  and recent architectures, such as \armeight\ (see,
+  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.  ), are \mca, but
+  not older architectures, such as \ppc\ (see,
+  e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see,
+  e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
+\citep{DBLP:journals/pacmpl/PulteFDFSS18}.
+  
+
+Within a thread, the dependency calculation can be viewed as the computation
+of \emph{preserved} program order (\textsf{ppo}) in hardware models.  $\rppo$
+captures the \emph{essential dependencies} between events in the same thread.
+Our key insight is to that \emph{logic is better than syntax} to capture such
+dependencies.
+
+Consider the following program fragments: \begingroup \allowdisplaybreaks
 \begin{align*}
   & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
   \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
   \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
   %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
-%\endgroup
-All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each case, the write of $y$ is independent of
-any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
-DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
+\endgroup
+All these fragments satisfy $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
+case, the write of $y$ is independent of any code that precedes it in program
+order. While $\aCmd_1$ reflects syntactic independence, $\aCmd_2$ reflects
+the independence derived by case analysis, and $\aCmd_3$ reflects the
+independence deduced from partial evaluation (in the restricted form of
+constant propagation).
+
+$\aCmd_3$ shows the important role of \emph{internal} reads---reads that are
+fulfilled by a preceding write in the same thread---in relaxed memory models
+such as \armeight.  
+Unlike externally fulfilled reads, %($\rrfe$),
+internal reads are not necessarily recorded in the dependency relation.
+This allows a compiler or processor to reorder the write with
+respect to the code that precedes it.
+
+The logical perspective provides a clear intuition why our model validates
+the compiler transformations discussed above \eqref{OOTA?}.
+% reordering of independent statements, Irrelevant read introduction, RaR, RaW,
+% WaW and Read Reordering and motivates the expressivity wrt the \jmm\
+% causality test cases.  For example, consider Test Case 17 from Pugh.
+% \[
+% \begin{array}{ll}
+%  &\aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \bLoc \GETS \aReg_1  \\
+%  \PAR & \aReg_2 \GETS \bLoc \SEMI \aLoc \GETS \aReg 
+% \end{array}
+% \]
+% \jmm\ permits the behavior $\aReg_1 = \aReg_2 = \aReg_3 =42$.
+
+% We deduce:
+% \[
+% \hoare{\TRUE}{\aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc }{\aReg_1 =42}
+% \]
+% and so:
+% \[
+% \hoare{\TRUE}{\aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc  \SEMI \bLoc \GETS \aReg_1  }{\bLoc =42}
+% \]
+% validating the transformation of the first thread to:
+% \[ \bLoc \GETS 42 \SEMI \aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \]
+% from which the required execution follows.
+
+Thread compositionality provides a perspective on how our model forbids ``Out
+Of Thin Air'' (\oota); after all, it is stating that parallel composition
+does not create unexpected new behaviors.  More concretely, as envisioned in
+\cite[\textsection3.3]{AlglaveThesis}, \emph{\mca{} permits a single, global
+  notion of time, manifest in the dependency order} that captures all
+cross-thread dependencies.  The absence of cycles in the dependency order
+forbids \oota\ behaviors.  Consider the well-known litmus test:
+\begin{displaymath}
+  x\GETS0\SEMI y\GETS0\SEMI
+  (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
+\end{displaymath}
+We rule out an assignment of $1$ to both locations as follows.  The write of
+$\aLoc$ in the LHS is dependent on the read to $\bLoc$.  Similarly, the write
+of $\bLoc$ in the RHS is dependent on the read to $\aLoc$.  Since a read of
+$1$ can only be satisfied externally, both reads are part of the dependency
+order, leading to a cycle in the dependency order: a contradiction.
+
+
+
+
+
+
+
+% Our approach has two key ingredients.  
+
+% First, we focus on \emph{multi-copy atomicity} (\mca), which holds that when
+% a write becomes visible to one thread it must become visible to
+% all\nofootnote{\mca\ is traditionally explored in hardware memory models.
+%   \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent
+%   architectures, such as \armeight\ (see,
+%   e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}), are \mca, but not older
+%   architectures, such as \ppc\ (see, e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11})
+%   or \armseven\ (see, e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
+% \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in
+% \cite[\textsection3.3]{AlglaveThesis}, this allows us to capture cross-thread
+% dependencies in a single partial order.  The key insight is that \emph{\mca{}
+%   permits a single, global notion of time, manifest in the pomset order}.
+% This is a dramatic simplification over other models.
+% % acyclicity of the pomset providing a global notion of time.  Just as \mca{}
+% % dramatically simplifies the programmer model for
+% % hardware, % \citep{DBLP:journals/pacmpl/PulteFDFSS18},
+% % this global notion of time dramatically simplifies our model for the language
+% % level.
+% % As far as we are aware, ours is the first language-level model to capture \mca.   The appeal of \mca{} in hardware is the dramatically simpler programmer model \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  We believe it has the same appeal at the language-level.  
+
+% Second, we weaken the program-order within a thread to capture only
+% \emph{essential dependencies}.  These are represented in the pomset order.
+% This reduction from program order to pomset order is similar to the reduction
+% to \emph{preserved} program order (\textsf{ppo}) in hardware models.  However, rather
+% than calculating dependencies syntactically, we compute them using 
+% %Previous language models have used syntactic notions of dependency \cite{Batty:2011:MCC:1926385.1926394}.
+% classical Hoare logic. The key insight is that \emph{logic is better than syntax}.
+% Consider the following program fragments: %\begingroup \allowdisplaybreaks
+% \begin{align*}
+%   & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
+%   \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
+%   \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
+%   %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
+% \end{align*}
+% %\endgroup
+% All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each case, the write of $y$ is independent of
+% any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
+% DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
 
 
 We show that the model:
