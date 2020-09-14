@@ -1562,7 +1562,11 @@ removed from old events. Item \ref{3} specifies the actions labelling the
 events; item \ref{4} specifies the preconditions.  Item \ref{5}
 specifies the preserved program order.
 
-In the next section, we explain item the concurrent semantics using standard
+Whereas a write action introduces a precondition---that must be satisfied
+sequentially---on the value to be written; a read introduces a pomset
+requirement---that may be fulfilled concurrently---on the value to be read.
+
+In the next section, we explain the concurrent semantics using standard
 litmus tests: Read fulfillment is constrained by the program order that is
 preserved by \ref{5}.  Item \ref{5a} captures \emph{read to write
   dependency}\footnote{When $\bEv$ is not a read, \ref{4c} trivially implies
@@ -1583,15 +1587,15 @@ actions\footnote{Recall that termination actions are releases.}.  Item
 
 In this section, we explain the sequential semantics: Preconditions are
 satisfied using the substitutions in the semantic rules and in \ref{4b}.  We
-end with a discussion of \ref{5a}, which connects the concurrent and
-sequential semantics.
+also discuss \ref{5a}, which connects the concurrent and sequential
+semantics.
 
-Let us revisit the unexpected execution of \ref{OOTA?}, explained in \textsection\ref{sec:domain}:
+Let us revisit the unexpected execution of \eqref{OOTA?}, as explained in
+\textsection\ref{sec:domain}:
 \begin{gather*}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
   \PAR
-  r\GETS y\SEMI \IF{r}\THEN 
-  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
+  r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
@@ -1612,6 +1616,153 @@ Let us revisit the unexpected execution of \ref{OOTA?}, explained in \textsectio
   \sync{wa1}{stop}
 \end{tikzinline}}
 \end{gather*}
+% Note that $\sem{z\GETS r}$ contains $(r{=}0\mid\DW{z}{0})$,
+% $(r{=}1\mid\DW{z}{1})$, etc.  Thus 
+It is immediate from the definition that $\sem{x\GETS r\SEMI z\GETS r}$
+contains pomset candidates such as:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{r=1\mid\DW{x}{1}}{}
+      \event{wz}{r=1\mid\DW{z}{1}}{right=of wx}
+    \end{tikzinline}}  
+  &&
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{r=1\mid\DW{x}{1}}{}
+      \event{wz}{r=2\mid\DW{z}{2}}{right=of wx}
+    \end{tikzinline}}  
+\end{align*}
+Consistency (Definition \ref{def:mmpomset}) rules out the right pomset, since
+the conjunction of preconditions is unsatisfiable.
+No order is required between the writes.
+
+% Thus,
+% $\sem{x\GETS r\SEMI z\GETS r}$ can only contains pomsets such as:
+% \begin{align*}
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{wx}{r{=}1\mid\DW{x}{1}}{}
+%       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
+%     \end{tikzinline}}  
+%   &&
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%       \event{wx}{r=2\mid\DW{x}{2}}{}
+%       \event{wz}{r=2\mid\DW{z}{2}}{right=of wx}
+%     \end{tikzinline}}  
+% \end{align*}
+Combining the two sides of the conditional, 
+\begin{math}
+  \sem{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI}
+\end{math}
+contains:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{r{=}1\lor r{=}0\mid\DW{x}{1}}{}
+      \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
+    \end{tikzinline}}  
+\end{gather*}
+
+When prefixing ``$r\GETS y$,'' we first substitute $[y/r]$, resulting in:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
+      \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
+    \end{tikzinline}}  
+\end{gather*}
+Adding the read action,
+\begin{math}
+  \sem{r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI} 
+\end{math}
+contains:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
+      \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
+      \event{ry}{\DR{y}{1}}{left=of wx}
+    \end{tikzinline}}
+\end{gather*}
+Since $(y{=}1)[2/y]$ is unsatisfiable, \ref{4b} prevents pomsets such as:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
+      \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
+      \event{ry}{\DR{y}{2}}{left=of wx}
+    \end{tikzinline}}
+\end{gather*}
+Thus the read must be consistent with the predicates.
+
+\ref{4b} also allows predicates to weaken, in which case \ref{5a} requires order:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
+      \event{wz}{\DW{z}{1}}{right=of wx}
+      \event{ry}{\DR{y}{1}}{left=of wx}
+      \po[out=15,in=165]{ry}{wz}
+    \end{tikzinline}}
+\end{gather*}
+Adding the write,
+\begin{math}
+  \sem{y\GETS 0\SEMI r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI} 
+\end{math}
+substitutes $[0/y]$, resulting in: 
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{0{=}1\lor 0{=}0\mid\DW{x}{1}}{}
+      \event{wz}{\DW{z}{1}}{right=of wx}
+      \event{ry}{\DR{y}{2}}{left=of wx}
+      \event{wy}{\DW{y}{0}}{left=of ry}
+      \po[out=15,in=165]{ry}{wz}
+      \wk{wy}{ry}
+    \end{tikzinline}}
+\end{gather*}
+Since $0{=}1\lor 0{=}0$ is a tautology, we have:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{\DW{x}{1}}{}
+      \event{wz}{\DW{z}{1}}{right=of wx}
+      \event{ry}{\DR{y}{2}}{left=of wx}
+      \event{wy}{\DW{y}{0}}{left=of ry}
+      \po[out=15,in=165]{ry}{wz}
+      \wk{wy}{ry}
+    \end{tikzinline}}
+\end{gather*}
+
+\endinput
+
+\begin{align*}
+  \begin{gathered}
+    r\GETS x\SEMI y\GETS r
+    \\    
+    \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{x=1\mid\DW{y}{1}}{}
+        % \event{rx1}{\DR{x}{1}}{left=of wy1}
+        % \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    \IF{r<0}\THEN y\GETS1 \FI
+    \\
+    \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
+    \hbox{\begin{tikzinline}[node distance=1em]
+        \event{wy1}{x<0\mid\DW{y}{1}}{}
+        % \event{rx1}{\DR{x}{1}}{left=of wy1}
+        % \po{rx1}{wy1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+First consider the else-branch of the conditional: the semantics of
+``${\IF{\lnot r}\THEN x\GETS1 \FI}$'' contains $(r{=}0 \mid \DW{x}{1})$,
+indicating the control dependency.  The then-branch is more complex: the
+semantics of ``${\IF{r}\THEN x\GETS r \FI}$'' contains
+$(r{\neq}0 \land r{=}1 \mid \DW{x}{1})$ indicating both a control and a data
+dependency.  This can be simplified to $(r{=}1 \mid \DW{x}{1})$.  Combining
+the two branches of the conditional, we have
+$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  Prepending $r\GETS y$ substitutes
+$[y/r]$, resulting in $(y{=}0 \lor y{=}1 \mid \DW{x}{1})$.  Prepending the
+initializer $y\GETS 0$ substitutes $[0/y]$, resulting in
+$(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
+$(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:pop},
+after giving the formal definitions.
 
 
 For the new event, \ref{4a} requires that the precondition in $\aPS'$ implies

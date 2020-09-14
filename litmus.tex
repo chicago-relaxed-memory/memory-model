@@ -13,14 +13,17 @@ through several litmus tests, valid rewrites and invalid rewrites.
 
 %Pugh, not 19/20 which have join.  Not 16 on coherence.
 
-Our model gives the desired results for the test cases of \citet{PughWebsite}
-and \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15}.  It also agrees with
+\citet{PughWebsite} developed a set of litmus tests for the java memory
+model.  Our model gives the expected result for all but cases 16, 19 and 20':
+we discuss \ref{TC16} below; TC19 and TC20 involve a thread join operation,
+which is not expressible in our languages.  Our model also agrees with the
+\oota{} examples in \citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and
 the ``surprising and controversial behaviors'' of \citet[\textsection
 8]{Manson:2005:JMM:1047659.1040336}.
 
 \paragraph{Buffering}
 
-For example, consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
+Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
 \begin{gather*}
   \taglabel{SB/LB}
   \begin{gathered}
@@ -45,8 +48,8 @@ For example, consider the \emph{store buffering} and \emph{load buffering} litmu
       \wk[out=-150,in=15]{ry}{wy}
       \wk[out=150,in=-15]{rx}{wx}
       % \po{rx}{wy}
-      \pox{wy}[below]{rx}
-      \pox{wx}{ry}
+      % \pox{wy}[below]{rx}
+      % \pox{wx}{ry}
     \end{tikzinline}}
 \end{gathered}
 \qquad
@@ -62,16 +65,17 @@ For example, consider the \emph{store buffering} and \emph{load buffering} litmu
       \event{wy}{\DW{y}{1}}{right=of rx}
       \rf{wy}{ry}
       \rf{wx}{rx}
-      \pox{rx}[below]{wy}
-      \pox{ry}{wx}
+      % \pox{rx}[below]{wy}
+      % \pox{ry}{wx}
       % \po{rx}{wy}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-All of the cross-thread order is required by the definition of fulfillment.
-Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
-program order in pomset order, resulting in the cycles shown above.
-To allow these executions, we drop the order marked $\rpox$.
+The desired outcomes are allowed, as shown.
+% All of the cross-thread order is required by the definition of fulfillment.
+% Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
+% program order in pomset order, resulting in the cycles shown above.
+% To allow these executions, we drop the order marked $\rpox$.
 
 
 \paragraph{Publication and SC Access}
@@ -108,15 +112,15 @@ $(\DR x0)$ must be ordered before $(\DW x1)$, but this creates a cycle.
 Item \ref{5d} ensures that program order between SC operations is always
 preserved.  Combined with the requirements for fulfillment, this is
 sufficient to establish that programs with only SC access have only SC
-executions; for example, execution candidate \ref{SB} is banned when the
-actions of the two threads are all $\modeSC$ (but allowed with less order
-otherwise, as discussed below).  It is also immediate that SC actions can be
-totally ordered, using any linearization of pomset order.  Just as SC access in
-\armeight{} is simplified by \mca, it is simplified here by the
-global pomset order.
+executions; for example, the executions of \ref{SB/LB} are banned when the
+actions of the two threads are all $\modeSC$.  It is also immediate that SC
+actions can be totally ordered, using any linearization of pomset order.
+Just as SC access in \armeight{} is simplified by \mca, it is simplified here
+by the global pomset order.
 
-SC access is not as restrict as Java volatile style access.  For example, our
-model allows the following, which is disallowed by \citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
+SC access is not as strict as volatile access in Java.  For example, our
+model allows the following, which is disallowed by
+\citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
   \taglabel{SC1}
   \begin{gathered}
@@ -157,13 +161,13 @@ Our model of coherence does not correspond to either Java or C11.  We have
 chosen the model to validate \ref{CSE} (unlike C11 relaxed atomics) and the
 local \drfsc{} theorem (unlike Java).
 
-\todo{There is a tension between read-read coherence and CSE.  Java favors CSE,
-whereas C11 prefers read-read coherence.  
-\ref{Co2} is not arbitrary, but needed to validate CSE.
-At Co3, point out that this stops races from the past from sneaking in.
-Unordered actions can be scheduled freely.
-As a result, our model of coherence is similar to that of
-\citet{Dolan:2018:BDR:3192366.3192421}.}
+% \todo{There is a tension between read-read coherence and CSE.  Java favors CSE,
+% whereas C11 prefers read-read coherence.  
+% \ref{Co2} is not arbitrary, but needed to validate CSE.
+% At Co3, point out that this stops races from the past from sneaking in.
+% Unordered actions can be scheduled freely.
+% As a result, our model of coherence is similar to that of
+% \citet{Dolan:2018:BDR:3192366.3192421}.}
 
 Since reads are not ordered by \ref{5b},
 we {allow} the following unintuitive behavior. C11 includes read-read
@@ -190,7 +194,9 @@ coherence between relaxed atomics in order to forbid this:
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-Here, the reader sees $2$ then $1$, although they are written in the reverse order.
+Here, the reader sees $2$ then $1$, although they are written in the reverse
+order.
+This behavior is allowed by Java in order to validate \ref{CSE}.
 
 However, our model is more coherent than Java, which permits the following:
 \begin{gather*}
@@ -247,8 +253,11 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-Here, both writes to $x$ are visible, even after synchronization, invalidating
-local reasoning about data races (\textsection\ref{sec:sc}).
+We disallow the outcome due to the cycle: the order from $(\DR{x}{1})$ to
+$(\DW{x}{2})$ is required to fulfill $(\DR{x}{1})$. %by fulfillment.
+Such an outcome would allow racing writes to be visible, even after a full
+synchronization, invalidating local reasoning about data races
+(\textsection\ref{sec:sc}).
 
 % \begin{gather*}
 %   x\GETS1\SEMI y^\modeRA\GETS 1
@@ -276,14 +285,13 @@ local reasoning about data races (\textsection\ref{sec:sc}).
 %       \wk[out=-165,in=-15]{f}{c}
 %     \end{tikzinline}}
 % \end{gather*}
-The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required to fulfill $(\DR{x}{1})$. %by fulfillment.
 
-\todo{We will also clarify that the "expected result" for TC16 is not the same as it is in Java. We disallow this execution due to the cycle
-(r:=x; x:=1) || (s:=x; x:=2)
-Rx2 -co-> Wx1 -rf-> Rx1 -co-> Wx2 -rf-> Rx2}
+% \todo{We will also clarify that the "expected result" for TC16 is not the same as it is in Java. We disallow this execution due to the cycle
+% (r:=x; x:=1) || (s:=x; x:=2)
+% Rx2 -co-> Wx1 -rf-> Rx1 -co-> Wx2 -rf-> Rx2}
 
 \paragraph{Internal Reads}
-In the JMM causality test cases \citep{PughWebsite}, such executions are justified via
+The JMM causality test cases \citep{PughWebsite} are justified via
 compiler analysis, possibly in collusion with the scheduler: If every 
 observed value can be shown to satisfy a precondition, then the precondition
 can be dropped.  For
