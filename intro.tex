@@ -45,22 +45,25 @@ To get a sense of the problems involved,
 % \citeauthor{DBLP:journals/toplas/Lochbihler13}'s example shows a surprising feature of
 % relaxed memory models: the presence of an execution may depend on code that was not executed. Consider:
 consider that the existence of an execution in a relaxed memory model may
-depend on code that was \emph{not} executed. Consider:
+depend on code that was \emph{not} executed. Let $r$ and $s$ be registers and
+$x$-$z$ be shared memory locations.  Consider:
 \begin{gather}
   \label{OOTA?}
     y\GETS x
   \PAR
-    \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS1 \FI
+  r\GETS y\SEMI\IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI
 \end{gather}
 Most programmers would be surprised to learn that this program does allow an
-execution in which $a=1$. To see why, imagine that a compiler does type
+execution in which $z=1$. To see why, imagine that a compiler does type
 inference and finds that $x$ and $y$ are booleans, with value either $0$ or
 $1$.  This enables the program to be optimized to the following:
 \begin{gather*}
   %\taglabelp{OOTA?}
     y\GETS x
   \PAR
-    \IF{y}\THEN x\GETS 1\SEMI a\GETS 1 \ELSE x\GETS1 \FI
+  r\GETS y\SEMI\IF{r}\THEN 
+  x\GETS 1\SEMI z\GETS 1 \ELSE x\GETS1 \FI
 \end{gather*}
 Since $x\GETS1$ occurs in both branches of the conditional, the compiler can
 then lift it:
@@ -68,18 +71,20 @@ then lift it:
   %\taglabelpp{OOTA?}
     y\GETS x
   \PAR
-    x\GETS1\SEMI \IF{y}\THEN a\GETS 1 \FI
+  x\GETS1\SEMI
+  r\GETS y\SEMI\IF{r}\THEN z\GETS 1 \FI
 \end{gather*}
-Then $a=1$ at then end of an execution where the first thread is interleaved
-between the two statements of the second.  Compare \eqref{OOTA?} with:
+Then $z=1$ at then end of an execution where the first thread is interleaved
+immediately after executing $x\GETS1$.  Compare \eqref{OOTA?} with:
 \begin{gather}
   \label{OOTA!}
     y\GETS x
   \PAR
-    \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS2 \FI
+  r\GETS y\SEMI \IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI
 \end{gather}
-which has a similar execution where $a=2$, but does not have an execution
-where $a=1$. Note that the only difference between \eqref{OOTA?} and
+which has a similar execution where $z=2$, but does not have an execution
+where $z=1$. Note that the only difference between \eqref{OOTA?} and
 \eqref{OOTA!} is the code in the branch which was not taken. This means that
 any model of relaxed memory that supports common compiler optimizations (such
 as the second transformation above) must take into account code that was not

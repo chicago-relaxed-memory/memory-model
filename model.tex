@@ -1,11 +1,15 @@
 \section{The Basic Model}
 \label{sec:model}
 
-We define the model and give the semantics of a concurrent language.  We
-layer the presentation, beginning with a simple language that supports only
-read and write operations.  In \textsection\ref{sec:variants}, we define
+The model adapts our previous work on microarchitecture \cite{2019-sp} to the
+architectural level.  In this section, we define the model and use it to give
+the semantics of a concurrent language.  The semantics given here is slightly
+simplified.  As discussed in \textsection\ref{sec:props}, it fails to
+validate some important optimizations.  We give the full semantics in
+\textsection\ref{sec:refine}.  In \textsection\ref{sec:variants}, we define
 extensions that incorporate address computation, fences, and
-read-modify-write operations.  
+read-modify-write operations.
+
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
@@ -47,12 +51,15 @@ the partial order tracks control and data dependencies, coherence, concurrent re
 Here, we are only using one order, which stands in stark contrast with
 other models that use many different relations.
 
-For example the semantics of \ref{OOTA?} (including explicit initialization with zero, and explicit $\DSTOP$ to indicate termination)
-contains the expected pomset
+For example the semantics of \eqref{OOTA?} %  (including explicit initialization
+% with zero, and explicit $\DSTOP$ to indicate termination)
+contains the
+expected pomset (where $\DSTOP$ indicates termination):
 \begin{gather*}
-  y\GETS x
+  y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
   \PAR
-  \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS1 \FI
+  r\GETS y\SEMI \IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
@@ -64,8 +71,8 @@ contains the expected pomset
   \event{stop}{\DSTOP}{right=of wx1}
   \rf{wx0}{rx0}
   \rf{wy0a}{ry0}
-  \wk[out=20,in=160]{rx0}{wx1}
-  \wk[out=20,in=160]{wy0}{wy0a}
+  \wk[out=15,in=165]{rx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy0a}
   \po{rx0}{wy0a}
   \sync{wx1}{stop}
   \sync[bend left]{ry0}{stop}
@@ -87,7 +94,56 @@ contains the expected pomset
 %   \sync{wx1}{stop}
 %   \sync[out=30,in=150]{ry0}{stop}
 % \end{tikzdisplay}
-but also the unexpected one
+but also the unexpected one:
+\begin{gather}
+  \label{unexpected}
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{left=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{z}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=-165,in=-15]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=12,in=168]{wx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+\end{tikzinline}}
+\end{gather}
+The interesting fact about these pomsets is that there is no control dependency between
+reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides of the conditional.
+Compare this with \eqref{OOTA!}, where there is a control dependency:
+\begin{gather*}
+  y\GETS x
+  \PAR
+    r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{left=of wx0}
+  \event{rx0}{\DR{x}{0}}{right=3em of wx0}
+  \event{wy0a}{\DW{y}{0}}{right=of rx0}
+  \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
+  \event{wx2}{\DW{x}{2}}{right=of ry0}
+  \event{stop}{\DSTOP}{right=of wx2}
+  \rf{wx0}{rx0}
+  \rf{wy0a}{ry0}
+  \wk[out=15,in=165]{rx0}{wx2}
+  \wk[out=15,in=165]{wy0}{wy0a}
+  \po{rx0}{wy0a}
+  \po{ry0}{wx2}
+  \sync{wx2}{stop}
+  \sync[out=30,in=150]{ry0}{stop}
+\end{tikzinline}}
+\end{gather*}
+An attempt to replicate the unexpected execution of~\eqref{OOTA?} fails,
+since it introduces a cycle:
 \begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
@@ -95,22 +151,22 @@ but also the unexpected one
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wa1}{\DW{a}{1}}{right=of wx1}
+  \event{wa1}{\DW{z}{1}}{right=of wx1}
   \event{stop}{\DSTOP}{right=of wa1}
-  \rf[out=200,in=-20]{wx1}{rx1}
+  \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
-  \wk[out=20,in=160]{wx0}{wx1}
-  \wk[out=20,in=160]{wy0}{wy1}
+  \wk[out=12,in=168]{wx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=30,in=150]{ry1}{wa1}
   \sync[out=30,in=150]{wx1}{stop}
   \sync{wa1}{stop}
+  \po{ry1}{wx1}
 \end{tikzdisplay}
 
-We stress that in these diagrams, color plays no formal role, it is purely to help the reader see where the
-order comes from. For instance:
+We stress that in these diagrams, color plays no formal role.  It is purely
+to help the reader see where the order comes from:
 \begin{itemize}
-
 \item $(\DW{x}{0})\xwk(\DW{x}{1})$ is a \emph{coherence} requirement: the write of $1$
   must follow the write of $0$, since these are to the same location.
 
@@ -122,57 +178,11 @@ order comes from. For instance:
 
 \item $(\DWRel{z}{1})\xsync(\DSTOP)$ is a \emph{fencing} requirement (in this case the fence is at the end of the program,
   but concurrency controls introduce fencing).
-
 \end{itemize}
 
-The interesting fact about these pomsets is that there is no control dependency between
-reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides of the conditional.
-Compare this with \ref{OOTA!}, where there is a control dependency:
-
-\begin{tikzdisplay}[node distance=2em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
-  \event{rx0}{\DR{x}{0}}{right=3em of wx0}
-  \event{wy0a}{\DW{y}{0}}{right=of rx0}
-  \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
-  \event{wx2}{\DW{x}{2}}{right=of ry0}
-  \event{stop}{\DSTOP}{right=of wx2}
-  \rf{wx0}{rx0}
-  \rf{wy0a}{ry0}
-  \wk[out=20,in=160]{rx0}{wx2}
-  \wk[out=0,in=200]{wy0}{wy0a}
-  \po{rx0}{wy0a}
-  \po{ry0}{wx2}
-  \sync{wx2}{stop}
-  \sync[out=30,in=150]{ry0}{stop}
-\end{tikzdisplay}
-and so an attempt to replicate the unexpected execution from~\ref{OOTA?} fails,
-since it introduces a cycle in the order:
-
-
-\begin{tikzdisplay}[node distance=2em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wa1}{\DW{a}{1}}{right=of wx1}
-  \event{stop}{\DSTOP}{right=of wa1}
-  \rf[out=200,in=-20]{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \wk[out=20,in=160]{wx0}{wx1}
-  \wk[out=0,in=200]{wy0}{wy1}
-  \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  \po{ry1}{wx1}
-  \sync[out=30,in=150]{wx1}{stop}
-  \sync{wa1}{stop}
-\end{tikzdisplay}
-
-This model is based on that of~\cite{2019-sp}, though missing the features designed to capture
-speculative execution attacks. We will present the model in this section,
-but readers familiar with or earlier work can skip ahead.
+% though missing the features designed to capture
+% speculative execution attacks. We will present the model in this section,
+% but readers familiar with or earlier work can skip ahead.
 
 \subsection{Data models}
 A \emph{data model} consists of:
@@ -385,82 +395,6 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
   $\aForm$ is \emph{unsatisfiable} if $\aForm\vDash\FALSE$.
 \end{definition}
 
-\subsection{Example Language}
-\begin{comment}
-\footnote{We only consider executions where register state is empty in
-  forked threads.  Given item~\ref{pre-acquire} of
-  Candidate~\ref{def:prefix}, a sufficient condition is that parallel
-  composition is always preceded by an acquire fence, as in programs of the
-  form:
-  \begin{displaymath}
-    \VAR\vec{\aLoc}\SEMI
-    \vec{\aLoc}\GETS\vec{0}\SEMI
-    \vec{\bLoc}\GETS\vec{0}\SEMI
-    \FENCE\SEMI
-    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
-  \end{displaymath}
-  where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
-  in drawings, we often drop the explicit fence.}.
-\end{comment}
-% \begin{align*}
-% \aCmd,\,\bCmd
-% \BNFDEF& \SKIP \tag{No Operation}
-% \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
-% \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-% \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
-% \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
-% \end{align*}
-%The syntax of statements is as follows.
-
-
-We define the language by prefixing individual reads and writes.  % In
-% \textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
-% full sequential composition of the form $(\aCmd\SEMI\bCmd)$.
-\begin{align*}
-  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
-  % \\
-\aCmd,\,\bCmd
-\BNFDEF& \SKIP
-\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
-\BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
-\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
-\\[-.5ex]
-\BNFSEP&\aCmd \PAR[\aThrd][\bThrd] \bCmd
-\BNFSEP \VAR\aLoc\SEMI \aCmd
-\BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-\end{align*}
-
-
-
-
-We use common syntax sugar, such as \emph{extended expressions}, $\aEExp$,
-which include memory locations.  For example, if $\aEExp$ includes a single
-occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is shorthand for
-$\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.  Each
-occurrence of $\aLoc$ in an extended expression corresponds to an separate
-read.
-
-We write
-$\IF{\aExp} \THEN \aCmd \FI$ as shorthand for
-$\IF{\aExp} \THEN \aCmd\ELSE \SKIP\FI$ and
-$\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as shorthand for
-$\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
-% and
-% $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
-% $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
-
-The semantic function $\sem[\aThrd]{-}$ takes a command and
-yields a set of pomsets, ranged over by $\aPSS$.
-
-% Unless it is important to the context, we elide the thread identifier,
-% writing simply $\sem{\aCmd}$.
-
 \subsection{Semantic domain}
 We model single {executions} as \emph{pomsets with
   preconditions}---\emph{pomsets}, for short---ranged over by $\aPS$.  These
@@ -506,59 +440,106 @@ $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y
 $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
 \emph{fencing} requirements.
 
-
-Although we use multiple arrows, we emphasize that they are all part
-of the same $\le$ relation.
+% Although we use multiple arrows, we emphasize that they are all part
+% of the same $\le$ relation.
 
 A pomset is \emph{completed} if it contains a unique termination action,
 ordered after all other events.  Henceforth, we will elide this uninteresting
 termination event in drawings.
 
+In addition to actions, each pomset event is labeled with a
+\emph{precondition}.  Whereas read actions represent an obligation that must
+be \emph{fulfilled} concurrently by a matching write (Definition
+\ref{def:rf}), preconditions represent an obligation that must be
+\emph{satisfied} sequentially via substitution.
 
-\todo{Preconditions are introduced by write actions and
-  conditionals.  They are satisfied by substitutions generated by lets and read and write actions.}
-The \emph{preconditions} associated with events provide a \emph{sequential
-  requirement} for the event to execute.  For example, the following commands
-gives rise to the pomset below them.
-\begin{align}
-  \label{ex-1}
-  \begin{gathered}
-    y\GETS r
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{r=1\mid\DW{y}{1}}{}
-      \end{tikzinline}}
-  \end{gathered}
-  &&
-  \begin{gathered}
-    \IF{r<0}\THEN y\GETS1 \FI
-    \\
-    \hbox{\begin{tikzinline}[node distance=1em]
-        \event{wy1}{r<0\mid\DW{y}{1}}{}
-      \end{tikzinline}}
-  \end{gathered}
-\end{align}
-The pomsets on the left says that $y\GETS r$ can produce the action
-$\DW{y}{1}$ if $r=1$, capturing the \emph{data dependency} between register
-$r$ and location $y$.  The pomsets on the right says that
-$\IF{r<0}\THEN y\GETS1 \FI$ can produce the action $\DW{y}{1}$ if $r<0$,
-capturing the \emph{control dependency} between $r$ and $y$.
+To get a sense of how preconditions are satisfied, let us consider the
+evolution of the precondition of $(\DW{x}{1})$ during the calculation of
+\eqref{unexpected}:
+\begin{gather*}
+    y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+  \PAR
+  r\GETS y\SEMI \IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
+  \\
+  %\label{unexpected}
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{left=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{z}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=-165,in=-15]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=12,in=168]{wx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+\end{tikzinline}}
+\end{gather*}
+First consider the else-branch of the conditional: the semantics of
+``${\IF{\lnot r}\THEN x\GETS1 \FI}$'' contains $(r{=}0 \mid \DW{x}{1})$,
+indicating the control dependency.  The then-branch is more complex: the
+semantics of ``${\IF{r}\THEN x\GETS r \FI}$'' contains
+$(r{\neq}0 \land r{=}1 \mid \DW{x}{1})$ indicating both a control and a data
+dependency.  This can be simplified to $(r{=}1 \mid \DW{x}{1})$.  Combining
+the two branches of the conditional, we have
+$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  Prepending $r\GETS y$ substitutes
+$[y/r]$, resulting in $(y{=}0 \lor y{=}1 \mid \DW{x}{1})$.  Prepending the
+initializer $y\GETS 0$ substitutes $[0/y]$, resulting in
+$(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
+$(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:prefix},
+after giving the formal definitions.
 
-Pomsets are subject to two \emph{top-level} restrictions: Every read must be
-\emph{fulfilled}, and every precondition must be \emph{satisfied}.  Reads are
-fulfilled by writes, which may be concurrent (Definition \ref{def:rf}).
-Preconditions can only be satisfied by substitutions, which can only derive
-from prefixing in the same thread (Definition \ref{def:prefix}).  Thus reads
-give rise to \emph{inter-thread} dependencies, whereas preconditions give
-rise to \emph{intra-thread} dependencies.  
+% \todo{Preconditions are introduced by write actions and
+%   conditionals.  They are satisfied by substitutions generated by lets and read and write actions.}
+% The \emph{preconditions} associated with events provide a \emph{sequential
+%   requirement} for the event to execute.  For example, the following commands
+% gives rise to the pomset below them.
+% \begin{align}
+%   \label{ex-1}
+%   \begin{gathered}
+%     y\GETS r
+%     \\
+%     \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{wy1}{r=1\mid\DW{y}{1}}{}
+%       \end{tikzinline}}
+%   \end{gathered}
+%   &&
+%   \begin{gathered}
+%     \IF{r<0}\THEN y\GETS1 \FI
+%     \\
+%     \hbox{\begin{tikzinline}[node distance=1em]
+%         \event{wy1}{r<0\mid\DW{y}{1}}{}
+%       \end{tikzinline}}
+%   \end{gathered}
+% \end{align}
+% The pomsets on the left says that $y\GETS r$ can produce the action
+% $\DW{y}{1}$ if $r=1$, capturing the \emph{data dependency} between register
+% $r$ and location $y$.  The pomsets on the right says that
+% $\IF{r<0}\THEN y\GETS1 \FI$ can produce the action $\DW{y}{1}$ if $r<0$,
+% capturing the \emph{control dependency} between $r$ and $y$.
 
-There is a mapping between Hoare triples $\hoare{\aForm}{\aCmd}{\bForm}$ and
-the pomsets of $\aCmd$.  The postcondition $\bForm$ represents a set of write
-actions, and $\aForm$ represents their preconditions.
-% Each write in a pomset corresponds to a Hoare triple, where the formulae
-% gives the precondition, and the write action gives the postcondition.  
-For example, interpreting the pomset on the left this way yields the valid
-Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
+% Pomsets are subject to two \emph{top-level} restrictions: Every read must be
+% \emph{fulfilled}, and every precondition must be \emph{satisfied}.  Reads are
+% fulfilled by writes, which may be concurrent (Definition \ref{def:rf}).
+% Preconditions can only be satisfied by substitutions, which can only derive
+% from prefixing in the same thread (Definition \ref{def:prefix}).  Thus reads
+% give rise to \emph{inter-thread} dependencies, whereas preconditions give
+% rise to \emph{intra-thread} dependencies.  
+
+% There is a mapping between Hoare triples $\hoare{\aForm}{\aCmd}{\bForm}$ and
+% the pomsets of $\aCmd$.  The postcondition $\bForm$ represents a set of write
+% actions, and $\aForm$ represents their preconditions.
+% % Each write in a pomset corresponds to a Hoare triple, where the formulae
+% % gives the precondition, and the write action gives the postcondition.  
+% For example, interpreting the pomset on the left this way yields the valid
+% Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
 Each pomset represents a single execution.  Thus we require that all
 preconditions are \emph{consistent}.  For example, the semantics of
@@ -679,21 +660,97 @@ pomsets that are \emph{augmentation\hyp{}minimal} and
 % %   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
 % % \end{definition}
 
-\subsection{Semantics of the Example Language}
-In the remainder of \textsection\ref{sec:model}, we explain the semantics of our example
-language.
+\subsection{Example Language}
+\begin{comment}
+\footnote{We only consider executions where register state is empty in
+  forked threads.  Given item~\ref{pre-acquire} of
+  Candidate~\ref{def:prefix}, a sufficient condition is that parallel
+  composition is always preceded by an acquire fence, as in programs of the
+  form:
+  \begin{displaymath}
+    \VAR\vec{\aLoc}\SEMI
+    \vec{\aLoc}\GETS\vec{0}\SEMI
+    \vec{\bLoc}\GETS\vec{0}\SEMI
+    \FENCE\SEMI
+    (\aCmd^1 \PAR \cdots \PAR \aCmd^n)
+  \end{displaymath}
+  where $\aCmd^1$, \ldots, $\aCmd^n$ do not include $\PAR$.  To avoid clutter
+  in drawings, we often drop the explicit fence.}.
+\end{comment}
+% \begin{align*}
+% \aCmd,\,\bCmd
+% \BNFDEF& \SKIP \tag{No Operation}
+% \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
+% \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
+% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+% \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
+% \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
+% \end{align*}
+%The syntax of statements is as follows.
 
-By far the most complex operators are the prefixing
-operators---read and write---which introduce new actions.  We build the
-definition of prefixing from first principles, starting in
-\textsection\ref{sec:pop}.  The final definition of prefixing appears in
-\textsection\ref{sec:rwe}.
 
-Of the other operators, it will not be surprising to students of concurrency
-theory that the most interesting are local declarations ($\VAR\aLoc\SEMI\aCmd$)
-and parallel composition ($\aCmd \PAR \bCmd$).
+We define the language by prefixing individual reads and writes.  % In
+% \textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
+% full sequential composition of the form $(\aCmd\SEMI\bCmd)$.
+\begin{align*}
+  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  % \\
+\aCmd,\,\bCmd
+\BNFDEF& \SKIP
+\BNFSEP \aReg\GETS\aExp\SEMI \aCmd
+\BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
+\BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
+\\[-.5ex]
+\BNFSEP&\aCmd \PAR[\aThrd][\bThrd] \bCmd
+\BNFSEP \VAR\aLoc\SEMI \aCmd
+\BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+\end{align*}
 
-\paragraph{Local Declarations}
+
+
+
+We use common syntax sugar, such as \emph{extended expressions}, $\aEExp$,
+which include memory locations.  For example, if $\aEExp$ includes a single
+occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is shorthand for
+$\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.  Each
+occurrence of $\aLoc$ in an extended expression corresponds to an separate
+read.
+
+We write
+$\IF{\aExp} \THEN \aCmd \FI$ as shorthand for
+$\IF{\aExp} \THEN \aCmd\ELSE \SKIP\FI$ and
+$\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as shorthand for
+$\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
+% and
+% $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
+% $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
+
+The semantic function $\sem[\aThrd]{-}$ takes a command and
+yields a set of pomsets, ranged over by $\aPSS$.
+
+% Unless it is important to the context, we elide the thread identifier,
+% writing simply $\sem{\aCmd}$.
+
+%\subsection{Semantics of the Example Language}
+% In the remainder of \textsection\ref{sec:model}, we explain the semantics of our example
+% language.
+
+% By far the most complex operators are the prefixing
+% operators---read and write---which introduce new actions.  We build the
+% definition of prefixing from first principles, starting in
+% \textsection\ref{sec:pop}.  The final definition of prefixing appears in
+% \textsection\ref{sec:rwe}.
+
+% Of the other operators, it will not be surprising to students of concurrency
+% theory that the most interesting are local declarations ($\VAR\aLoc\SEMI\aCmd$)
+% and parallel composition ($\aCmd \PAR \bCmd$).
+
+\subsection{Local Declarations}
 At the point that $\aLoc$ is bound, we can require that every read of $\aLoc$
 be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
 \emph{coherence} play in other relaxed memory models, yet it is not the same.
@@ -911,7 +968,7 @@ discuss coherence further on page \pageref{page:coherence2}.
 % \end{displaymath}
 
 %\subsection{Composition, Concurrency and Conditional}
-\paragraph{Composition}
+\subsection{Composition}
 Parallel composition is roughly pomset union, allowing that some events may
 \emph{coalesce}, with the resulting precondition being the disjunction of the
 precondition taken from the two sides.  Composition is used to define
@@ -1147,7 +1204,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 %   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
 % \end{displaymath}
 
-\paragraph{Conditional, Register Assignment, and Skip}
+\subsection{Conditional, Register Assignment, and Skip}
 Conditional execution is defined using parallel composition and
 \emph{filtering}: $(\aForm \guard \aPSS)$ selects the subset of pomsets in
 $\aPSS$ that are implied by $\aForm$.  Register assignment is defined using
@@ -1302,13 +1359,36 @@ violates consistency.
 %     \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
 %   }
 % \end{displaymath}
-\subsection{Program Order Prefixing} % for Trivial Expressions.}
+\subsection{Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
 
-\todo{explain how the semantics handles this:}
-\begin{verbatim}
-{true} x=1; r=x; y=r {y=1}
-\end{verbatim}
+The unexpected execution of \ref{OOTA?}:
+\begin{gather*}
+  y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+  \PAR
+  r\GETS y\SEMI \IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{left=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{z}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=-165,in=-15]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=12,in=168]{wx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+\end{tikzinline}}
+\end{gather*}
+  
 
 We present several candidate definitions for prefixing before giving the
 final definition.  The candidates are progressively more general and less
