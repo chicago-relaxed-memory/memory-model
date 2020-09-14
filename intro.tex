@@ -66,7 +66,7 @@ $1$.  This enables the program to be optimized to the following:
   x\GETS 1\SEMI z\GETS 1 \ELSE x\GETS1 \FI
 \end{gather*}
 Since $x\GETS1$ occurs in both branches of the conditional, the compiler can
-then lift it:
+then lift it, and reorder with the independent read of $y$, yielding:
 \begin{gather*}
   %\taglabelpp{OOTA?}
     y\GETS x
@@ -199,7 +199,7 @@ Cross thread dependencies arise from conflicting actions on the same
 variable.  Thus, any two actions, at least one of which is a write, on the
 same location and not in the same thread, are ordered.  In the parlance of
 hardware memory models~\citep{alglave}, $\rcoe,\rfre,\rrfe$ are included in
-the dependency ordering.  Thus, our model is realizes \emph{multi-copy
+the dependency ordering.  Thus, our model realizes \emph{multi-copy
   atomicity} (\mca); when a write becomes visible to one thread it must
 become visible to all\nofootnote{\mca\ is traditionally explored in hardware
   memory models.  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10})
