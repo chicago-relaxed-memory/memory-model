@@ -38,6 +38,7 @@ we {allow} the following unintuitive behavior. C11 includes read-read
 coherence between relaxed atomics in order to forbid this:
 \begin{gather*}
   \taglabel{Co2}
+  \begin{gathered}
   x\GETS1\SEMI x\GETS 2
   \PAR
   y\GETS x \SEMI z\GETS x
@@ -55,12 +56,14 @@ coherence between relaxed atomics in order to forbid this:
       \rf{b}{c}
       \rf[out=10,in=170]{a}{e}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 Here, the reader sees $2$ then $1$, although they are written in the reverse order.
 
 However, our model is more coherent than Java, which permits the following:
 \begin{gather*}
   \taglabel{TC16}
+  \begin{gathered}
   r\GETS x\SEMI x\GETS 1
   \PAR
   s\GETS x\SEMI x\GETS 2
@@ -75,10 +78,12 @@ However, our model is more coherent than Java, which permits the following:
       \rf{a2}{b1}
       \rf[out=-165,in=-15]{b2}{a1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 \begin{gather*}
   \taglabel{Co3}
+  \begin{gathered}
   x\GETS1\SEMI y^\modeRA\GETS 1
   \PAR
   x\GETS2\SEMI z^\modeRA\GETS 1
@@ -108,6 +113,7 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
       \wk{a1}{b1}
       \wk[out=-165,in=-15]{c4}{b1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 Here, both writes to $x$ are visible, even after synchronization, invalidating
 locally reasoning about data races (\textsection\ref{sec:sc}).
@@ -144,11 +150,11 @@ The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required to fulfill $(\DR{x}{1}
 (r:=x; x:=1) || (s:=x; x:=2)
 Rx2 -co-> Wx1 -rf-> Rx1 -co-> Wx2 -rf-> Rx2}
 
-\paragraph{SC}
 SC access is not as restrict as Java volatile style access.  For example, our
 model allows the following, which is disallowed by \citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
   \taglabel{SC1}
+  \begin{gathered}
   r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
   \PAR
   % y\GETS0\SEMI
@@ -170,8 +176,12 @@ model allows the following, which is disallowed by \citet[\textsection8.2]{Dolan
       \rf[out=-170,in=-10]{e}{a}
       \wk[in=165,out=15]{b}{d}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 Note that there is no order from $(\DW[\modeSC]{x}{2})$ to $(\DW{y}{1})$.
+
+For further comparison to \citet{Dolan:2018:BDR:3192366.3192421}, see the end
+of \textsection\ref{sec:sc}.
 
 
 \paragraph{Internal Reads}
@@ -183,6 +193,7 @@ example, \ref{TC1} determines that the following top-level execution should be
 allowed, as it is in our model:
 \begin{gather*}
   \taglabel{TC1}
+  \begin{gathered}
   x\GETS 0 \SEMI
   (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
   \PAR
@@ -200,6 +211,7 @@ allowed, as it is in our model:
   \wk[out=10,in=155]{wx0}{wx1}
   \wk{wx0}{rx1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 In this example, $(\DW{x}{0})$ ``fulfills'' the read of $x$ that is used in
 the guard of the conditional.  This is possible when prefixing $(\DR{x}{1})$
@@ -215,6 +227,7 @@ terminology \cite{DBLP:journals/pacmpl/PulteFDFSS18}. Unlike
 the introduction of concurrent writes, as in \ref{TC9}:
 \begin{gather*}
   \taglabel{TC9}
+  \begin{gathered}
   x\GETS 0 \SEMI
   (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
   \PAR
@@ -236,12 +249,14 @@ the introduction of concurrent writes, as in \ref{TC9}:
   \wk{wx0}{rx1}
   \wk{wx1}{wx2}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 
 The reasoning for \ref{TC2} is similar, but in this case no value is necessary to
 satisfy the precondition:
 \begin{gather*}
   \taglabel{TC2}
+  \begin{gathered}
   r\GETS x\SEMI
   s\GETS x\SEMI
   \IF{r{=}s}\THEN y\GETS 1\FI
@@ -262,6 +277,7 @@ satisfy the precondition:
   \rf[out=162,in=15]{b2}{a2}
   \rf[out=162,in=15]{b2}{a1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 Note that in the prefix
 \begin{math}
@@ -280,6 +296,7 @@ However, $(\DR{x}{1})$ cannot be fulfilled, causing the execution candidate
 to be disallowed:
 \begin{gather*}
   \taglabel{Internal1}
+  \begin{gathered}
   x\GETS1 \SEMI
   a\REL\GETS1 \SEMI
   \IF{b\ACQ}\THEN  y\GETS x \FI
@@ -304,6 +321,7 @@ to be disallowed:
   \graypo{a7}{a8}
   \sync[out=10,in=170]{a6}{a8}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 The execution becomes inconsistent if we change $(\DR{x}{1})$ to
 $(\DR{x}{2})$, resulting in
@@ -313,6 +331,7 @@ Internal reads are notoriously difficult to get right.  Consider Example 3.6
 of \citet{DBLP:journals/pacmpl/PodkopaevLV19}: \todo{Bad break}
 \begin{gather*}
   \taglabel{Internal2}
+  \begin{gathered}
   \aReg\GETS x\SEMI
   y\REL\GETS 1\SEMI
   \bReg\GETS y\SEMI
@@ -337,6 +356,7 @@ of \citet{DBLP:journals/pacmpl/PodkopaevLV19}: \todo{Bad break}
   \rf{a4}{b1}
   \rf[out=170,in=10]{b2}{a1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 This behavior is allowed in our model, as it is in \armeight.
 %Revisiting \eqref{Internal2}, %the example,

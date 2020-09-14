@@ -545,9 +545,9 @@ Note that the precondition on the reads are weaker than one would expect.
 This is not a problem for reads, since they must also be fulfilled---allowing
 more reads actually increases the obligations of fulfillment.  The same
 solution would not work for writes---as we discussed at the end of
-\textsection\ref{sec:props}, allowing more writes is simply unsound.  Fortunately,
-this problem does not occur when prefixing a write in front of another write,
-due to the order required by \ref{5b}.
+\textsection\ref{sec:props}, allowing more writes is simply unsound.
+Fortunately, this problem does not occur when prefixing a write in front of
+another write, due to the order required by \ref{5b}.
 
 % The key property required to prove \ref{CA} is \emph{disjunction closure}.
 % The example shows that disjunction closure fails for Candidate
