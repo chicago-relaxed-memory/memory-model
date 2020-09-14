@@ -396,6 +396,7 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 \end{definition}
 
 \subsection{Semantic domain}
+\label{sec:domain}
 We model single {executions} as \emph{pomsets with
   preconditions}---\emph{pomsets}, for short---ranged over by $\aPS$.  These
 extend the well-known model of partially ordered
@@ -562,8 +563,8 @@ We give an example that requires causal strengthening on page \pageref{page:stre
 % \end{displaymath}
 % The precondition on $\DW{x}{1}$ is required by the data dependency induced by
 % $\bReg$ (see page \pageref{page:strengthening}).
-Note that, by causal strengthening, the termination event of a completed
-pomset must imply all other events.
+Note that, by causal strengthening, the precondition of the termination event
+of a completed pomset must imply the preconditions of all other events.
 
 \begin{definition}
   \label{def:mmpomset}
@@ -1551,7 +1552,41 @@ there is $\aPS\in\aPSS$ such that
   \end{gather*}
 \end{candidate}
 
-The unexpected execution of \ref{OOTA?}:
+The semantics of read and write introduce a pomset for each possible value.
+Note that the value in the actions is fixed.  For writes, the dependence on
+$\aExp$ appears in the precondition: $\aExp=\aVal$.
+
+The main work happens in the definition of prefixing ($\prefix$): Item
+\ref{1} introduces a new event.  Item \ref{2} ensures that no order is
+removed from old events. Item \ref{3} specifies the actions labelling the
+events; item \ref{4} specifies the preconditions.  Item \ref{5}
+specifies the preserved program order.
+
+In the next section, we explain item the concurrent semantics using standard
+litmus tests: Read fulfillment is constrained by the program order that is
+preserved by \ref{5}.  Item \ref{5a} captures \emph{read to write
+  dependency}\footnote{When $\bEv$ is not a read, \ref{4c} trivially implies
+  \ref{5a}.}.  It only requires order from read to write when the
+precondition of the write is \emph{weakened} using \ref{4b}.  Item \ref{5b}
+captures the extended coherence requirement on actions that touch the same
+location.  Item \ref{5c} imposes the order required by acquire and release
+actions\footnote{Recall that termination actions are releases.}.  Item
+\ref{5d} imposes the additional order required by SC actions\footnote{Recall
+  that SC reads are acquires and SC writes are
+  releases.}.  %(We explain item 6 in the next subsection.)
+
+% The interaction between preconditions and preserved order is capture in
+% \ref{5a}.
+% Program order need only be preserved from a read to a dependent
+% write (\ref{5a}), between conflicting events (\ref{5b}), and around fences
+% and synchronization (\ref{5c}, \ref{5d}).
+
+In this section, we explain the sequential semantics: Preconditions are
+satisfied using the substitutions in the semantic rules and in \ref{4b}.  We
+end with a discussion of \ref{5a}, which connects the concurrent and
+sequential semantics.
+
+Let us revisit the unexpected execution of \ref{OOTA?}, explained in \textsection\ref{sec:domain}:
 \begin{gather*}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
   \PAR
@@ -1577,40 +1612,6 @@ The unexpected execution of \ref{OOTA?}:
   \sync{wa1}{stop}
 \end{tikzinline}}
 \end{gather*}
-
-The semantics of read and write introduce a pomset for each possible value.
-Note that the value in the actions is fixed.  For writes, the dependence on
-$\aExp$ appears in the precondition: $\aExp=\aVal$.
-
-The main work happens in the definition of prefixing ($\prefix$): Item
-\ref{1} introduces a new event.  Item \ref{2} ensures that no order is
-removed from old events. Item \ref{3} specifies the actions labelling the
-events; item \ref{4} specifies the preconditions.  Item \ref{5}
-specifies the preserved program order.
-
-In the next section, we explain item \ref{5} using standard litmus tests:
-Read fulfillment is constrained by the program order that is preserved by
-\ref{5}.
-Item \ref{5a} captures \emph{read to write dependency}\footnote{When $\bEv$
-  is not a read, \ref{4c} trivially implies \ref{5a}.}.  It only requires
-order from read to write when the precondition of the write is
-\emph{weakened} using \ref{4b}.  Item \ref{5b} captures the extended
-coherence requirement on actions that touch the same location.  Item \ref{5c}
-imposes the order required by acquire and release actions\footnote{Recall
-  that termination actions are releases.}.  Item \ref{5d} imposes the
-additional order required by SC actions\footnote{Recall that SC reads are
-  acquires and SC writes are
-  releases.}.  %(We explain item 6 in the next subsection.)
-
-
-% Program order need only be preserved from a read to a dependent
-% write (\ref{5a}), between conflicting events (\ref{5b}), and around fences
-% and synchronization (\ref{5c}, \ref{5d}).
-
-In the remainder of this section, we concentrate on the sequential semantics:
-Preconditions are satisfied using the substitutions in the semantic rules and
-in \ref{4b}.  We close by discussing the interaction between preconditions
-and \ref{5a}.
 
 
 For the new event, \ref{4a} requires that the precondition in $\aPS'$ implies
