@@ -1079,7 +1079,7 @@ second.
 % \pageref{page:extrusion} and thread inlining on page
 % \pageref{page:inlining}.
 
-Some sequentially valid rewrites are invalid in a concurrent setting, such as
+Some rewrites are invalid in a concurrent setting, such as
 relevant read introduction:
 \begin{displaymath}
   %\tag{Read-Intro-Invalid}
@@ -1087,7 +1087,7 @@ relevant read introduction:
   \not\supseteq
   \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN \cLoc \GETS 1 \FI}
 \end{displaymath}
-Observationally, These are distinguished by the context %
+Observationally, these are distinguished by the context %
 \begin{math}
   \hole{} \PAR x\GETS1\PAR x\GETS2.
 \end{math}
