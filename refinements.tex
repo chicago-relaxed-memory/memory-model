@@ -532,7 +532,7 @@ which is:
 \end{align*}
 But this pomset does not occur in $\sem{\cmdR}$.  
 Our solution is to weaken the preconditions on reads so that both
-$\sem{\cmdR}$ and $\sem{\IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI}$ include: 
+f$\sem{\cmdR}$ and $\sem{\IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI}$ include: 
 \begin{align*}
   \begin{gathered}
     \hbox{\begin{tikzinline}[node distance=2em]
@@ -541,8 +541,13 @@ $\sem{\cmdR}$ and $\sem{\IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI}$ include:
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
-This problem does not
-happen in $\cmdW$, due to the order between the writes.
+Note that the precondition on the reads are weaker than one would expect.
+This is not a problem for reads, since they must also be fulfilled---allowing
+more reads actually increases the obligations of fulfillment.  The same
+solution would not work for writes---as we discussed at the end of
+\textsection\ref{sec:props}, allowing more writes is simply unsound.  Fortunately,
+this problem does not occur when prefixing a write in front of another write,
+due to the order required by \ref{5b}.
 
 % The key property required to prove \ref{CA} is \emph{disjunction closure}.
 % The example shows that disjunction closure fails for Candidate
