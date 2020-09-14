@@ -293,7 +293,7 @@ $\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are relea
 We systematically elide the $\modeRLX$-mode annotation, writing $(\DR{\aLoc}{\aVal})$
 as shorthand for $(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
-We do not explicitly include C-style \emph{plain} access.  Plain access is
+We do not explicitly include C11-style \emph{plain} access.  Plain access is
 the same as relaxed access for race-free programs; for racy programs, plain
 access results in undefined behavior.
 % We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
@@ -367,16 +367,22 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 
 %For the formulae of the data model,
 \begin{definition}
-  We say that $\aForm$ is \emph{independent of $\aLoc$} when, for every
+  We say $\aForm$ is \emph{independent of $\aLoc$} if, for every
   $\aVal$, $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$; it is
   \emph{dependent} otherwise.
   % We say that $\aForm$ is \emph{dependent on $\aLoc$} otherwise.
-  We say that $\aForm$ is \emph{location independent} if it is independent of
+  % We say that
+  We say $\aForm$ is \emph{location independent} if it is independent of
   every location.
 %
-  We say that $\aForm$ \emph{implies} $\bForm$ when $\aForm\vDash\bForm$,
-  that $\aForm$ is a \emph{tautology} when $\TRUE\vDash\aForm$, and that
-  $\aForm$ is \emph{unsatisfiable} when $\aForm\vDash\FALSE$.
+  We say
+  $\aForm$ \emph{implies} $\bForm$ if $\aForm\vDash\bForm$.
+  % We say that
+  We say
+  $\aForm$ is a \emph{tautology} if $\TRUE\vDash\aForm$.
+  % We say that
+  We say
+  $\aForm$ is \emph{unsatisfiable} if $\aForm\vDash\FALSE$.
 \end{definition}
 
 \subsection{Example Language}
@@ -1146,8 +1152,8 @@ Conditional execution is defined using parallel composition and
 \emph{filtering}: $(\aForm \guard \aPSS)$ selects the subset of pomsets in
 $\aPSS$ that are implied by $\aForm$.  Register assignment is defined using
 substitution: $(\aPSS\aSub)$ performs the substitution $\aSub$ on every
-pomset in $\aPSS$.  The semantics of $\SKIP$ is defined using singletons:
-$\stopPS$ is the set of pomsets that each contain a single termination event.
+formula in $\aPSS$.  The semantics of $\SKIP$ is defined using singleton
+pomsets with label $\DSTOP$.
 \begin{definition}
   Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
   $\aPS'\in\aPSS'$ when $\aForm$ implies $\labelingForm(\aEv')$ %, %for every
@@ -1172,7 +1178,8 @@ $\stopPS$ is the set of pomsets that each contain a single termination event.
   \stopPS
 \end{align*}
 \end{definition}
-\todo{Example of substitution}
+Substitution applies to formulae, not actions.  For example,
+$(x{=}1\mid\DW{x}{2})[y/x]=(y{=}1\mid\DW{x}{2})$. % and $(r{=}1\mid\DW{x}{2})[x/r]=(x{=}1\mid\DW{x}{2})$.
 
 As an example of the conditional, consider the following fragments:
 \begin{align}

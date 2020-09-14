@@ -28,12 +28,12 @@ relaxed memory concurrency.
 % outlines the program of trying to
 % understand relaxed dependency modularly, inspiring \citet{2019-sp} and
 % \citet{DBLP:conf/esop/PaviottiCPWOB20}.  % ; impressively, the latter underlies a
-% recent proposal to update the ISO-C++ standard.
+% recent proposal to update the ISO-C11 standard.
 %(http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1780r0.html).
 
 Our model shares important structural elements with that of
 \citet{DBLP:conf/esop/PaviottiCPWOB20}, who provide a fix for the thin-air
-problem in C++.  Like us, they use true concurrency semantics to identify
+problem in C11.  Like us, they use true concurrency semantics to identify
 (in)dependence in an execution and thus calculate the preserved program order
 explicitly.  Our definition of parallel composition allows events to
 coalesce, taking preconditions via disjunction---this is mirrored by

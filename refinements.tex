@@ -412,7 +412,7 @@ can coalesce.  Disjunction closure is sufficient to establish case analysis
 As we discuss below, Candidate \ref{cand:ord} is not disjunction closed;
 however, it \emph{becomes} closed if \ref{5b} is strengthened to include
 read-read coherence, thus sacrificing sacrifice \ref{CSE}.  This compromise
-is considered reasonable for C atomics, which are meant to be used sparingly.
+is considered reasonable for C11 atomics, which are meant to be used sparingly.
 It is less attractive for plain access in Java-like languages.
 
 We start the discussion in this section assuming Candidate \ref{cand:ord}

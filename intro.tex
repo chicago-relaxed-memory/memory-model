@@ -79,8 +79,8 @@ between the two statements of the second.  Compare \eqref{OOTA?} with:
     \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS2 \FI
 \end{gather}
 which has a similar execution where $a=2$, but does not have an execution
-where $a=1$. Note that the only difference between \ref{OOTA?} and
-\ref{OOTA!} is the code in the branch which was not taken. This means that
+where $a=1$. Note that the only difference between \eqref{OOTA?} and
+\eqref{OOTA!} is the code in the branch which was not taken. This means that
 any model of relaxed memory that supports common compiler optimizations (such
 as the second transformation above) must take into account code that was not
 executed. This accounts for the speculative executions common in relaxed
@@ -137,23 +137,23 @@ reclamation impossible.
 % \cite{DBLP:conf/popl/KangHLVD17}.
 
 % Whereas the JMM was designed with these two aims,
-The JMM, the promising semantics \cite{DBLP:conf/popl/KangHLVD17}, and
-related models
+As confirmed by \cite{kang,soham}, the promising semantics
+\cite{DBLP:conf/popl/KangHLVD17} and related models
 \citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19} all
-invalidate compositional reasoning, as in \ref{OOTA1}.  See
-\textsection\ref{sec:promising} for confirmation from the authors themselves.
+invalidate compositional reasoning, as in \ref{OOTA1}.  % See
+% \textsection\ref{sec:promising} for confirmation from the authors themselves.
 This means that these models \emph{cannot support both type safety and
   realistic memory reclamation}.
 
 
 % Due to the shortcomings of the JMM, many subsequent models preferred an
 % axiomatic approach.  
-The C++ Memory Model \cite{Batty:2011:MCC:1926385.1926394} does not attempt
+The C11 Memory Model \cite{Batty:2011:MCC:1926385.1926394} does not attempt
 to validate \ref{CSE}, at least not for relaxed atomic access (consider the
-case where $x$ and $y$ are aliased above).  C++ \emph{does} allow the
+case where $x$ and $y$ are aliased above).  C11 \emph{does} allow the
 transformation for \emph{plain} access, but this comes with the threat of
 \emph{undefined behavior} should any plain access ever possibly engage in a
-data race.  Thus the folklore belief that ``every substantial C++ program has
+data race.  Thus the folklore belief that ``every substantial C program has
 undefined behavior.''
 
 
@@ -209,14 +209,14 @@ to \emph{preserved} program order (\textsf{ppo}) in hardware models.  However, r
 than calculating dependencies syntactically, we compute them using 
 %Previous language models have used syntactic notions of dependency \cite{Batty:2011:MCC:1926385.1926394}.
 classical Hoare logic. The key insight is that \emph{logic is better than syntax}.
-Consider the following program fragments: \begingroup \allowdisplaybreaks
+Consider the following program fragments: %\begingroup \allowdisplaybreaks
 \begin{align*}
   & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
   \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
   \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
   %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
-\endgroup
+%\endgroup
 All these fragments satisfy  $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each case, the write of $y$ is independent of
 any code that precedes it in program order.  This allows a compiler or processor to reorder the write with respect to the code that precedes it\nofootnote{IN RELATED Thus, the model fully reaps the benefits of viewing a memory model in terms of (sequential) program transformations, eg. see~\citep{Saraswat:2007:TMM:1229428.1229469,DBLP:conf/fm/LahavV16,
 DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
@@ -224,18 +224,20 @@ DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly b
 
 We show that the model:
 \begin{itemize}
+\item validates expected litmus cases and compiler optimizations
+  (\textsection\ref{sec:props}-\ref{sec:refine}).
+
 \item captures all C11 concurrency features  %, including relaxed, release-acquire and SC atomics, fences, and RMW
   (\textsection\ref{sec:variants}),
 
 \item allows compositional reasoning for safety %properties
   (\textsection\ref{sec:logic}),
 
-\item compiles to \armeight\ and \tso\ {\em without} extra synchronization for relaxed-atomic access\nofootnote{Compilation to \armseven\ or \ppc\ requires extra synchronization.} (\textsection\ref{sec:arm}),
+\item compiles to \armeight/\tso\ {\em without} extra synchronization for
+  relaxed-atomic access\nofootnote{Compilation to \armseven\ or \ppc\
+    requires extra synchronization.} (\textsection\ref{sec:arm}), and
 
-\item  satisfies the \emph{local} \drfsc\ criterion \cite{Dolan:2018:BDR:3192366.3192421} (\textsection\ref{sec:sc}), and
-
-\item validates single-threaded compiler optimizations
-  (\textsection\ref{sec:opt}).
+\item  satisfies the \emph{local} \drfsc\ criterion \cite{Dolan:2018:BDR:3192366.3192421} (\textsection\ref{sec:sc}).
 
 \end{itemize}
 We conclude by discussing relating work (\textsection\ref{sec:related}) and limitations (\textsection\ref{sec:limits}).
