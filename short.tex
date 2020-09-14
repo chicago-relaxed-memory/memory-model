@@ -17,13 +17,13 @@ possible for earlier models of ARMv8.  For example, the model of
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a}{\DR{x}{1}}{}
-      \event{b}{\DW{x}{1}}{right=of a}
+      \event{b}{d:\DW{x}{1}}{right=of a}
       \wk{a}{b}
       \event{c}{\DR{x}{1}}{right=3em of b}
       \event{d}{\DW{y}{1}}{right=of c}
       \po{c}{d}
       \event{e}{\DR{y}{1}}{right=3em of d}
-      \event{f}{\DW{x}{1}}{right=of e}
+      \event{f}{e:\DW{x}{1}}{right=of e}
       \po{e}{f}
       \rf{b}{c}
       \rf{d}{e}
@@ -32,7 +32,10 @@ possible for earlier models of ARMv8.  For example, the model of
 \end{gathered}
 \end{gather*}
 This type of ``big detour'' \cite{alglave} is outlawed by
-\citet{DBLP:journals/pacmpl/PulteFDFSS18}.
+\citet{DBLP:journals/pacmpl/PulteFDFSS18}\footnote{There is either a cycle
+  $\DR{x}{1}\xpoloc d\xcoe e \xrfex \DR{x}{1}$ % SC-pER-LOC
+  or % in ob
+  $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}.
 
 
 We consider the fragment of our language where concurrent composition occurs

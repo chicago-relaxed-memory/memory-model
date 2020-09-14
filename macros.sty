@@ -658,6 +658,10 @@
 \NewDocumentCommand \rfe {O{} m O{} m} {\draw[rfe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{wr}$}  (#4);}
 \newcommand{\rrfe}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{wr}}}}}%
 \newcommand{\xrfe}{\xarrowtikz{rfe}{wr}}%
+\tikzstyle{rfex} = [-latex,color=green!50!black,thick]
+\NewDocumentCommand \rfex {O{} m O{} m} {\draw[rfe,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rfe}$}  (#4);}
+\newcommand{\rrfex}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{rfe}}}}}%
+\newcommand{\xrfex}{\xarrowtikz{rfe}{rfe}}%
 \tikzstyle{rfi} = [-latex,color=green!50!black,thick]
 \NewDocumentCommand \rfi {O{} m O{} m} {\draw[rfi,#1](#2) to [auto,#3] node {$\scriptstyle\mathsf{rfi}$}  (#4);}
 \newcommand{\rrfi}{\ensuremath{\mathrel{\textcolor{green!50!black}{\mathsf{rfi}}}}}%
