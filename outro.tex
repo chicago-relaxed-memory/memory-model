@@ -205,11 +205,12 @@ there is more to weak memory than transformations.''
 future research.  % In several cases, these limitations have allowed us to
 % \emph{surpass prior work in significant ways}.
 
-We treat loops via unrolling: loops introduce
-complexities\allowbreak{}---such as liveness and continuity---that are
-orthogonal to the main topic of the paper. We also do not include types,
-allocation, garbage collection, etc.  This is the norm for work on relaxed
-memory: The problem is already hard enough. % \emph{On the upside, we do allow
+We do not include loops or general sequencing of the form $\aCmd\SEMI\aCmd'$.
+Loops introduce complexities\allowbreak{}---such as liveness and
+continuity---that are orthogonal to the main topic of the paper.  We also do
+not include types, allocation, garbage collection, etc.  % This is the norm for
+% work on relaxed memory: The problem is already hard
+% enough. % \emph{On the upside, we do allow
   % thread creation via $\!\!\PAR\!\!$, which is unusual.}
 
 Except for roach motel (\ref{RelW}, \ref{AcqW}), we have not attempted to validate
