@@ -442,7 +442,7 @@ weaken the preconditions on writes to the same location when eliminating a
 write.  We do this using the function $\Wdis{\aLoc}{\aExp}$, which weakens
 the precondition of any $<$-minimal $\DW[\modeRLXquiet]{\aLoc}{\aVal}$ to
 $(\aExp=\aVal \lor \aForm)$, where $\aForm$ is formula before prefixing.
-When prefixing $(\DW{x}{1})\prefix(r\mid\DW{x}{1})$ in the example above, we
+When eliminating $(\DW{x}{1})$ in front of $(r\mid\DW{x}{1})$ in the example above, we
 arrive at the formula $(1=1\lor r)$ for the ``old'' write, which is a
 tautology.
 

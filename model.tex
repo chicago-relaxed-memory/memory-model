@@ -187,6 +187,60 @@ to help the reader see where the order comes from:
   but concurrency controls introduce fencing).
 \end{itemize}
 
+In addition to actions, each pomset event is labeled with a
+\emph{precondition}.  Whereas read actions represent an obligation that must
+be \emph{fulfilled} concurrently by a matching write (Definition
+\ref{def:rf}), preconditions represent an obligation that must be
+\emph{satisfied} sequentially via substitution.
+
+To get a sense of how preconditions are satisfied, let us consider the
+evolution of the precondition of $(\DW{x}{1})$ during the calculation of
+\eqref{unexpected}:
+\begin{gather*}
+    y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+  \PAR
+  r\GETS y\SEMI \IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
+  \\
+  %\label{unexpected}
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{left=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{z}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=-165,in=-15]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=12,in=168]{wx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+\end{tikzinline}}
+\end{gather*}
+First consider the else-branch of the conditional: the semantics of
+``${\IF{\lnot r}\THEN x\GETS1 \FI}$'' contains $(r{=}0 \mid \DW{x}{1})$,
+indicating the control dependency.  The then-branch is more complex: the
+semantics of ``${\IF{r}\THEN x\GETS r \FI}$'' contains
+$(r{\neq}0 \land r{=}1 \mid \DW{x}{1})$ indicating both a control and a data
+dependency.  This can be simplified to $(r{=}1 \mid \DW{x}{1})$.  Combining
+the two branches of the conditional, we have
+$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  Prepending $r\GETS y$ substitutes
+$[y/r]$, resulting in $(y{=}0 \lor y{=}1 \mid \DW{x}{1})$.  Prepending the
+initializer $y\GETS 0$ substitutes $[0/y]$, resulting in
+$(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
+$(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:pop},
+after giving the formal definitions.
+
+The same calculation fails for $(\DW{x}{1})$ in \eqref{OOTA!}.  In this case,
+the two sides of the conditional do not coalesce; combining both sides of the
+conditional, we have $(r{=}1 \mid \DW{x}{1})$, rather than $(r{=}0 \lor r{=}1
+\mid \DW{x}{1})$.  And thus, the dependency is enforced.
+
 % though missing the features designed to capture
 % speculative execution attacks. We will present the model in this section,
 % but readers familiar with or earlier work can skip ahead.
@@ -452,62 +506,9 @@ $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
 % of the same $\le$ relation.
 
 A pomset is \emph{completed} if it contains a unique termination action,
-ordered after all other events.  Henceforth, we will elide this uninteresting
-termination event in drawings.
+ordered after all other events.  We henceforth elide the
+termination event in drawings, unless it is relevant to the discussion.
 
-In addition to actions, each pomset event is labeled with a
-\emph{precondition}.  Whereas read actions represent an obligation that must
-be \emph{fulfilled} concurrently by a matching write (Definition
-\ref{def:rf}), preconditions represent an obligation that must be
-\emph{satisfied} sequentially via substitution.
-
-To get a sense of how preconditions are satisfied, let us consider the
-evolution of the precondition of $(\DW{x}{1})$ during the calculation of
-\eqref{unexpected}:
-\begin{gather*}
-    y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
-  \PAR
-  r\GETS y\SEMI \IF{r}\THEN 
-  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
-  \\
-  %\label{unexpected}
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wa1}{\DW{z}{1}}{right=of wx1}
-  \event{stop}{\DSTOP}{right=of wa1}
-  \rf[out=-165,in=-15]{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy1}
-  \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  \sync[out=30,in=150]{wx1}{stop}
-  \sync{wa1}{stop}
-\end{tikzinline}}
-\end{gather*}
-First consider the else-branch of the conditional: the semantics of
-``${\IF{\lnot r}\THEN x\GETS1 \FI}$'' contains $(r{=}0 \mid \DW{x}{1})$,
-indicating the control dependency.  The then-branch is more complex: the
-semantics of ``${\IF{r}\THEN x\GETS r \FI}$'' contains
-$(r{\neq}0 \land r{=}1 \mid \DW{x}{1})$ indicating both a control and a data
-dependency.  This can be simplified to $(r{=}1 \mid \DW{x}{1})$.  Combining
-the two branches of the conditional, we have
-$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  Prepending $r\GETS y$ substitutes
-$[y/r]$, resulting in $(y{=}0 \lor y{=}1 \mid \DW{x}{1})$.  Prepending the
-initializer $y\GETS 0$ substitutes $[0/y]$, resulting in
-$(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
-$(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:pop},
-after giving the formal definitions.
-
-The same calculation fails for $(\DW{x}{1})$ in \eqref{OOTA!}.  In this case,
-the two sides of the conditional do not coalesce; combining both sides of the
-conditional, we have $(r{=}1 \mid \DW{x}{1})$, rather than $(r{=}0 \lor r{=}1
-\mid \DW{x}{1})$.  And thus, the dependency is enforced.
 
 
 % \todo{Preconditions are introduced by write actions and
@@ -1604,8 +1605,8 @@ satisfied using the substitutions in the semantic rules and in \ref{4b}.  We
 also discuss \ref{5a}, which connects the concurrent and sequential
 semantics.
 
-Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}, as explained in
-\textsection\ref{sec:domain}:
+Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}:% ,
+% as explained in \textsection\ref{sec:domain}:
 \begin{gather*}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
   \PAR
@@ -1619,15 +1620,15 @@ Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}, as 
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
   \event{wa1}{\DW{z}{1}}{right=of wx1}
-  \event{stop}{\DSTOP}{right=of wa1}
+  %\event{stop}{\DSTOP}{right=of wa1}
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
   \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=30,in=150]{ry1}{wa1}
-  \sync[out=30,in=150]{wx1}{stop}
-  \sync{wa1}{stop}
+  % \sync[out=30,in=150]{wx1}{stop}
+  % \sync{wa1}{stop}
 \end{tikzinline}}
 \end{gather*}
 % Note that $\sem{z\GETS r}$ contains $(r{=}0\mid\DW{z}{0})$,
@@ -1739,7 +1740,7 @@ Since $0{=}1\lor 0{=}0$ is a tautology, we have:
     \end{tikzinline}}
 \end{gather*}
 
-As mentioned in \textsection\ref{sec:domain}, an attempt to replicate this execution with \eqref{OOTA!} fails,
+As discussed at the beginning of this section, an attempt to replicate this execution with \eqref{OOTA!} fails,
 introducing a cycle:
 \begin{gather*}
   y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
@@ -1754,15 +1755,15 @@ introducing a cycle:
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
   \event{wa1}{\DW{z}{1}}{right=of wx1}
-  \event{stop}{\DSTOP}{right=of wa1}
+  %\event{stop}{\DSTOP}{right=of wa1}
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
   \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=30,in=150]{ry1}{wa1}
-  \sync[out=30,in=150]{wx1}{stop}
-  \sync{wa1}{stop}
+  % \sync[out=30,in=150]{wx1}{stop}
+  % \sync{wa1}{stop}
   \po{ry1}{wx1}
 \end{tikzinline}}
 \end{gather*}
