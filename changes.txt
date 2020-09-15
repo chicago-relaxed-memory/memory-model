@@ -1,8 +1,11 @@
-Reorganization:
-We eliminated the old 7.1-2 discussing Hoare logic.
+We eliminated the old 7.1-2 discussing Hoare logic.  Unlike the other results
+in the paper, this result was both fragile and narrow.  We decided make room
+to explain the results that are more robust and broadly applicable.
 
+We dramatically rewrote and reorganized the paper in response to your
+feedback.  Only the sections on "Thin air" and "ARMv" are substantially the
+same.  This is how the sections have moved:
 
-Some things have moved:
     OLD   NEW
      2    2-4    Model + Properties + Refinements
      3     5     Extensions
@@ -21,36 +24,56 @@ We refactored section the old section 2 into three sections
 
 Other changes:
 
-+ section 1:
++ section 1:   
    Added a starter memory model example:  (*) and (\dagger)
+
 + section 2:
    Reorganized the presentation of prefixing
+
 + section 3.1:
    corrected the discussion of JMM litmus tests
+
    added TC16
+
    added more discussion of coherence
+
    add discussion of MCA1/MAC2
+
    moved discussion of Sevcik thesis to the end of section 4
 + section 3.2:
    strengthened RL and CSE to get rid of read saturation
+
    split CA to clarify which direction works in the simple model
+
 + section 4:
    cleanup of write prefixing (more precise than previous use of ||)
+
    changed the semantics so that read elimination is now valid without appeal to "read saturation"
+
    fixed bug in read-prefixing (See last paragraph of "Case Analysis")
+
    strengthened SF to get rid of read saturation
+
    added RE and RI
+
 + section 5:
    cleanup address calculation
+
 + section 6:
    moved RFUB here, moved old example to intro
+
 + section 7:
    added one example at beginning to clarify which version of ARMv8 we are targeting
+
 + section 8:
    added precise definition and detail in the proof so as to be self contained
+
    added two new examples comparing to Dolan, et al: one for past races and one for future races
+
 + section 9:
    added discussion of [Paviotti et al. 2020]
+
 + section 10:
    removed argumentative bits
+
    added a paragraph discussing java final field semantics w.r.t. read-read dependencies
