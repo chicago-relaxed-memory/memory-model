@@ -37,14 +37,14 @@ problem in C11.  Like us, they use true concurrency semantics to identify
 (in)dependence in an execution and thus calculate the preserved program order
 explicitly.  Our definition of parallel composition allows events to
 coalesce, taking preconditions via disjunction---this is mirrored by
-\citeauthor{DBLP:conf/esop/PaviottiCPWOB20}'s definition of coproduct.  Their
-condition on $\leq^{\mathcal{X}}$ (discussed in their \textsection6.3) is
-mirrored by our requirement that events that coalesce must have the same
-downset.  Nonetheless, the papers have different goals, leading to different
-outcomes.  For example, their model compiles efficiently to non-MCA
-architectures; our model clearly does not!  Conversely, our model provides an
-intrinsic characterization optimizations, such as redundant read elimination,
-which only hold in their model up to observational refinement.
+\citeauthor{DBLP:conf/esop/PaviottiCPWOB20}'s definition of coproduct.  We
+only compose downclosed pomsets---this is mirrored by their condition on
+$\leq^{\mathcal{X}}$ during coproduct (discussed in their \textsection6.3).
+Nonetheless, the papers have different goals, leading to different outcomes.
+For example, their model compiles efficiently to non-MCA architectures; our
+model clearly does not!  Conversely, our model provides an intrinsic
+characterization optimizations, such as redundant read elimination, which
+only hold in their model up to observational refinement.
 % In contrast to our LDRF
 % theorem, they prove an internal version of DRF, ie that race free programs
 % have SC behavior, without necessarily settling the question of discovering
@@ -325,7 +325,7 @@ implications for Java's final field semantics.  Consider:
       \wk{a1}{a2}
       \event{a4}{\DWRel{x}{1}}{right=of a2}
       \sync{a2}{a4}
-      \event{b1}{\DR{x}{1}}{right=3em of a4}
+      \event{b1}{\DR[\modeRA]{x}{1}}{right=3em of a4}
       \event{b2}{\DR{\REF{1}}{0}}{right=of b1}
       \sync{b1}{b2}
       \rf{a4}{b1}
@@ -334,10 +334,11 @@ implications for Java's final field semantics.  Consider:
   \end{gathered}
 \end{gather*}
 If we changed $x^\modeRA$ to $x^\modeRLX$, then there would be no order from
-$(\DR[\modeRA]{x}{1})$ to $(\DR{\REF{1}}{0})$, and the execution would be
-allowed.  It may be desirable to distinguish address dependencies from other
-dependencies---doing so would likely require two separate preconditions for
-each event.
+$(\DR{x}{1})$ to $(\DR{\REF{1}}{0})$, and the execution would be allowed.  In
+order to allow this relaxation in certain cases without invalidating the
+publication of the ``field initializer'' $(\DW{\REF{1}}{1})$, it may be
+desirable to distinguish address dependencies from other dependencies---doing
+so would likely require two separate preconditions for each event.
 % .  without
 % distinguishing address dependency from other things, or keeping thread ids in
 % actions.  ARM requires that we do not order writes that only have a control

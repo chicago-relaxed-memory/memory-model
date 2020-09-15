@@ -1604,7 +1604,7 @@ satisfied using the substitutions in the semantic rules and in \ref{4b}.  We
 also discuss \ref{5a}, which connects the concurrent and sequential
 semantics.
 
-Let us revisit the unexpected execution of \eqref{OOTA?}, as explained in
+Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}, as explained in
 \textsection\ref{sec:domain}:
 \begin{gather*}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
@@ -1738,6 +1738,55 @@ Since $0{=}1\lor 0{=}0$ is a tautology, we have:
       \wk{wy}{ry}
     \end{tikzinline}}
 \end{gather*}
+
+As mentioned in \textsection\ref{sec:domain}, an attempt to replicate this execution with \eqref{OOTA!} fails,
+introducing a cycle:
+\begin{gather*}
+  y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
+  \PAR
+    r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wy0}{\DW{y}{0}}{left=of wx0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+  \event{wx1}{\DW{x}{1}}{right=of ry1}
+  \event{wa1}{\DW{z}{1}}{right=of wx1}
+  \event{stop}{\DSTOP}{right=of wa1}
+  \rf[out=-165,in=-15]{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \wk[out=12,in=168]{wx0}{wx1}
+  \wk[out=15,in=165]{wy0}{wy1}
+  \po{rx1}{wy1}
+  \po[out=30,in=150]{ry1}{wa1}
+  \sync[out=30,in=150]{wx1}{stop}
+  \sync{wa1}{stop}
+  \po{ry1}{wx1}
+\end{tikzinline}}
+\end{gather*}
+The difference can be seen immediately when looking at the two sides of the
+conditional
+\begin{math}
+  \sem{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI},
+\end{math}
+which contains:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{r{=}1\mid\DW{x}{1}}{}
+      \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
+    \end{tikzinline}}  
+  &&
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{r{=}2\lor r{=}0\mid\DW{x}{2}}{}
+      \event{wz}{r{=}2\mid\DW{z}{2}}{right=of wx}
+    \end{tikzinline}}  
+\end{align*}
+In particular, there is no $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
+It is only possible to satisfy the precondition of $(r{=}1\mid\DW{x}{1})$
+using \ref{4b} when prefixing $(\DR{y}{1})$, which forces a dependency
+between the read and write via \ref{5a}.
 
 \endinput
 
