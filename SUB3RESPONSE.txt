@@ -1,0 +1,403 @@
+Thanks for reading our paper and providing such valuable comments.
+
+A common theme in the reviews is the density of the presentation.  We
+appreciate the detail and specificity of your comments regarding
+presentation.  Although we only respond to content-based comments below, in
+revision we will also address the presentational comments---these changes
+will improve the accuracy and accessibility of the paper.  In particular, we
+will look to see if section 2 can be structured differently to improve
+readability.
+
+Referee A:
+===========================================================================
+
+> The fact that this requires multi-copy atomicity probably makes this a
+> non-starter for most programming languages that aim to be portable,
+> especially lower-level languages like C. In addition to ARMv7 and Power, I
+> believe this also precludes Nvidia (and possibly other?) GPUs.
+
+We are primarily targeting languages that have type-safety as a goal.
+
+Our knowledge of GPU models is limited to [Alglave, et al, ASPLOS 2015].  The
+Nvidia GPUs discussed there have a memory model similar to RMO, which is a
+"global-time"/MCA model.  There is some hope that our model might compile
+efficiently to some of these GPUs.  We leave the full exploration of this to
+future work.
+
+It is worth noting that the Nvidia GPUs don't observe load-load coherence, as
+witnessed by the CoRR litmus test in [Alglave, et al, ASPLOS 2015].  Thus the
+model of coherence in the C11 model is too strong to compile efficiently to
+Nvidia.
+
+On lines 1074-1081, we mention extension to non-MCA architectures as future
+work.  There are tradeoffs here, since non-MCA models are necessarily more
+complex.
+
+> Line 58: The explanation around line 58 seems incomprehensible, and I
+> couldn't quickly understand the Lochbihler version either. The fact that s
+> is meant to be local is not explained yet. No object of type C is ever
+> assigned to a global. If correct, this seems to be an artifact of the way
+> allocation is modelled in the Lochbihler paper?
+
+Pugh calls this kind of example "bait-and-switch".  It is an artifact of the
+committing semantics of the JMM, not the modeling of memory allocation.
+Lochbihler assumes only that the memory allocator returns an address.  In
+this example, the address could be the same in each branch of the
+conditional, leading to the surprising outcome.
+
+In "5.4. Out-of-Thin-Air Values and the Java Security Architecture",
+Lochbihler discusses a variant, where both branches allocate an array of
+characters, which one branch means to be immutable.  He concludes that the
+"example shows that the [JMM's] out-of-thin-air guarantee is too weak to
+support the [Java] security architecture."
+
+"bait-and-switch" can be specified as a temporal property.  Section 4 is a
+first attempt to reasoning about such properties formally.
+
+> C and C++ quite intentionally do not allow reordering of relaxed atomic
+> loads from the same variable, since that we found to be needlessly error
+> prone, e.g. atomically incremented counters can appear to decrease in
+> value. The fact that this invalidates (some) CSE was not viewed as a
+> significant cost, given the relative infrequency of relaxed accesses, and
+> the fact that some forms of CSE, like moving loads out of loops, have
+> dubious practical implications. I think that's the right decision for
+> variables explicitly labelled atomic, as in C, but not for plain accesses
+> in Java.
+
+It is simple to modify our model to include load-load coherence in pomset
+order.  In this case, however, RR (line 989) requires the additional
+assumption that $x\neq y$, and thus CSE requires alias analysis.  We would
+also lose the potential to compile efficiently to some Nvidia GPUs (see
+discussion above).
+
+> I don't understand examples like Internal2 at line 520, that have unmatched
+> ra accesses, in this case the store to y. In my mental model, unmatched
+> release acquire accesses should be equivalent to relaxed accesses. If they
+> are not, I worry that implementing them with locks is no longer allowed. That
+> implementation flexibility is essential for C and C++ that support
+> arbitrary-sized atomics. (*) Is the ra here significant? (*) Is a lock-based
+> implementation of atomics sound? Is there an ra access missing at line 532?
+
+Without the RA annotation, the read on `x` would be unordered w.r.t. the
+operations on `y` in thread 1.  Therefore the execution would clearly be
+allowed.
+
+Because of the RA annotation, however, the read on `x` must be ordered before
+the operations on `y`.  If order was subsequently enforced from `Ry1` to
+`Wz1`, the execution would be _disallowed_ .
+
+Although our model forces some ordering within the thread that includes the
+RA access, threads that lack RA access are free to reorder.  Perhaps this
+gives the desired effect.  For example
+$$
+(y:=1; x^{ra}:=1) || (s:=x; z:=1)
+$$
+allows the execution $(Wz1) \leq (Wy1) \leq (W^{ra}x1) \leq (Rx1)$.  
+(Here, we are using augmentation to add order from $Wz1$ to $Wy1$.)
+
+We do expect that lock-based implementation of atomics should be sound, if
+locks were introduced as first class entities, but we have not explored this.
+Intuitively, lock elision can be validated by using roach motel (lines
+998-999) to move the entire program into the scope of the lock.
+
+Back to line 532, with the RA annotations as written.  Armv8 _allows_ this
+execution, so it is important that we allow it.  Armv8 treats "internal
+reads" as a special case, dropping the order from `Wy1` to `Ry1`.  We
+initially assumed a special case in the read rule would be required in our
+semantics as well.  We were delighted to discover that no special case was
+necessary.
+
+This is one subtle way that we believe our work simplifies prior approaches.
+We hope that rules 5a-5d (lines 398-401) are understandable as general
+principles, rather than simply as the intersection of a series of relations.
+It is true that there is the cost of understanding the role of substitution
+at lines 403-404, and in particular that the read rule performs `[x/r]`
+rather than `[v/r]`.  But it appears that no "simplification" in the world of
+relaxed memory models comes for free.
+
+> The paper addresses thread-inlining. (*) What about other non-thread-local
+> compiler analyses like value-range analysis? If a variable is only ever
+> assigned 1 or 2, is the compiler free to use that fact? I'm actually less
+> concerned about value-range analysis (which seems rare) than I am about alias
+> analysis (which seems common). But I strongly expect the answer to be the
+> same.
+
+Yes!  This is the importance of TC1/TC9 (lines 481-498).  Note that TC9 also
+allows collusion by the scheduler!  Thus, invariant-based analyses (such as
+types) would fail for TC9, but our semantics handles TC9 correctly.
+
+In section 3, we model memory locations as values.  Thus our model should 
+permit optimizations based on alias analysis.
+
+> Please informally describe Definition 7.1 before giving the formal
+> definition. I couldn't make sense out of it. (*) If you can give give
+> additional insight here without much added text, please include that in the
+> rebuttal.
+
+We will move lines 915-919 above the definition and reword.  The idea is to
+capture postconditions as writes ($E_Y$).  Some preconditions are captured as
+reads ($D_X$) and others remain preconditions on the write events ($\chi$).
+The pomset may also include an arbitrary collection of conflicting writes
+($C_Y$), which are ordered before the "final" writes of $E_Y$.
+
+
+Referee B:
+===========================================================================
+
+> - 50 is this valid or not under Java 1.1?
+
+No, it is not valid.
+
+> - 57 ...
+>   what exactly is the problem here, is this saying that x, y, d can (all?) refer
+>   to something of type C, even though this object is assigned to a different
+>   variable s?
+
+Yes.  Worse, they can be assigned C even if the guard on the statement that
+allocates the C is false.
+
+> - 199 what does validity of Hoare triples mean here? validity depends on the
+>   semantics of programs, but we are proposing a new pomset semantics. how are
+>   Hoare triples valid with respect to this pomset semantics?
+
+We will clarify that we mean validity w.r.t. the standard sequential semantics.
+
+> - 205 does this mean that `r = 2` is true forever along this execution?
+
+Yes, the precondition `r = 2` will be imposed on every event that follows
+these events in pomset order.
+
+> - 219 "unsatisfiable" and "termination": when are these terms used?
+
+We tried to separate concerns about the data model from the pomset model and
+our particular language.  This does mean that use of terms is spread out.  So
+that "termination" is defined as an action on line 135, lifted to events on
+219, and then used to define the terminal event in our language on 312-318.
+Likewise "satisfiable" appears at 142, 200, 213, and in section 7.
+
+> - 291 are these to be understood as running in parallel?
+
+These are separate threads.  We consider their parallel composition in the
+following paragraph.
+
+> - 325 I found the implication notation to be very confusing
+
+We will note that this is meant to evoke prefixing in process algebra.
+
+> - 335 what happened to the write to `r`?
+
+It is the Ry0 action.  In reads from memory, we do not include the register name.
+
+>   also, why is there an arrow from `Rx0` to `Wx1`? brown arrow should mean
+>   "coherence", but the text says "fulfillment". neither coherence nor
+>   fulfillment seem to make sense here. or is the text referring to the
+>   green arrow (but then shouldn't that be a "write to read order", not a
+>   "read to write order"?)
+
+We will expand the text here.  Since `Rx0` reads `Wx0`, condition 4 of
+fulfillment (line 257) requires that all writes to `x` are either ordered
+before `Wx0` or after `Rx0`.  Either way, you get a cycle.
+
+> - 393 "It is amazing how much this definition ..." hyperbole aside, have we
+>   finished the definition yet? it appears not.
+
+Yes, we should say "this candidate".  It is amazing, though!  Our initial
+definition had special cases to handle the examples on lines 477-533 ---
+every other semantics does!  We were shocked to discover that all this
+special casing could simply be dropped.
+
+> - 413 why are there suddenly fence dependency arrows, when the paper only
+>   introduces fence dependencies in the next section? same with the rest of the
+>   diagrams in this section.
+
+Yes, we need a better term for "fence or synchronization".  We chose the term
+because synchronization actions have the effect of fences in the
+implementation.  We would very much welcome a suggestion for a better term.
+
+> - 571 what happened to the preconditions, are they all trivial even for this
+>   example with an if-then-else?
+
+Yes, they have all been satisfied using (4b) from line 347.
+
+> - 677 "a logic that rules out" shouldn't the model rule something out, not the
+>   logic?
+
+We mean "the logic is able to establish that OOTA3 is not possible but it is
+not strong enough to establish that OOTA1 is not possible".  We believe that
+our Jeffrey/Riely semantics does forbid OOTA1, but we didn't provide a way to
+prove it.
+
+> - 690 what is the semantics of implication?
+
+This goes back to the data model on line 142.  In the examples given in this
+section, all preconditions are "true", so we did not need to put any
+particular requirements on the logic.
+
+> - 704-706 are these definitions or theorems? and if theorems, are there proofs?
+
+Theorems.  We have pen and paper proofs that we can include in an appendix.
+
+> - 709 is this proof rule claimed to be sound? what does "independent" mean?
+
+Yes, again we have a pen and paper proof.  "Independent" again from the data
+model on line 139.  (Sorry!)
+
+> - 729 satisfies $\neg Wx1$ what is the significance of this fact, in words? does
+>   it mean that no execution can write 1 to x?
+
+Yes.
+
+> - 771 "Preconditions provide a natural solution to working out these
+>   dependencies." perhaps so, but almost all of the examples don't have
+>   preconditions?
+
+We might better have said "independencies" in the case of RFUB.
+
+> - 773 I could not understand this section at all.
+> - 797 I could also not follow this section.
+
+Indeed, sections 5 and 6 are intended only for specialists.  We tried to keep
+them short!  There is a laundry list of things that any memory model must
+satisfy and these two sections tick off two boxes.  In a journal version, we
+can expand these so that the paper is more self contained.
+
+
+
+
+Referee C: 
+===========================================================================
+
+> At first blush, this model looks a lot like [Alglave 2010] but extended slightly
+> with release/acquire operations instead of fences. It's true that this model
+> somewhat realizes the simplicity of only needing to reason about a single
+> execution relation.
+
+Yes, that is exactly what we have tried to do.  Alglave starts with thirteen
+relations.  We were curious to see what could be achieved with only one.  We
+were surprised how far we got.
+
+> But this paper feels a little arbitrary in how it chooses to extend that
+> idea: it focuses extensively on preconditions, but not on loops; it focuses
+> on common subexpression elimination, but not on other code motion.
+
+It is true that we do not handle loops.  But we've attempted to handle
+everything else at least at the state of the art.  With section 3, we hope to
+have covered all of the concurrency primitives of C++.  With section 7, we
+attempted a general account of code motion.
+
+> The other major slight against this paper is that it's incredibly dense,
+> and yet cavalier about it. I can't let the lame excuse at line 1102 for not
+> having any formal verification for this model slide. Mechanization is not
+> that heavy a lift for work like this (Batty et al 2011, for example, is
+> mechanized in ~1200 lines of Lem). Moreover, it helps reviewers and readers
+> understand the model. The memory model literature has become much more
+> approachable (relatively speaking) in the last few years precisely because
+> of mechanization and automation efforts.  At this point, it's table stakes.
+
+We will remove the lame excuse from the final revision, noting mechanization
+as future work.
+
+We hope that the originality and scope of the work are sufficient to overcome
+this shortcoming.  Note that most of the models we discuss in section 1 have
+been mechanically verified, either as part of the original work, or post-hoc
+(as Lochbihler did for the JMM).  Nonetheless, each of these models either
+admits a form of thin-air behavior (as in OOTA1) or disallows basic
+reorderings.
+
+> At line 94, I'm not sure I follow the implication that satisfying this
+> Hoare triple suffices to conclude "the write of $y$ is independent of any
+> code that precedes it in program order". The triple also holds for $C_4$ =
+> `{true} x=1; y=x {y=1}`, but the write of `y` is certainly not independent
+> of the code before it.
+
+We meant: "the write of $y$ is independent of any code that precedes $C_i$ in
+program order".
+
+> At line 278, I don't understand what this relaxed version of coherence buys us
+> compared to the usual total-order notion. Page 10 doesn't really illuminate the
+> situation.
+
+We do not know of a useful property or example that distinguishes models that
+totally order all writes from models that only totally order writes that are
+read from.  Perhaps there is a GPU where it matters?  We did not know that
+load-load coherence would prevent efficient implementation on GPUs until
+after the paper was submitted.
+
+Our approach has been to add only things that arise naturally from the model.
+Fulfillment needs to be defined as it is$^*$.  And a consequence of that
+definition is that conflicting writes that are read from must be totally
+ordered.  It is straightforward to impose the additional requirement that
+_all_ conflicting writes are totally ordered.  But it is not clear what is
+gained.
+
+$^*$In appendix B of [Disselkoen, et al 2019], we showed that item 4 (line 258)
+is required to ensure that the fulfillment required by location binding (lines
+279-282) is stable with respect to parallel composition.
+
+> Section 2.5 seems out of place. It feels like this is the place where the
+> architecture-specific nature of the model should appear. But the first
+> thing we do is rule out a sequentially consistent model. One of the nice
+> things about [Alglave 2010] that this paper lacks is clarity about what
+> needs to be "plugged in" to vary the model. Here, I guess the answer is
+> that we vary what we include in $\leq$, but the paper only shows this (very
+> briefly) for ARMv8, and never for TSO.
+
+We will add discussion of how the hardware models (such as TSO, PSO, RMO,
+Alpha and ARMv8) weaken order relative to SC, and use this to motivate the
+relaxations in 2.6.
+
+Because we are oriented toward language-level models, we did not think to
+include explicit material about how the model can be strengthened to more
+accurately capture these hardware models.  This could be developed, perhaps
+along the lines of [Demange et al. 2013], who discuss a language level model
+for TSO.
+
+
+
+Referee D:
+===========================================================================
+
+> The authors should compare their model to the thin-air solution of
+> "Modular Relaxed Dependencies in Weak Memory Concurrency" from ESOP
+> 2020.
+
+Yes, we will.
+
+> The authors say they deal with all Java causality tests (line 557).  Tests
+> 19 and 20 include join, but the language does not seem to provide the
+> facility to join. How are tests 19 and 20 accounted for?
+
+Yes, you are right.  These examples are not expressible in the language.  We
+don't foresee problems in being able to address a language with joins, eg by
+including an asymmetric form of parallel composition (C1 ||- C2), which
+preserves the local state of the right thread.  (We had done this in some
+earlier edits of the paper, thus the mistake.)
+
+We will also clarify that the "expected result" for TC16 is not the same as
+it is in Java.  We disallow this execution due to the cycle
+```
+(r:=x; x:=1) || (s:=x; x:=2)
+
+Rx2 -co-> Wx1 -rf-> Rx1 -co-> Wx2 -rf-> Rx2
+```
+We will include this example with an expanded discussion of coherence around
+examples Co2 and Co3 on page 10.
+
+We will also emphasize that the semantics DOES allow load buffering:
+```
+(r:=x; y:=1) || (s:=y; x:=2)
+
+Wy1 -rf-> Ry1     Wx2 -rf-> Rx2
+```
+
+> In section 5, does dropping parts of dependency-ordered-before produce a
+> strictly weaker model of ARMv8? I want to be sure this is the proper
+> compilation result.
+
+Yes.
+
+ARMv8 does not include internal reads in the global ordering relation, OB.
+In our semantics, this flexibility is matched by our treatment of internal
+reads by substitutions that do not cause dependencies; thus, preventing them
+from contributing to the pomset order. This permits us to only consider the
+global ordering of ARMv8 events that are not internal reads.

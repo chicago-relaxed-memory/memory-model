@@ -1,0 +1,557 @@
+Congratulations on your conditional acceptance! Much of the reviewer feedback
+centres on improving the presentation to be more accessible both to experts
+and non-experts. We have no mandatory revisions to make, but we hope the 4
+additional pages and the detailed reviewer feedback will help you to improve
+the final version.
+
+
+Dear authors,
+
+On behalf of the review committee of PACMPL Issue OOPSLA 2020, I am
+delighted to inform you that your submission #286 has been
+**conditionally** accepted to appear in the journal and to be presented
+at the OOPSLA 2020 conference. Please read below for the conditions for
+final acceptance of your paper.
+
+       Title: Pomsets with Preconditions: A Simple Model of Relaxed
+              Memory
+     Authors: Radha Jagadeesan (DePaul University)
+              Alan Jeffrey (Mozilla Research)
+              James Riely (DePaul University)
+        Site: https://oopsla20.hotcrp.com/paper/286
+
+109 papers were (conditionally) accepted out of 302 submissions.
+
+Congratulations!
+
+-- Dave Grove <groved@us.ibm.com>
+Review Committee Chair, OOPSLA 2020
+
+* You can find the (updated) reviews and comments from the committee on
+the submission site.
+
+* We encourage you to submit an artifact corresponding to your paper for
+evaluation. The deadline for submission of artifacts is Saturday, August
+8, 2020. For more information,
+https://2020.splashcon.org/track/splash-2020-Artifacts.
+
+* Your paper has been conditionally accepted and invited for a second
+phase submission by the September 14, 2020 deadline.
+
+Final acceptance of your paper is conditional on addressing the required
+revisions as specified in the author visible comment for your paper on
+HotCRP. While we expect that you should be able to address these
+requirements, please do not take acceptance for granted; failure to
+satisfy these requirements will result in rejection of your paper.
+
+In addition to addressing the required revisions, please also consider
+the other feedback from the reviews and carefully proofread your paper
+to make sure it has no spelling and grammar errors.
+
+The page limit for final versions of papers excluding references is 27
+pages. This means that you have 4 extra pages compared to the original
+submission to address the feedback from the reviews.
+
+With your second phase submission, submit a cover letter explaining how
+you have addressed the reviewer comments and in particular the required
+revisions.
+
+Also submit a document that shows the changes you have made relative to
+the original submission, using latexdiff or a similar tool.
+
+In case you have questions for the reviewers about the required
+revisions, please send me an email and I will forward your question to
+the reviewers.
+
+* You will also soon get more information about the preparation of the
+camera ready version of your paper. Since there will be less than two
+weeks between final notification of acceptance and the camera ready
+deadline, your phase 2 submission should already be camera ready. Note
+that Phase Two submissions are *not* double-blind.
+
+* To build interest and excitement for the upcoming conference, it is
+typical for OOPSLA to publish the list of (conditionally) accepted
+papers on the OOPSLA website before the final notification date.  This
+publication does not imply final acceptance of your paper. If you do not
+want your conditionally accepted paper listed on the website, you must
+let me know via email before Friday, August 14.
+
+
+OOPSLA 2020 Paper #286 Reviews and Comments
+===========================================================================
+Paper #286 Pomsets with Preconditions: A Simple Model of Relaxed Memory
+
+
+Review #286A
+===========================================================================
+
+Overall merit
+-------------
+B. Weak Accept
+
+Reviewer expertise
+------------------
+X. Expert
+
+Paper summary
+-------------
+The paper presents an arguably simpler memory model formalization for
+programming languages. This formalization relies on a single ordering
+relation, instead of the collection of distinct orderings usually used. This
+works only because the model assumes "multi-copy atomicity", i.e. that writes
+become visible to other threads in a single global order, something that is
+not implementable on architectures such as ARMv7 or Power. This assumption
+allows all weakness in the memory ordering to be understood in terms of
+reordering actions within a thread. 
+
+The paper provides useful insights into OOTA behavior by providing a
+temporal-logic-based approach to prove the absence of certain OOTA
+behaviors. 
+
+Assessment
+----------
+Strengths:
+Arguably a simpler memory model formulation. Maybe. Many worked-out litmus
+cases. Litmus cases seem to be resolved in a reasonable way. 
+
+Very general discussion of applicability of sequential transformations that I
+hadn't seen before. 
+
+The paper contains lots of careful comparisons to other models, and thus does
+a good job of of contrasting this work to other work, and even of indirectly
+contrasting the other work. Given the general confusion in this area, I think
+that's a valuable contribution. 
+
+Weaknesses:
+The fact that this requires multi-copy atomicity probably makes this a
+non-starter for most programming languages that aim to be portable,
+especially lower-level languages like C. In addition to ARMv7 and Power, I
+believe this also precludes Nvidia (and possibly other?) GPUs. 
+
+I found the paper very dense, and hard to follow for someone not already
+familiar with the formalism, casting some doubt on the claim that this is not
+"complicated", as implied by the introduction.  
+
+The emphasis on a different formalism, as opposed to a clear description of a
+change to an existing model, makes it hard to identify the crucial insight
+here, and would make something like this hard to adopt in an existing
+language standard. 
+
+The lack of machine-checked proofs always casts some doubt in this area. 
+
+I couldn't resolve some questions marked with (*) below. I'm hoping for
+answers in the author response. 
+
+Comments for author
+-------------------
+Line 58: The explanation around line 58 seems incomprehensible, and I
+couldn't quickly understand the Lochbihler version either. The fact that s is
+meant to be local is not explained yet. No object of type C is ever assigned
+to a global. If correct, this seems to be an artifact of the way allocation
+is modelled in the Lochbihler paper? 
+
+C and C++ quite intentionally do not allow reordering of relaxed atomic loads
+from the same variable, since that we found to be needlessly error prone,
+e.g. atomically incremented counters can appear to decrease in value. The
+fact that this invalidates (some) CSE was not viewed as a significant cost,
+given the relative infrequency of relaxed accesses, and the fact that some
+forms of CSE, like moving loads out of loops, have dubious practical
+implications. I think that's the right decision for variables explicitly
+labelled atomic, as in C, but not for plain accesses in Java. 
+
+I don't understand examples like Internal2 at line 520, that have unmatched
+ra accesses, in this case the store to y. In my mental model, unmatched
+release acquire accesses should be equivalent to relaxed accesses. If they
+are not, I worry that implementing them with locks is no longer allowed. That
+implementation flexibility is essential for C and C++ that support
+arbitrary-sized atomics. (*) Is the ra here significant? (*) Is a lock-based
+implementation of atomics sound? Is there an ra access missing at line 532? 
+
+The paper addresses thread-inlining. (*) What about other non-thread-local
+compiler analyses like value-range analysis? If a variable is only ever
+assigned 1 or 2, is the compiler free to use that fact? I'm actually less
+concerned about value-range analysis (which seems rare) than I am about alias
+analysis (which seems common). But I strongly expect the answer to be the
+same. 
+
+This might be clearer as a longer, more self-contained journal paper. On the
+other hand, I think it would benefit from the conference exposure. And I
+think an audience-accessible talk is possible, probably by replacing the
+formalism entirely with examples. 
+
+Please informally describe Definition 7.1 before giving the formal
+definition. I couldn't make sense out of it. (*) If you can give give
+additional insight here without much added text, please include that in the
+rebuttal. 
+
+Details:
+
+The claim that this "supports all reasonable sequential compiler
+optimizations" seems prone to misinterpretation. Section 7 correctly points
+out several kinds of sequential optimizations that are not correct in a
+concurrent setting. 
+
+The statement about relaxed accesses not requiring hardware synchronization
+could use more explanation. Relaxed accesses currently require special
+instructions on Itanium. They clearly require special instructions for
+accesses larger than natively supported by the hardware. 
+
+At line 51, it hasn't yet been explained that s is not shared.
+
+Line 72: I don't believe that "undefined behavior" here is actually a
+weakness. This seems like just an instance of the observation that every
+substantial program has bugs. I also no longer believe that Java is really
+substantively different here. It does try to give defined semantics to
+language-level races. But it does not for racing standard (or other) library
+calls. For "substantial programs", the latter kind of races are not going to
+be that much less frequent than the former. Furthermore, the fact that low
+level races have defined behavior makes it harder to justify simple race
+detectors, which would usually also detect the latter. Java's security goals
+for untrusted code forced its approach, but those goals have generally not
+been met anyway. 
+
+I found the definition of substitution confusing. Please add an example or two.
+
+Line 132: Calling memory orders "fencing actions" seems weird to me. Fences
+order two large groups of accesses with respect to each other. These don't.  
+
+Line 153 is questionable. Whether plain and relaxed accesses are the same for
+race-free code depends on OOTA treatment, which isn't yet resolved. Consider
+if (x) y := 1 || if (y) x := 1 . 
+
+Line 527: "has to a jump through"
+
+Line 745: "is preceded by a reading 1 for z": What's "a"?
+
+Definition 7.1: "When it possible to"
+
+Line 992: "??"
+
+
+
+Review #286B
+===========================================================================
+
+Overall merit
+-------------
+C. Weak Reject
+
+Reviewer expertise
+------------------
+Z. Outsider
+
+Paper summary
+-------------
+This paper proposes a new mathmatical model for relaxed memory, based on
+preconditions and pomsets. The paper gives a semantics to a core imperative
+language with concurrency, where programs denote sets of pomsets, and shows how
+these semantics validate (or not) several known subtle examples and litmus tests
+from the relaxed memory literature.
+
+Assessment
+----------
+* Pros:
+  - Tackles an interesting and important problem
+  - Aims to give a relaxed memory model based on well-understood concepts
+* Cons:
+  - Presentation is extremely convoluted, some parts appear circular
+  - Very difficult to understand what the paper is trying to show
+  - Seems to require deep knowledge of modern memory models in order to
+    understand even a little bit of the contributions
+
+Comments for author
+-------------------
+# General comments
+
+I was quite excited by the abstract and introduction of the paper---defining a
+simple memory model that (a) matches observable behavior of real architectures,
+(b) validates common compiler optimizations, (c) supports logical reasoning, and
+(d) uses clean mathematical concepts like pomsets and preconditions would be an
+amazing achievement. However, the technical presentation of the paper was so
+convoluted that I could understand very little of the paper. Part of this is
+probably because I am not an expert in relaxed memory models (though I don't
+think I have less knowledge than the average member of the OOPSLA community),
+but the main problem is that the presentation is just very unclear. Piles of
+definitions are introduced and then seemingly forgotten until many pages later;
+some terms are not defined at all; example diagrams don't seem to correspond to
+what is being described in the text; and there is very little description of
+what the technical developments in each section are trying to accomplish. At
+points, I was so confused that I wondered if the results were circular. The goal
+and claims of this paper are impressive, but the presentation needs a lot of
+work.
+
+# Detailed comments
+
+- 50 is this valid or not under Java 1.1?
+- 53 "resulting" what did the JMM result from?
+- 57 I could not understand this example. why is this split over two lines? and
+  what exactly is the problem here, is this saying that x, y, d can (all?) refer
+  to something of type C, even though this object is assigned to a different
+  variable s?
+- 61 I don't understand what the "lack of composability" is here
+- 99 what does it mean to "compile" a formal model to an architecture?
+- 191 "fulfilled" and "satisfied" are only defined several pages later.
+- 199 what does validity of Hoare triples mean here? validity depends on the
+  semantics of programs, but we are proposing a new pomset semantics. how are
+  Hoare triples valid with respect to this pomset semantics?
+- 205 does this mean that `r = 2` is true forever along this execution?
+- 219 "unsatisfiable" and "termination": when are these terms used?
+- 230 "the semantics is also closed with respect to ..." but the semantics
+  hasn't even been defined yet.
+- 252 "used define"
+- 266 I really liked the diagrams. it would be worth clarifying that the
+  depicted pomset is one element of the semantics of the given program (and that
+  this semantics is still undefined at this point)
+- 283 "top-level" where do we use this term? if only much later, it would help
+  to define it right before we need it.
+- 289 I almost missed this transition. please visually mark when you are
+  defining semantics for each case
+- 291 are these to be understood as running in parallel?
+- 310 again, mark new cases in the definition. these are really hard to find at
+  a glance, and it is very easy to get lost in 2.4 (which is essentially one
+  enormous definition)
+- 325 I found the implication notation to be very confusing
+- 331 what is "eco"?
+- 335 what happened to the write to `r`? also, why is there an arrow from `Rx0`
+  to `Wx1`? brown arrow should mean "coherence", but the text says
+  "fulfillment". neither coherence nor fulfillment seem to make sense here. or
+  is the text referring to the green arrow (but then shouldn't that be a "write
+  to read order", not a "read to write order"?)
+- 360 "The semantics is again driven by Hoare logic" I could not understand
+  this. the semantics of Hoare logic should be defined in terms of the program
+  semantics, but we are currently defining the program semantics. Unless the
+  paper is referring to an existing semantics of Hoare logic? (this should be
+  clearly cited or better, displayed in the paper).
+- 393 "It is amazing how much this definition ..." hyperbole aside, have we
+  finished the definition yet? it appears not.
+- 413 why are there suddenly fence dependency arrows, when the paper only
+  introduces fence dependencies in the next section? same with the rest of the
+  diagrams in this section.
+- 436 again, I do not understand this "justified by Hoare logic" comment.
+- 568 "control dependencies" what color are these arrows?
+- 571 what happened to the preconditions, are they all trivial even for this
+  example with an if-then-else?
+- 677 "a logic that rules out" shouldn't the model rule something out, not the
+  logic?
+- 690 what is the semantics of implication?
+- 704-706 are these definitions or theorems? and if theorems, are there proofs?
+- 709 is this proof rule claimed to be sound? what does "independent" mean?
+- 729 satisfies $\neg Wx1$ what is the significance of this fact, in words? does
+  it mean that no execution can write 1 to x?
+- 771 "Preconditions provide a natural solution to working out these
+  dependencies." perhaps so, but almost all of the examples don't have
+  preconditions?
+- 773 I could not understand this section at all. There is a theorem statement
+  and proof in the appendix, but many of the terms are not defined or only
+  referred to in other papers.
+- 779 "eco" this is not discussed after Def. 2.5
+- 797 I could also not follow this section. A high-level question: what are we
+  trying to show in this section? What is the goal? This section introduces a
+  ton of definitions, states a theorem and sketches a proof, but I don't
+  understand what the goal is.
+- 825 why is this theorem interesting? what is the intuitive meaning?
+- 876 "roach motel laws" citation?
+- 993 broken reference
+
+
+
+Review #286C
+===========================================================================
+
+Overall merit
+-------------
+B. Weak Accept
+
+Reviewer expertise
+------------------
+X. Expert
+
+Paper summary
+-------------
+This paper presents a new formalism for relaxed memory models that aims to
+balance implementation flexibility and ease of use. The foundation is partially
+ordered multisets, augmented with preconditions. While limited to multi-copy
+atomic models, the result is a formalism that requires fewer ordering relations
+than previous examples, and so is in principle easier to reason about. It also
+admits compositional reasoning, which enables simple proofs of out-of-thin-air
+properties and SC-DRF.
+
+Assessment
+----------
+Strengths:
+* The model is indeed simpler than previous outings
+* The simplicity of the OOTA argument is quite appealing
+
+Weaknesses:
+* While simpler than other work, the model is still frustratingly complex, so
+  it's not clear how much we gain
+* Not much in the way of applications
+
+Comments for author
+-------------------
+On the whole, I like this paper (despite some attempts to sabotage itself, which
+I'll get to). I'm not exactly confident that it will have any real impact -- it
+feels to me like another in the long line of memory consistency papers that have
+follow ups by the same authors a year later showing how the model was wrong. But
+it is creative, and not obviously incorrect, so I'm inclined to accept it.
+
+I'm most interested in the out-of-thin-air results. Attacking this problem with
+temporal logic isn't an approach I've seen before, and the simplicity with which
+the proofs fall out endear me to this model.
+
+At first blush, this model looks a lot like [Alglave 2010] but extended slightly
+with release/acquire operations instead of fences. It's true that this model
+somewhat realizes the simplicity of only needing to reason about a single
+execution relation. But this paper feels a little arbitrary in how it chooses
+to extend that idea: it focuses extensively on preconditions, but not on loops;
+it focuses on common subexpression elimination, but not on other code motion.
+
+The other major slight against this paper is that it's incredibly dense, and yet
+cavalier about it. I can't let the lame excuse at line 1102 for not having any
+formal verification for this model slide. Mechanization is not that heavy a lift
+for work like this (Batty et al 2011, for example, is mechanized in ~1200 lines
+of Lem). Moreover, it helps reviewers and readers understand the model. The
+memory model literature has become much more approachable (relatively speaking)
+in the last few years precisely because of mechanization and automation efforts.
+At this point, it's table stakes.
+
+At line 94, I'm not sure I follow the implication that satisfying this Hoare
+triple suffices to conclude "the write of $y$ is independent of any code that
+precedes it in program order". The triple also holds for $C_4$ = `{true} x=1;
+y=x {y=1}`, but the write of `y` is certainly not independent of the code before
+it.
+
+At line 278, I don't understand what this relaxed version of coherence buys us
+compared to the usual total-order notion. Page 10 doesn't really illuminate the
+situation.
+
+I struggled in some places with typesetting. Line 282 is a good example.
+Eventually I figured out the intention is that this is meant to be read as if
+the previous line ends with "Then we define:", but for a long while these just
+seemed like dangling equations. Perhaps this just reflects badly on me, though.
+(It would be much clearer in a mechanized model! :-))
+
+Section 2.5 seems out of place. It feels like this is the place where the
+architecture-specific nature of the model should appear. But the first thing we
+do is rule out a sequentially consistent model. One of the nice things about
+[Alglave 2010] that this paper lacks is clarity about what needs to be "plugged
+in" to vary the model. Here, I guess the answer is that we vary what we include
+in $\leq$, but the paper only shows this (very briefly) for ARMv8, and never for
+TSO.
+
+Minor stuff:
+* Line 331: eco is never defined (same problem at line 789)
+* Line 356: "old the"
+* Line 609: ", require that"
+
+
+Review #286D
+===========================================================================
+
+Overall merit
+-------------
+A. Accept
+
+Reviewer expertise
+------------------
+X. Expert
+
+Paper summary
+-------------
+This paper takes an idea previously used to model information-flow
+atacks like Spectre -- pomsets with preconditions -- and applies it to
+the study of weak memory. The pomsets are used to represent executions
+in a similar way to an axiomatic model. The preconditions, applied to
+each memory event in an execution, diverge from the axiomatic scheme by
+capturing why the event has occurred. These preconditions capture
+dependence on other memory events, and they capture structural
+information about the program from conditionals. There is a clever set
+of rules that allow substitution and weakening of preconditions, while
+maintaining a notion of consistency over preconditions. The authors show
+that these rules account for thin-air behaviour and global value range
+analysis.
+
+The semantics provides a good coverage of the usual C++-type primitives,
+including fences and read-modify-writes, but their scheme does not
+provide the single location coherence guarantees of C++ and nor does it
+account for non-multi-copy-atomic (non-MCA) behaviour. This is
+sufficient for x86 and ARM V8 targets, and they provide proofs of
+efficient implementability for those. They get substantial value out of
+these choices: their semantics only needs to keep track of a single
+ordering relation and it is compositional. This helps them establish a
+stronger local variant of the DRF-SC result. They provide a temporal
+logic and establish pomsets with preconditions as a basis for reasoning
+with Hoare triples, using them to validate rewriting rules. The paper
+uses examples effectively, and presents a great many of them, recalling
+in particular the OOTA1 example from previous work on Java, and using it
+to show that the leading Promising semantics does not support both type
+safety and memory reclamation.
+
+Assessment
+----------
+This thin-air solution strikes a very different compromise to existing
+models. The model takes great advantage of MCA to produce something
+quite elegant, and the treatment is comprehensive enough to see both the
+cost of the design, and its benefits in terms of reasoning.
+
+The authors begin their paper by highlighting a problem in the
+predominant Promising semantics. This is valuable knowledge, but it also
+creates a space to explore an alternative approach to the thin air
+problem without resolving every detail, or mechanising everything.
+
+The precondition mechanism that drives the semantics impressed me. It
+seems like a particularly explicit, natural and abstract way to think
+about dependencies, and I especially like the way it handles global
+value range assumptions (page 10) while remaining compositional. On the
+downside, the write elimination mechanism (Section 2.7) does feel a bit
+ad hoc, but no moreso than other thin-air solutions.
+
+The paper has more than enough in the way of contributions paired with a
+terse style that is very clear, but occasionally omits too much (e.g.
+eco, from the literature, was never defined).
+
+The lack of per-location C++ coherence, together with MCA, rules out the
+semantics as a fix for the C++ memory model, but that is not the point.
+This paper teaches us quite a bit about an unexplored part of the design
+space of weak memory models.
+
+Comments for author
+-------------------
+The authors should compare their model to the thin-air solution of
+"Modular Relaxed Dependencies in Weak Memory Concurrency" from ESOP
+2020.
+
+The authors say they deal with all Java causality tests (line 557).
+Tests 19 and 20 include join, but the language does not seem to provide
+the facility to join. How are tests 19 and 20 accounted for?
+
+In section 5, does dropping parts of dependency-ordered-before produce a
+strictly weaker model of ARMv8? I want to be sure this is the proper
+compilation result.
+
+
+Minor comments:
+
+An example on page 5 uses pointer dereferencing before it is added to
+the language.
+
+On page 5 and line 639, the use of the terms "states" and "events"
+confused me for a while.
+
+The inverted delta subscript for downset was not introduced at the
+definition of downset.
+
+Line 235: "a disjunct".
+
+Line 252: "used define" --> "used to define"
+
+Line 311: "that imply theta", I think you mean "implied by theta".
+
+Line 317: should "theta'(e) = theta'(e)" be "theta'(e) = theta(e)"?
+
+Line 331: eco not defined or referenced.
+
+Lines 323 and 340: "trivial" and "general" expressions. These sound like
+keywords but are not defined.
+
+Line 391: the final "5c" should probably be "5d".
