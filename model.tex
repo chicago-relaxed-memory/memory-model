@@ -118,33 +118,39 @@ but also the unexpected one:
 \end{gather}
 The interesting fact about these pomsets is that there is no control dependency between
 reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides of the conditional.
-Compare this with \eqref{OOTA!}, where there is a control dependency:
+% Compare this with \eqref{OOTA!}, where there is a control dependency:
+% \begin{gather*}
+%   y\GETS x
+%   \PAR
+%     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wy0}{\DW{y}{0}}{left=of wx0}
+%   \event{rx0}{\DR{x}{0}}{right=3em of wx0}
+%   \event{wy0a}{\DW{y}{0}}{right=of rx0}
+%   \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
+%   \event{wx2}{\DW{x}{2}}{right=of ry0}
+%   \event{stop}{\DSTOP}{right=of wx2}
+%   \rf{wx0}{rx0}
+%   \rf{wy0a}{ry0}
+%   \wk[out=15,in=165]{rx0}{wx2}
+%   \wk[out=15,in=165]{wy0}{wy0a}
+%   \po{rx0}{wy0a}
+%   \po{ry0}{wx2}
+%   \sync{wx2}{stop}
+%   \sync[out=30,in=150]{ry0}{stop}
+% \end{tikzinline}}
+% \end{gather*}
+
+An attempt to replicate this execution with \eqref{OOTA!} fails,
+since it introduces a cycle:
 \begin{gather*}
-  y\GETS x
+  y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
   \PAR
-    r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI
+    r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx0}{\DR{x}{0}}{right=3em of wx0}
-  \event{wy0a}{\DW{y}{0}}{right=of rx0}
-  \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
-  \event{wx2}{\DW{x}{2}}{right=of ry0}
-  \event{stop}{\DSTOP}{right=of wx2}
-  \rf{wx0}{rx0}
-  \rf{wy0a}{ry0}
-  \wk[out=15,in=165]{rx0}{wx2}
-  \wk[out=15,in=165]{wy0}{wy0a}
-  \po{rx0}{wy0a}
-  \po{ry0}{wx2}
-  \sync{wx2}{stop}
-  \sync[out=30,in=150]{ry0}{stop}
-\end{tikzinline}}
-\end{gather*}
-An attempt to replicate the unexpected execution of~\eqref{OOTA?} fails,
-since it introduces a cycle:
-\begin{tikzdisplay}[node distance=1em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
   \event{rx1}{\DR{x}{1}}{right=3em of wx0}
@@ -162,7 +168,8 @@ since it introduces a cycle:
   \sync[out=30,in=150]{wx1}{stop}
   \sync{wa1}{stop}
   \po{ry1}{wx1}
-\end{tikzdisplay}
+\end{tikzinline}}
+\end{gather*}
 
 We stress that in these diagrams, color plays no formal role.  It is purely
 to help the reader see where the order comes from:

@@ -197,18 +197,20 @@ memory models advocated by~\citet{Batty17}.
 
 Cross thread dependencies arise from conflicting actions on the same
 variable.  Thus, any two actions, at least one of which is a write, on the
-same location and not in the same thread, are ordered.  In the parlance of
-hardware memory models~\citep{alglave}, $\rcoe,\rfre,\rrfe$ are included in
-the dependency ordering.  Thus, our model realizes \emph{multi-copy
-  atomicity} (\mca); when a write becomes visible to one thread it must
-become visible to all\nofootnote{\mca\ is traditionally explored in hardware
-  memory models.  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10})
-  and recent architectures, such as \armeight\ (see,
-  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.  ), are \mca, but
-  not older architectures, such as \ppc\ (see,
+same location and not in the same thread, are ordered (roughly).  In the
+parlance of hardware memory models~\citep{alglave}: $\rcoe$, $\rfre$, and
+$\rrfex$ are included in the global dependency ordering.  Thus, our model
+realizes \emph{multi-copy atomicity} (\mca): when a write becomes visible to
+one thread it must become visible to all\nofootnote{\mca\ is traditionally
+  explored in hardware memory models.  \tso\ (see,
+  e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such
+  as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.
+  ), are \mca, but not older architectures, such as \ppc\ (see,
   e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see,
   e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
-\citep{DBLP:journals/pacmpl/PulteFDFSS18}.
+\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  Our key insight is that
+\emph{\mca{} permits a single, global notion of time, manifest in the pomset
+  order}.
   
 
 Within a thread, the dependency calculation can be viewed as the computation
