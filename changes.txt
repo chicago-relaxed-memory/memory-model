@@ -3,7 +3,7 @@ in the paper, this result was both fragile and narrow.  We decided make room
 to explain the results that are more robust and broadly applicable.
 
 We dramatically rewrote and reorganized the paper in response to your
-feedback.  Only the sections on "Thin air" and "ARMv" are substantially the
+feedback.  Only the sections on "Thin air", "ARMv", and "Extensions" are substantially the
 same.  This is how the sections have moved:
 
     OLD   NEW
@@ -17,10 +17,10 @@ same.  This is how the sections have moved:
      9     10    Limitations
  
 We refactored section the old section 2 into three sections
-  2:   a simple semantics
-  3.1: litmus tests
-  3.2: rewrites that hold for the simple semantics
-  4:   refinements to handle read/write elimination and case analysis
+  + 2:   a simple semantics
+  + 3.1: litmus tests
+  + 3.2: rewrites that hold for the simple semantics
+  + 4:   refinements to handle read/write elimination and case analysis
 
 Other changes:
 
@@ -28,10 +28,16 @@ Other changes:
    Added a starter memory model example:  (*) and (\dagger)
 
 + section 2:
+   Organized the discussion around the started example
+
+   Added substitution example
+
    Reorganized the presentation of prefixing
 
 + section 3.1:
    corrected the discussion of JMM litmus tests
+
+   added load buffering 
 
    added TC16
 
@@ -40,6 +46,7 @@ Other changes:
    add discussion of MCA1/MAC2
 
    moved discussion of Sevcik thesis to the end of section 4
+
 + section 3.2:
    strengthened RL and CSE to get rid of read saturation
 
@@ -55,7 +62,6 @@ Other changes:
    strengthened SF to get rid of read saturation
 
    added RE and RI
-
 + section 5:
    cleanup address calculation
 

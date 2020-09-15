@@ -183,7 +183,7 @@ reads, even on \armeight.
 % forces a dependency or a fence between a relaxed atomic read and a subsequent relaxed atomic write.  
 
 
-
+\paragraph{Our Model}
 
 In our approach, a program is a set of execution.  Each execution is a
 partial order on a set of read and write events.  The order is intended to be
@@ -196,21 +196,22 @@ structure of the program.  Thus, our model falls into the style of relaxed
 memory models advocated by~\citet{Batty17}.
 
 Cross thread dependencies arise from conflicting actions on the same
-variable.  Thus, any two actions, at least one of which is a write, on the
-same location and not in the same thread, are ordered (roughly).  In the
-parlance of hardware memory models~\citep{alglave}: $\rcoe$, $\rfre$, and
-$\rrfex$ are included in the global dependency ordering.  Thus, our model
-realizes \emph{multi-copy atomicity} (\mca): when a write becomes visible to
-one thread it must become visible to all\nofootnote{\mca\ is traditionally
-  explored in hardware memory models.  \tso\ (see,
-  e.g.~\cite{DBLP:journals/cacm/SewellSONM10}) and recent architectures, such
-  as \armeight\ (see, e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.
-  ), are \mca, but not older architectures, such as \ppc\ (see,
+variable: Roughly, we order any two actions on the same location, at least
+one of which is a write.  In the parlance of hardware memory
+models~\citep{alglave}: $\rcoe$, $\rfre$, and $\rrfex$ are included in the
+global dependency ordering.  Thus, our model realizes \emph{multi-copy
+  atomicity} (\mca): when a write becomes visible to one thread it must
+become visible to all\nofootnote{\mca\ is traditionally explored in hardware
+  memory models.  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10})
+  and recent architectures, such as \armeight\ (see,
+  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.  ), are \mca, but
+  not older architectures, such as \ppc\ (see,
   e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see,
   e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
-\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  Our key insight is that
-\emph{\mca{} permits a single, global notion of time, manifest in the pomset
-  order}.
+\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in
+\cite[\textsection3.3]{AlglaveThesis}, this allows us to capture cross-thread
+dependencies in a single partial order.  Our key insight is that \emph{\mca{}
+  permits a single, global notion of time, manifest in the pomset order}.
   
 
 Within a thread, the dependency calculation can be viewed as the computation
@@ -239,10 +240,10 @@ fulfilled by a preceding write in the same thread---in relaxed memory models
 such as \armeight.  
 Unlike externally fulfilled reads, %($\rrfe$),
 internal reads are not necessarily recorded in the dependency relation.
-This allows a compiler or processor to reorder the write with
+This allows a compiler or processor to reorder the read with
 respect to the code that precedes it.
 
-The logical perspective provides a clear intuition why our model validates
+The logical perspective provides a clear intuition as to why our model validates
 the compiler transformations discussed above \eqref{OOTA?}.
 % reordering of independent statements, Irrelevant read introduction, RaR, RaW,
 % WaW and Read Reordering and motivates the expressivity wrt the \jmm\
@@ -268,21 +269,21 @@ the compiler transformations discussed above \eqref{OOTA?}.
 % from which the required execution follows.
 
 Thread compositionality provides a perspective on how our model forbids ``Out
-Of Thin Air'' (\oota); after all, it is stating that parallel composition
-does not create unexpected new behaviors.  More concretely, as envisioned in
-\cite[\textsection3.3]{AlglaveThesis}, \emph{\mca{} permits a single, global
-  notion of time, manifest in the dependency order} that captures all
-cross-thread dependencies.  The absence of cycles in the dependency order
-forbids \oota\ behaviors.  Consider the well-known litmus test:
+Of Thin Air'' (\oota).  After all, compositionality states that parallel
+composition does not create  unexpected behaviors.  The fact that the
+dependency relation is a partial order forbids \oota\ behaviors.  The
+standard \oota{} litmus test asks whether either of the following threads can
+see non-zero values:
 \begin{displaymath}
   x\GETS0\SEMI y\GETS0\SEMI
   (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
 \end{displaymath}
-We rule out an assignment of $1$ to both locations as follows.  The write of
-$\aLoc$ in the LHS is dependent on the read to $\bLoc$.  Similarly, the write
-of $\bLoc$ in the RHS is dependent on the read to $\aLoc$.  Since a read of
-$1$ can only be satisfied externally, both reads are part of the dependency
-order, leading to a cycle in the dependency order: a contradiction.
+We rule out non-zero reads as follows: The write of $\aLoc$ on the left hand
+side is dependent on the read to $\bLoc$.  Similarly, the write of $\bLoc$ on
+the right is dependent on the read to $\aLoc$.  Since a non-zero read can
+only be satisfied externally, both reads are part of the dependency order,
+leading to a cycle.  Such a cycle contradicts the assumption that dependency
+forms a partial order.
 
 
 
@@ -332,7 +333,7 @@ order, leading to a cycle in the dependency order: a contradiction.
 % DBLP:conf/popl/DemangeLZJPV13,DBLP:conf/esop/FerreiraFS10}, without explicitly being formalized as such.}.
 
 
-We show that the model:
+In \textsection\ref{sec:model} and \textsection\ref{sec:refine}, we define the model.  We show that the model:
 \begin{itemize}
 \item validates expected litmus cases and compiler optimizations
   (\textsection\ref{sec:props}-\ref{sec:refine}).

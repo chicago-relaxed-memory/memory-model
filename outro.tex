@@ -205,7 +205,7 @@ there is more to weak memory than transformations.''
 future research.  % In several cases, these limitations have allowed us to
 % \emph{surpass prior work in significant ways}.
 
-We do not include loops or general sequencing of the form $\aCmd\SEMI\aCmd'$.
+We do not include loops or general sequencing of the form $(\aCmd\SEMI\aCmd')$.
 Loops introduce complexities\allowbreak{}---such as liveness and
 continuity---that are orthogonal to the main topic of the paper.  We also do
 not include types, allocation, garbage collection, etc.  % This is the norm for
@@ -312,7 +312,7 @@ to define such a weaker order, but their model is anomalous on
 
 In the discussion of \ref{MCA1}, we noted that our model does not enforce
 order between reads dues to address and control dependencies.  This has
-implications for Java's final field semantics.
+implications for Java's final field semantics.  Consider:
 \begin{gather*}
   \begin{gathered}
   (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
@@ -325,7 +325,7 @@ implications for Java's final field semantics.
       \wk{a1}{a2}
       \event{a4}{\DWRel{x}{1}}{right=of a2}
       \sync{a2}{a4}
-      \event{b1}{\DR{x}{1}}{right=2em of a4}
+      \event{b1}{\DR{x}{1}}{right=3em of a4}
       \event{b2}{\DR{\REF{1}}{0}}{right=of b1}
       \sync{b1}{b2}
       \rf{a4}{b1}
