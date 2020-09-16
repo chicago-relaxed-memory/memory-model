@@ -216,7 +216,26 @@ not include types, allocation, garbage collection, etc.  % This is the norm for
 Except for roach motel (\ref{RelW}, \ref{AcqW}), we have not attempted to validate
 transformations that involve synchronizations and fences
 \cite{DBLP:conf/popl/VafeiadisBCMN15}.  For example, the model does not
-support elimination of redundant synchronization accesses.  % Accommodating
+support elimination of redundant synchronization accesses or lock elision.  Nor does it
+support conversions between access modalities.
+\begin{scope}
+  \color{red} perhaps add example here from referee 1, or discuss \ref{Internal2}.
+
+Although our model forces some ordering within the thread that includes the
+RA access, threads that lack RA access are free to reorder.  Perhaps this
+gives the desired effect.  For example
+$$
+(y:=1; x^{ra}:=1) || (s:=x; z:=1)
+$$
+allows the execution $(Wz1) \leq (Wy1) \leq (W^{ra}x1) \leq (Rx1)$.  
+(Here, we are using augmentation to add order from $Wz1$ to $Wy1$.)
+
+We do expect that lock-based implementation of atomics should be sound, if
+locks were introduced as first class entities, but we have not explored this.
+Intuitively, lock elision can be validated by using roach motel to move the
+entire program into the scope of the lock.
+\end{scope}
+ % Accommodating
 % such optimizations will likely require changes to the definition of
 % $\textsf{cover}$ (page \pageref{def:cover}) and $\textsf{read}$ (page
 % \pageref{page:readsat}).
@@ -249,6 +268,29 @@ The attempted execution is \emph{not} allowed by our semantics since there is no
 to fulfill $(\DR{y}{1})$.  Proving this requires the ability to reason about
 values.
 
+\begin{scope}
+  \color{red} Need to sort this out.
+  Alan proposes:
+\begin{verbatim}
+     (W y 2) => <>(R x 1)
+     (W y 1) => <>(R x 0)
+     (W x 1) => <>(R y 1)
+   <>(W x 1) => not(<>(W x 2))  --- which should be???  <>(W x 0) => not(<>(W x 1))
+\end{verbatim}
+  I am worried about the compositionality of this predicate:
+\begin{verbatim}
+I think
+   <>(W x 0 => not(<>(W x 1)))
+holds for 
+   x=0; r=y 
+and
+   x=1
+but not
+   x=0; r=y || x=1
+as shown by the execution
+   Wx1 < Wx0 < Ry0
+\end{verbatim}
+\end{scope}
 % \labeltext{The}{page:logic:limits} logic we presented in \textsection\ref{sec:logic} is only strong enough
 % to prove a few examples.
 As another example,
