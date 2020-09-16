@@ -215,7 +215,7 @@ Dead store elimination \eqref{DS} is symmetric to redundant load elimination.
 \end{align*}
 The rewrite is less general than \ref{RE} because general store elimination
 is unsound.  For example, ``${x\GETS 0}$'' and ``${x\GETS 0\SEMI x\GETS 1}$''
-can be distinguished by the context ``$z\GETS x$''.
+can be distinguished by the context ``$\hole{}\PAR z\GETS x$''.
 
 \ref{DS} is valid under Definition \ref{def:cover}.  A write may only be
 removed if it is \emph{covered} by a following write.  In general, there may
@@ -422,7 +422,8 @@ Definition \ref{def:cover} performs a bit of disjunctive closure in each
 case.
 
 Write elimination causes disjunction closure to fail.  For example, consider
-the following executions of $\cmdW$; the second uses write elimination:
+the following executions of $\cmdW$; the second uses write elimination. (To make coalescing explicit, we show the
+ element of the carrier set $\Event$ to left of its label.)
 \begin{gather*}
   \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI
   \\
@@ -794,16 +795,23 @@ conditional.  Definition \ref{def:cover} does \emph{not} validate this rewrite.
 
 Read introduction is only valid ``modulo irrelevant reads.'' We capture this
 idea using \emph{read saturation}.  Read saturation allows us to add actions
-of the form $(\DR{x}{v})$ to the left-hand pomsets and
-$(r\neq0\mid\DR{x}{v})$ to the right, thus equating them.
+of the form $(\DR{x}{v})$ to the left-hand side, validating the inclusion.
+% pomsets and
+% $(r\neq0\mid\DR{x}{v})$ to the right, thus equating them.
 
 \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
-$\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
-$\Event''\subset\Event$ and $D$ such that $\Event'= \Event''\uplus D$,
-${\le'}\supseteq{\le\restrict{\Event''}}$,
-${\labeling'} \supseteq{\labeling\restrict{\Event''}}$, and for every
+$\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and $\exists D$ such that $\Event'= \Event\uplus D$,
+${\le'}\supseteq{\le\restrict{\Event}}$,
+${\labeling'} \supseteq{\labeling\restrict{\Event}}$, and for every
 $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
 $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
+% \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
+% $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
+% $\Event''\subset\Event$ and $D$ such that $\Event'= \Event''\uplus D$,
+% ${\le'}\supseteq{\le\restrict{\Event''}}$,
+% ${\labeling'} \supseteq{\labeling\restrict{\Event''}}$, and for every
+% $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
+% $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
 %
 % and
 % %$\aPS[\aVal/\aLoc]$ is consistent.

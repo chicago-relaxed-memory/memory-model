@@ -1000,14 +1000,15 @@ Because of consistency
 preconditions.
 % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
 % $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
-To make coalescing more explicit in the following examples, we show the
-element of the carrier set $\Event$ to left of its label.  Consider:
+% To make coalescing more explicit in the following examples, we show the
+% element of the carrier set $\Event$ to left of its label.
+Consider:
 \begin{align*}
 \begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
-  \eventl{e}{wx1}{r<0\mid\DW{y}{1}}{}
+  \event{wx1}{r<0\mid\DW{y}{1}}{}
     \end{tikzinline}}
 \end{gathered}
 &&
@@ -1015,16 +1016,16 @@ element of the carrier set $\Event$ to left of its label.  Consider:
   \IF{r\geq0}\THEN y\GETS1\FI
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
-  \eventl{e}{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
+  \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
     \end{tikzinline}}
 \end{gathered}
 \end{align*}
 The parallel composition includes pomsets with either one of the two events, but not
-both.  However,  events with the same label may coalesce, taking the
+both: including both would violate consistency.  However,  events with the same label may coalesce, taking the
 disjunction of their preconditions.  Thus, the semantics of the combined
 program also includes
 \begin{math}
-  e{:}(r<0\lor r\geq0\mid\DW{y}{1})
+  (r<0\lor r\geq0\mid\DW{y}{1})
   % \IF{r<0}\THEN y\GETS1\FI
   % \PAR
   % \IF{r\geq0}\THEN y\GETS1\FI
@@ -1045,8 +1046,8 @@ Coalesced events inherit order from both sides.
   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
   when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$
   such that
+$\aPS^1$ is completed exactly when $\aPS^2$ is completed,
 $\Event' = \Event^1 \cup \Event^2$,
-$\Event^1$ is completed exactly when $\Event^2$ is completed,
 there is at most one termination in $\Event'$,
 ${\le'}\supseteq{\le^1}\cup{\le^2}$,
 and for all $\aEv\in\Event'$,
