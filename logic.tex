@@ -5,22 +5,22 @@ A significant challenge for a software memory model is to relax order enough
 to allow efficient implementation without admitting anomalous
 behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
-\begin{gather}
-  \label{OOTA3}\tag{OOTA3}
-  (y\GETS x \!\PAR\! r\GETS y\SEMI x\GETS r)
-  \quad
+\begin{align*}
+  \label{OOTA3}\tag{\textsc{oota3}}
+  y\GETS x \!\PAR\! r\GETS y\SEMI x\GETS r
+  &&
   %\nonumber
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{rx}{\DR{x}{1}}{}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
-  \event{ry}{\DR{y}{1}}{right=1.2em of wy}
+  \event{ry}{\DR{y}{1}}{right=2em of wy}
   \event{wx}{\DW{x}{1}}{right=of ry}
   \po{ry}{wx}
   \rf{wy}{ry}
   \rf[out=170,in=10]{wx}{rx}
     \end{tikzinline}}
-\end{gather}
+\end{align*}
 Although Java does not allow \oota{} behaviors of \ref{OOTA3},
 \citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
 behaviors of \ref{OOTA1}, from \textsection\ref{sec:intro}.
@@ -287,13 +287,34 @@ By coinduction,
 %as required.
 \end{example}
 
+The same reasoning can be applied to the control flow variant of \ref{OOTA3}
+\cite{DBLP:conf/popl/VafeiadisBCMN15}:
+\begin{align*}
+  \tag{\textsc{cyc}}\label{CYC}
+  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \FI
+  &&
+  %\nonumber
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{rx}{\DR{x}{1}}{}
+  \event{wy}{\DW{y}{1}}{right=of rx}
+  \po{rx}{wy}
+  \event{ry}{\DR{y}{1}}{right=2em of wy}
+  \event{wx}{\DW{x}{1}}{right=of ry}
+  \po{ry}{wx}
+  \rf{wy}{ry}
+  \rf[out=170,in=10]{wx}{rx}
+    \end{tikzinline}}
+\end{align*}
+The program is data-race-free. Thus, allowing an execution that writes $1$
+would violate \drfsc{}.
+
 \begin{example}
   \label{ex:lochb}
   Our language lacks object creation; therefore, we consider a variant of
   \ref{OOTA1}:
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{align*}
-  \tag{OOTA4}\label{OOTA4}
+  \tag{\textsc{oota4}}\label{OOTA4}
   %   Z=1;
   % ||
   %   a=X; // 1
@@ -524,7 +545,7 @@ optimization.  Our analysis shows that there is no \oota{} behavior in
 \ref{RFUB}, instead \citeauthor{BoehmOOTA}'s analysis has a false dependency:
 %\citet{BoehmOOTA} \labeltext{considers}{page:rfub} the following programs:
 \begin{gather*}
-  \tag{RFUB}\label{RFUB}
+  \tag{\textsc{rfub}}\label{RFUB}
   \sem{r\GETS y\SEMI x\GETS r}
   \not\supseteq
   \sem{r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI \SEMI x\GETS r}

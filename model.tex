@@ -246,6 +246,7 @@ conditional, we have $(r{=}1 \mid \DW{x}{1})$, rather than $(r{=}0 \lor r{=}1
 % but readers familiar with or earlier work can skip ahead.
 
 \subsection{Data models}
+\label{sec:data:models}
 A \emph{data model} consists of:
 \begin{itemize}
 \item a set of \emph{values} $\Val$, ranged over by
@@ -779,13 +780,13 @@ either reads or writes the same location.
 We say $\bEv$ \emph{fulfills $\aEv$ (on $\aLoc$)} if 
 % \begin{itemize}    
 % \item
-\labeltext[F1]{(F1)}{rf1} $\bEv$ \externally writes $\aVal$ to $\aLoc$, 
+\labeltextsc[F1]{(F1)}{rf1} $\bEv$ \externally writes $\aVal$ to $\aLoc$, 
 % \item
-\labeltext[F2]{(F2)}{rf2} $\aEv$ \externally reads $\aVal$ from $\aLoc$,
+\labeltextsc[F2]{(F2)}{rf2} $\aEv$ \externally reads $\aVal$ from $\aLoc$,
 % \item
-\labeltext[F3]{(F3)}{rf3} $\bEv \lt \aEv$, and
+\labeltextsc[F3]{(F3)}{rf3} $\bEv \lt \aEv$, and
 % \item
-\labeltext[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either $\cEv
+\labeltextsc[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either $\cEv
 \gtN \bEv$ or $\aEv \gtN \cEv$. %, or $\fthrd(\aEv)=\fthrd(\cEv)$ and $\aEv \leloc \cEv$.
 % \end{itemize}
 \end{definition}
@@ -862,10 +863,17 @@ discuss coherence further on page \pageref{page:coherence2}.
 
 % When a location is bound, every read of that location must be {fulfilled} by a
 % matching write.
+In order to be $\aLoc$-closed, a pomset must be ``done'' with $\aLoc$, in
+both the concurrent and the sequential semantics.  The concurrent semantics
+requires that all reads of $\aLoc$ be fulfilled.  The sequential semantics
+requires that all formulae be \emph{independent of $\aLoc$}, as defined
+in \textsection\ref{sec:data:models}:
+$\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
+
+
 \begin{definition}
   A pomset is \emph{$\aLoc$-closed} if every \external read on $\aLoc$ is fulfilled,
-  and every formula is independent of $\aLoc$
-  ($\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$).
+  and every formula is independent of $\aLoc$.
   Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ such that $\aPS'{\in}\aPSS'$
   when $\aPS'$ is $\aLoc$-closed.
   We define:
@@ -876,6 +884,18 @@ discuss coherence further on page \pageref{page:coherence2}.
   A pomset is \emph{top-level} if it is $\aLoc$-closed for every location
   $\aLoc$.  
 \end{definition}
+
+\todo{finish this}:
+Our formulation of fulfillment is 
+As we noted in \cite[\textsection B]{2019-sp}, scope extrusion fails if
+fulfillment requirement \ref{rf4}---for every conflicting write $\cEv$,
+either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
+existential---there is no conflicting write $\cEv$ such that
+$\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
+  The universal quantification ensures that parallel threads cannot turn a
+  non-blocker into a blocker.  In that paper, we advocated the use of
+  \emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
+  order for \ref{rf4}.  The pomsets studied in this paper are far simpler.}.
 
 %\subsection{Fulfillment and Location Binding}
 
@@ -1509,6 +1529,7 @@ in \textsection\ref{sec:refine}.
 
 %\subsection{Program Order Prefixing}
 \begin{candidate}
+  \label{cand:ord}
   \label{def:pre-sc}
   \label{def:prefix}
   Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
@@ -1518,33 +1539,33 @@ in \textsection\ref{sec:refine}.
   where
 $\aPS'\in\aPSS'$ when 
 there is $\aPS\in\aPSS$ such that
-\hbox{{\labeltext[1]{(1)}{1}} $\Event' = \Event \cup \{\bEv\}$,}
-{\labeltext[2]{(2)}{2}}  ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
-{\labeltext[3]{(3a)}{3}}  $\labelingAct'(\bEv) = \aAct$,
-(3b) $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
+\hbox{{\labeltextsc[P1]{(P1)}{1}} $\Event' = \Event \cup \{\bEv\}$,}
+{\labeltextsc[P2]{(P2)}{2}}  ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
+{\labeltextsc[P3]{(P3a)}{3}}  $\labelingAct'(\bEv) = \aAct$,
+\labeltextsc[P3b]{(P3b)}{3b} $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
 \begin{enumerate}
 % \item[(1)]\label{pre-E} $\Event' = \Event \uplus \{\bEv\}$,
 % \item[(2)]\label{pre-le} ${\le'}\supseteq{\le}$, % if $\bEv \le \aEv$ then $\bEv \le' \aEv$,
 % \item[(3a)] $\labelingAct'(\bEv) = \aAct$,
 % \item[(3b)] $\labelingForm'(\bEv)$ implies $\aForm$,
 % \item[(4a)] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-\item[{\labeltext[4a]{(4a)}{4a}}]{\labeltext[4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
-\item[{\labeltext[4b]{(4b)}{4b}}] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+\item[{\labeltextsc[P4a]{(P4a)}{4a}}]{\labeltextsc[P4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
+\item[{\labeltextsc[P4b]{(P4b)}{4b}}] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item[{\labeltext[4c]{(4c)}{4c}}] if $\bEv$ does not \externally read then
+\item[{\labeltextsc[P4c]{(P4c)}{4c}}] if $\bEv$ does not \externally read then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
-\item[{\labeltext[5a]{(5a)}{5a}}] %$\bEv$ \externally reads and
-  \labeltext[5]{if}{5} $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+\item[{\labeltextsc[P5a]{(P5a)}{5a}}] %$\bEv$ \externally reads and
+  \labeltextsc[P5]{}{5} if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 % \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
 %   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
 %   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
 % \item[5a.] if %$\bEv$ \externally reads and
 %   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
 %   $\bEv\lt'\aEv$,
-\item[{\labeltext[5b]{(5b)}{5b}}] if $\bEv$ and $\aEv$ are \external actions in conflict,
+\item[{\labeltextsc[P5b]{(P5b)}{5b}}] if $\bEv$ and $\aEv$ are \external actions in conflict,
     then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
-\item[{\labeltext[5c]{(5c)}{5c}}] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
-\item[{\labeltext[5d]{(5d)}{5d}}] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
+\item[{\labeltextsc[P5c]{(P5c)}{5c}}] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+\item[{\labeltextsc[P5d]{(P5d)}{5d}}] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
 %\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
@@ -1552,7 +1573,6 @@ there is $\aPS\in\aPSS$ such that
 % \end{definition}
 % %\vspace{-2ex}
 % \begin{candidate}%\ \vspace{-1ex}
-  \label{cand:ord}
   We then define:
   \begin{gather*}
     \begin{aligned}[t]

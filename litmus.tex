@@ -24,7 +24,7 @@ behaviors'' of \citet[\textsection 8]{Manson:2005:JMM:1047659.1040336}.
 \paragraph{Buffering}
 
 Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
-\begin{gather*}
+\begin{align*}
   \taglabel{SB/LB}
   \begin{gathered}
   x\GETS0\SEMI
@@ -33,59 +33,87 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
   x\GETS1\SEMI\aReg\GETS y
   \PAR
   y\GETS1\SEMI \aReg\GETS x)
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \\[-.4ex]
+  \hbox{\begin{tikzinline}[node distance=.9em]
       \event{wx0}{\DW{x}{0}}{}
-      \event{wy0}{\DW{y}{0}}{below=of wx0}
-      \event{wx}{\DW{x}{1}}{right=of wx0}
-      \event{wy}{\DW{y}{1}}{right=of wy0}
+      \event{wy0}{\DW{y}{0}}{right=of wx0}
+      \event{wx}{\DW{x}{1}}{right=2em of wy0}
       \event{ry}{\DR{y}{0}}{right=of wx}
+      \event{wy}{\DW{y}{1}}{right=2em of ry}
       \event{rx}{\DR{x}{0}}{right=of wy}
-      \wk{wx0}{wx}
-      \wk{wy0}{wy}
-      \rf{wy0}{ry}
-      \rf{wx0}{rx}
-      \wk[out=-150,in=15]{ry}{wy}
-      \wk[out=150,in=-15]{rx}{wx}
+      \wk[out=15,in=165]{wx0}{wx}
+      \wk[out=15,in=165]{wy0}{wy}
+      \rf[out=-15,in=-165]{wy0}{ry}
+      \rf[out=-10,in=-170]{wx0}{rx}
+      \wk{ry}{wy}
+      \wk[out=165,in=15]{rx}{wx}
       % \po{rx}{wy}
       % \pox{wy}[below]{rx}
       % \pox{wx}{ry}
     \end{tikzinline}}
+  % \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  %     \event{wx0}{\DW{x}{0}}{}
+  %     \event{wy0}{\DW{y}{0}}{below=of wx0}
+  %     \event{wx}{\DW{x}{1}}{right=of wx0}
+  %     \event{wy}{\DW{y}{1}}{right=of wy0}
+  %     \event{ry}{\DR{y}{0}}{right=of wx}
+  %     \event{rx}{\DR{x}{0}}{right=of wy}
+  %     \wk{wx0}{wx}
+  %     \wk{wy0}{wy}
+  %     \rf{wy0}{ry}
+  %     \rf{wx0}{rx}
+  %     \wk[out=-150,in=15]{ry}{wy}
+  %     \wk[out=150,in=-15]{rx}{wx}
+  %     % \po{rx}{wy}
+  %     % \pox{wy}[below]{rx}
+  %     % \pox{wx}{ry}
+  %   \end{tikzinline}}
 \end{gathered}
-\qquad
+&&
   \begin{gathered}
   \aReg\GETS y\SEMI x\GETS1
   \PAR
   \aReg\GETS x\SEMI y\GETS1
   \\
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \hbox{\begin{tikzinline}[node distance=.9em]
       \event{ry}{\DR{y}{1}}{}
-      \event{rx}{\DR{x}{1}}{below=of ry}
       \event{wx}{\DW{x}{1}}{right=of ry}
+      \event{rx}{\DR{x}{1}}{right=2em of wx}
       \event{wy}{\DW{y}{1}}{right=of rx}
-      \rf{wy}{ry}
       \rf{wx}{rx}
+      \rf[out=-165,in=-15]{wy}{ry}
       % \pox{rx}[below]{wy}
       % \pox{ry}{wx}
       % \po{rx}{wy}
     \end{tikzinline}}
+  % \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  %     \event{ry}{\DR{y}{1}}{}
+  %     \event{rx}{\DR{x}{1}}{below=of ry}
+  %     \event{wx}{\DW{x}{1}}{right=of ry}
+  %     \event{wy}{\DW{y}{1}}{right=of rx}
+  %     \rf{wy}{ry}
+  %     \rf{wx}{rx}
+  %     % \pox{rx}[below]{wy}
+  %     % \pox{ry}{wx}
+  %     % \po{rx}{wy}
+  %   \end{tikzinline}}
 \end{gathered}
-\end{gather*}
-The desired outcomes are allowed, as shown.
+\end{align*}[out=15,in=165]
+Because there are no intra-thread dependencies, the desired outcomes are allowed, as shown.
 % All of the cross-thread order is required by the definition of fulfillment.
 % Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
 % program order in pomset order, resulting in the cycles shown above.
 % To allow these executions, we drop the order marked $\rpox$.
 
 
-\paragraph{Publication and SC Access}
-
+\paragraph{Publication}
 Items \ref{5b} and \ref{5c} ensure correct publication.  For
 example, they disallow the following candidate execution, which sees a stale
 value for $x$:
 \vspace{-1ex}
 \begin{gather}
   \taglabel{Pub1}
+  \begin{gathered}
   x\GETS0\SEMI %y\GETS0\SEMI
   x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
   \\[-1ex]
@@ -102,12 +130,14 @@ value for $x$:
       \rf[out=10,in=170]{wx0}{rx0}
       \wk{wx0}{wx1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather}
 By Definition \ref{def:rf}, $(\DR x0)$ is \emph{unfulfilled} in this
 pomset. It fails the last requirement of the definition, since
 $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$.  In order to satisfy this requirement,
 $(\DR x0)$ must be ordered before $(\DW x1)$, but this creates a cycle.
 
+\paragraph{SC access}
 %This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
 Item \ref{5d} ensures that program order between SC operations is always
 preserved.  Combined with the requirements for fulfillment, this is
@@ -119,8 +149,8 @@ Just as SC access in \armeight{} is simplified by \mca, it is simplified here
 by the global pomset order.
 
 SC access is not as strict as volatile access in Java.  For example, our
-model allows the following, which is disallowed by
-\citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}:
+model allows the following, since there is no order from
+$(\DW[\modeSC]{x}{2})$ to $(\DW{y}{1})$.
 \begin{gather*}
   \taglabel{SC1}
   \begin{gathered}
@@ -147,13 +177,50 @@ model allows the following, which is disallowed by
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-Note that there is no order from $(\DW[\modeSC]{x}{2})$ to $(\DW{y}{1})$.
-
-For further comparison to Java volatiles and
-\citet{Dolan:2018:BDR:3192366.3192421}, see the end of
+This execution is disallowed by
+\citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}, preventing them from
+using \texttt{stlr} to implement volatile writes on \armeight{}. Our
+implementation strategy does use \texttt{stlr} for SC writes, as is standard.
+For further discussion, see \ref{past} and \ref{future} in
 \textsection\ref{sec:sc}.
 
+\citet[\textsection3.1]{DBLP:conf/pldi/WattPPBDFPG20} noticed a similar
+problem with Javascript \cite[\textsection27]{ecma2019}:
+\begin{gather*}
+  \taglabel{SC2}
+  \begin{gathered}
+  x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
+  \PAR
+  y^\modeSC\GETS1 \SEMI y^\modeSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\modeSC
+  \\
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DW[\modeSC]{x}{1}}{}
+      \event{b}{\DR[\modeSC]{y}{1}}{right=of a}
+      \event{c}{\DW[\modeSC]{y}{1}}{right=2em of b}
+      \event{d}{\DW[\modeSC]{y}{2}}{right=of c}
+      \event{e}{\DW{x}{2}}{right=of d}
+      \event{f}{\DR[\modeSC]{x}{1}}{right=of e}
+      \sync{a}{b}
+      \sync{c}{d}
+      \sync[out=20,in=160]{d}{f}
+      \rf{c}{b}
+      \rf[out=-12,in=-168]{a}{f}
+      \wk[in=12,out=168]{e}{a}
+      \wk{e}{f}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+This execution is allowed both by our semantics and by \armeight{} (using
+\texttt{stlr} for SC writes and \texttt{ldar} for SC reads).  However, it is
+not allowed by Javascript 2019.
 
+In Javascript, the rules relating SC and relaxed access are subtle.  As
+result of these interactions, Javascript 2019 fails to satisfy \drfsc{}
+\citet{DBLP:journals/pacmpl/WattRP19}.  The rules are even more complex in
+C11; see \ref{SC3} and \ref{SC4} in \textsection\ref{sec:variants} for a
+discussion of SC fences in C11.
+
+In our model, only \ref{5d} is required to explain SC access.
 
 \paragraph{Coherence}
 
@@ -827,12 +894,9 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 
 %
 
-The semantics validates several peephole optimizations.
+The semantics validates many peephole optimizations.  Most apply only to
+relaxed access.
 \begin{align*}
-  \taglabel{RL}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
-  \\
   \taglabel{WW}
   \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
   \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
@@ -852,8 +916,6 @@ The semantics validates several peephole optimizations.
 %   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
 % $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-Redundant load elimination \eqref{RL} follows
-from item \ref{1} in the definition of prefixing, taking $\bEv\in\Event$.
 The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
 follow from item \ref{5} in the definition of prefixing, since no order
 is imposed.  Item \ref{5} also validates roach-motel reorderings.  For
@@ -869,6 +931,15 @@ example, the rules for relaxed writes are as follows:
     \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
     &&\textif x\neq y&&\hbox{}
   \end{align*}
+
+  Redundant load elimination \eqref{RL} follows from item \ref{1} in the
+  definition of prefixing, taking $\bEv\in\Event$.
+\begin{align*}
+  \taglabel{RL}
+  \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg^\amode  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+\end{align*}
+\ref{RL} holds regardless of the access mode.
 
   % Reads on the same location are ordered in our model; thus, read optimizations
 % are limited by the power of aliasing analysis
@@ -1144,15 +1215,15 @@ we have \emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
   \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
   &&\text{if } \aLoc\not\in\free(\aCmd)
 \end{align*}
-As we noted in \cite[\textsection B]{2019-sp}, scope extrusion fails if
-fulfillment requirement \ref{rf4}---for every conflicting write $\cEv$,
-either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
-existential---there is no conflicting write $\cEv$ such that
-$\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
-  The universal quantification ensures that parallel threads cannot turn a
-  non-blocker into a blocker.  In that paper, we advocated the use of
-  \emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
-  order for \ref{rf4}.  The pomsets studied in this paper are far simpler.}.
+% As we noted in \cite[\textsection B]{2019-sp}, scope extrusion fails if
+% fulfillment requirement \ref{rf4}---for every conflicting write $\cEv$,
+% either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
+% existential---there is no conflicting write $\cEv$ such that
+% $\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
+%   The universal quantification ensures that parallel threads cannot turn a
+%   non-blocker into a blocker.  In that paper, we advocated the use of
+%   \emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
+%   order for \ref{rf4}.  The pomsets studied in this paper are far simpler.}.
 
 
 %$\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
@@ -1230,6 +1301,20 @@ Observationally, these are distinguished by the context %
 % This inequation holds even though there is no context in our
 % language that distinguishes these programs.
 
+Similarly, redundant write after read elimination is invalid \citet[\textsection
+5.3-4]{SevcikThesis}:
+\begin{displaymath}
+  \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
+  \not\supseteq
+  \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN \cLoc \GETS 1 \FI}
+\end{displaymath}
+These are distinguished by the context %
+\begin{math}
+  x\GETS1 \SEMI y_1^\modeRA\GETS 1
+  \PAR x\GETS2 \SEMI y_2^\modeRA\GETS 1
+  \PAR \IF{y_1^\modeRA \land y_2^\modeRA} \THEN \hole{}\FI.
+\end{math}
+
 Write introduction is also invalid, even when duplicating an existing write:
 \begin{displaymath}
   \sem{\aLoc \GETS 1} 
@@ -1244,6 +1329,7 @@ These are distinguished by the context:
   s\GETS x\SEMI
   \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI
 \end{math}
+
 
 % General write elimination is invalid, even for non-racy programs:
 % \begin{displaymath}

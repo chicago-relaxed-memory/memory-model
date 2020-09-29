@@ -15,9 +15,9 @@ synchronization\hyp{}free single\hyp{}threaded code.
 % A
 % canonical example is that independent statements should commute.
 
-There are also two aspects to ``ease of use.''  First, the \emph{data race
-  free-sequentially consistent} (\drfsc)
-criterion~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits
+There are also two aspects to ``ease of use.''  First, the expectation of
+\emph{sequential consistency for data race free programs}
+(\drfsc)~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits
 the programmer to forget about relaxed memory for correctly synchronized
 programs.  Second, all programs---even those with data races---should support
 compositional reasoning on temporal safety

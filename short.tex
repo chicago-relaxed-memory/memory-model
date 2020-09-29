@@ -2,39 +2,8 @@
 \label{sec:arm}
 
 We show that our semantics compiles efficiently to the ARMv8 model of
-\citet{DBLP:journals/pacmpl/PulteFDFSS18}.  Efficient compilation is not
-possible for the Flowing and Pop model \cite{DBLP:conf/popl/FlurGPSSMDS16}, referenced in
-\cite[Fig.~4]{DBLP:conf/fm/LahavV16}:
-\begin{gather*}
-  %\taglabel{ARMv8-2016}
-  \begin{gathered}
-  r\GETS x\SEMI x\GETS 1
-  \PAR
-  y\GETS x 
-  \PAR
-  x\GETS y 
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
-      \event{a}{\DR{x}{1}}{}
-      \event{b}{d:\DW{x}{1}}{right=of a}
-      \wk{a}{b}
-      \event{c}{\DR{x}{1}}{right=3em of b}
-      \event{d}{\DW{y}{1}}{right=of c}
-      \po{c}{d}
-      \event{e}{\DR{y}{1}}{right=3em of d}
-      \event{f}{e:\DW{x}{1}}{right=of e}
-      \po{e}{f}
-      \rf{b}{c}
-      \rf{d}{e}
-      \rf[out=170,in=10]{f}{a}
-    \end{tikzinline}}
-\end{gathered}
-\end{gather*}
-This type of ``big detour'' \cite{alglave} is outlawed by
-ARMv8\footnote{There is either a cycle
-  $\DR{x}{1}\xpoloc d\xcoe e \xrfex \DR{x}{1}$ % SC-pER-LOC
-  or % in ob
-  $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}.
+\citet{deacon-git}.  This model was characterized operationally by
+\citet{DBLP:journals/pacmpl/PulteFDFSS18}.
 
 
 We consider the fragment of our language where concurrent composition occurs
@@ -90,6 +59,42 @@ For pomset order, we then take ${\gtN}=({\robi}\cup{\reco})^*$.
 The proof for compilation into \tso\ is very similar.  The necessary
 properties hold for \tso, where $\rob$ is replaced by (the transitive closure
 of) the \tso\ propagation relation \citep{alglave}.
+
+It is worth noting that efficient
+compilation is not possible for the earlier Flowing and Pop model
+\cite{DBLP:conf/popl/FlurGPSSMDS16}, referenced in
+\cite[Fig.~4]{DBLP:conf/fm/LahavV16}:
+\begin{gather*}
+  %\taglabel{ARMv8-2016}
+  \begin{gathered}
+  r\GETS x\SEMI x\GETS 1
+  \PAR
+  y\GETS x 
+  \PAR
+  x\GETS y 
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{a}{\DR{x}{1}}{}
+      \event{b}{d:\DW{x}{1}}{right=of a}
+      \wk{a}{b}
+      \event{c}{\DR{x}{1}}{right=3em of b}
+      \event{d}{\DW{y}{1}}{right=of c}
+      \po{c}{d}
+      \event{e}{\DR{y}{1}}{right=3em of d}
+      \event{f}{e:\DW{x}{1}}{right=of e}
+      \po{e}{f}
+      \rf{b}{c}
+      \rf{d}{e}
+      \rf[out=170,in=10]{f}{a}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+This type of ``big detour'' \cite{alglave} is outlawed by
+ARMv8\footnote{There is either a cycle
+  $\DR{x}{1}\xpoloc d\xcoe e \xrfex \DR{x}{1}$ % SC-pER-LOC
+  or % in ob
+  $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}.
+
 
 % weakestmo:
 % \begin{verbatim}
@@ -790,6 +795,7 @@ In our language, past races are always resolved at a stable point.  Consider
 the following outcome, which is disallowed here, but allowed by Java
 \cite[Example 2]{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
+  \taglabel{past}
   \begin{gathered}
   (x\GETS 1 \SEMI   y\REL \GETS 1)
   \PAR
@@ -826,6 +832,7 @@ synchronization primitives.
 The notion of ``future'' is also richer here.  Consider \cite[Example
 3]{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
+  \taglabel{future}
   \begin{gathered}
   (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\modeRA\GETS r)
   \PAR

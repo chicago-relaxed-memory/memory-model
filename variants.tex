@@ -50,9 +50,9 @@ Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-access
 We add the following rules 
 to Definition \ref{def:prefix} of \emph{prefixing}:
 \begin{enumerate}
-\item[{\labeltext[5e]{(5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+\item[{\labeltextsc[P5e]{(P5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
   $\bEv \lt' \aEv$, and
-\item[{\labeltext[5f]{(5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+\item[{\labeltextsc[P5f]{(P5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
   $\bEv \lt' \aEv$.
 \end{enumerate}
 Consider the following variant of \ref{Pub1}:
@@ -110,12 +110,19 @@ fulfillment (Definition \ref{def:rf}).
 %       \wkx[out=-170,in=-10]{b3}{a1}
 %     \end{tikzinline}}
 % \end{gather*}
+As for \ref{RL}, redundant fence elimination \eqref{RF} follows from \ref{1}.
+\begin{align*}
+  \taglabel{RF}
+  \sem{\FENCE^\amode \SEMI \FENCE^\amode\SEMI\aCmd} &\supseteq 
+  \sem{\FENCE^\amode \SEMI \aCmd}
+\end{align*}
+\ref{RL} holds regardless of the access mode.
 
 Our semantics does not suffer the weaknesses of C11 fences, noted by
 \citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
 in these examples:
 \begin{gather*}
-  \taglabel{SC2}
+  \taglabel{SC3}
     x\GETS1
     \PAR
     r\GETS x\SEMI   
@@ -143,7 +150,7 @@ in these examples:
   \wk[out=-170,in=-10]{c3}{a1}
     \end{tikzinline}}
   \\
-  \taglabel{SC3}
+  \taglabel{SC4}
     x\GETS1\SEMI   
     z\REL\GETS1\SEMI   
     \PAR
@@ -334,9 +341,10 @@ relates the two events of a successful \RMW.  Additionally, we require that:
 \item If $\cEv$, $\aEv$ write the same $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
 \item If $\cEv$, $\aEv$ write the same $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
 \end{itemize}
-In Definition~\ref{def:downset}, we require that downsets are \RMW\
-closed:
-$\Event'\subseteq\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \aEv\xrmw\bEv\}$.
+% In Definition~\ref{def:downset}, we require that downsets are \RMW\
+% closed:
+% $\Event'\subseteq\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \aEv\xrmw\bEv\}$.
+
 % ${\le'}={\le}\restrict{\Event'}$, 
 % ${\xrmw'}={\xrmw}\restrict{\Event'}$, and
 % ${\labeling'}={\labeling}\restrict{\Event'}$.  

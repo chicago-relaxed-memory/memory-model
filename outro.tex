@@ -8,18 +8,16 @@ values that a read may return.  For a survey of hardware models, see
 \citep{DBLP:journals/toplas/Lochbihler13,DBLP:phd/ethos/Batty15}.  For an
 attempt to bridge the two, see \citep{DBLP:journals/pacmpl/PodkopaevLV19}.
 
-In our previous work~\cite{2019-sp}, we introduced the notion of pomsets with preconditions.
-This was to study \emph{micro\hyp{}architecture}---specifically, speculative execution.
-We have presented an \emph{architectural} model, leading to some formal
-differences between the models.  Chief among these: we now require pomsets
-to satisfy \emph{consistency} requirement, which simplifies the model,
-though it can no longer reason about executions where speculative
-behaviour can become visible, for example by cache timing attacks.
-There are many less fundamental differences.  For example,
-the previous use of \emph{three-valued pomsets} means that we allowed \ref{MCA2},
-but disallowed its two-location variant.  This odd behavior stems from
-\emph{semi\hyp{}transitivity}, inherited from
-\cite{DBLP:journals/dc/Lamport86}.
+In our previous work~\cite{2019-sp}, we introduced the notion of pomsets with
+preconditions.  In that paper we studied \emph{micro\hyp{}architecture},
+where failed speculative execution is visible via cache effects.  Here we
+presented an \emph{architectural} model, which allows us to impose
+\emph{consistency}, ignoring failed speculative execution, and \emph{causal
+  strengthening}.  As discussed in \textsection\ref{sec:limits},
+\cite{2019-sp} used 3-valued pomsets, as opposed to the simple pomsets used
+here.  The previous paper was not focussed on memory models, and thus did not
+prove the soundness of compiler optimizations, the absence of thin air reads,
+efficient implementability, or \drfsc{}.
 
 Both \cite{2019-sp} and this paper are inspired by \citeauthor{Batty17}'s
 [\citeyear{Batty17}] call for a compositional approach to the semantics of
@@ -205,19 +203,44 @@ there is more to weak memory than transformations.''
 future research.  % In several cases, these limitations have allowed us to
 % \emph{surpass prior work in significant ways}.
 
-We do not include loops or general sequencing of the form $(\aCmd\SEMI\aCmd')$.
-Loops introduce complexities\allowbreak{}---such as liveness and
-continuity---that are orthogonal to the main topic of the paper.  We also do
-not include types, allocation, garbage collection, etc.  % This is the norm for
+We have not modeled loops or functions.  Loops and recursive functions
+introduce complexities\allowbreak{}---such as liveness and continuity---that
+are orthogonal to the main topic of the paper.
+
+We have not modeled general sequencing of the form $(\aCmd\SEMI\aCmd')$.  The
+definition of prefixing (\textsection\ref{sec:pop}) is relatively simple
+since we only prepend one action at a time.
+% We also do not include types,
+% allocation, garbage collection, etc.  % This is the norm for
 % work on relaxed memory: The problem is already hard
 % enough. % \emph{On the upside, we do allow
   % thread creation via $\!\!\PAR\!\!$, which is unusual.}
 
-Except for roach motel (\ref{RelW}, \ref{AcqW}), we have not attempted to validate
-transformations that involve synchronizations and fences
-\cite{DBLP:conf/popl/VafeiadisBCMN15}.  For example, the model does not
-support elimination of redundant synchronization accesses or lock elision.  Nor does it
-support conversions between access modalities.
+We have not modeled mixed-size access
+\cite{DBLP:conf/popl/FlurSPNMGSBS17,DBLP:conf/pldi/WattPPBDFPG20}.  
+\armeight{} captures multibyte access using multiple events related by
+\emph{same instruction} $(\rsi)$ \cite{alglave-git}. To capture the use of
+$\rsi$ when defining \emph{locally ordered before} $(\rlob)$, it is likely
+sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
+\emph{observation} $(\rob)$, it is likely sufficient to modify \ref{rf3} and
+\ref{rf4}.
+%The atomicity of mixed size access is not as strong as that of \RMWs.
+
+We have not attempted validate all transformations that involve
+synchronizations and fences
+\cite{DBLP:conf/popl/VafeiadisBCMN15,DBLP:phd/hal/Morisset17}.  Nonetheless,
+our semantics validates roach motel (\ref{RelW}, \ref{AcqW}), redundant load
+(\ref{RL}), and store forwarding (\ref{SF}).  We expect that dead store
+elimination (\ref{DS}) generalizes to non-relaxed access by generalizing
+Definition \ref{def:cover} of $\relfilt[]{\aLoc}$.  Some optimizations are
+not sound in the model, but expect them to be provable as meta properties.
+For example, access-mode strengthening (such as replacing $\modeRLX$ by
+$\modeRA$) is valid up to an equivalence that ignores access modes on
+actions.  Similar reasoning can likely be used to show that non-relaxed
+access can be implemented using relaxed access and fences.  We expect that
+similar techniques can be developed for optimizations that are only sound in
+certain contexts, such as lock elision and access-mode weakening.
+
 \begin{scope}
   \color{red} perhaps add example here from referee 1, or discuss \ref{Internal2}.
 
@@ -268,7 +291,7 @@ The attempted execution is \emph{not} allowed by our semantics since there is no
 to fulfill $(\DR{y}{1})$.  Proving this requires the ability to reason about
 values.
 
-\begin{scope}
+\begin{comment}
   \color{red} Need to sort this out.
   Alan proposes:
 \begin{verbatim}
@@ -290,7 +313,7 @@ but not
 as shown by the execution
    Wx1 < Wx0 < Ry0
 \end{verbatim}
-\end{scope}
+\end{comment}
 % \labeltext{The}{page:logic:limits} logic we presented in \textsection\ref{sec:logic} is only strong enough
 % to prove a few examples.
 As another example,
@@ -345,12 +368,20 @@ logic with modalities to deal with intervening writes and coherence.
 Our model realizes \emph{multi-copy atomicity} (\mca).  Thus it will not
 compile efficiently to non-\mca{} architectures, such as \ppc\ and \armseven.
 To do so, one cannot include the order required by \ref{rf4} in pomset order.
-It may be sufficient to use a weaker second order.  \citet{2019-sp} attempted
-to define such a weaker order, but their model is anomalous on
-\ref{MCA2}---as we discussed in \textsection\ref{sec:related}.  % \emph{On the
-  % upside, ours is the first language-level model of \mca{}.  The use of
-  % preconditions does not depend on \mca, so there is hope to extend our
-  % approach to dependency calculations to non-\mca{} architectures.}
+In \cite{2019-sp}, we modeled programs using \emph{3-valued pomsets}, using
+the \emph{weak} relation ($\gtNsp$) for \ref{rf4} and \ref{5b}.  This does
+\emph{not} provide a suitable model for non-\mca{} behavior, however, since
+it disallows \ref{MCA1}\footnote{Following \cite{DBLP:journals/dc/Lamport86},
+  3-valued pomset require: (1) if $d\leq e$ then $d\gtNsp e$, (2) if
+  $d\leq e$ and $e\gtNsp d$ then $d=e$, and (3) if $c\leq d \gtNsp e$ or
+  $c\gtNsp d\leq e$ then $c\gtNsp e$.  \ref{MCA1} is disallowed by (2).
+  Top-level 3-valued pomsets also require that $\gtNsp$ is a partial order
+  per-location; a sufficient condition is (4) if $d\gtNsp e$ and $e\gtNsp d$
+  then $d$ and $e$ do not touch the same location.  Although \ref{MCA2} is
+  allowed, its two-thread variant is not, due to the combination of
+  \emph{semi\hyp{}transitivity (3)} and \emph{partial coherence (4)}.}.
+
+
 
 In the discussion of \ref{MCA1}, we noted that our model does not enforce
 order between reads dues to address and control dependencies.  This has

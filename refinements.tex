@@ -24,7 +24,7 @@ irrelevant read introduction \eqref{RI}.
   where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
   items \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
   \begin{itemize}
-  \item[{\labeltext[6]{(6)}{6}}]
+  \item[{\labeltextsc[P6]{(P6)}{6}}]
     if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
     is location independent.
   \end{itemize}  
@@ -162,8 +162,8 @@ read elimination \eqref{RE} and store forwarding \eqref{SF}.
   &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}
   \\
   \taglabel{SF}
-  \sem{\aLoc \GETS \aExp \SEMI \aReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
-  \sem{\aLoc \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
+  \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
 \end{align*}
 These optimizations are validated by Definition \ref{def:cover}, since
 $\sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd}\supseteq
@@ -179,7 +179,7 @@ With read elimination, the read action $(\DR{y}{1})$ can be elided in
 \ref{Internal2}; regardless, the substitution into the write of $z$ is the
 same.  On a more troubling note, the read action $(\DR{x}{1})$ can be also
 elided in \ref{Internal1}, potentially converting this non-execution into a
-valid execution, violating \drfsc{}.  The addition of requirement\ref{6} to
+valid execution, violating \drfsc{}.  The addition of requirement \ref{6} to
 the definition of prefixing prevents this outcome.  When computing
 $\sem{x\GETS1 \SEMI a\REL\GETS1 \SEMI \IF{b\ACQ}\THEN y\GETS x \FI}$,
 requirement \ref{6} prevents prefixing $(\DWRel{a}{1})$ in front of:
@@ -799,7 +799,7 @@ of the form $(\DR{x}{v})$ to the left-hand side, validating the inclusion.
 % pomsets and
 % $(r\neq0\mid\DR{x}{v})$ to the right, thus equating them.
 
-\labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
+Let $\readc(\aPSS)$ be the set $\aPSS'$ where
 $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and $\exists D$ such that $\Event'= \Event\uplus D$,
 ${\le'}\supseteq{\le\restrict{\Event}}$,
 ${\labeling'} \supseteq{\labeling\restrict{\Event}}$, and for every
