@@ -1,14 +1,13 @@
 \section{Efficient Implementation on ARMv8}
 \label{sec:arm}
 
-We show that our semantics compiles efficiently to the ARMv8 model of
-\citet{deacon-git}.  This model was characterized operationally by
-\citet{DBLP:journals/pacmpl/PulteFDFSS18}.
+We show that our semantics compiles efficiently to \armeight{}
+\cite{deacon-git,DBLP:journals/pacmpl/PulteFDFSS18} using the translation
+strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}.
 
 
 We consider the fragment of our language where concurrent composition occurs
-only at top level and there are no location declarations.  Using the
-translation strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}, we show
+only at top level and there are no location declarations.  We show
 that any \emph{consistent} \armeight{} execution graph for this sublanguage
 can be considered a top-level execution of our semantics. The key step is
 constructing the order for the derived pomset candidate.  We would like to
@@ -65,15 +64,15 @@ compilation is not possible for the earlier Flowing and Pop model
 \cite{DBLP:conf/popl/FlurGPSSMDS16}, referenced in
 \cite[Fig.~4]{DBLP:conf/fm/LahavV16}:
 \begin{gather*}
-  %\taglabel{ARMv8-2016}
+  %\taglabel{flowing/pop}
   \begin{gathered}
   r\GETS x\SEMI x\GETS 1
   \PAR
   y\GETS x 
   \PAR
   x\GETS y 
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \\[-1.2ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DR{x}{1}}{}
       \event{b}{d:\DW{x}{1}}{right=of a}
       \wk{a}{b}
@@ -85,7 +84,7 @@ compilation is not possible for the earlier Flowing and Pop model
       \po{e}{f}
       \rf{b}{c}
       \rf{d}{e}
-      \rf[out=170,in=10]{f}{a}
+      \rf[out=172,in=8]{f}{a}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
@@ -117,7 +116,7 @@ ARMv8\footnote{There is either a cycle
 %   % y\GETS0\SEMI
 %   x^\modeSC\GETS2 \SEMI y\GETS1
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a}{\DR{y}{1}}{}
 %       \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
 %       \po{a}{b}
@@ -375,7 +374,7 @@ includes a race involving $\aEv$.
       \PAR
       \IF{y}\THEN \aReg \GETS x \FI
       \\[-.5ex]
-      \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
           \event{wy0}{\DW{y}{0}}{}
           \event{wx0}{\DW{x}{0}}{below=of wy0}
           \event{wx1}{\DW{x}{1}}{right=3em of wy0}
@@ -398,7 +397,7 @@ includes a race involving $\aEv$.
           \pox{wy0}[below]{ry1}
         \end{tikzinline}}
       \qquad
-      \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
           \event{wy0}{\DW{y}{0}}{}
           \event{wx0}{\DW{x}{0}}{below=of wy0}
           \event{wx1}{\DW{x}{1}}{right=3em of wy0}
@@ -437,7 +436,7 @@ includes a race involving $\aEv$.
       \PAR
       \bReg \GETS y \SEMI x \GETS \bReg)
       \\[-.5ex]
-      \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
           \event{wx0}{\DW{y}{0}}{}
           \event{ry}{\DR{x}{1}}{right=3em of wx0}
           \event{wx1}{\DW{y}{1}}{right=of ry}
@@ -462,7 +461,7 @@ includes a race involving $\aEv$.
           \pox{wx0}[below]{rx1}
         \end{tikzinline}}
       \qquad
-      \hbox{\begin{tikzinline}[node distance=1em and 2em]
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
           \event{wx0}{\DW{y}{0}}{}
           \event{ry}{\DR{x}{0}}{right=3em of wx0}
           \event{wx1}{\DW{y}{1}}{right=of ry}
@@ -501,7 +500,7 @@ includes a race involving $\aEv$.
 %       \PAR
 %       (x\GETS 0 \SEMI  y \GETS 1  \SEMI \FENCE^{\modeSC} \SEMI  \bReg \GETS x)
 %       \\
-%       \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%       \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 %           \event{wx0}{\DW{x}{0}}{}
 %           \event{wx1}{\DW{x}{1}}{right=3em of wx0}
 %           \event{wy0}{\DW{y}{0}}{below=of wx0}
@@ -525,7 +524,7 @@ includes a race involving $\aEv$.
 %           \bgoval[green!10]{(wx1)(wy1)(f)(rx0)(ry0)}{P''\setminus P'}
 %         \end{tikzinline}}
 %       \qquad
-%       \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%       \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 %           \event{wx0}{\DW{x}{0}}{}
 %           \event{wx1}{\DW{x}{1}}{right=3em of wx0}
 %           \event{wy0}{\DW{y}{0}}{below=of wx0}
@@ -573,7 +572,7 @@ includes a race involving $\aEv$.
 %   \PAR
 %   (z\GETS 0 \SEMI \cReg \GETS y \SEMI z \GETS \cReg)
 % \\
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{rz1}{\DR{z}{1}}{right=of wx0}
 % \event{wx1}{\DW{x}{1}}{right=of rz1}
@@ -593,7 +592,7 @@ includes a race involving $\aEv$.
 % \wk[bend right]{wz0}{wz1}
 % \end{tikzinline}}
 % \qquad
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{rz1}{\DR{z}{0}}{right=of wx0}
 % \event{wx1}{\DW{x}{1}}{right=of rz1}
@@ -624,7 +623,7 @@ includes a race involving $\aEv$.
 %   \PAR
 %   (y\GETS 0 \SEMI \bReg \GETS x \SEMI y \GETS \bReg)
 % \\
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{ry1}{\DR{y}{1}}{right=of wx0}
 % \event{wx1}{\DW{x}{1}}{right=of ry1}
@@ -644,7 +643,7 @@ includes a race involving $\aEv$.
 % (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
 % \PAR (x\GETS 0 \SEMI  y \GETS 1  \SEMI  \bReg \GETS x)
 % \\
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{wx1}{\DW{x}{1}}{right=of wx0}
 % \event{ry0}{\DR{y}{0}}{right=of wx1}
@@ -659,7 +658,7 @@ includes a race involving $\aEv$.
 % % \wk{wy0}{wy1}
 % \end{tikzinline}}
 % \qquad
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{wx1}{\DW{x}{1}}{right=of wx0}
 % \event{ry0}{\DR{y}{1}}{right=of wx1}
@@ -678,7 +677,7 @@ includes a race involving $\aEv$.
 % (y\GETS 0 \SEMI \aReg \GETS y \SEMI  x \GETS 1 )
 % \PAR (x\GETS 0 \SEMI  \bReg \GETS x \SEMI  y \GETS \bReg + 1)
 % \\
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{ry0}{\DR{y}{0}}{right=of wx0}
 % \event{wx1}{\DW{x}{1}}{right=of ry0}
@@ -694,7 +693,7 @@ includes a race involving $\aEv$.
 % % \wk[bend right]{wy0}{wy1}
 % \end{tikzinline}}
 % \qquad
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{ry0}{\DR{y}{1}}{right=of wx0}
 % \event{wx1}{\DW{x}{1}}{right=of ry0}
@@ -714,7 +713,7 @@ includes a race involving $\aEv$.
 % (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
 % \PAR (x\GETS 0 \SEMI  \bReg \GETS x \SEMI  y \GETS \bReg + 1)
 % \\
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{wx1}{\DW{x}{1}}{right=of wx0}
 % \event{ry0}{\DR{y}{0}}{right=of wx1}
@@ -730,7 +729,7 @@ includes a race involving $\aEv$.
 % % \wk[bend right]{wy0}{wy1}
 % \end{tikzinline}}
 % \qquad
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 % \event{wx0}{\DW{x}{0}}{}
 % \event{wx1}{\DW{x}{1}}{right=of wx0}
 % \event{ry0}{\DR{y}{1}}{right=of wx1}
@@ -757,7 +756,7 @@ When considering this pomset, we must perform the decomposition on the right.
   \PAR
   (\aReg\GETS x\ACQ)
   \\[-2ex]
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DWRel{x}{1}}{right=of wx0}
       \event{rx}{\DRAcq{x}{0}}{below=of wx0}
@@ -772,7 +771,7 @@ When considering this pomset, we must perform the decomposition on the right.
   \qquad
   \qquad
   \qquad
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DWRel{x}{1}}{right=of wx0}
       \event{rx}{\DRAcq{x}{0}}{below=of wx0}
@@ -801,7 +800,7 @@ the following outcome, which is disallowed here, but allowed by Java
   \PAR
   (x\GETS 2 \SEMI \IF{y^\modeSC}\THEN r\GETS x \SEMI s\GETS x\FI)
   \\[-2ex]
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
       \event{wx1}{\DW{x}{1}}{}
       \event{wy1}{\DWRel{y}{1}}{right=of wx0}
       \sync{wx1}{wy1}
@@ -838,7 +837,7 @@ The notion of ``future'' is also richer here.  Consider \cite[Example
   \PAR
   (r\GETS x \SEMI \REF{r}\GETS 7)
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
       \event{a1}{\DW{\REF{1}}{42}}{}
       \event{a2}{\DR{\REF{1}}{7}}{right=of a1}
       \wk{a1}{a2}
@@ -872,7 +871,7 @@ between ``causal future'' and ``temporal future'' is not expressible in
 %   \PAR
 %   \aReg\GETS x\SEMI y\GETS2)\big)
 % \\
-% \hbox{\begin{tikzinline}[node distance=1em and 2em]
+% \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 %     \event{ry}{\DR{y}{1}}{}
 %     \event{rx}{\DR{x}{1}}{below=of ry}
 %     \event{wx}{\DWRel{x}{1}}{right=of ry}

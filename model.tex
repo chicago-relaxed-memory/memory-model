@@ -55,13 +55,14 @@ For example the semantics of \eqref{OOTA?} %  (including explicit initialization
 % with zero, and explicit $\DSTOP$ to indicate termination)
 contains the
 expected pomset (where $\DSTOP$ indicates termination):
-\begin{gather*}
+\begin{gather}
+  \begin{gathered}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
   \PAR
   r\GETS y\SEMI \IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
-  \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
   \event{rx0}{\DR{x}{0}}{right=3em of wx0}
@@ -75,9 +76,10 @@ expected pomset (where $\DSTOP$ indicates termination):
   \wk[out=15,in=165]{wy0}{wy0a}
   \po{rx0}{wy0a}
   \sync{wx1}{stop}
-  \sync[bend left]{ry0}{stop}
+  \sync[out=20,in=160]{ry0}{stop}
       \end{tikzinline}}
-  \end{gather*}
+  \end{gathered}
+  % \end{gather*}
 % \begin{tikzdisplay}[node distance=2em]
 %   \event{wx0}{\DW{x}{0}}{}
 %   \event{wy0}{\DW{y}{0}}{below=1ex of wx0}
@@ -94,10 +96,11 @@ expected pomset (where $\DSTOP$ indicates termination):
 %   \sync{wx1}{stop}
 %   \sync[out=30,in=150]{ry0}{stop}
 % \end{tikzdisplay}
-but also the unexpected one:
-\begin{gather}
+\intertext{but also the unexpected one:}
+% \begin{gather}
+%   \\[-1.2\baselineskip]
   \label{unexpected}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \smash{\hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
   \event{rx1}{\DR{x}{1}}{right=3em of wx0}
@@ -111,10 +114,10 @@ but also the unexpected one:
   \wk[out=12,in=168]{wx0}{wx1}
   \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  \sync[out=30,in=150]{wx1}{stop}
+  \po[out=20,in=160]{ry1}{wa1}
+  \sync[out=20,in=160]{wx1}{stop}
   \sync{wa1}{stop}
-\end{tikzinline}}
+\end{tikzinline}}}
 \end{gather}
 The interesting fact about these pomsets is that there is no control dependency between
 reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides of the conditional.
@@ -150,7 +153,7 @@ since it introduces a cycle:
   \PAR
     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
   \event{rx1}{\DR{x}{1}}{right=3em of wx0}
@@ -164,8 +167,8 @@ since it introduces a cycle:
   \wk[out=12,in=168]{wx0}{wx1}
   \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  \sync[out=30,in=150]{wx1}{stop}
+  \po[out=20,in=160]{ry1}{wa1}
+  \sync[out=20,in=160]{wx1}{stop}
   \sync{wa1}{stop}
   \po{ry1}{wx1}
 \end{tikzinline}}
@@ -174,17 +177,21 @@ since it introduces a cycle:
 We stress that in these diagrams, color plays no formal role.  It is purely
 to help the reader see where the order comes from:
 \begin{itemize}
-\item $(\DW{x}{0})\xwk(\DW{x}{1})$ is a \emph{coherence} requirement: the write of $1$
-  must follow the write of $0$, since these are to the same location.
+\item $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement,
+  relating reads to writes that depend on them.
 
-\item $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement: the read of $x$
-  is fulfilled by a matching write from another thread.
+\item $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement,
+  relating writes to reads they fulfill.% : the read of $x$
+  % is fulfilled by a matching write from another thread.
 
-\item $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y$
-  \emph{depends on} the read of $x$.
+\item $(\DW{x}{0})\xwk(\DW{x}{1})$ is a \emph{coherence} requirement,
+  relating actions that touch the same location. % : the write of $1$
+  % must follow the write of $0$, since these are to the same location.
 
-\item $(\DWRel{z}{1})\xsync(\DSTOP)$ is a \emph{fencing} requirement (in this case the fence is at the end of the program,
-  but concurrency controls introduce fencing).
+\item $(\DWRel{z}{1})\xsync(\DSTOP)$ is a \emph{fencing} requirement,
+  involving fences and synchronization actions.
+  % (in this case the fence is at the end of the program, but
+  % concurrency controls introduce fencing)
 \end{itemize}
 
 In addition to actions, each pomset event is labeled with a
@@ -195,33 +202,33 @@ be \emph{fulfilled} concurrently by a matching write (Definition
 
 To get a sense of how preconditions are satisfied, let us consider the
 evolution of the precondition of $(\DW{x}{1})$ during the calculation of
-\eqref{unexpected}:
-\begin{gather*}
-    y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
-  \PAR
-  r\GETS y\SEMI \IF{r}\THEN 
-  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
-  \\
-  %\label{unexpected}
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wa1}{\DW{z}{1}}{right=of wx1}
-  \event{stop}{\DSTOP}{right=of wa1}
-  \rf[out=-165,in=-15]{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy1}
-  \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  \sync[out=30,in=150]{wx1}{stop}
-  \sync{wa1}{stop}
-\end{tikzinline}}
-\end{gather*}
+\eqref{unexpected}.
+% \begin{gather*}
+%     y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+%   \PAR
+%   r\GETS y\SEMI \IF{r}\THEN 
+%   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
+%   \\
+%   %\label{unexpected}
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{wx0}{\DW{x}{0}}{}
+%   \event{wy0}{\DW{y}{0}}{left=of wx0}
+%   \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+%   \event{wy1}{\DW{y}{1}}{right=of rx1}
+%   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+%   \event{wx1}{\DW{x}{1}}{right=of ry1}
+%   \event{wa1}{\DW{z}{1}}{right=of wx1}
+%   \event{stop}{\DSTOP}{right=of wa1}
+%   \rf[out=-165,in=-15]{wx1}{rx1}
+%   \rf{wy1}{ry1}
+%   \wk[out=12,in=168]{wx0}{wx1}
+%   \wk[out=15,in=165]{wy0}{wy1}
+%   \po{rx1}{wy1}
+%   \po[out=30,in=150]{ry1}{wa1}
+%   \sync[out=30,in=150]{wx1}{stop}
+%   \sync{wa1}{stop}
+% \end{tikzinline}}
+% \end{gather*}
 First consider the else-branch of the conditional: the semantics of
 ``${\IF{\lnot r}\THEN x\GETS1 \FI}$'' contains $(r{=}0 \mid \DW{x}{1})$,
 indicating the control dependency.  The then-branch is more complex: the
@@ -365,9 +372,13 @@ $\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are relea
 We systematically elide the $\modeRLX$-mode annotation, writing $(\DR{\aLoc}{\aVal})$
 as shorthand for $(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
-We do not explicitly include C11-style \emph{plain} access.  Plain access is
-the same as relaxed access for race-free programs; for racy programs, plain
-access results in undefined behavior.
+We do not explicitly include C11-style \emph{plain} access.  If thin-air
+executions are disallowed, plain access is the same as relaxed access for
+data race free programs; data races on plain access result in undefined
+behavior \cite{undefined}.
+\begin{comment}
+  Thin air example from referee: if (x) y := 1 || if (y) x := 1 .
+\end{comment}
 % We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
 
   % $\disjoint{\Term}{(\Acq\cup\Rel\cup\SC\cup\fdom(\rreads)\cup\fdom(\rwrites))}$.
@@ -501,7 +512,7 @@ must be \emph{fulfilled} by a matching write.
 $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y$
 \emph{depends on} the read of $x$.
 $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
-\emph{fencing} requirements.
+\emph{fencing/synchronization} requirements.
 
 % Although we use multiple arrows, we emphasize that they are all part
 % of the same $\le$ relation.
@@ -587,7 +598,7 @@ of a completed pomset must imply the preconditions of all other events.
   $(\Event, {\le}, %{\leloc},
   \labeling)$: %, such that
   \begin{itemize}
-  \item $\Event$ is a set of \emph{states},
+  \item $\Event$ is a set of \emph{events},
   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
   % \item ${\le} \subseteq (\Event\times\Event)$ and ${\leloc} \subseteq (\Event\times\Event)$ are partial orders, 
   \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
@@ -884,18 +895,90 @@ $\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
   A pomset is \emph{top-level} if it is $\aLoc$-closed for every location
   $\aLoc$.  
 \end{definition}
+Together with \ref{rf4}, the definition of $x$-closed disallows the following execution:
+\begin{gather}
+  \label{blocker}
+  \begin{gathered}
+  \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
+  \PAR
+  \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
+  \PAR
+  r\GETS z_2^\modeRA\SEMI s\GETS x)
+  \\[-.5ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a}{\DW{x}{1}}{}
+  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+  \event{c}{\DR{z_1}{1}}{right=1.8em of b}
+  \event{d}{\DW{x}{2}}{right=of c}
+  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
+  \event{g}{\DR{x}{1}}{right=of f}
+  \sync{a}{b}
+  \po{c}{d}
+  \sync{d}{e}
+  \sync{f}{g}
+  \rf[out=8,in=172]{a}{g}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather}
+In order to close $x$, we must choose whether $(\DW{x}{2})$ is
+preceding $(\DW{x}{2}\xwk\DW{x}{1})$ or following
+$(\DR{x}{1}\xwk\DW{x}{2})$.  This prevents $(\DW{x}{2})$ from blocking the
+read after parallel composition.  For example, 
+if \eqref{blocker} were placed in the context
+\begin{math}
+  b\GETS a
+  \PAR
+  d\GETS c
+  \PAR
+  \hole{},
+\end{math}
+we would have:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a}{\DW{x}{1}}{}
+  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+  \event{w}{\DR{y_1}{1}}{right=1.8em of b}
+  \event{x}{\DW{z_1}{1}}{right=of w}
+  \event{c}{\DR{z_1}{1}}{right=1.8em of x}
+  \event{d}{\DW{x}{2}}{right=of c}
+  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+  \event{y}{\DR{y_2}{1}}{right=1.8em of e}
+  \event{z}{\DW{z_2}{1}}{right=of y}
+  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of z}
+  \event{g}{\DR{x}{1}}{right=of f}
+  \sync{a}{b}
+  \po{c}{d}
+  \sync{d}{e}
+  \sync{f}{g}
+  \po{w}{x}
+  \rf{b}{w}
+  \rf{x}{c}
+  \po{y}{z}
+  \rf{e}{y}
+  \rf{z}{f}
+    \end{tikzinline}}
+\end{gather*}
+This violates the conventional, weaker statement of \ref{rf4}: there is no
+conflicting write $\cEv$ such that $\bEv<\cEv<\aEv$.  By requiring order on
+$(\DW{x}{2})$ we forbid this blocker and
+% Since \ref{rf4}
+% quantifies over \emph{all} writes to $x$, the semantics
+validate scope extrusion (\textsection\ref{sec:valid}).
 
-\todo{finish this}:
-Our formulation of fulfillment is 
-As we noted in \cite[\textsection B]{2019-sp}, scope extrusion fails if
-fulfillment requirement \ref{rf4}---for every conflicting write $\cEv$,
-either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
-existential---there is no conflicting write $\cEv$ such that
-$\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
-  The universal quantification ensures that parallel threads cannot turn a
-  non-blocker into a blocker.  In that paper, we advocated the use of
-  \emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
-  order for \ref{rf4}.  The pomsets studied in this paper are far simpler.}.
+% \todo{finish this}: Our formulation of fulfillment is As we noted in
+% \cite[\textsection B]{2019-sp}, scope extrusion fails if fulfillment
+% requirement \ref{rf4}---for every conflicting write $\cEv$, either
+% $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an existential---there
+% is no conflicting write $\cEv$ such that $\bEv<\cEv<\aEv$.
+
+
+% Such conflicting writes are called \emph{blockers}.  The universal
+% quantification ensures that parallel threads cannot turn a non-blocker into a
+% blocker.  In that paper, we advocated the use of \emph{three-valued pomsets},
+% which use strong order for \ref{rf3} and weak order for \ref{rf4}.  The
+% pomsets studied in this paper are far simpler.
+
 
 %\subsection{Fulfillment and Location Binding}
 
@@ -930,7 +1013,7 @@ $\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
 %   \PAR
 %   \IF{r\geq0}\THEN y\GETS1\FI
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{wx1}{r<0\mid\DW{y}{1}}{}
 %   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
 %     \end{tikzinline}}
@@ -938,13 +1021,13 @@ $\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
 % In addition to this execution, we allow that events with the same label to
 % coalesce, taking the disjunction of their preconditions.  Thus, the semantics
 % of this program also includes:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
 % \end{tikzdisplay}
 % Coalesced events inherit order from both sides of the composition.
 % Thus, if
 % $\aPSS^1$ and $\aPSS^2$ contain:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{a}{\aForm \mid \aAct}{}
 %   \event{b}{\bForm^1 \mid \bAct}{right=of a}
 %   \po{a}{b}
@@ -953,7 +1036,7 @@ $\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
 %   \po{b2}{c2}
 % \end{tikzdisplay}
 % then $\aPSS^1 \parallel \aPSS^2$ contains:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{a}{\aForm \mid \aAct}{}
 %   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
 %   \event{c}{\cForm \mid \cAct}{right=of b}
@@ -983,7 +1066,7 @@ $\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
 
 % For an example using the first clause in the definition of composition,
 %  $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
 % \end{tikzdisplay}
 
@@ -1027,7 +1110,7 @@ Consider:
 \begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx1}{r<0\mid\DW{y}{1}}{}
     \end{tikzinline}}
 \end{gathered}
@@ -1035,7 +1118,7 @@ Consider:
 \begin{gathered}
   \IF{r\geq0}\THEN y\GETS1\FI
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
     \end{tikzinline}}
 \end{gathered}
@@ -1050,7 +1133,7 @@ program also includes
   % \PAR
   % \IF{r\geq0}\THEN y\GETS1\FI
   % \\
-  %\hbox{\begin{tikzinline}[node distance=1em]
+  %\hbox{\begin{tikzinline}[node distance=1.5em]
   %(\eventl{a}{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
   % \end{tikzinline}}
 \end{math}.
@@ -1102,7 +1185,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 % The definition ensures $\Event'$ is downclosed w.r.t.~each $\Event^i$.
 % Thus, if
 % $\aPSS^1$ and $\aPSS^2$ contain:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{a}{\aForm \mid \aAct}{}
 %   \event{b}{\bForm^1 \mid \bAct}{right=of a}
 %   \po{a}{b}
@@ -1111,7 +1194,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 %   \po{b2}{c2}
 % \end{tikzdisplay}
 % then $\aPSS^1 \parallel \aPSS^2$ contains:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{a}{\aForm \mid \aAct}{}
 %   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
 %   \event{c}{\cForm \mid \cAct}{right=of b}
@@ -1125,7 +1208,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 %  For an example
 % using the first clause in the definition of composition,
 % $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
 % \end{tikzdisplay}
 
@@ -1139,7 +1222,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 % \begin{gathered}
 %   \IF{r<0}\THEN y\GETS1\FI
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{wx1}{r<0\mid\DW{y}{1}}{}
 %     \end{tikzinline}}
 % \end{gathered}
@@ -1147,20 +1230,20 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 % \begin{gathered}
 %   \IF{r\geq0}\THEN y\GETS1\FI
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
 %     \end{tikzinline}}
 % \end{gathered}
 % \end{align*}
 % Putting these in parallel, we allow events with the same label to coalesce,
 % taking the disjunction of their preconditions.  Thus, the semantics includes:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
 % \end{tikzdisplay}
 % Coalesced events inherit order from both sides of the composition.
 % Thus, if
 % $\aPSS^1$ and $\aPSS^2$ contain:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{a}{\aForm \mid \aAct}{}
 %   \event{b}{\bForm^1 \mid \bAct}{right=of a}
 %   \po{a}{b}
@@ -1169,7 +1252,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 %   \po{b2}{c2}
 % \end{tikzdisplay}
 % then $\aPSS^1 \parallel \aPSS^2$ contains:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{a}{\aForm \mid \aAct}{}
 %   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
 %   \event{c}{\cForm \mid \cAct}{right=of b}
@@ -1221,7 +1304,7 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 
 % For an example using the first clause in the definition of composition,
 %  $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
 % \end{tikzdisplay}
 
@@ -1284,7 +1367,7 @@ As an example of the conditional, consider the following fragments:
   \begin{gathered}
     \IF{s}\THEN x\GETS 1 \SEMI x\GETS 2\FI
     \\
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{s \mathbin{\mid}\DW{x}{1}}{}
         \event{b}{s \mathbin{\mid}\DW{x}{2}}{right=of a}
         \wk{a}{b}
@@ -1296,7 +1379,7 @@ As an example of the conditional, consider the following fragments:
   \begin{gathered}
     \IF{\lnot s}\THEN x\GETS 1 \SEMI x\GETS 3\FI
     \\
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{\lnot s \mathbin{\mid}\DW{x}{1}}{}
         \event{b}{\lnot s \mathbin{\mid}\DW{x}{3}}{right=of a}
         \wk{a}{b}
@@ -1309,7 +1392,7 @@ Putting these together, we can coalesce the $(\DW{x}{1})$ events:
 \begin{gather*}
   \aCmd_{\mathsf{cond}} = \IF{s}\THEN x\GETS 1 \SEMI x\GETS 2 \ELSE x\GETS 1 \SEMI x\GETS 3 \FI
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{\DW{x}{1}}{}
         \event{b}{s \mathbin{\mid}\DW{x}{2}}{right=of a}
         \wk{a}{b}
@@ -1317,7 +1400,7 @@ Putting these together, we can coalesce the $(\DW{x}{1})$ events:
         \sync{b}{c}
       \end{tikzinline}}    
     \qquad\qquad\qquad\quad
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{\DW{x}{1}}{}
         \event{b}{\lnot s \mathbin{\mid}\DW{x}{3}}{right=of a}
         \wk{a}{b}
@@ -1327,7 +1410,7 @@ Putting these together, we can coalesce the $(\DW{x}{1})$ events:
 \end{gather*}
 Let us focus on the left pomset above.  It is derived from the composition:
 \begin{gather*}
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{s \mathbin{\mid}\DW{x}{1}}{}
         \event{b}{s \mathbin{\mid}\DW{x}{2}}{right=of a}
         \wk{a}{b}
@@ -1335,7 +1418,7 @@ Let us focus on the left pomset above.  It is derived from the composition:
         \sync{b}{c}
       \end{tikzinline}}
     \qquad\parallel\qquad
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{\lnot s \mathbin{\mid}\DW{x}{1}}{}
       \end{tikzinline}}    
 \end{gather*}
@@ -1356,7 +1439,7 @@ violates consistency.
 % the orders are drawn with
 % \citeauthor{DBLP:journals/dc/Lamport86}'s notation.  
 % For example:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{rx1}{a}{}
 %   \event{wy0}{b}{below right=of rx1}
 %   \event{wy1}{c}{above right=of wy0}
@@ -1479,7 +1562,7 @@ in \textsection\ref{sec:refine}.
 %   \PAR
 %   y\GETS1\SEMI \aReg\GETS x)
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 %       \event{wx0}{\DW{x}{0}}{}
 %       \event{wy0}{\DW{y}{0}}{below=of wx0}
 %       \event{wx}{\DW{x}{1}}{right=of wx0}
@@ -1503,7 +1586,7 @@ in \textsection\ref{sec:refine}.
 %   \PAR
 %   \aReg\GETS x\SEMI y\GETS1
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em and 2em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 %       \event{ry}{\DR{y}{1}}{}
 %       \event{rx}{\DR{x}{1}}{below=of ry}
 %       \event{wx}{\DW{x}{1}}{right=of ry}
@@ -1633,7 +1716,7 @@ Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}:% ,
   \PAR
   r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
   \event{rx1}{\DR{x}{1}}{right=3em of wx0}
@@ -1657,12 +1740,12 @@ Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}:% ,
 It is immediate from the definition that $\sem{x\GETS r\SEMI z\GETS r}$
 contains pomset candidates such as:
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{r=1\mid\DW{x}{1}}{}
       \event{wz}{r=1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
   &&
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{r=1\mid\DW{x}{1}}{}
       \event{wz}{r=2\mid\DW{z}{2}}{right=of wx}
     \end{tikzinline}}  
@@ -1674,12 +1757,12 @@ No order is required between the writes.
 % Thus,
 % $\sem{x\GETS r\SEMI z\GETS r}$ can only contains pomsets such as:
 % \begin{align*}
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wx}{r{=}1\mid\DW{x}{1}}{}
 %       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
 %     \end{tikzinline}}  
 %   &&
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wx}{r=2\mid\DW{x}{2}}{}
 %       \event{wz}{r=2\mid\DW{z}{2}}{right=of wx}
 %     \end{tikzinline}}  
@@ -1690,7 +1773,7 @@ Combining the two sides of the conditional,
 \end{math}
 contains:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{r{=}1\lor r{=}0\mid\DW{x}{1}}{}
       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
@@ -1698,7 +1781,7 @@ contains:
 
 When prefixing ``$r\GETS y$,'' we first substitute $[y/r]$, resulting in:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
       \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
@@ -1709,7 +1792,7 @@ Adding the read action,
 \end{math}
 contains:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
       \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
@@ -1717,7 +1800,7 @@ contains:
 \end{gather*}
 Since $(y{=}1)[2/y]$ is unsatisfiable, \ref{4b} prevents pomsets such as:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
       \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{2}}{left=of wx}
@@ -1727,7 +1810,7 @@ Thus the read must be consistent with the predicates.
 
 \ref{4b} also allows predicates to weaken, in which case \ref{5a} requires order:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
       \event{wz}{\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
@@ -1740,7 +1823,7 @@ Adding the write,
 \end{math}
 substitutes $[0/y]$, resulting in: 
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{0{=}1\lor 0{=}0\mid\DW{x}{1}}{}
       \event{wz}{\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{2}}{left=of wx}
@@ -1751,7 +1834,7 @@ substitutes $[0/y]$, resulting in:
 \end{gather*}
 Since $0{=}1\lor 0{=}0$ is a tautology, we have:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{\DW{x}{1}}{}
       \event{wz}{\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{2}}{left=of wx}
@@ -1768,7 +1851,7 @@ introducing a cycle:
   \PAR
     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
   \event{rx1}{\DR{x}{1}}{right=3em of wx0}
@@ -1795,12 +1878,12 @@ conditional
 \end{math}
 which contains:
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{r{=}1\mid\DW{x}{1}}{}
       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
   &&
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx}{r{=}2\lor r{=}0\mid\DW{x}{2}}{}
       \event{wz}{r{=}2\mid\DW{z}{2}}{right=of wx}
     \end{tikzinline}}  
@@ -1817,7 +1900,7 @@ between the read and write via \ref{5a}.
     r\GETS x\SEMI y\GETS r
     \\    
     \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{wy1}{x=1\mid\DW{y}{1}}{}
         % \event{rx1}{\DR{x}{1}}{left=of wy1}
         % \po{rx1}{wy1}
@@ -1828,7 +1911,7 @@ between the read and write via \ref{5a}.
     \IF{r<0}\THEN y\GETS1 \FI
     \\
     \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{wy1}{x<0\mid\DW{y}{1}}{}
         % \event{rx1}{\DR{x}{1}}{left=of wy1}
         % \po{rx1}{wy1}
@@ -1861,7 +1944,7 @@ $\IF{r<0}\THEN y\GETS1 \FI$. % from the beginning of this section:
 %   \begin{gathered}
 %     y\GETS r
 %     \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{wy1}{r=1\mid\DW{y}{1}}{}
 %       \end{tikzinline}}
 %   \end{gathered}
@@ -1869,7 +1952,7 @@ $\IF{r<0}\THEN y\GETS1 \FI$. % from the beginning of this section:
 %   \begin{gathered}
 %     \IF{r<0}\THEN y\GETS1 \FI
 %     \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{wy1}{r<0\mid\DW{y}{1}}{}
 %       \end{tikzinline}}
 %   \end{gathered}
@@ -1880,7 +1963,7 @@ Prepending $\aReg\GETS\aLoc$ first causes the substitution $[x/r]$:
     r\GETS x\SEMI y\GETS r
     \\    
     \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{wy1}{x=1\mid\DW{y}{1}}{}
         % \event{rx1}{\DR{x}{1}}{left=of wy1}
         % \po{rx1}{wy1}
@@ -1891,7 +1974,7 @@ Prepending $\aReg\GETS\aLoc$ first causes the substitution $[x/r]$:
     r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
     \\
     \hbox{\small $(\DR{x}{1}) \;\prefixsc\;$}
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{wy1}{x<0\mid\DW{y}{1}}{}
         % \event{rx1}{\DR{x}{1}}{left=of wy1}
         % \po{rx1}{wy1}
@@ -1904,7 +1987,7 @@ Item \ref{4b} then the substitutes the chosen value $[1/x]$:
   \begin{gathered}
     % r\GETS x\SEMI y\GETS r
     % \\
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{wy1}{1=1\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
         \po{rx1}{wy1}
@@ -1914,7 +1997,7 @@ Item \ref{4b} then the substitutes the chosen value $[1/x]$:
   \begin{gathered}
     % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
     % \\
-    \hbox{\begin{tikzinline}[node distance=1em]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \nonevent{wy1}{1<0\mid\DW{y}{1}}{}
         \event{rx1}{\DR{x}{1}}{left=of wy1}
         %\po{rx1}{wy1}
@@ -1928,7 +2011,7 @@ Item \ref{4b} then the substitutes the chosen value $[1/x]$:
 %   \begin{gathered}
 %     % r\GETS x\SEMI y\GETS r
 %     % \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{wy1}{\DW{y}{1}}{}
 %         \event{rx1}{\DR{x}{1}}{left=of wy1}
 %         \po{rx1}{wy1}
@@ -1938,7 +2021,7 @@ Item \ref{4b} then the substitutes the chosen value $[1/x]$:
 %   \begin{gathered}
 %     % r\GETS x\SEMI\IF{r<0}\THEN y\GETS1 \FI
 %     % \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \nonevent{wy1}{\DW{y}{1}}{}
 %         \event{rx1}{\DR{x}{1}}{left=of wy1}
 %         \po{rx1}{wy1}
@@ -2111,7 +2194,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 %   \PAR
 %   y\GETS0\SEMI y\GETS1\SEMI \aReg\GETS x
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wx0}{\DW{x}{0}}{}
 %       \event{wy0}{\DW{y}{0}}{below=of wx0}
 %       \event{wx}{\DW{x}{1}}{right=of wx0}
@@ -2137,7 +2220,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 % \begin{gather*}
 %   \aCmd=(\aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI)
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wy1}{\DW{y}{1}}{}
 %       \event{rx1}{\DR{x}{1}}{left=of wy1}
 %     \end{tikzinline}}
@@ -2154,7 +2237,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 % \begin{displaymath}
 %   \aReg\GETS x\SEMI \IF{\aReg}\THEN y\GETS1 \ELSE y\GETS1\FI
 % \end{displaymath}
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy1}{\DW{y}{1}}{}
 %   \event{rx1}{\DR{x}{1}}{left=of wy1}
 % \end{tikzdisplay}
@@ -2169,7 +2252,7 @@ precondition of the write via \ref{4b}, as on the left hand side of
 % \begin{gather*}
 %   r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wy1}{1\geq0\mid\DW{y}{1}}{}
 %       \event{rx1}{\DR{x}{1}}{left=of wy1}
 %       \po{rx1}{wy1}
@@ -2183,7 +2266,7 @@ Thus, no order is required in: % the following execution:
   %\label{ex555}
   \\
   \nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wy1}{x{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=of wy1}
       % \po{rx1}{wy1}
@@ -2201,7 +2284,7 @@ if ${-}2$ is read for $x$:
   % r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
   % \\
   \nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \nonevent{wy1}{{-2}{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{{-2}}}{left=of wy1}
       % \po{rx1}{wy1}
@@ -2244,7 +2327,7 @@ a write event to the subsequent events whose precondition it weakens:
 \begin{gathered}
   x \GETS 0\SEMI \aCmd
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wy1}{0{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=.3em of wy1}
       \event{wx0}{\DW{x}{0}}{left=of rx1}
@@ -2255,7 +2338,7 @@ a write event to the subsequent events whose precondition it weakens:
 \begin{gathered}
   x \GETS {-}2\SEMI\aCmd
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \nonevent{wy1}{{-}2{\geq}0\mid\DW{y}{1}}{}
       \event{rx1}{\DR{x}{1}}{left=.3em of wy1}
       \event{wx0}{\DW{x}{{-}2}}{left=of rx1}

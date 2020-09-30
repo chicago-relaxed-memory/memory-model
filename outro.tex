@@ -39,9 +39,9 @@ coalesce, taking preconditions via disjunction---this is mirrored by
 only compose downclosed pomsets---this is mirrored by their condition on
 $\leq^{\mathcal{X}}$ during coproduct (discussed in their \textsection6.3).
 Nonetheless, the papers have different goals, leading to different outcomes.
-For example, their model compiles efficiently to non-MCA architectures; our
+For example, their model compiles efficiently to non-\mca{} architectures; our
 model clearly does not!  Conversely, our model provides an intrinsic
-characterization optimizations, such as redundant read elimination, which
+characterization of optimizations, such as redundant read elimination, which
 only hold in their model up to observational refinement.
 % In contrast to our LDRF
 % theorem, they prove an internal version of DRF, ie that race free programs
@@ -226,22 +226,58 @@ sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
 \ref{rf4}.
 %The atomicity of mixed size access is not as strong as that of \RMWs.
 
-We have not attempted validate all transformations that involve
-synchronizations and fences
+We have not attempted validate all program transformations that involve
+synchronization, fences or \RMWs{}
 \cite{DBLP:conf/popl/VafeiadisBCMN15,DBLP:phd/hal/Morisset17}.  Nonetheless,
 our semantics validates roach motel (\ref{RelW}, \ref{AcqW}), redundant load
-(\ref{RL}), and store forwarding (\ref{SF}).  We expect that dead store
-elimination (\ref{DS}) generalizes to non-relaxed access by generalizing
-Definition \ref{def:cover} of $\relfilt[]{\aLoc}$.  Some optimizations are
-not sound in the model, but expect them to be provable as meta properties.
-For example, access-mode strengthening (such as replacing $\modeRLX$ by
-$\modeRA$) is valid up to an equivalence that ignores access modes on
-actions.  Similar reasoning can likely be used to show that non-relaxed
-access can be implemented using relaxed access and fences.  We expect that
-similar techniques can be developed for optimizations that are only sound in
-certain contexts, such as lock elision and access-mode weakening.
+and fence removal (\ref{RL}, \ref{RF}), and store forwarding (\ref{SF}).  We
+expect that dead store elimination (\ref{DS}) generalizes to non-relaxed
+access by generalizing Definition \ref{def:cover} of $\relfilt[]{\aLoc}$.
+Some transformations are not sound in the model, but we expect them to be
+provable as meta properties.  For example, access-mode strengthening (such as
+replacing $\modeRLX$ by $\modeRA$) is valid up to an equivalence that ignores
+access modes on actions.  Other transformations worth studying include
+commuting adjacent synchronizations and implementing non-relaxed access using
+relaxed access and fences.  Lock elision and access-mode weakening are only
+sound in certain contexts.  We expect all of these transformations to be
+valid, given an appropriate notional of validity.
+\begin{comment}
+https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
-\begin{scope}
+Cannot encode R/A actions with actions+fences...
+
+A release operation prevents preceding memory operations from being delayed
+past it (a;Rel =/=> Rel;a)
+ 
+A release fence prevents preceding memory operations from being delayed past
+subsequent writes (a;FR;w =/=> w;a;FR)
+
+An acquire operation prevents subsequent memory operations from being advanced
+before it (Acq;a =/=> a;Acq)
+
+An acquire fence prevents subsequent memory operations from being advanced
+before prior reads (r;FA;a =/=> FA;a;r)
+
+https://www.modernescpp.com/index.php/fences-as-memory-barriers
+
+StoreLoad: Full fence allows a store before to be reordered with respect to a
+load after (wx;F;ry) ===> (ry;F;wx)
+
+StoreLoad+LoadLoad: Release fence also allows (rx;FR;ry) ===> (ry;FR;rx)
+
+StoreLoad+StoreStore: Acquire fence also allows (wx;FR;wy) ===> (wy;FR;wx)
+
+LoadStore: No fence allows a prior load to reorder w.r.t. a subsequent store
+(rx;FR;wy) =/=> (wy;FR;rx)
+
+https://preshing.com/20120710/memory-barriers-are-like-source-control-operations/
+Good news is that a fullFence does it.
+
+Bizarrely, it seems this is not supported in C++... You have to go to assembly.
+\end{comment}
+
+
+\begin{comment}
   \color{red} perhaps add example here from referee 1, or discuss \ref{Internal2}.
 
 Although our model forces some ordering within the thread that includes the
@@ -257,7 +293,7 @@ We do expect that lock-based implementation of atomics should be sound, if
 locks were introduced as first class entities, but we have not explored this.
 Intuitively, lock elision can be validated by using roach motel to move the
 entire program into the scope of the lock.
-\end{scope}
+\end{comment}
  % Accommodating
 % such optimizations will likely require changes to the definition of
 % $\textsf{cover}$ (page \pageref{def:cover}) and $\textsf{read}$ (page
@@ -276,7 +312,7 @@ different a logic, capable of showing that the following program cannot write
   \taglabel{OOTA5}
     ( y\GETS x+1
     \PAR
-    x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1em]
+    x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{rx}{\DR{x}{1}}{}
         \event{wy}{\DW{y}{2}}{right=of rx}
         \po{rx}{wy}
@@ -288,36 +324,13 @@ different a logic, capable of showing that the following program cannot write
       \end{tikzinline}}
 \end{align*}
 The attempted execution is \emph{not} allowed by our semantics since there is no write
-to fulfill $(\DR{y}{1})$.  Proving this requires the ability to reason about
-values.
-
-\begin{comment}
-  \color{red} Need to sort this out.
-  Alan proposes:
-\begin{verbatim}
-     (W y 2) => <>(R x 1)
-     (W y 1) => <>(R x 0)
-     (W x 1) => <>(R y 1)
-   <>(W x 1) => not(<>(W x 2))  --- which should be???  <>(W x 0) => not(<>(W x 1))
-\end{verbatim}
-  I am worried about the compositionality of this predicate:
-\begin{verbatim}
-I think
-   <>(W x 0 => not(<>(W x 1)))
-holds for 
-   x=0; r=y 
-and
-   x=1
-but not
-   x=0; r=y || x=1
-as shown by the execution
-   Wx1 < Wx0 < Ry0
-\end{verbatim}
-\end{comment}
+to fulfill $(\DR{y}{1})$.  % Proving this requires the ability to reason about
+% values.
 % \labeltext{The}{page:logic:limits} logic we presented in \textsection\ref{sec:logic} is only strong enough
 % to prove a few examples.
+
 As another example,
-consider the following, from \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}.
+consider the following, from \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}:
 \begin{gather*}
   \taglabel{OOTA6}
   \begin{gathered}
@@ -328,7 +341,7 @@ consider the following, from \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}
   r\GETS x\SEMI
   \IF{y}\THEN x\GETS 3 \FI
   \\\nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx2}{\DW{x}{2}}{}
   \event{rx3}{\DR{x}{3}}{right=of wx2}
   \event{wy1}{\DW{y}{1}}{right=of rx3}
@@ -371,19 +384,19 @@ To do so, one cannot include the order required by \ref{rf4} in pomset order.
 In \cite{2019-sp}, we modeled programs using \emph{3-valued pomsets}, using
 the \emph{weak} relation ($\gtNsp$) for \ref{rf4} and \ref{5b}.  This does
 \emph{not} provide a suitable model for non-\mca{} behavior, however, since
-it disallows \ref{MCA1}\footnote{Following \cite{DBLP:journals/dc/Lamport86},
+it disallows \ref{MCA2}\footnote{Following \cite{DBLP:journals/dc/Lamport86},
   3-valued pomset require: (1) if $d\leq e$ then $d\gtNsp e$, (2) if
   $d\leq e$ and $e\gtNsp d$ then $d=e$, and (3) if $c\leq d \gtNsp e$ or
-  $c\gtNsp d\leq e$ then $c\gtNsp e$.  \ref{MCA1} is disallowed by (2).
+  $c\gtNsp d\leq e$ then $c\gtNsp e$.  \ref{MCA2} is disallowed by (2).
   Top-level 3-valued pomsets also require that $\gtNsp$ is a partial order
   per-location; a sufficient condition is (4) if $d\gtNsp e$ and $e\gtNsp d$
-  then $d$ and $e$ do not touch the same location.  Although \ref{MCA2} is
+  then $d$ and $e$ do not touch the same location.  Although \ref{MCA1} is
   allowed, its two-thread variant is not, due to the combination of
   \emph{semi\hyp{}transitivity (3)} and \emph{partial coherence (4)}.}.
 
 
 
-In the discussion of \ref{MCA1}, we noted that our model does not enforce
+In the discussion of \ref{MCA2}, we noted that our model does not enforce
 order between reads dues to address and control dependencies.  This has
 implications for Java's final field semantics.  Consider:
 \begin{gather*}
@@ -392,7 +405,7 @@ implications for Java's final field semantics.  Consider:
   \PAR
   (r\GETS x^\modeRA \SEMI s \GETS \REF{r})
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DW{\REF{1}}{0}}{}
       \event{a2}{\DW{\REF{1}}{1}}{right=of a1}
       \wk{a1}{a2}
@@ -504,7 +517,7 @@ quantification---we leave the details to future work.  Consider
   \begin{aligned}
     ( y\GETS x+1
     \PAR
-    x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1em]
+    x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{rx}{\DR{x}{1}}{}
         \event{wy}{\DW{y}{2}}{right=of rx}
         \po{rx}{wy}
@@ -576,7 +589,7 @@ to the cycle:
   r\GETS x\SEMI
   \IF{y}\THEN x\GETS 3 \FI
   \\\nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx2}{\DW{x}{2}}{}
   \event{rx3}{\DR{x}{3}}{right=of wx2}
   \event{wy1}{\DW{y}{1}}{right=of rx3}
@@ -603,7 +616,7 @@ Let $\aCmd$ be the right thread in \ref{rfub}.
   \aCmd = r\GETS y\SEMI \IF{r \NOTEQ 1} \THEN z\GETS 1\SEMI r\GETS 1\FI  \SEMI x\GETS r 
 \end{align*}
 Then, $\hoare{\TRUE}{\aCmd}{x=1} $ and $\hoare{y \neq 1}{\bCmd}{z=1}$.  Thus, the traditional sequential semantics {\em does not} attribute any cause for the write of $1$ to $x$, as seen by the execution:
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzdisplay}[node distance=1.5em]
  \event{ry}{\DR{y}{1}}{}
  \event{wx}{\DW{x}{1}}{right=of ry}
  \event{wa}{\DW{z}{1}}{below=of rx}
@@ -641,7 +654,7 @@ $x$ out of the conditional.  In our semantics, there is no dependency from
 the read of $y$ to the write to $x$
 The execution in question is:
 \begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
+  \begin{tikzcenter}[node distance=1.5em]
     \event{a1}{\DR{x}{1}}{}
     \event{a2}{\DW{y}{1}}{right=of a1}
     \po{a1}{a2}
@@ -659,20 +672,20 @@ The execution in question is:
     %   \event{b2}{r\NOTEQ1\mid\DW{x}{1}}{right=of b1}
     % \end{tikzcenter}
     % \biggm\|
-    % \begin{tikzcenter}[node distance=1em]
+    % \begin{tikzcenter}[node distance=1.5em]
     %   \event{c1}{r\EQ1\mid\DW{x}{1}}{}
     % \end{tikzcenter}
   \right)
 \end{displaymathsmall}
 With an internal read of $y$, we have:
 \begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
+  \begin{tikzcenter}[node distance=1.5em]
     \event{a1}{\DR{x}{1}}{}
     \event{a2}{\DW{y}{1}}{right=of a1}
     \po{a1}{a2}
   \end{tikzcenter}
   \Bigm\|
-    \begin{tikzcenter}[node distance=1em]
+    \begin{tikzcenter}[node distance=1.5em]
       \event{b1}{y\NOTEQ1\mid\DW{z}{1}}{}
       \event{b2}{\DW{x}{1}}{right=of b1}
     \end{tikzcenter}
@@ -681,13 +694,13 @@ but the precondition $y\NOTEQ1$ cannot be satisfied locally.
 With an external read of $(\DR{y}{1})$, we can discharge the precondition, but in this
 case, the predicate becomes $1\NOTEQ 1$. 
 \begin{displaymathsmall}
-  \begin{tikzcenter}[node distance=1em]
+  \begin{tikzcenter}[node distance=1.5em]
     \event{a1}{\DR{x}{1}}{}
     \event{a2}{\DW{y}{1}}{right=of a1}
     \po{a1}{a2}
   \end{tikzcenter}
   \Bigm\|  
-    \begin{tikzcenter}[node distance=1em]
+    \begin{tikzcenter}[node distance=1.5em]
       \nonevent{b1}{1\NOTEQ1\mid\DW{z}{1}}{}
       \event{b2}{\DW{x}{1}}{right=of b1}
       \event{b0}{\DR{y}{1}}{left=of b1}

@@ -10,7 +10,7 @@ behaviors---called \emph{out of thin air} (\oota) in the literature
   y\GETS x \!\PAR\! r\GETS y\SEMI x\GETS r
   &&
   %\nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{rx}{\DR{x}{1}}{}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
@@ -294,7 +294,7 @@ The same reasoning can be applied to the control flow variant of \ref{OOTA3}
   \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \FI
   &&
   %\nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{rx}{\DR{x}{1}}{}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
@@ -337,10 +337,12 @@ would violate \drfsc{}.
   \end{align*}
   The essential temporal property of \ref{OOTA1} is ``allocation at type
   \texttt{C} is preceded by a read of $1$ for $z$.''  \ref{OOTA4} retains
-  this structure: ``any write to location $a$ is preceded by a read of $1$
-  for $z$.''  As a warmup, note that attempting to write $1$ to $a$ results
+  this structure: ``any write to memory location $a$ is preceded by a read of $1$
+  for $z$.''
+
+  As a warmup, note that attempting to write $1$ to $a$ results
   in a cycle:
-\begin{tikzdisplay}[node distance=1em]
+\begin{tikzdisplay}[node distance=1.5em]
   \event{rx}{\DR{x}{1}}{}
   \event{wz1}{\DW{z}{1}}{left=2em of rx}
   \event{wy}{\DW{y}{1}}{right=of rx}
@@ -355,7 +357,7 @@ would violate \drfsc{}.
   \po[out=-10,in=-170]{rz}{wa}
   \po[out=15,in=165]{ry}{wa}
 \end{tikzdisplay}
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
 %   \event{wy}{\DW{y}{1}}{right=of rx}
@@ -432,85 +434,72 @@ as required.
 \end{example}
 
 
-% \begin{example}
-%   It is impossible to fulfill $(\DR{y}{1})$ in the following
-%   \cite[RNG]{DBLP:conf/esop/SvendsenPDLV18}:
-%   % presented a \labeltext{The}{page:logic:limits} logic we presented in
-%   % \textsection\ref{sec:logic} is only strong enough to prove a few
-%   % examples. different a logic, capable of showing that the following program
-%   % cannot write 2: 
-% % Some \oota\ examples can be proven if we extend the
-% % logic with value quantification---we leave the details to future work.
-% % Consider \cite[(\textsc{rng})]{DBLP:conf/esop/SvendsenPDLV18}:
-% \begin{align*}
-%   \taglabel{OOTA5}
-%   % \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI %\\[-.5ex]
-%     ( y\GETS x+1
-%     \PAR
-%     x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1em]
-%         \event{rx}{\DR{x}{1}}{}
-%         \event{wy}{\DW{y}{2}}{right=of rx}
-%         \po{rx}{wy}
-%         \event{ry}{\DR{y}{1}}{right=3em of wy}
-%         \event{wx}{\DW{x}{1}}{right=of ry}
-%         \po{ry}{wx}
-%         % \rf{wy}{ry}
-%         \rf[out=170,in=10]{wx}{rx}
-%       \end{tikzinline}}
-%   % \\
-%   % \hbox{$
-%   %   \begin{gathered}
-%   %     [\forall u,v.\;(\once\DW{y}{u} \land \once\DW{y}{v}) \Rightarrow ((u \EQ v) \vee (u \EQ 0) \vee (v \EQ 0))]
-%   %     \\[-.5ex]
-%   %     \land [\DW{x}{1} \Rightarrow \once\DR{y}{1}]
-%   %     \land [\DW{y}{2} \Rightarrow \once\DR{x}{1}]
-%   %     % \land [\DW{z}{2} \Rightarrow \once\DR{y}{2}]
-%   %   \end{gathered}$}
-% \end{align*}
-% %   \VAR x\GETS0\SEMI \VAR y\GETS0\SEMI \VAR z\GETS0\SEMI  %\\[-.5ex]
-% %   (
-% %     y\GETS x+1\SEMI z \GETS y
-% %   \PAR
-% %     x\GETS y
-% %     %   )
-% % \end{displaymath}
-% % \begin{verbatim}
-% %      (W y 2) => <>(R x 1)
-% %      (W y 1) => <>(R x 0)
-% %      (W x 1) => <>(R y 1)
-% %    <>(W x 1) => not(<>(W x 2))
-% % \end{verbatim}
-% The proof proceeds as before, starting with the following invariant:
-% \begin{gather*}
-%   %[(\once\DW{y}{v_1} \land \once\DW{y}{v_2}) \Rightarrow ((v_1 = v_2) \vee (v_1 = 0) \vee (v_2 = 0))] \land\\[-.5ex]
-%   [\DW{y}{2} \Rightarrow \once\DR{x}{1}] \land
-%   [\DW{y}{1} \Rightarrow \once\DR{x}{0}] \land
-%   [\DW{x}{1} \Rightarrow \once\DR{y}{1}] \land
-%   [\once\DW{x}{0} \Rightarrow \lnot(\once\DW{x}{1})]
-% \end{gather*}
-% % The attempted execution is \emph{not} allowed by our semantics since there is no write
-% % to fulfill $(\DR{y}{1})$.  Proving this requires the ability to reason about
-% % values.
-% %
-% % Closing $x$ and $y$ and using the last two conjuncts in the
-% % invariant above:
-% % % last conjunct, we have
-% % % \begin{math}
-% % %   % \once\DW{z}{2} \Rightarrow \once\DR{y}{2}
-% % %   % \once\DW{z}{2} \Rightarrow \once\DW{y}{2}
-% % %   \DW{y}{2} \Rightarrow \once\DR{x}{1}.
-% % % \end{math}
-% % % Closing $x$, we then have
-% % \begin{math}
-% %   % \once\DW{z}{2} \Rightarrow \once\DW{x}{1}
-% %   \DW{y}{2} \Rightarrow \once\DW{y}{1}.
-% % \end{math}
-% % From the first conjunct, we then derive
-% % \begin{math}
-% %   \DW{y}{2} \Rightarrow \FALSE,
-% % \end{math}
-% % as required.
-% \end{example}
+\begin{comment}
+  \color{red} Need to sort this out.
+  Alan proposes:
+\begin{verbatim}
+     (W y 2) => <>(R x 1)
+     (W y 1) => <>(R x 0)
+     (W x 1) => <>(R y 1)
+   <>(W x 1) => not(<>(W x 2))  --- which should be???  <>(W x 0) => not(<>(W x 1))
+\end{verbatim}
+
+2020/09/30: This seems to go bad because of initialization...
+The formula
+\begin{verbatim}
+<>Wx0 => not(<>Wx1)
+\end{verbatim}
+does not hold for
+\begin{verbatim}
+x=0; x=y
+\end{verbatim}
+
+2020/09/10:  I am worried about the compositionality of this predicate:
+\begin{verbatim}
+I think
+   <>(W x 0 => not(<>(W x 1)))
+holds for 
+   x=0; r=y 
+and
+   x=1
+but not
+   x=0; r=y || x=1
+as shown by the execution
+   Wx1 < Wx0 < Ry0
+\end{verbatim}
+  
+It is impossible to fulfill $(\DR{y}{1})$ in the following
+\cite[RNG]{DBLP:conf/esop/SvendsenPDLV18}:
+\begin{align*}
+  \taglabel{OOTA5}
+    ( y\GETS x+1
+    \PAR
+    x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{rx}{\DR{x}{1}}{}
+        \event{wy}{\DW{y}{2}}{right=of rx}
+        \po{rx}{wy}
+        \event{ry}{\DR{y}{1}}{right=3em of wy}
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \po{ry}{wx}
+        \rf[out=170,in=10]{wx}{rx}
+      \end{tikzinline}}
+\end{align*}
+The proof proceeds as before, starting with the following invariant:
+\begin{gather*}
+  [\DW{y}{2} \Rightarrow \once\DR{x}{1}] \land
+  [\once\DW{x}{1} \Rightarrow \once\DR{y}{1}] \land
+  [\once\DW{y}{1} \Rightarrow \once\DR{x}{0}] \land
+  [\once\DW{x}{0} \Rightarrow \lnot(\once\DW{x}{1})]
+\end{gather*}
+\begin{verbatim}
+  Wy2 => <>Rx1  /\  <>Wx1 => <>Ry1  /\  <>Wy1 => <>Rx0  
+close x and y                                          
+  Wy2 => <>Wx1  /\  <>Wx1 => <>Wy1  /\  <>Wy1 => <>Wx0  
+chain
+  Wy1 => <>Wx0  
+chain with <>Wx0 => not(<>Wx1)
+\end{verbatim}
+\end{comment}
 
 % Many examples are superficially similar, but in fact have fewer dependencies.
 % A referee for a previous version of this paper expected that the following example is
@@ -521,7 +510,7 @@ as required.
 %   \PAR
 %     \IF{y}\THEN r\GETS y\SEMI x\GETS r\SEMI a\GETS r \ELSE x\GETS1 \FI
 %   \\
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{rx}{\DR{x}{1}}{}
 %   \event{wy}{\DW{y}{1}}{right=of rx}
 %   \po{rx}{wy}
@@ -563,17 +552,25 @@ $\hoare{\TRUE}{\text{\oota}}{x=1}$.  The change in the thread from
 \ref{OOTA3} to \ref{RFUB} is not a valid refinement under Hoare logic; as a
 result, it is expected that \ref{RFUB} may have additional behaviors.
 
+Understanding \oota{} behavior is notoriously difficult, even for the
+greatest minds in the field!  % We believe that \emph{logic} is the only tool
+% that can cut the horrible knot that semanticists have tied themselves in.
+% Preconditions provide a \emph{natural} solution to working out these
+% dependencies.
+This example shows the wisdom of using existing tools, such as preconditions
+and Hoare logic, to model new problems, such as relaxed memory.  We don't
+need to abandon established ideas; we only need to adapt them.
 % On page \pageref{page:rfub}, we discuss \citeauthor{BoehmOOTA}'s
 % [\citeyear{BoehmOOTA}] \ref{RFUB} example, which presents another potential
 % form of \oota{} behavior, in the context of compiler optimization.  Our
 % analysis shows that there is no \oota{} behavior in \ref{RFUB}, instead
 % \citeauthor{BoehmOOTA}'s analysis has a false dependency.
 
-Understanding \oota{} behavior is notoriously difficult, even for the
-greatest minds in the field!  We believe that \emph{logic} is the only tool
-that can cut the horrible knot that semanticists have tied themselves in.
-Preconditions provide a \emph{natural} solution to working out these
-dependencies.
+% Understanding \oota{} behavior is notoriously difficult, even for the
+% greatest minds in the field!  We believe that \emph{logic} is the only tool
+% that can cut the horrible knot that semanticists have tied themselves in.
+% Preconditions provide a \emph{natural} solution to working out these
+% dependencies.
 
 % \endinput
 
@@ -584,7 +581,7 @@ dependencies.
 %   (y\GETS x \PAR \bReg\GETS y\SEMI x\GETS1)
 % \end{math}
 % has top level executions that result in the final outcome $x = y = 1$, such as:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   % \event{wx0}{\DW{x}{0}}{}
 %   % \event{wy0}{\DW{y}{0}}{below=wx0}
 %   \event{rx}{\DR{x}{1}}{}
@@ -636,7 +633,7 @@ dependencies.
 % argues that such executions compromise type safety unless object allocation
 % partitions memory by type.
 % In our model, the attempted execution is:
-% \begin{tikzdisplay}[node distance=1em]
+% \begin{tikzdisplay}[node distance=1.5em]
 %   \event{rx}{\DR{x}{1}}{}
 %   \event{wy}{\DW{y}{1}}{below=of rx}
 %   \po{rx}{wy}

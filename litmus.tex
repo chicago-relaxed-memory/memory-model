@@ -51,7 +51,7 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
       % \pox{wy}[below]{rx}
       % \pox{wx}{ry}
     \end{tikzinline}}
-  % \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
   %     \event{wx0}{\DW{x}{0}}{}
   %     \event{wy0}{\DW{y}{0}}{below=of wx0}
   %     \event{wx}{\DW{x}{1}}{right=of wx0}
@@ -86,7 +86,7 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
       % \pox{ry}{wx}
       % \po{rx}{wy}
     \end{tikzinline}}
-  % \hbox{\begin{tikzinline}[node distance=1em and 2em]
+  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
   %     \event{ry}{\DR{y}{1}}{}
   %     \event{rx}{\DR{x}{1}}{below=of ry}
   %     \event{wx}{\DW{x}{1}}{right=of ry}
@@ -118,7 +118,7 @@ value for $x$:
   x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
   \\[-1ex]
   \nonumber
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DW{x}{1}}{right=of wx0}
       \event{wy1}{\DWRel{y}{1}}{right=of wx1}
@@ -159,7 +159,7 @@ $(\DW[\modeSC]{x}{2})$ to $(\DW{y}{1})$.
   % y\GETS0\SEMI
   x^\modeSC\GETS2 \SEMI y\GETS1
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DR{y}{1}}{}
       \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
       \sync{a}{b}
@@ -193,7 +193,7 @@ problem with Javascript \cite[\textsection27]{ecma2019}:
   \PAR
   y^\modeSC\GETS1 \SEMI y^\modeSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\modeSC
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DW[\modeSC]{x}{1}}{}
       \event{b}{\DR[\modeSC]{y}{1}}{right=of a}
       \event{c}{\DW[\modeSC]{y}{1}}{right=2em of b}
@@ -246,7 +246,7 @@ coherence between relaxed atomics in order to forbid this:
   \PAR
   y\GETS x \SEMI z\GETS x
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DW{x}{1}}{}
       \event{b}{\DW{x}{2}}{right=of a}
       \wk{a}{b}
@@ -273,7 +273,7 @@ However, our model is more coherent than Java, which permits the following:
   \PAR
   s\GETS x\SEMI x\GETS 2
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DR{x}{2}}{}
       \event{a2}{\DW{x}{1}}{right=of a1}
       \wk{a1}{a2}
@@ -293,38 +293,71 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
   \PAR
   x\GETS2\SEMI z^\modeRA\GETS 1
   \PAR
-  r\GETS y^\modeRA \SEMI 
   r\GETS z^\modeRA \SEMI 
+  r\GETS y^\modeRA \SEMI 
   r\GETS x \SEMI 
   r\GETS x
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \\
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DW{x}{1}}{}
       \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
       \sync{a1}{a2}
-      \event{b1}{\DW{x}{2}}{below=of a1}
+      \event{b1}{\DW{x}{2}}{right=2em of a2}
       \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
       \sync{b1}{b2}
-      \event{c1}{\DR[\modeRA]{y}{1}}{right=2em of a2}
-      \event{c2}{\DR[\modeRA]{\,z}{1}}{right=2em of b2}
-      \event{c3}{\DR{x}{2}}{right=of c1}
-      \event{c4}{\DR{x}{1}}{right=of c2}
-      \sync{c1}{c3}
-      \sync{c1}{c4}
+      \event{c1}{\DR[\modeRA]{\,z}{1}}{right=2em of b2}
+      \event{c2}{\DR[\modeRA]{y}{1}}{right=of c1}
+      \event{c3}{\DR{x}{2}}{right=of c2}
+      \event{c4}{\DR{x}{1}}{right=of c3}
+      \sync{c1}{c2}
       \sync{c2}{c3}
-      \sync{c2}{c4}
-      \rf{a2}{c1}
-      \rf{b2}{c2}
-      \wk{a1}{b1}
-      \wk[out=-165,in=-15]{c4}{b1}
+      \sync[out=20,in=160]{c2}{c4}
+      \rf[out=12,in=168]{a2}{c2}
+      \rf{b2}{c1}
+      \wk[out=19,in=161]{a1}{b1}
+      \wk[out=-169,in=-11]{c4}{b1}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
+% \begin{gather*}
+%   \taglabel{Co3}
+%   \begin{gathered}
+%   x\GETS1\SEMI y^\modeRA\GETS 1
+%   \PAR
+%   x\GETS2\SEMI z^\modeRA\GETS 1
+%   \PAR
+%   r\GETS y^\modeRA \SEMI 
+%   r\GETS z^\modeRA \SEMI 
+%   r\GETS x \SEMI 
+%   r\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%       \event{a1}{\DW{x}{1}}{}
+%       \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+%       \sync{a1}{a2}
+%       \event{b1}{\DW{x}{2}}{below=of a1}
+%       \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+%       \sync{b1}{b2}
+%       \event{c1}{\DR[\modeRA]{y}{1}}{right=2em of a2}
+%       \event{c2}{\DR[\modeRA]{\,z}{1}}{right=2em of b2}
+%       \event{c3}{\DR{x}{2}}{right=of c1}
+%       \event{c4}{\DR{x}{1}}{right=of c2}
+%       \sync{c1}{c3}
+%       \sync{c1}{c4}
+%       \sync{c2}{c3}
+%       \sync{c2}{c4}
+%       \rf{a2}{c1}
+%       \rf{b2}{c2}
+%       \wk{a1}{b1}
+%       \wk[out=-165,in=-15]{c4}{b1}
+%     \end{tikzinline}}
+% \end{gathered}
+% \end{gather*}
 We disallow the outcome due to the cycle: the order from $(\DR{x}{1})$ to
 $(\DW{x}{2})$ is required to fulfill $(\DR{x}{1})$. %by fulfillment.
-Such an outcome would allow racing writes to be visible, even after a full
-synchronization, invalidating local reasoning about data races
-(\textsection\ref{sec:sc}).
+If this outcome were allowed, then data racing writes would be visible, even
+after a full synchronization; this would invalidate local reasoning about
+data races (\textsection\ref{sec:sc}).
 
 % \begin{gather*}
 %   x\GETS1\SEMI y^\modeRA\GETS 1
@@ -334,7 +367,7 @@ synchronization, invalidating local reasoning about data races
 %   r\GETS x \SEMI 
 %   r\GETS x
 %   \\[-1ex]
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a}{\DW{x}{1}}{}
 %       \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
 %       \sync{a}{b}
@@ -372,18 +405,30 @@ allowed, as it is in our model:
   \PAR
   x\GETS y)
   \\
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
-  \event{wy1}{0\geq0\mid\DW{y}{1}}{}
-  \event{rx1}{\DR{x}{1}}{left=of wy1}
-  \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
-  \event{ry1}{\DR{y}{1}}{below=of rx1}
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
   \po{ry1}{wx1}
-  \rf[out=140,in=-20]{wx1}{rx1}
+  \rf[out=-168,in=-12]{wx1}{rx1}
   \rf{wy1}{ry1}
-  \wk[out=10,in=155]{wx0}{wx1}
+  \wk[out=10,in=170]{wx0}{wx1}
   \wk{wx0}{rx1}
     \end{tikzinline}}
+  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+  % \event{wy1}{0\geq0\mid\DW{y}{1}}{}
+  % \event{rx1}{\DR{x}{1}}{left=of wy1}
+  % \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
+  % \event{ry1}{\DR{y}{1}}{below=of rx1}
+  % \event{wx1}{\DW{x}{1}}{right=of ry1}
+  % \po{ry1}{wx1}
+  % \rf[out=140,in=-20]{wx1}{rx1}
+  % \rf{wy1}{ry1}
+  % \wk[out=10,in=155]{wx0}{wx1}
+  % \wk{wx0}{rx1}
+  %   \end{tikzinline}}
 \end{gathered}
 \end{gather*}
 In this example, $(\DW{x}{0})$ ``fulfills'' the read of $x$ that is used in
@@ -394,9 +439,7 @@ substitutes $[0/x]$, resulting in the tautological precondition
 $(0\geq0\mid\DW{y}{1})$.  Note that the execution does not have an action
 $(\DR{x}{0})$.
 
-This execution is an example of an \emph{internal read}, using \armeight{}
-terminology \cite{DBLP:journals/pacmpl/PulteFDFSS18}. Unlike
-\citep{DBLP:conf/lics/JeffreyR16}, our semantics is robust with respect to
+Our semantics is robust with respect to
 the introduction of concurrent writes, as in \ref{TC9}:
 \begin{gather*}
   \taglabel{TC9}
@@ -408,22 +451,44 @@ the introduction of concurrent writes, as in \ref{TC9}:
   \PAR
   x\GETS {-2})
   \\
-  \hbox{\begin{tikzinline}[node distance=1em and 2em]
-  \event{wy1}{0\geq0\mid\DW{y}{1}}{}
-  \event{rx1}{\DR{x}{1}}{left=of wy1}
-  \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
-  \event{ry1}{\DR{y}{1}}{below=of rx1}
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wx2}{\DW{x}{{-2}}}{below right=-.2em and 2em of wy1}
+  \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
   \po{ry1}{wx1}
-  \rf[out=140,in=-20]{wx1}{rx1}
+  \rf[out=-168,in=-12]{wx1}{rx1}
   \rf{wy1}{ry1}
-  \wk[out=10,in=155]{wx0}{wx1}
+  \wk[out=10,in=170]{wx0}{wx1}
   \wk{wx0}{rx1}
   \wk{wx1}{wx2}
     \end{tikzinline}}
+  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+  % \event{wy1}{0\geq0\mid\DW{y}{1}}{}
+  % \event{rx1}{\DR{x}{1}}{left=of wy1}
+  % \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
+  % \event{ry1}{\DR{y}{1}}{below=of rx1}
+  % \event{wx1}{\DW{x}{1}}{right=of ry1}
+  % \event{wx2}{\DW{x}{{-2}}}{below right=-.2em and 2em of wy1}
+  % \po{ry1}{wx1}
+  % \rf[out=140,in=-20]{wx1}{rx1}
+  % \rf{wy1}{ry1}
+  % \wk[out=10,in=155]{wx0}{wx1}
+  % \wk{wx0}{rx1}
+  % \wk{wx1}{wx2}
+  %   \end{tikzinline}}
 \end{gathered}
 \end{gather*}
+The calculation of this pomset is unchanged from \ref{TC1}.
+
+Examples such as \ref{TC9} present substantial difficulties in other models.
+When thought of in terms of compiler optimizations, \ref{TC9} is justified by
+global value analysis in collusion with the thread scheduler.  This execution
+is disallowed by our event structure model \cite{DBLP:conf/lics/JeffreyR16}.
+It is allowed by \citet{Pichon-Pharabod:2016:CSR:2837614.2837616}, at the
+cost of introduce the concept of \emph{dead reads}.
 
 The reasoning for \ref{TC2} is similar, but in this case no value is necessary to
 satisfy the precondition:
@@ -437,29 +502,32 @@ satisfy the precondition:
   x\GETS y
   \\[-1ex]
   \nonumber
-  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DR{x}{1}}{right=of a1}
   \event{a3}{x{=}x\mid\DW{y}{1}}{right=of a2}
   % \po{a2}{a3}
   % \po[out=15,in=165]{a1}{a3}
-  \event{b1}{\DR{y}{1}}{right=2em of a3}
+  \event{b1}{\DR{y}{1}}{right=3em of a3}
   \event{b2}{\DW{x}{1}}{right=of b1}
   \rf{a3}{b1}
   \po{b1}{b2}
-  \rf[out=162,in=15]{b2}{a2}
-  \rf[out=162,in=15]{b2}{a1}
+  \rf[out=169,in=11]{b2}{a2}
+  \rf[out=169,in=11]{b2}{a1}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-Note that in the prefix
+Note that in 
 \begin{math}
   \sem{s\GETS x\SEMI
   \IF{r{=}s}\THEN y\GETS 1\FI},
 \end{math}
-the precondition on $(\DW{y}{1})$ must imply $r=1 \land r=x$.  The first conjunct is
-imposed by \ref{4b}, the second by \ref{5a}.  Thus the two reads must see the same value.
+the precondition on $(\DW{y}{1})$ must imply $(r{=}x \land r{=}1)$.  The
+first is imposed by \ref{5a}, the second by \ref{4b}, ensuring that the two
+reads see the same value.
 
+These executions are  examples of \emph{internal reads}, using \armeight{}
+terminology \cite{DBLP:journals/pacmpl/PulteFDFSS18}.
 Write substitution only effects subsequent reads, and a read action always
 creates an event that must be fulfilled.  In combination, these ensure that an
 \emph{internal read} cannot ignore a blocking write.  In the
@@ -476,23 +544,23 @@ to be disallowed:
   \PAR
   \IF{a\ACQ}\THEN  x\GETS 2\SEMI b\REL\GETS1 \FI
   \\
-  \hbox{\begin{tikzinline}[node distance=.8em and 1em]
+  \hbox{\begin{tikzinline}[node distance=.5em and 1.5em]
   \event{a1}{\DW{x}{1}}{}
   \event{a2}{\DWRel{a}{1}}{right=of a1}
   \sync{a1}{a2}
-  \event{b3}{\DRAcq{a}{1}}{below=of a2}
+  \event{b3}{\DRAcq{a}{1}}{below right=of a2}
   \rf{a2}{b3}
   \event{b4}{\DW{x}{2}}{right=of b3}
   \sync{b3}{b4}
   \event{b5}{\DWRel{b}{1}}{right=of b4}
   \sync{b4}{b5}
-  \event{a6}{\DRAcq{b}{1}}{above=of b5}
+  \event{a6}{\DRAcq{b}{1}}{above right=of b5}
   \rf{b5}{a6}
   \event{a7}{\DR{x}{1}}{right=of a6}
   \sync{a6}{a7}
   \event{a8}{\DW{y}{1}}{right=of a7}
   \graypo{a7}{a8}
-  \sync[out=10,in=170]{a6}{a8}
+  \sync[out=-18,in=-162]{a6}{a8}
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
@@ -513,7 +581,7 @@ Internal reads are notoriously difficult to get right.  Consider \cite[Ex 3.6]{D
   x\GETS z
   \\
   \nonumber
-  \hbox{\begin{tikzinline}[node distance=.5em and 1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DR{x}{1}}{}
   \event{a2}{\DWRel{y}{1}}{right=of a1}
   \sync{a1}{a2}
@@ -583,9 +651,6 @@ complicates the proof for \armeight{} (\textsection\ref{sec:arm}).
 
 \paragraph{MCA} We present a few examples that are hallmarks of \mca{}
 architectures.  
-In \ref{MCA1}, $(\DW{x}{1})$ is delivered to the first second thread, but not
-the third. \ref{MCA2} is an example of \emph{write subsumption}
-\cite[\textsection 3]{DBLP:journals/pacmpl/PulteFDFSS18}.
 % \begin{gather*}
 %   \renewcommand{\arraycolsep}{1pt}
 %   \hbox{\small
@@ -621,32 +686,10 @@ the third. \ref{MCA2} is an example of \emph{write subsumption}
 %   \wk{ry0}{wy1}
 %     \end{tikzinlinesmall}}
 % \end{gather*}
+\begin{scope}
+\allowdisplaybreaks
 \begin{gather*}
-  \taglabel{MCA1}
-  \begin{gathered}
-  x\GETS0\SEMI x\GETS 1
-  \PAR
-  y\GETS x
-  \PAR
-  r\GETS y\ACQ \SEMI s\GETS x
-  \\[-1.5ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \wk{wx0}{wx1}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx1}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \po{rx1}{wy1}
-  \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
-  \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \rf{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \sync{ry1}{rx0}
-  \wk[out=170,in=10]{rx0}{wx1}
-  \end{tikzinline}}
-  \end{gathered}
-  \\[2ex]
-  % \taglabel{MCA1}
+  % \taglabel{IRIW}
   % %\\[-2.5ex]
   % \renewcommand{\arraycolsep}{1pt}
   % \begin{array}{ccccc}
@@ -683,7 +726,7 @@ the third. \ref{MCA2} is an example of \emph{write subsumption}
   % \sync{ry1}{rx0}
   %   \end{tikzinlinesmall}}}
   %\\[2ex]
-  \taglabel{MCA2}
+  \taglabel{MCA1}
   \begin{gathered}
   \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
   {\PAR}
@@ -691,7 +734,7 @@ the third. \ref{MCA2} is an example of \emph{write subsumption}
   {\PAR}
   \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
   \\[-1.5ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DR{z}{1}}{}
   \event{a2}{\DW{x}{0}}{right=of a1}
   \po{a1}{a2}
@@ -712,12 +755,44 @@ the third. \ref{MCA2} is an example of \emph{write subsumption}
   \rf[out=173,in=7]{c3}{a1}  
     \end{tikzinline}}
 \end{gathered}
+\\[1ex]
+  \taglabel{MCA2}
+  \begin{gathered}
+  x\GETS0\SEMI x\GETS 1
+  \PAR
+  y\GETS x
+  \PAR
+  r\GETS y\ACQ \SEMI s\GETS x
+  \\[-1.5ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{wx0}{\DW{x}{0}}{}
+  \event{wx1}{\DW{x}{1}}{right=of wx0}
+  \wk{wx0}{wx1}
+  \event{rx1}{\DR{x}{1}}{right=3em of wx1}
+  \event{wy1}{\DW{y}{1}}{right=of rx1}
+  \po{rx1}{wy1}
+  \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
+  \event{rx0}{\DR{x}{0}}{right=of ry1}
+  \rf{wx1}{rx1}
+  \rf{wy1}{ry1}
+  \sync{ry1}{rx0}
+  \wk[out=170,in=10]{rx0}{wx1}
+  \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
+\end{scope}
+These candidate executions are invalid, due to cycles.
+\ref{MCA1} is an example of \emph{write subsumption}
+\cite[\textsection 3]{DBLP:journals/pacmpl/PulteFDFSS18}.
+ In \ref{MCA2}, $(\DW{x}{1})$ is delivered to the first second thread, but not
+the third; this is similar to the well know \iriw{} (Independent
+Reads of Independent Writes) litmus test, which is also disallowed by \mca{}
+architectures if the reads within each thread are ordered. 
+
 % The analysis follows from a few simple principles.
 % In this variant of \iriw\ (Independent Reads of Independent Writes), order 
 % is imposed by \emph{coherence} (between the writes), \emph{fulfillment}
 % (between read and write), and \emph{fencing} (from acquiring read to relaxed read).
-These candidate executions are invalid, due to cycles.
 % Note that if you enforce the dependency between the reads, then the execution
 % is disallowed, because the is a cycle on weak edges restricted to $x$:
 % \begin{math}
@@ -737,7 +812,7 @@ These candidate executions are invalid, due to cycles.
 % \end{math}
 % It is also impossible for all threads to read $1$ in the following, due to
 % \emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
-If $y\ACQ$ is changed to $y\RLX$ in \ref{MCA1}, then there would be no order
+If $y\ACQ$ is changed to $y\RLX$ in \ref{MCA2}, then there would be no order
 from $(\DR[\modeRLX]{y}{1})$ to $(\DR{x}{0})$, and the execution would be
 allowed.  Since read-read dependencies do not appear in pomset order, the
 execution would still be allowed if a control or address dependency were to
@@ -918,7 +993,7 @@ relaxed access.
 % $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
 The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
 follow from item \ref{5} in the definition of prefixing, since no order
-is imposed.  Item \ref{5} also validates roach-motel reorderings.  For
+is imposed.  Item \ref{5} also validates roach-motel reorderings \cite{SevcikThesis}.  For
 example, the rules for relaxed writes are as follows:
   \begin{align*}
     \taglabel{AcqW} 
@@ -1063,7 +1138,7 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %   \begin{gathered}
 %     \IF{r=1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI
 %     \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
 %         \event{b}{s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
 %       \end{tikzinline}}
@@ -1072,7 +1147,7 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %   \begin{gathered}
 %     \IF{\lnot s}\THEN \cmdR \FI
 %     \\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{a}{\lnot s \mathbin{\mid}\DR{x}{0}}{}
 %         \event{b}{\lnot s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
 %       \end{tikzinline}}

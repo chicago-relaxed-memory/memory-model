@@ -184,7 +184,7 @@ the definition of prefixing prevents this outcome.  When computing
 $\sem{x\GETS1 \SEMI a\REL\GETS1 \SEMI \IF{b\ACQ}\THEN y\GETS x \FI}$,
 requirement \ref{6} prevents prefixing $(\DWRel{a}{1})$ in front of:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a6}{\DRAcq{b}{1}}{}
   \event{a7}{\DR{x}{1}}{right=of a6}
   \sync{a6}{a7}
@@ -229,7 +229,7 @@ prevents bad executions, such as:
   \PAR
   \aReg\GETS y\ACQ \SEMI \bReg\GETS x
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DW{x}{1}}{}
   \internal{a2}{\DW{x}{2}}{right=of a1}
   \graywk{a1}{a2}
@@ -485,7 +485,7 @@ example,
 % \begin{align*}
 %   \begin{gathered}
 %     \cmdR = \bExp\GETS x \SEMI \IF{\aExp}\THEN \bExp\GETS x \FI\\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{a}{\DR{x}{0}}{}
 %         \event{b}{\aExp\mid\DR{x}{0}}{right=of a}
 %       \end{tikzinline}}
@@ -493,7 +493,7 @@ example,
 %   &&
 %   \begin{gathered}
 %     \cmdW = x\GETS 1 \SEMI \IF{\aExp}\THEN x\GETS 1 \FI\\
-%     \hbox{\begin{tikzinline}[node distance=1em]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{a}{\DW{x}{1}}{}
 %         \event{b}{\aExp\mid\DW{x}{1}}{right=of a}
 %         \wk{a}{b}

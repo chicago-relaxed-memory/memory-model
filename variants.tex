@@ -11,13 +11,16 @@ Syntactic fences
 ``$\FENCE^{\fmode} \SEMI \aCmd$'' have corresponding  actions: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
 $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
 is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
+
 $(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
 $(\DFS{\modeSC})$ is both a release and an acquire.
 \begin{align*}
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & \eqdef
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
-Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-accesses.
+With no further changes, syntactic fences would impose exactly the same order
+as synchronization actions.  This is insufficient to simulate
+$\modeRA$/$\modeSC$-accesses.
 % Consider a variant of \ref{Pub1}:
 % \begin{gather*}
 %   \label{Pub2}\tag{Pub2}
@@ -26,7 +29,7 @@ Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-access
 %   \PAR
 %   r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
 %   \\[-1ex]
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wx0}{\DW{x}{0}}{}
 %       \event{wx1}{\DW{x}{1}}{right=of wx0}
 %       \event{fr}{\DFS{\modeREL}}{right=of wx1}
@@ -47,8 +50,8 @@ Syntactic fences require additional order to simulate $\modeRA$/$\modeSC$-access
 % is subtly different from the fencing behavior of
 % $\modeRA$/$\modeSC$-accesses in C11. 
 %To ensure the order that invalidates this execution candidate,
-We add the following rules 
-to Definition \ref{def:prefix} of \emph{prefixing}:
+Thus we add the following to Definition \ref{def:prefix}:%  of
+% \emph{prefixing}:
 \begin{enumerate}
 \item[{\labeltextsc[P5e]{(P5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
   $\bEv \lt' \aEv$, and
@@ -58,12 +61,13 @@ to Definition \ref{def:prefix} of \emph{prefixing}:
 Consider the following variant of \ref{Pub1}:
 \begin{gather*}
   \taglabel{Pub2}
+  \begin{gathered}
   x\GETS0\SEMI %y\GETS0\SEMI
   x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
   \PAR
   r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DW{x}{1}}{right=of wx0}
       \event{fr}{\DFS{\modeREL}}{right=of wx1}
@@ -79,9 +83,11 @@ Consider the following variant of \ref{Pub1}:
       \rf[out=10,in=170]{wx0}{rx0}
       \wk{wx0}{wx1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 \ref{5f} requires that $(\DFS{\modeREL})\le(\DW{y}{1})$.  \ref{5e} requires
-that $(\DR{y}{1})\le(\DFS{\modeACQ})$.  The attempted execution is
+that $(\DR{y}{1})\le(\DFS{\modeACQ})$.  The other order involving fences is
+required by \ref{5c}.  The attempted execution is
 \emph{invalid}: the stale read $(\DR{x}{0})$ violates the last requirement of
 fulfillment (Definition \ref{def:rf}).
 
@@ -95,7 +101,7 @@ fulfillment (Definition \ref{def:rf}).
 %   \FENCE^{\modeACQ}\SEMI
 %   s\GETS x
 %   \\[-1ex]
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a1}{\DW{x}{1}}{}
 %       \event{a2}{\DFS{\modeREL}}{right=of a1}
 %       \po{a1}{a2}
@@ -110,19 +116,22 @@ fulfillment (Definition \ref{def:rf}).
 %       \wkx[out=-170,in=-10]{b3}{a1}
 %     \end{tikzinline}}
 % \end{gather*}
-As for \ref{RL}, redundant fence elimination \eqref{RF} follows from \ref{1}.
+As for \ref{RL}, redundant fence elimination \eqref{RF} follows from \ref{1},
+regardless of the access mode.
 \begin{align*}
   \taglabel{RF}
   \sem{\FENCE^\amode \SEMI \FENCE^\amode\SEMI\aCmd} &\supseteq 
   \sem{\FENCE^\amode \SEMI \aCmd}
 \end{align*}
-\ref{RL} holds regardless of the access mode.
 
-Our semantics does not suffer the weaknesses of C11 fences, noted by
-\citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
-in these examples:
+Our semantics does not suffer from overly weak fencing (\ref{SC3}) or a lack
+of fence cumulativity (\ref{SC4}).  The following examples, from
+\citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}, are allowed by both the
+original C11 and the model of \citet{DBLP:conf/popl/BattyDW16}.  We omit
+$0$\hyp{}initialization in these examples:
 \begin{gather*}
   \taglabel{SC3}
+  \begin{gathered}
     x\GETS1
     \PAR
     r\GETS x\SEMI   
@@ -133,7 +142,7 @@ in these examples:
     \FENCE^{\modeSC}\SEMI
     r\GETS x  
     \\[-.1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DW{x}{1}}{}
   \event{b1}{\DR{x}{1}}{right=3em of a1}
   \event{b2}{\DFS{\modeSC}}{right=of b1}
@@ -149,8 +158,10 @@ in these examples:
   \rf{a1}{b1}
   \wk[out=-170,in=-10]{c3}{a1}
     \end{tikzinline}}
-  \\
+\end{gathered}
+\\
   \taglabel{SC4}
+  \begin{gathered}
     x\GETS1\SEMI   
     z\REL\GETS1\SEMI   
     \PAR
@@ -162,7 +173,7 @@ in these examples:
     \FENCE^{\modeSC}\SEMI
     r\GETS x  
     \\[-.1ex]
-  \hbox{\begin{tikzinline}[node distance=.7em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DW{x}{1}}{}
   \event{a2}{\DWRel{z}{1}}{right=of a1}
   \sync{a1}{a2}
@@ -180,11 +191,15 @@ in these examples:
   \rf{a2}{b1}
   \wk[out=-170,in=-10]{c3}{a1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
-The executions are disallowed, due to cycles.  While these results are
-immediate in our model, it is worth noting that they are anything but
-immediate in the various models of C11.  \citet{DBLP:conf/pldi/LahavVKHD17}
-devote an entire paper to debugging the model of SC access in C11.
+The executions are disallowed, due to the evident cycles.  While these
+results are immediate in our model, it is worth noting that they are anything
+but immediate in the various models of C11.
+% A series of papers have been
+% devoted to debugging SC access in C11. 
+% and \citet{DBLP:conf/pldi/LahavVKHD17}
+% devote entire papers to debugging the model of SC access in C11.
 % It is a testament to the
 % complexity of C11 that it allows these executions.
 
@@ -278,7 +293,7 @@ devote an entire paper to debugging the model of SC access in C11.
 %     \FENCE^{\modeSC}\SEMI
 %     r\GETS x  
 %     \\[-.1ex]
-%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{a1}{\DW{x}{1}}{}
 %   \event{b1}{\DR{x}{1}}{right=3em of a1}
 %   \event{b2}{\DFS{\modeSC}}{right=of b1}
@@ -371,11 +386,12 @@ This definition ensures atomicity, disallowing executions such as
 \cite[Ex.~3.2]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
   \taglabel{RMW1}
+  \begin{gathered}
   \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
   \PAR
   x\GETS 2\SEMI s\GETS x
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a2}{\DR{x}{0}}{}
   \event{a1}{\DW{x}{0}}{left=of a2}
   \rf{a1}{a2}
@@ -387,6 +403,7 @@ This definition ensures atomicity, disallowing executions such as
   \wk{a3}{b2}
   \rf{b2}{b3}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 
 By using two actions rather than one, the definition allows examples such as the
@@ -394,6 +411,7 @@ following, which is allowed by \armeight{}
 \cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
   \taglabel{RMW2}
+  \begin{gathered}
   r \GETS y\SEMI
   z \GETS r
   \PAR
@@ -402,7 +420,7 @@ following, which is allowed by \armeight{}
   s\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI
   y\GETS s{+}1
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DR{y}{1}}{}
   \event{a2}{\DW{z}{1}}{right=of a1}
   \po{a1}{a2}
@@ -418,6 +436,7 @@ following, which is allowed by \armeight{}
   \po[out=-20,in=-160]{b3}{b5}
   \rf[out=170,in=10]{b5}{a1}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 
 \paragraph{Address Calculation}
@@ -565,14 +584,14 @@ anomalous behaviors that arise \emph{out of thin air} (\oota)
 initially $x=0$, $y=0$, $\REF{0}=0$, $\REF{1}=2$, and $\REF{2}=1$.  It should
 only be possible to read $0$, disallowing the attempted execution below:
 \begin{gather*}
-  \begin{gathered}
   \taglabel{OOTA2}
+  \begin{gathered}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
   \aReg\GETS x\SEMI \bReg\GETS \REF{\aReg}\SEMI y\GETS \bReg
   %x\GETS\REF{y} \PAR y\GETS\REF{x}
   \\
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DR{y}{2}}{}
   \event{a2}{\DR{\REF{2}}{1}}{right=of a1}
   \event{a3}{\DW{x}{1}}{right=of a2}
@@ -592,7 +611,7 @@ Although no order is enforced between reads, the read-to-write order induced
 by the semantics is sufficient to prohibit this \oota{} behavior.  Note the
 intermediate state of $\sem{\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg}$:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
   \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
   \po{a2}{a3}
