@@ -3,7 +3,11 @@
 
 We show that our semantics compiles efficiently to \armeight{}
 \cite{deacon-git,DBLP:journals/pacmpl/PulteFDFSS18} using the translation
-strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}.
+strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}, which was extended to
+SC access by \citet[\textsection5]{imm-sc}: Relaxed access is implemented using
+\texttt{ldr}/\texttt{str}, non-relaxed access using \texttt{ldar}/\texttt{stlr},
+acquire and other fences using
+\texttt{dmb}.\texttt{ld}/\texttt{dmb}.\texttt{sy}.
 
 
 We consider the fragment of our language where concurrent composition occurs
