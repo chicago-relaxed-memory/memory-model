@@ -6,20 +6,28 @@ to allow efficient implementation without admitting anomalous
 behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
 \begin{align*}
-  \label{OOTA3}\tag{\textsc{oota3}}
-  y\GETS x \!\PAR\! r\GETS y\SEMI x\GETS r
+  \label{OOTA3}\tag{\textsc{oota2}}
+  y\GETS0\SEMI 
+  y\GETS x
+  \!\PAR\!
+  x\GETS0\SEMI
+  r\GETS y\SEMI x\GETS r  
   &&
   %\nonumber
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \smash{\hbox{\begin{tikzinline}[node distance=1.2em]
   \event{rx}{\DR{x}{1}}{}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
-  \event{ry}{\DR{y}{1}}{right=2em of wy}
+  \event{y0}{\DW{y}{0}}{left=of rx}
+  \event{x0}{\DW{x}{0}}{right=2em of wy}
+  \event{ry}{\DR{y}{1}}{right=2em of x0}
   \event{wx}{\DW{x}{1}}{right=of ry}
   \po{ry}{wx}
-  \rf{wy}{ry}
+  \rf[out=10,in=170]{wy}{ry}
   \rf[out=170,in=10]{wx}{rx}
-    \end{tikzinline}}
+  \wk[out=-15,in=-165]{y0}{wy}
+  \wk[out=-15,in=-165]{x0}{wx}
+    \end{tikzinline}}}
 \end{align*}
 Although Java does not allow \oota{} behaviors of \ref{OOTA3},
 \citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
@@ -57,10 +65,10 @@ The atoms of our logic are write and read events.
 %   \mid \always\afo
 % \end{displaymath}
 %\begin{definition} %[Satisfaction]
-Given a pomset $\aPS$ and event $\aEv$, define\footnote{Let $\FALSE$, $\lor$,
+Given a pomset $\aPS$ and event $\aEv$, define:\footnote{Let $\FALSE$, $\lor$,
   $\Rightarrow$ and $\once$ as usual;
   for example,
-  $\once\afo = \lnot(\always\lnot\afo)$.}:
+  $\once\afo = \lnot(\always\lnot\afo)$.}
 \begin{displaymath}
   \renewcommand{\arraycolsep}{.2ex}
     \begin{array}{lrll}
@@ -113,9 +121,9 @@ Let
 % and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
   The past operators do not include the current instant, and so
   do \emph{not} satisfy
-  $(\always\afo\Rightarrow\once\afo)$\footnote{The order-minimal elements always validate
+  $(\always\afo\Rightarrow\once\afo)$.\footnote{The order-minimal elements always validate
     $\always\afo$ and invalidate
-    $\once\afo$.}.
+    $\once\afo$.}
   However, the following hold:
 % \begin{align*}  
 %   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
@@ -288,30 +296,33 @@ By coinduction,
 \end{example}
 
 The same reasoning can be applied to the control flow variant of \ref{OOTA3}
-\cite{DBLP:conf/popl/VafeiadisBCMN15}:
-\begin{align*}
-  \tag{\textsc{cyc}}\label{CYC}
-  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \FI
-  &&
-  %\nonumber
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{rx}{\DR{x}{1}}{}
-  \event{wy}{\DW{y}{1}}{right=of rx}
-  \po{rx}{wy}
-  \event{ry}{\DR{y}{1}}{right=2em of wy}
-  \event{wx}{\DW{x}{1}}{right=of ry}
-  \po{ry}{wx}
-  \rf{wy}{ry}
-  \rf[out=170,in=10]{wx}{rx}
-    \end{tikzinline}}
-\end{align*}
+\cite[CYC]{DBLP:conf/popl/VafeiadisBCMN15}:
+\begin{math}
+  %\tag{\textsc{cyc}}\label{CYC}
+  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \FI.
+  % &&
+  % %\nonumber
+  % \hbox{\begin{tikzinline}[node distance=1.5em]
+  % \event{rx}{\DR{x}{1}}{}
+  % \event{wy}{\DW{y}{1}}{right=of rx}
+  % \po{rx}{wy}
+  % \event{ry}{\DR{y}{1}}{right=2em of wy}
+  % \event{wx}{\DW{x}{1}}{right=of ry}
+  % \po{ry}{wx}
+  % \rf{wy}{ry}
+  % \rf[out=170,in=10]{wx}{rx}
+  %   \end{tikzinline}}
+\end{math}
 The program is data-race-free. Thus, allowing an execution that writes $1$
 would violate \drfsc{}.
 
 \begin{example}
   \label{ex:lochb}
-  Our language lacks object creation; therefore, we consider a variant of
-  \ref{OOTA1}:
+  Because our language lacks object creation, we cannot consider \ref{OOTA1}
+  directly.  The essential temporal property of \ref{OOTA1} is ``allocation
+  at type \texttt{C} is preceded by a read of $1$ for $z$.''  The following
+  variant retains this structure: ``any write to memory location $a$ is
+  preceded by a read of $1$ for $z$.''  We elide initialization.
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{align*}
   \tag{\textsc{oota4}}\label{OOTA4}
@@ -335,11 +346,6 @@ would violate \drfsc{}.
   \PAR
     \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
   \end{align*}
-  The essential temporal property of \ref{OOTA1} is ``allocation at type
-  \texttt{C} is preceded by a read of $1$ for $z$.''  \ref{OOTA4} retains
-  this structure: ``any write to memory location $a$ is preceded by a read of $1$
-  for $z$.''
-
   As a warmup, note that attempting to write $1$ to $a$ results
   in a cycle:
 \begin{tikzdisplay}[node distance=1.5em]

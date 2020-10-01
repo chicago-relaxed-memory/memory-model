@@ -87,9 +87,9 @@ which has a similar execution where $z=2$, but does not have an execution
 where $z=1$. Note that the only difference between \eqref{OOTA?} and
 \eqref{OOTA!} is the code in the branch which was not taken. This means that
 any model of relaxed memory that supports common compiler optimizations (such
-as the second transformation above) must take into account code that was not
-executed. This accounts for the speculative executions common in relaxed
-memory models.
+as the transformations above) must take into account code that was not
+executed. This is why most relaxed memory models include some form of
+speculative execution.
 
 
 
@@ -129,7 +129,7 @@ execution where they reference a \texttt{C} object''
 \end{gather}
 Informally, all threads satisfy the invariant ``allocation at type \texttt{C}
 is preceded by reading $1$ for $z$'' and ``allocation at type \texttt{D} is
-preceded by reading $0$ for $z$.''  If composability of safety were to hold,
+preceded by reading $0$ for $z$.''  If composability of safety properties were to hold,
 the full program would satisfy both invariants.  The lack of composability
 forced \citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by
 type in order to prove type safety.  This formal device means that memory
@@ -158,8 +158,10 @@ to validate CSE, at least not for relaxed atomic access (consider the case
 where $x$ and $y$ are aliased above).  C11 \emph{does} allow the
 transformation for \emph{plain} access, but this comes with the threat of
 \emph{undefined behavior} should any plain access ever possibly engage in a
-data race.   Undefined behavior is contrary to the goals of safe
-languages.
+data race \cite{undefined}.  C11 also suffers from ``Out Of Thin Air''
+(\oota) behavior \cite{DBLP:conf/esop/BattyMNPS15}, allowing spurious values
+to arise from cycles in causality.  Undefined and \oota{} behaviors are
+antithetical to the goals of safe languages.
 % Thus the folklore belief that ``every substantial C program has
 % undefined behavior.''
 
@@ -187,15 +189,11 @@ reads, even on \armeight.
 
 \paragraph{Our Model}
 
-In our approach, a program is a set of execution.  Each execution is a
+In our approach, a program is a set of executions.  Each execution is a
 partial order on a set of read and write events.  The order is intended to be
 read as a ``dependency'' relation.  The dependency relation can vary between
 executions, so it is dynamic; events that are not related in an execution are
 ``independent'' and can be seen by a sequential observer in either order.
-
-The executions of a program are computed compositionally, by induction on the
-structure of the program.  Thus, our model falls into the style of relaxed
-memory models advocated by~\citet{Batty17}.
 
 Cross thread dependencies arise from conflicting actions on the same
 variable: Roughly, we order any two actions on the same location, at least
@@ -212,16 +210,15 @@ become visible to all\nofootnote{\mca\ is traditionally explored in hardware
   e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
 \citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in
 \cite[\textsection3.3]{AlglaveThesis}, this allows us to capture cross-thread
-dependencies in a single partial order.  Our key insight is that \emph{\mca{}
-  permits a single, global notion of time, manifest in the pomset order}.
+dependencies in a single partial order.
+
+Our key insight is that \emph{\mca{} permits a single, global notion of time,
+  manifest in the pomset order}.
   
 
 Within a thread, the dependency calculation can be viewed as the computation
 of \emph{preserved} program order ($\rppo$) in hardware models.  $\rppo$
 captures the \emph{essential dependencies} between events in the same thread.
-Our key insight is to that \emph{logic is better than syntax} to capture such
-dependencies.
-
 Consider the following program fragments: \begingroup \allowdisplaybreaks
 \begin{align*}
   & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
@@ -237,16 +234,25 @@ the independence derived by case analysis, and $\aCmd_3$ reflects the
 independence deduced from partial evaluation (in the restricted form of
 constant propagation).
 
-$\aCmd_3$ shows the important role of \emph{internal} reads---reads that are
-fulfilled by a preceding write in the same thread---in relaxed memory models
-such as \armeight.  
-Unlike externally fulfilled reads, %($\rrfe$),
-internal reads are not necessarily recorded in the dependency relation.
-This allows a compiler or processor to reorder the read with
-respect to the code that precedes it.
+Our key insight is to that \emph{logic is better than syntax} to capture such
+dependencies.
 
-The logical perspective provides a clear intuition as to why our model validates
-the compiler transformations discussed above \eqref{OOTA?}.
+The logical perspective provides a clear intuition as to why certain compiler
+transformations should be valid.  Such intuitions are not always readily
+available in relaxed memory models.  For example, value range analysis---used
+in the discussion of \eqref{OOTA?}---is very difficult in many models.  As
+another example, models such as \armeight{} distinguish \emph{internal}
+reads, which are fulfilled by a write of the same thread, from
+\emph{external} ones.  Unlike externally fulfilled reads, internal reads are
+not necessarily recorded in the dependency relation.  As exemplified by
+$\aCmd_3$, this allows a compiler to reorder the fulfilling write and the
+subsequent code that depends on the read.  Internal reads require no special
+treatment in our model.
+
+
+
+% The logical perspective provides a clear intuition as to why our model validates
+% the compiler transformations discussed above \eqref{OOTA?}.
 % reordering of independent statements, Irrelevant read introduction, RaR, RaW,
 % WaW and Read Reordering and motivates the expressivity wrt the \jmm\
 % causality test cases.  For example, consider Test Case 17 from Pugh.
@@ -270,16 +276,21 @@ the compiler transformations discussed above \eqref{OOTA?}.
 % \[ \bLoc \GETS 42 \SEMI \aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \]
 % from which the required execution follows.
 
-Thread compositionality provides a perspective on how our model forbids ``Out
-Of Thin Air'' (\oota).  After all, compositionality states that parallel
-composition does not create  unexpected behaviors.  The fact that the
-dependency relation is a partial order forbids \oota\ behaviors.  The
-standard \oota{} litmus test asks whether either of the following threads can
-see non-zero values:
-\begin{displaymath}
+The executions of a program are computed compositionally, by induction on the
+structure of the program.  Thus, our model falls into the style of relaxed
+memory models advocated by~\citet{Batty17}.  Combined with a single global
+order on events, compositionality helps explain how our model disallows
+\oota{} execution.  After all, compositionality states that parallel
+composition does not create unexpected
+behaviors.  % The fact that the dependency relation is a partial order forbids
+% \oota\ behaviors.  
+The standard \oota{} litmus test asks whether either of the following threads
+can see non-zero values:
+\begin{gather*}
+  \tag{\ref{OOTA3}}
   x\GETS0\SEMI y\GETS0\SEMI
   (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
-\end{displaymath}
+\end{gather*}
 We rule out non-zero reads as follows: The write of $\aLoc$ on the left hand
 side is dependent on the read to $\bLoc$.  Similarly, the write of $\bLoc$ on
 the right is dependent on the read to $\aLoc$.  Since a non-zero read can

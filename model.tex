@@ -289,12 +289,12 @@ We require that data models satisfy the following:
   equalities %of the form
   $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
-  substitution\footnote{Since formulae are closed under substitutions of the
+  substitution,\footnote{Since formulae are closed under substitutions of the
     form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
     $(\aEExp=\aVal)$ where $\aEExp$ is an \emph{extended expression} that
     includes memory locations.  By composition, formulae must also be closed
     under that substitutions of the form
-    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.}, and
+    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.} and
 \item there is a relation $\vDash$ between formulae, with the expected semantics.
 \end{itemize}
 
@@ -1675,32 +1675,37 @@ there is $\aPS\in\aPSS$ such that
   \end{gather*}
 \end{candidate}
 
-The semantics of read and write introduce a pomset for each possible value.
-Note that the value in the actions is fixed.  For writes, the dependence on
-$\aExp$ appears in the precondition: $\aExp=\aVal$.
-
 The main work happens in the definition of prefixing ($\prefix$): Item
 \ref{1} introduces a new event.  Item \ref{2} ensures that no order is
 removed from old events. Item \ref{3} specifies the actions labelling the
 events; item \ref{4} specifies the preconditions.  Item \ref{5}
 specifies the preserved program order.
 
-Whereas a write action introduces a precondition---that must be satisfied
-sequentially---on the value to be written; a read introduces a pomset
-requirement---that may be fulfilled concurrently---on the value to be read.
+The semantics of read and write introduce a pomset for each possible value.
+In each pomset, the value appearing in the action is fixed.  For writes, the dependence on
+$\aExp$ appears in the precondition: $\aExp=\aVal$.
 
-In the next section, we explain the concurrent semantics using standard
-litmus tests: Read fulfillment is constrained by the program order that is
-preserved by \ref{5}.  Item \ref{5a} captures \emph{read to write
-  dependency}\footnote{When $\bEv$ is not a read, \ref{4c} trivially implies
-  \ref{5a}.}.  It only requires order from read to write when the
-precondition of the write is \emph{weakened} using \ref{4b}.  Item \ref{5b}
-captures the extended coherence requirement on actions that touch the same
-location.  Item \ref{5c} imposes the order required by acquire and release
-actions\footnote{Recall that termination actions are releases.}.  Item
-\ref{5d} imposes the additional order required by SC actions\footnote{Recall
-  that SC reads are acquires and SC writes are
-  releases.}.  %(We explain item 6 in the next subsection.)
+Writes introduce preconditions that must be satisfied using substitution and
+in \ref{4b}.  Reads introduce a fulfillment requirement, which is constrained
+by the program order that is preserved by \ref{5}. Requirement \ref{5a}
+connects the sequential semantics of write to the concurrent semantics of read.
+%\ref{5a} captures \emph{read to write  dependency}.
+It only requires order from read to write\footnote{When $\bEv$ is not a
+  read, \ref{4c} trivially implies \ref{5a}.} when the precondition of the
+write is \emph{weakened} using \ref{4b}.  The other requirements in \ref{5}
+are standard: \ref{5b} captures the extended coherence requirement on actions
+that touch the same location.  \ref{5c} imposes the order required by acquire
+and release actions.\footnote{Recall that termination actions are releases.}
+\ref{5d} imposes the additional order required by SC actions.\footnote{Recall
+  that SC reads are acquires and SC writes are releases.}
+
+In the remainder of this section, we focus on the sequential semantics.  We
+explain the concurrent semantics in the next section using standard litmus tests.
+
+% Whereas a write action introduces a precondition---that must be satisfied
+% sequentially---on the value to be written; a read introduces a pomset
+% requirement---that may be fulfilled concurrently---on the value to be read.
+
 
 % The interaction between preconditions and preserved order is capture in
 % \ref{5a}.
@@ -1708,18 +1713,10 @@ actions\footnote{Recall that termination actions are releases.}.  Item
 % write (\ref{5a}), between conflicting events (\ref{5b}), and around fences
 % and synchronization (\ref{5c}, \ref{5d}).
 
-In this section, we explain the sequential semantics: Preconditions are
-satisfied using the substitutions in the semantic rules and in \ref{4b}.  We
-also discuss \ref{5a}, which connects the concurrent and sequential
-semantics.
-
-Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}:% ,
+Let us revisit the unexpected execution \eqref{unexpected}: % of \eqref{OOTA?}:% ,
 % as explained in \textsection\ref{sec:domain}:
 \begin{gather*}
-  y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
-  \PAR
-  r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
-  \\
+  \tag{\ref{unexpected}}
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
@@ -1728,16 +1725,16 @@ Let us revisit the unexpected execution \eqref{unexpected} of \eqref{OOTA?}:% ,
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
   \event{wa1}{\DW{z}{1}}{right=of wx1}
-  %\event{stop}{\DSTOP}{right=of wa1}
+  \event{stop}{\DSTOP}{right=of wa1}
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
   \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  % \sync[out=30,in=150]{wx1}{stop}
-  % \sync{wa1}{stop}
-\end{tikzinline}}
+  \po[out=20,in=160]{ry1}{wa1}
+  \sync[out=20,in=160]{wx1}{stop}
+  \sync{wa1}{stop}
+    \end{tikzinline}}  
 \end{gather*}
 % Note that $\sem{z\GETS r}$ contains $(r{=}0\mid\DW{z}{0})$,
 % $(r{=}1\mid\DW{z}{1})$, etc.  Thus 
@@ -1851,6 +1848,8 @@ Since $0{=}1\lor 0{=}0$ is a tautology, we have:
 As discussed at the beginning of this section, an attempt to replicate this execution with \eqref{OOTA!} fails,
 introducing a cycle:
 \begin{gather*}
+  \tag{\ref{OOTA!}}
+  \begin{gathered}
   y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
   \PAR
     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
@@ -1863,17 +1862,18 @@ introducing a cycle:
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
   \event{wa1}{\DW{z}{1}}{right=of wx1}
-  %\event{stop}{\DSTOP}{right=of wa1}
+  \event{stop}{\DSTOP}{right=of wa1}
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
   \wk[out=15,in=165]{wy0}{wy1}
   \po{rx1}{wy1}
-  \po[out=30,in=150]{ry1}{wa1}
-  % \sync[out=30,in=150]{wx1}{stop}
-  % \sync{wa1}{stop}
+  \po[out=20,in=160]{ry1}{wa1}
+  \sync[out=20,in=160]{wx1}{stop}
+  \sync{wa1}{stop}
   \po{ry1}{wx1}
 \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 The difference can be seen immediately when looking at the two sides of the
 conditional

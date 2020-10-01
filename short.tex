@@ -93,10 +93,10 @@ compilation is not possible for the earlier Flowing and Pop model
 \end{gathered}
 \end{gather*}
 This type of ``big detour'' \cite{alglave} is outlawed by
-ARMv8\footnote{There is either a cycle
+ARMv8.\footnote{There is either a cycle
   $\DR{x}{1}\xpoloc d\xcoe e \xrfex \DR{x}{1}$ % SC-pER-LOC
   or % in ob
-  $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}.
+  $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}
 
 
 % weakestmo:
@@ -332,9 +332,9 @@ includes a race involving $\aEv$.
   $({\le_*}\setminus{\rpox})$, as required by fulfillment (Definition
   \ref{def:rf}): $\rrfe$ orders writes before reads, satisfying fulfillment
   requirement \ref{rf3}; $\rxw$ orders read and write accesses before writes,
-  satisfying requirement \ref{rf4}\footnote{Within a thread, \ref{rf3} and
+  satisfying requirement \ref{rf4}.\footnote{Within a thread, \ref{rf3} and
     \ref{rf4} follow from prefixing requirement \ref{5b}, which is included
-    in ${\rppo}$.}.
+    in ${\rppo}$.}
     % Then ${\le_*}={\rppo}\cup{\rrfe}\cup{\rxw}$.
 
     Using this decomposition, we can show the following.
