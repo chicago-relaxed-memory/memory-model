@@ -56,6 +56,7 @@ For example the semantics of \eqref{OOTA?} %  (including explicit initialization
 contains the
 expected pomset (where $\DSTOP$ indicates termination):
 \begin{gather}
+  \label{OOTA?}
   \begin{gathered}
   y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
   \PAR
@@ -148,7 +149,9 @@ reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides
 
 An attempt to replicate this execution with \eqref{OOTA!} fails,
 since it introduces a cycle:
-\begin{gather*}
+\begin{gather}
+  \label{OOTA!}
+  \begin{gathered}
   y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
   \PAR
     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
@@ -172,7 +175,8 @@ since it introduces a cycle:
   \sync{wa1}{stop}
   \po{ry1}{wx1}
 \end{tikzinline}}
-\end{gather*}
+\end{gathered}
+\end{gather}
 
 We stress that in these diagrams, color plays no formal role.  It is purely
 to help the reader see where the order comes from:

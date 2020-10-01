@@ -48,7 +48,7 @@ consider that the existence of an execution in a relaxed memory model may
 depend on code that was \emph{not} executed. Let $r$ and $s$ be registers and
 $x$-$z$ be shared memory locations.  Consider:
 \begin{gather}
-  \label{OOTA?}
+  \tag{\ref{OOTA?}}
     y\GETS x
   \PAR
   r\GETS y\SEMI\IF{r}\THEN 
@@ -77,7 +77,7 @@ then lift it, and reorder with the independent read of $y$, yielding:
 Then $z=1$ at then end of an execution where the first thread is interleaved
 immediately after executing $x\GETS1$.  Compare \eqref{OOTA?} with:
 \begin{gather}
-  \label{OOTA!}
+  \tag{\ref{OOTA!}}
     y\GETS x
   \PAR
   r\GETS y\SEMI \IF{r}\THEN 
