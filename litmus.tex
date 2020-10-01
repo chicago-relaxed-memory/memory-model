@@ -3,8 +3,10 @@
 
 It is amazing how much Candidate \ref{cand:ord} ``gets right'' out of the
 box, including ``internal reads'', which greatly complicate other models
-\cite{DBLP:journals/pacmpl/PulteFDFSS18}.  Before refining the model, we walk
-through several litmus tests, valid rewrites and invalid rewrites.
+\cite{DBLP:journals/pacmpl/PulteFDFSS18}.  In this section, we walk through
+several litmus tests, valid rewrites and invalid rewrites.  The examples show
+that rules \ref{5a}-\ref{5d} are understandable as \emph{general principles}, not
+simply the intersection of a series of relations.
 
 \subsection{Litmus Tests}
 \label{sec:litmus}
@@ -98,7 +100,7 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
   %     % \po{rx}{wy}
   %   \end{tikzinline}}
 \end{gathered}
-\end{align*}[out=15,in=165]
+\end{align*}
 Because there are no intra-thread dependencies, the desired outcomes are allowed, as shown.
 % All of the cross-thread order is required by the definition of fulfillment.
 % Candidate \ref{def:rw:sc1} disallows the executions, since it includes all of
