@@ -47,9 +47,9 @@ Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 
 The model is based on \emph{partially ordered multisets}~\cite{{GISCHER1988199,Plotkin:1997:TSP:266557.266600}},
 where events are labelled with reads and writes, and
-the partial order tracks control and data dependencies, coherence, concurrent reads and writes using shared memory, and fencing.
-Here, we are only using one order, which stands in stark contrast with
-other models that use many different relations.
+the partial order tracks causality, which arises from various types of dependency, coherence, and synchronization.
+% Here, we are only using one order, which stands in stark contrast with
+% other models that use many different relations.
 
 For example the semantics of \eqref{OOTA?} %  (including explicit initialization
 % with zero, and explicit $\DSTOP$ to indicate termination)
@@ -177,11 +177,14 @@ since it introduces a cycle:
 \end{tikzinline}}
 \end{gathered}
 \end{gather}
-
-We stress that in these diagrams, color plays no formal role.  It is purely
-to help the reader see where the order comes from:
+In this case, $(\DW{x}{1})$ only happens on one side of the conditional,
+causing a control dependency from $(\DR{y}{1})$ to $(\DW{x}{1})$.
+%In our model, there is only using one order.  % , which stands in stark contrast with
+% other models that use many different relations.
+In these diagrams, color plays no formal role.  There is only one order.  We
+use color only to help the reader see where the order comes from:
 \begin{itemize}
-\item $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement,
+\item $(\DR{y}{1})\xpo(\DW{x}{1})$ is a \emph{dependency} requirement,
   relating reads to writes that depend on them.
 
 \item $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement,
