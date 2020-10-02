@@ -250,10 +250,12 @@ $(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
 $(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:pop},
 after giving the formal definitions.
 
-The same calculation fails for $(\DW{x}{1})$ in \eqref{OOTA!}.  In this case,
-the two sides of the conditional do not coalesce; combining both sides of the
-conditional, we have $(r{=}1 \mid \DW{x}{1})$, rather than $(r{=}0 \lor r{=}1
-\mid \DW{x}{1})$.  And thus, the dependency is enforced.
+The same calculation fails for the write to $x$ in \eqref{OOTA!}.  In this case,
+the writes to $x$ on either side of the conditional cannot be combined, since
+once side writes $1$ and the other side writes $2$.  Thus, the semantics of
+the conditional contains $(r{=}1 \mid \DW{x}{1})$, rather than
+$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  It is only possible to weaken this
+precondition by introducing order from $(\DR{y}{1})$ to $(\DW{x}{1})$.
 
 % though missing the features designed to capture
 % speculative execution attacks. We will present the model in this section,
