@@ -11,19 +11,18 @@ acquire and other fences using
 
 
 We consider the fragment of our language where concurrent composition occurs
-only at top level and there are no location declarations.  We show
-that any \emph{consistent} \armeight{} execution graph for this sublanguage
-can be considered a top-level execution of our semantics. The key step is
-constructing the order for the derived pomset candidate.  We would like to
-take ${\gtN} = ({\rob} \cup {\reco})^*$, where $\rob$ is the \armeight{}
-acyclicity relation, and ${\reco}$ is the \armeight{} extended coherence
-order, as discussed after Definition~\ref{def:rf}.  But this does not quite
-work.
+only at top level and there are no local declarations of the form
+$(\VAR\aLoc\SEMI \aCmd)$. We show that any \emph{consistent} \armeight{}
+execution graph for this sublanguage can be considered a top-level execution
+of our semantics. The key step is constructing the order for the derived
+pomset candidate.  We would like to take ${\gtN} = ({\rob} \cup {\reco})^*$,
+where $\rob$ is the \armeight{} acyclicity relation, and ${\reco}$ is the
+\armeight{} extended coherence order.  But this does not quite work.
 
 The definition is complicated by \armeight's \emph{internal reads}, manifest
 in ${\rrfi}$, which relates reads to writes that are fulfilled by the same
 thread.  \armeight{} drops $\rob$-order \emph{into} an internal read.  As
-discussed in \textsection\ref{sec:model}, however, our semantics drops pomset
+discussed in \textsection\ref{sec:litmus}, however, our semantics drops pomset
 order \emph{out of} an internal read.  To accommodate this, we drop these
 dependencies from the \armeight{} \emph{dependency order before} ($\rdob$)
 relation.
@@ -93,7 +92,7 @@ compilation is not possible for the earlier Flowing and Pop model
 \end{gathered}
 \end{gather*}
 This type of ``big detour'' \cite{alglave} is outlawed by
-ARMv8.\footnote{There is either a cycle
+\armeight.\footnote{There is either a cycle
   $\DR{x}{1}\xpoloc d\xcoe e \xrfex \DR{x}{1}$ % SC-pER-LOC
   or % in ob
   $d\xrfex \DR{x}{1}\xdata \DW{y}{1}\xrfex \DR{y}{1} \xdata e \xcoe d$.}
@@ -167,8 +166,8 @@ every location mentioned in $\aCmd$ is some $\aLoc_i$.
 
 We make two further restrictions to simplify the exposition.  To simplify the
 definition of \emph{happens-before}, we ban fences and \RMWs.  To simplify
-the proof, we assume all locations are top-level; that is, there are no local
-declarations of the form $(\VAR\aLoc\SEMI \aCmd)$.
+the proof, we assume there are no local declarations of the form
+$(\VAR\aLoc\SEMI \aCmd)$.
 % We do not believe that
 % either of these restrictions is important.
 
@@ -200,7 +199,7 @@ fails if either $\modeRA$ access is relaxed.
 
 Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
   $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they conflict
-(Definition \ref{def:rf}) at
+(Def.~\ref{def:rf}) at
 some location in $L$, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
 $\aEv\xhb\bEv$.  
 % A pomset has a \emph{data race} if there are conflicting events that are
@@ -327,10 +326,8 @@ includes a race involving $\aEv$.
   pomset order in generation-minimal top-level pomsets.  First, we note that
   $\le_*$ (the transitive reduction $\le$) can be decomposed into three
   disjoint relations.  Let ${\rppo}=({\le_*}\cap{\rpox})$ denote
-  \emph{preserved} program order, as required by prefixing (Definition
-  \ref{def:prefix}).  The other two relations are cross-thread subsets of
-  $({\le_*}\setminus{\rpox})$, as required by fulfillment (Definition
-  \ref{def:rf}): $\rrfe$ orders writes before reads, satisfying fulfillment
+  \emph{preserved} program order, as required by prefixing (Def.~\ref{def:prefix}).  The other two relations are cross-thread subsets of
+  $({\le_*}\setminus{\rpox})$, as required by fulfillment (Def.~\ref{def:rf}): $\rrfe$ orders writes before reads, satisfying fulfillment
   requirement \ref{rf3}; $\rxw$ orders read and write accesses before writes,
   satisfying requirement \ref{rf4}.\footnote{Within a thread, \ref{rf3} and
     \ref{rf4} follow from prefixing requirement \ref{5b}, which is included
@@ -794,25 +791,26 @@ enabled by denotational reasoning.
 % and a precise characterization of
 % dependency.
 
-In our language, past races are always resolved at a stable point.  Consider
-the following outcome, which is disallowed here, but allowed by Java
-\cite[Example 2]{Dolan:2018:BDR:3192366.3192421}:
+In our language, past races are always resolved at a stable point, as in
+\ref{Co3}.  As another example, consider the following, which is disallowed
+here, but allowed by Java \cite[Ex.~2]{Dolan:2018:BDR:3192366.3192421}.  We
+include an SC fence here to mimic the behavior of Java volatiles.
 \begin{gather*}
   \taglabel{past}
   \begin{gathered}
   (x\GETS 1 \SEMI   y\REL \GETS 1)
   \PAR
-  (x\GETS 2 \SEMI \IF{y^\modeSC}\THEN r\GETS x \SEMI s\GETS x\FI)
+  (x\GETS 2 \SEMI \FENCE^\modeSC \SEMI \IF{y^\modeRA}\THEN r\GETS x \SEMI s\GETS x\FI)
   \\[-2ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.2em]
       \event{wx1}{\DW{x}{1}}{}
       \event{wy1}{\DWRel{y}{1}}{right=of wx0}
       \sync{wx1}{wy1}
       \event{wx2}{\DW{x}{2}}{right=3em of wy1}
-      % \event{f}{\DFS{\modeSC}}{right=of wx2}
-      % \sync{wx2}{f}
-      \event{ry1}{\DRSC{y}{1}}{right=of wx2}
-      \sync{wx2}{ry1}
+      \event{f}{\DFS{\modeSC}}{right=of wx2}
+      \sync{wx2}{f}
+      \event{ry1}{\DR[\modeRA]{y}{1}}{right=of f}
+      \sync{f}{ry1}
       \event{rx1}{\DR{x}{1}}{right=5em of ry1}
       \event{rx2}{\DR{x}{2}}{right=of rx1}
       \sync{ry1}{rx1}
@@ -825,15 +823,14 @@ the following outcome, which is disallowed here, but allowed by Java
   \end{gathered}
 \end{gather*}
 The highlighted events are $L$-stable.  The order from $(\DR{x}{1})$ to
-$(\DW{x}{2})$ is required by fulfillment, causing the cycle.  If we changed
-$y^\modeSC$ to $y^\modeRA$, there would be no order from $(\DW{x}{2})$ to
+$(\DW{x}{2})$ is required by fulfillment, causing the cycle.  If the fence is
+removed, there would be no order from $(\DW{x}{2})$ to
 $(\DRAcq{y}{1})$, the highlighted events would no longer be $L$-stable, and
 the execution would be allowed.  This more relaxed notion of ``past'' is not
 expressible using \citeauthor{Dolan:2018:BDR:3192366.3192421}'s
 synchronization primitives.
 
-The notion of ``future'' is also richer here.  Consider \cite[Example
-3]{Dolan:2018:BDR:3192366.3192421}:
+The notion of ``future'' is also richer here.  Consider \cite[Ex.~3]{Dolan:2018:BDR:3192366.3192421}:
 \begin{gather*}
   \taglabel{future}
   \begin{gathered}
@@ -841,7 +838,7 @@ The notion of ``future'' is also richer here.  Consider \cite[Example
   \PAR
   (r\GETS x \SEMI \REF{r}\GETS 7)
   \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+  \hbox{\begin{tikzinline}[node distance=1.2em]
       \event{a1}{\DW{\REF{1}}{42}}{}
       \event{a2}{\DR{\REF{1}}{7}}{right=of a1}
       \wk{a1}{a2}
@@ -849,7 +846,7 @@ The notion of ``future'' is also richer here.  Consider \cite[Example
       % \sync{a2}{a3}
       \event{a4}{\DWRel{x}{1}}{right=of a2}
       \sync{a2}{a4}
-      \event{b1}{\DR{x}{1}}{right=2em of a4}
+      \event{b1}{\DR{x}{1}}{right=3em of a4}
       \event{b2}{\DW{\REF{1}}{7}}{right=of b1}
       \po{b1}{b2}
       \rf{a4}{b1}

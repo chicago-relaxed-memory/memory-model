@@ -45,9 +45,11 @@ Good news is that a fullFence does it.
 Bizarrely, it seems this is not supported in C++... You have to go to assembly.
 \end{comment}
 
-The model is based on \emph{partially ordered multisets}~\cite{{GISCHER1988199,Plotkin:1997:TSP:266557.266600}},
-where events are labelled with reads and writes, and
-the partial order tracks causality, which arises from various types of dependency, coherence, and synchronization.
+The model is based on \emph{partially ordered
+  multisets}~\cite{{GISCHER1988199,Plotkin:1997:TSP:266557.266600}}, where
+events are labelled with reads and writes, and the partial order tracks
+dependencies, which arise within threads due to local dependencies and
+across threads due to reads and coherence.
 % Here, we are only using one order, which stands in stark contrast with
 % other models that use many different relations.
 
@@ -184,7 +186,7 @@ causing a control dependency from $(\DR{y}{1})$ to $(\DW{x}{1})$.
 In these diagrams, color plays no formal role.  There is only one order.  We
 use color only to help the reader see where the order comes from:
 \begin{itemize}
-\item $(\DR{y}{1})\xpo(\DW{x}{1})$ is a \emph{dependency} requirement,
+\item $(\DR{y}{1})\xpo(\DW{x}{1})$ is a \emph{local} requirement,
   relating reads to writes that depend on them.
 
 \item $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement,
@@ -203,8 +205,7 @@ use color only to help the reader see where the order comes from:
 
 In addition to actions, each pomset event is labeled with a
 \emph{precondition}.  Whereas read actions represent an obligation that must
-be \emph{fulfilled} concurrently by a matching write (Definition
-\ref{def:rf}), preconditions represent an obligation that must be
+be \emph{fulfilled} concurrently by a matching write (Def.~\ref{def:rf}), preconditions represent an obligation that must be
 \emph{satisfied} sequentially via substitution.
 
 To get a sense of how preconditions are satisfied, let us consider the
@@ -250,12 +251,13 @@ $(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
 $(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:pop},
 after giving the formal definitions.
 
-The same calculation fails for the write to $x$ in \eqref{OOTA!}.  In this case,
-the writes to $x$ on either side of the conditional cannot be combined, since
-once side writes $1$ and the other side writes $2$.  Thus, the semantics of
-the conditional contains $(r{=}1 \mid \DW{x}{1})$, rather than
-$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  It is only possible to weaken this
-precondition by introducing order from $(\DR{y}{1})$ to $(\DW{x}{1})$.
+The same calculation fails for the write to $x$ in \eqref{OOTA!}.  In this
+case, the writes to $x$ on either side of the conditional cannot be combined,
+since one side writes $1$ and the other side writes $2$.  Thus, the semantics
+of the conditional contains $(r{=}1 \mid \DW{x}{1})$, rather than
+$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  As we shall see, it is only possible to
+weaken this precondition by introducing order from $(\DR{y}{1})$ to
+$(\DW{x}{1})$.
 
 % though missing the features designed to capture
 % speculative execution attacks. We will present the model in this section,
@@ -303,6 +305,7 @@ We require that data models satisfy the following:
 \item there is a relation $\vDash$ between formulae, with the expected semantics.
 \end{itemize}
 
+%\paragraph{Actions}
 For the actions of a data model, we require that
 % \begin{itemize}
 % \item
@@ -342,7 +345,7 @@ $\Acq$, $\Rel$, $\SC$, and $\Term$.
 %
   \begin{itemize}    
   \item We say that action $\aAct$ is a \emph{read} if
-    $\aAct\in\fdom(\rreads)$ and $\aAct$ is a \emph{write} if
+    $\aAct\in\fdom(\rreads)$. We say that $\aAct$ is a \emph{write} if
     $\aAct\in\fdom(\rwrites)$.  When $\rreads(\aAct) = (\aLoc,\aVal)$,
     we say that $\aAct$ \emph{reads} $\aVal$ \emph{from} $\aLoc$, and
     similarly for writes.  We say that $\aAct$ \emph{accesses} $\aLoc$ if it
@@ -352,7 +355,9 @@ $\Acq$, $\Rel$, $\SC$, and $\Term$.
     \emph{fencing} actions.  We say that $\aAct$ is an \emph{acquire} if
     $\aAct\in\Acq$, $\aAct$ is a \emph{release} if $\aAct\in\Rel$, and
     $\aAct$ is \emph{SC} if $\aAct\in\SC$.  We require that every SC read is
-    an acquire, and every SC write is a release.
+    an acquire, and every SC write is a release:
+    $\fdom(\rreads)\SC\subseteq\Acq$ and 
+    $\fdom(\rwrites)\SC\subseteq\Rel$.
   % Note that these are \emph{not}
   % disjoint.
 % % We say that $\aAct$ is a
@@ -362,8 +367,9 @@ $\Acq$, $\Rel$, $\SC$, and $\Term$.
 % $\SC\cap\fdom(\rwrites)\subseteq\Rel$,
 % and
     
-  \item Actions in $\Term$ are \emph{termination} actions. We require that
-    termination events are releasing.
+  \item Actions in $\Term$ are \emph{termination} actions. We require $\Term\subseteq\Rel$.
+    % that
+    % termination events are releasing.
   \end{itemize}
 
   Our example language includes actions of the form $(\DSTOP)$, which is a
@@ -402,16 +408,18 @@ behavior \cite{undefined}.
 % discussion.  We inappropriately refer to them as synchronizations for
 % simplicity.}.
 
-\paragraph{Formulae} Logical formulae include equations over locations and registers, such
-$(\aLoc{=}1)$ and $(\aReg{=}\bReg{+}1)$.  Formulae are \emph{open}, in that
+% \paragraph{Formulae}
+Logical formulae include equations over locations and registers, such
+$(\aLoc{=}1)$ and $(\aReg{=}\bReg{+}1)$.
+We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
+
+Formulae are \emph{open}, in that
 occurrences of register names and memory locations are subject to
 substitutions of the form $\aForm[\aLoc/\aReg]$ and $\aForm[\bExp/\aLoc]$.
 % where %$\aLoc$ is a memory location, $\aReg$ is a register and
 % $\bExp$ is an
 % memory-location-free expression.
 Actions are not subject to substitution.
-
-We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 
 % % We require that $\finternalize$ satisfy the following:
 % % \begin{itemize}
@@ -459,6 +467,7 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 
 %For the formulae of the data model,
 \begin{definition}
+  \label{def:independent}
   We say $\aForm$ is \emph{independent of $\aLoc$} if, for every
   $\aVal$, $\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$; it is
   \emph{dependent} otherwise.
@@ -482,10 +491,11 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 We model single {executions} as \emph{pomsets with
   preconditions}---\emph{pomsets}, for short---ranged over by $\aPS$.  These
 extend the well-known model of partially ordered
-multisets~\cite{GISCHER1988199} with formulae and a termination event.
+multisets~\cite{GISCHER1988199} with formulae.
 
-The pomset order relation, $\le$, represents \emph{causality}.  We visualize
-pomsets as directed graphs.  For example, the semantics of
+The pomset order relation, $\le$, represents \emph{causality} or
+\emph{dependency}.  We visualize pomsets as directed graphs.  For example,
+the semantics of
 \begin{math}
   \VAR\aLoc\SEMI(
   x\GETS 0
@@ -518,17 +528,16 @@ $(\DW{x}{0})\xwk(\DW{x}{1})$ is a \emph{coherence} requirement: the write of $1$
 must follow the write of $0$, since these are in \emph{conflict} and in program order.
 $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement: the read of $x$
 must be \emph{fulfilled} by a matching write.
-$(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{dependency} requirement: the write to $y$
-\emph{depends on} the read of $x$.
+$(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{local dependency} requirement: the
+write to $y$ is 
+\emph{data dependent} the read of $x$; \emph{control} and \emph{address} dependencies are
+also local.
 $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
 \emph{fencing/synchronization} requirements.
 
 % Although we use multiple arrows, we emphasize that they are all part
 % of the same $\le$ relation.
 
-A pomset is \emph{completed} if it contains a unique termination action,
-ordered after all other events.  We henceforth elide the
-termination event in drawings, unless it is relevant to the discussion.
 
 
 
@@ -577,15 +586,16 @@ termination event in drawings, unless it is relevant to the discussion.
 % For example, interpreting the pomset on the left this way yields the valid
 % Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
-Each pomset represents a single execution.  Thus we require that all
-preconditions are \emph{consistent}.  For example, the semantics of
+Since each pomset represents a single execution, we require that all
+preconditions be \emph{consistent}.  For example, the semantics of
 $\IF{r<0}\THEN y\GETS1 \ELSE z\GETS1\FI$ includes pomsets with either
 $(r<0\mid\DW{y}{1})$ or $(r\geq0\mid\DW{z}{1})$, but not with both, since
 $(r<0\land r\geq0)$ is unsatisfiable.
 
 Preconditions are linked to pomset order via \emph{causal strengthening},
 which requires that formulae do not weaken over time, as measured by $\le$.
-We give an example that requires causal strengthening on page \pageref{page:strengthening}.
+Example \ref{strengthening} (\textsection\ref{sec:variants}) requires causal
+strengthening. % on page \pageref{page:strengthening}.
 % The precondition on $\DW{x}{1}$ is required by the data dependency induced by
 % $\bReg$ (see page \pageref{page:strengthening}).
 % For example, the semantics of $\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$ includes:
@@ -598,14 +608,12 @@ We give an example that requires causal strengthening on page \pageref{page:stre
 % \end{displaymath}
 % The precondition on $\DW{x}{1}$ is required by the data dependency induced by
 % $\bReg$ (see page \pageref{page:strengthening}).
-Note that, by causal strengthening, the precondition of the termination event
-of a completed pomset must imply the preconditions of all other events.
 
 \begin{definition}
   \label{def:mmpomset}
   A \emph{pomset with preconditions} is a tuple
   $(\Event, {\le}, %{\leloc},
-  \labeling)$: %, such that
+  \labeling)$, such that
   \begin{itemize}
   \item $\Event$ is a set of \emph{events},
   \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
@@ -619,7 +627,7 @@ of a completed pomset must imply the preconditions of all other events.
   \item $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
     \emph{(consistency)}, and
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$ \emph{(causal strengthening)}, and
+    $\labelingForm(\bEv)$ \emph{(causal strengthening)}.
   % \item if $\floc(\labelingAct(\bEv))=\floc(\labelingAct(\aEv))$ and
   %   $\bEv\le\aEv$ then $\bEv\leloc\aEv$ \emph{(observation)}.
   \end{itemize}
@@ -635,10 +643,15 @@ We write $\bEv\lt\aEv$ when $\bEv\le\aEv$ and $\bEv\neq\aEv$.
 %We write $\bEv\ltloc\aEv$ when $\bEv\leloc\aEv$ and $\bEv\neq\aEv$.
 %
 We often elide explicit universal quantifiers in phrases such as ``\emph{for
-  all $\aEv$}, $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.''  We
-lift terminology and notation from actions and formulae to events.  For
-example, we may say that $\aEv$ is a read when $\labelingAct(\aEv)$ is a
-read.
+  all $\bEv$ and $\aEv$ in $\Event$}, if $\bEv\le\aEv$ then
+$\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$.''  We lift terminology
+and notation from actions and formulae to events.  For example, we may say
+that $\aEv$ is a read when $\labelingAct(\aEv)$ is a read.
+
+A pomset is \emph{completed} if it contains a unique termination action,
+ordered after all other events.  
+Note that, by causal strengthening, the precondition of the termination event
+of a completed pomset must imply the preconditions of all other events.
 
 
 
@@ -650,28 +663,26 @@ read.
 % %
 % We expect sets of pomsets given by the semantics to be closed with
 % respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
-The notion of \emph{downset} for pomsets is similar to the notion of
-\emph{prefix} for strings:
+The semantics of programs is given as sets of completed pomsets that are
+closed with respect to \emph{downsets}, which are similar to prefixes for strings, to \emph{augmentation}, which may add order, and
+to \emph{implication}, which may strengthen formulae.  
+% The notion of \emph{downset} for pomsets is similar to the notion of
+% \emph{prefix} for strings:
 \begin{definition}
   \label{def:downset}
   $\aPS'$ is a \emph{downset} of $\aPS$ if
   $\Event \supseteq \Event' \supseteq \{ \bEv \in \Event \mid
   \exists\aEv\in\Event'.\; \bEv\le\aEv\}$, ${\le'}={\le}\restrict{\Event'}$,
   and ${\labeling'}={\labeling}\restrict{\Event'}$.
-\end{definition}
-We say that $\aPSS$ is \emph{downset-closed} if $\aPS\in\aPSS$ and $\aPS'$ is
-a downset of $\aPS$ implies $\aPS'\in\aPSS$.
-
-
-% (We identify
-% pomsets up to isomorphism on the event set.)
-
-The semantics of programs is given as sets of completed pomsets that are
-closed with respect to order \emph{augmentation}, which may add order, and
-\emph{implication}, which may have stronger formulae.  In examples, we draw
-pomsets that are \emph{augmentation\hyp{}minimal} and
-\emph{implication\hyp{}minimal}.
-\begin{definition}
+  % \end{definition}
+  % % We say that $\aPSS$ is \emph{downset-closed} if $\aPS\in\aPSS$ and $\aPS'$ is
+  % % a downset of $\aPS$ implies $\aPS'\in\aPSS$.
+  
+  
+  % % (We identify
+  % % pomsets up to isomorphism on the event set.)
+  
+  % \begin{definition}
   We say that
   $\aPS'$ is an \emph{augment} of $\aPS$ if $\Event'=\Event$,
   ${\labeling'}={\labeling}$, and ${\le'}\supseteq{\le}$. 
@@ -698,11 +709,14 @@ pomsets that are \emph{augmentation\hyp{}minimal} and
 % %   % if $\labeling(\aEv) = (\bForm \mid \bAct)$ then $\labeling'(\aEv) = (\bForm' \mid \bAct)$ where $\bForm'$ implies $\bForm$.
 % % \end{definition}
 
+In examples, we draw pomsets that are \emph{augmentation\hyp{}minimal} and
+\emph{implication\hyp{}minimal}.  We systematically elide the termination
+event in diagrams, unless it is relevant to the discussion.
+
 \subsection{Example Language}
 \begin{comment}
 \footnote{We only consider executions where register state is empty in
-  forked threads.  Given item~\ref{pre-acquire} of
-  Candidate~\ref{def:prefix}, a sufficient condition is that parallel
+  forked threads.  Given requirement~\ref{pre-acquire}, a sufficient condition is that parallel
   composition is always preceded by an acquire fence, as in programs of the
   form:
   \begin{displaymath}
@@ -797,7 +811,7 @@ be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
    \label{def:rf}
  Two actions \emph{conflict} if one writes a location and the other
 either reads or writes the same location.
-We say $\bEv$ \emph{fulfills $\aEv$ (on $\aLoc$)} if 
+We say $\bEv$ \emph{fulfills $\aEv$} (on $\aLoc$) if 
 % \begin{itemize}    
 % \item
 \labeltextsc[F1]{(F1)}{rf1} $\bEv$ \externally writes $\aVal$ to $\aLoc$, 
@@ -813,8 +827,8 @@ We say $\bEv$ \emph{fulfills $\aEv$ (on $\aLoc$)} if
 % Throughout this section, we will ignore the last disjunct in \ref{rf4}; we
 % discuss it in \textsection\ref{
 
-Item \ref{rf3} requires that a write $\bEv$ is ordered before any read $\aEv$
-it fulfills; this order is typically called \emph{reads from}.  Item
+\ref{rf3} requires that a write $\bEv$ is ordered before any read $\aEv$
+that it fulfills; this order is typically called \emph{reads from}. 
 \ref{rf4} requires that any conflicting write $\cEv$ is ordered before $\bEv$
 or after $\aEv$; this order is typically called \emph{extended coherence}.
 For readability, we draw the order required by \ref{rf3} using bold green
@@ -886,8 +900,7 @@ discuss coherence further on page \pageref{page:coherence2}.
 In order to be $\aLoc$-closed, a pomset must be ``done'' with $\aLoc$, in
 both the concurrent and the sequential semantics.  The concurrent semantics
 requires that all reads of $\aLoc$ be fulfilled.  The sequential semantics
-requires that all formulae be \emph{independent of $\aLoc$}, as defined
-in \textsection\ref{sec:data:models}:
+requires that all formulae be \emph{independent of $\aLoc$} (Def.~\ref{def:independent}):
 $\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
 
 
@@ -1108,13 +1121,13 @@ calculation (\textsection\ref{sec:variants}).  % In both cases, the use of
 % (Definition~\ref{def:dis}).
 
 Because of consistency
-(Definition~\ref{def:mmpomset}), we do not include events with contradictory
-preconditions.
+(Def.~\ref{def:mmpomset}), we do not include events with contradictory
+preconditions:
 % : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
 % $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
 % To make coalescing more explicit in the following examples, we show the
 % element of the carrier set $\Event$ to left of its label.
-Consider:
+%Consider:
 \begin{align*}
 \begin{gathered}
   \IF{r<0}\THEN y\GETS1\FI
@@ -1132,10 +1145,11 @@ Consider:
     \end{tikzinline}}
 \end{gathered}
 \end{align*}
-The parallel composition includes pomsets with either one of the two events, but not
-both: including both would violate consistency.  However,  events with the same label may coalesce, taking the
-disjunction of their preconditions.  Thus, the semantics of the combined
-program also includes
+The parallel composition of these programs includes pomsets with either one
+of the two events, but not both: including both would violate consistency.
+However, events with the same label may coalesce, taking the disjunction of
+their preconditions.  Thus, the semantics of the combined program also
+includes
 \begin{math}
   (r<0\lor r\geq0\mid\DW{y}{1})
   % \IF{r<0}\THEN y\GETS1\FI
@@ -1146,7 +1160,7 @@ program also includes
   %(\eventl{a}{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
   % \end{tikzinline}}
 \end{math}.
-Coalesced events inherit order from both sides.
+As discussed in the next subsection, coalesced events inherit order from both sides.
 \begin{definition}
   \label{def:par}
   % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
@@ -1159,8 +1173,8 @@ Coalesced events inherit order from both sides.
   when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$
   such that
 $\aPS^1$ is completed exactly when $\aPS^2$ is completed,
-$\Event' = \Event^1 \cup \Event^2$,
 there is at most one termination in $\Event'$,
+$\Event' = \Event^1 \cup \Event^2$,
 ${\le'}\supseteq{\le^1}\cup{\le^2}$,
 and for all $\aEv\in\Event'$,
 either:
@@ -1338,13 +1352,13 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 \subsection{Conditional, Register Assignment, and Skip}
 Conditional execution is defined using parallel composition and
 \emph{filtering}: $(\aForm \guard \aPSS)$ selects the subset of pomsets in
-$\aPSS$ that are implied by $\aForm$.  Register assignment is defined using
+$\aPSS$ whose preconditions all imply $\aForm$.  Register assignment is defined using
 substitution: $(\aPSS\aSub)$ performs the substitution $\aSub$ on every
 formula in $\aPSS$.  The semantics of $\SKIP$ is defined using singleton
 pomsets with label $\DSTOP$.
 \begin{definition}
   Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
-  $\aPS'\in\aPSS'$ when $\aForm$ implies $\labelingForm(\aEv')$ %, %for every
+  $\aPS'\in\aPSS'$ when $\labelingForm(\aEv')$ implies $\aForm$ %, %for every
   $(\forall\aEv'\in\Event')$. 
   %
   Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
@@ -1368,7 +1382,7 @@ pomsets with label $\DSTOP$.
 \end{align*}
 \end{definition}
 Substitution applies to formulae, not actions.  For example,
-$(x{=}1\mid\DW{x}{2})[y/x]=(y{=}1\mid\DW{x}{2})$. % and $(r{=}1\mid\DW{x}{2})[x/r]=(x{=}1\mid\DW{x}{2})$.
+$(x{=}1\mid\DW{x}{2})[0/x]=(0{=}1\mid\DW{x}{2})$. % and $(r{=}1\mid\DW{x}{2})[x/r]=(x{=}1\mid\DW{x}{2})$.
 
 As an example of the conditional, consider the following fragments:
 \begin{align}
@@ -1495,7 +1509,10 @@ violates consistency.
 \label{sec:pop}
 
 We present a candidate definition for prefixing.  The full definition follows
-in \textsection\ref{sec:refine}.
+in \textsection\ref{sec:refine}.   We expect the semantics to be downclosed.
+This definition is simplified by performing this closure explicitly.
+Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
+  
 
 % \begin{candidate}
 %   \label{def:pre-sc}
@@ -1624,8 +1641,6 @@ in \textsection\ref{sec:refine}.
   \label{cand:ord}
   \label{def:pre-sc}
   \label{def:prefix}
-  Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
-  
   Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
   $\PRE{\aPSS'}$ %$\aPSS'$ 
   where
@@ -1641,23 +1656,29 @@ there is $\aPS\in\aPSS$ such that
 % \item[(3a)] $\labelingAct'(\bEv) = \aAct$,
 % \item[(3b)] $\labelingForm'(\bEv)$ implies $\aForm$,
 % \item[(4a)] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
-\item[{\labeltextsc[P4a]{(P4a)}{4a}}]{\labeltextsc[P4]{}{4}} $\labelingForm'(\bEv)$ implies $\aForm$, 
-\item[{\labeltextsc[P4b]{(P4b)}{4b}}] if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+\item[{\labeltextsc[P4a]{(P4a)}{4a}}]{\labeltextsc[P4]{}{4}}%
+  $\labelingForm'(\bEv)$ implies $\aForm$, 
+\item[{\labeltextsc[P4b]{(P4b)}{4b}}]
+  if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item[{\labeltextsc[P4c]{(P4c)}{4c}}] if $\bEv$ does not \externally read then
+\item[{\labeltextsc[P4c]{(P4c)}{4c}}]
+  if $\bEv$ does not \externally read then
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
-\item[{\labeltextsc[P5a]{(P5a)}{5a}}] %$\bEv$ \externally reads and
-  \labeltextsc[P5]{}{5} if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+\item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}%
+  if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
 % \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
 %   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
 %   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
 % \item[5a.] if %$\bEv$ \externally reads and
 %   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
 %   $\bEv\lt'\aEv$,
-\item[{\labeltextsc[P5b]{(P5b)}{5b}}] if $\bEv$ and $\aEv$ are \external actions in conflict,
-    then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
-\item[{\labeltextsc[P5c]{(P5c)}{5c}}] if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
-\item[{\labeltextsc[P5d]{(P5d)}{5d}}] if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
+\item[{\labeltextsc[P5b]{(P5b)}{5b}}]
+  if $\bEv$ and $\aEv$ are \external actions in conflict,
+  then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
+\item[{\labeltextsc[P5c]{(P5c)}{5c}}]
+  if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+\item[{\labeltextsc[P5d]{(P5d)}{5d}}]
+  if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
 %\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
@@ -1680,48 +1701,56 @@ there is $\aPS\in\aPSS$ such that
   \end{gather*}
 \end{candidate}
 
-The main work happens in the definition of prefixing ($\prefix$): Item
-\ref{1} introduces a new event.  Item \ref{2} ensures that no order is
-removed from old events. Item \ref{3} specifies the actions labelling the
-events; item \ref{4} specifies the preconditions.  Item \ref{5}
-specifies the preserved program order.
+The semantics of read and write introduce a separate pomset for each possible
+value read or written.  The value is fixed in each pomset.  For writes, the
+dependence on $\aExp$ appears in the precondition $(\aExp=\aVal)$.
 
-The semantics of read and write introduce a pomset for each possible value.
-In each pomset, the value appearing in the action is fixed.  For writes, the dependence on
-$\aExp$ appears in the precondition: $\aExp=\aVal$.
+The main work happens in the definition of prefixing ($\prefix$).  \ref{1}
+introduces a new event.  \ref{2} ensures that no order is removed from old
+events.  \ref{3} specifies the actions labelling the events.  \ref{4}
+specifies the preconditions (along with \ref{5a}).  \ref{5} specifies the
+preserved program order.
 
 Writes introduce preconditions that must be satisfied using substitution and
-in \ref{4b}.  Reads introduce a fulfillment requirement, which is constrained
-by the program order that is preserved by \ref{5}. Requirement \ref{5a}
-connects the sequential semantics of write to the concurrent semantics of read.
+\ref{4b}.  Reads introduce a fulfillment requirement, which is constrained by
+the program order that is preserved by \ref{5}.
+
+Requirement \ref{5a} connects
+the sequential semantics of write to the concurrent semantics of read.
 %\ref{5a} captures \emph{read to write  dependency}.
-It only requires order from read to write\footnote{When $\bEv$ is not a
-  read, \ref{4c} trivially implies \ref{5a}.} when the precondition of the
-write is \emph{weakened} using \ref{4b}.  The other requirements in \ref{5}
-are standard: \ref{5b} captures the extended coherence requirement on actions
-that touch the same location.  \ref{5c} imposes the order required by acquire
-and release actions.\footnote{Recall that termination actions are releases.}
-\ref{5d} imposes the additional order required by SC actions.\footnote{Recall
-  that SC reads are acquires and SC writes are releases.}
+\ref{5a} requires order from read to write when the precondition of the write
+is \emph{weakened} using \ref{4b} (when $\bEv$ is not a read, \ref{4c}
+trivially implies \ref{5a}).
 
-In the remainder of this section, we focus on the sequential semantics.  We
-explain the concurrent semantics in the next section using standard litmus tests.
+The other requirements in \ref{5} are standard.  \ref{5b} captures the
+extended coherence requirement on sequential actions that touch the same location.
+\ref{5c} imposes the order required by acquire and release actions.  \ref{5d}
+imposes the additional order required by SC actions.  (Recall that SC reads
+are acquires, and that SC writes and termination actions are releases.)
 
+We explain the concurrent semantics in the next section using standard litmus
+tests.  In the remainder of this section, we focus on the sequential
+semantics.
 % Whereas a write action introduces a precondition---that must be satisfied
 % sequentially---on the value to be written; a read introduces a pomset
 % requirement---that may be fulfilled concurrently---on the value to be read.
-
-
+%
 % The interaction between preconditions and preserved order is capture in
 % \ref{5a}.
 % Program order need only be preserved from a read to a dependent
 % write (\ref{5a}), between conflicting events (\ref{5b}), and around fences
 % and synchronization (\ref{5c}, \ref{5d}).
-
-Let us revisit the unexpected execution \eqref{unexpected}: % of \eqref{OOTA?}:% ,
+Let us revisit %the unexpected execution
+\eqref{unexpected}: % of \eqref{OOTA?}:% ,
 % as explained in \textsection\ref{sec:domain}:
 \begin{gather*}
   \tag{\ref{unexpected}}
+  \begin{gathered}
+  y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+  \PAR
+  r\GETS y\SEMI \IF{r}\THEN 
+  x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
+  \\
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
   \event{wy0}{\DW{y}{0}}{left=of wx0}
@@ -1740,46 +1769,52 @@ Let us revisit the unexpected execution \eqref{unexpected}: % of \eqref{OOTA?}:%
   \sync[out=20,in=160]{wx1}{stop}
   \sync{wa1}{stop}
     \end{tikzinline}}  
+\end{gathered}
 \end{gather*}
 % Note that $\sem{z\GETS r}$ contains $(r{=}0\mid\DW{z}{0})$,
 % $(r{=}1\mid\DW{z}{1})$, etc.  Thus 
 It is immediate from the definition that $\sem{x\GETS r\SEMI z\GETS r}$
 contains pomset candidates such as:
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx}{r=1\mid\DW{x}{1}}{}
-      \event{wz}{r=1\mid\DW{z}{1}}{right=of wx}
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{wx}{r{=}0\mid\DW{x}{0}}{}
+      \event{wz}{r{=}0\mid\DW{z}{0}}{right=of wx}
     \end{tikzinline}}  
   &&
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx}{r=1\mid\DW{x}{1}}{}
-      \event{wz}{r=2\mid\DW{z}{2}}{right=of wx}
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{wx}{r{=}1\mid\DW{x}{1}}{}
+      \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
+    \end{tikzinline}}  
+  &&
+  \hbox{\begin{tikzinline}[node distance=.5em]
+      \event{wx}{r{=}0\mid\DW{x}{0}}{}
+      \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
 \end{align*}
-Consistency (Definition \ref{def:mmpomset}) rules out the right pomset, since
+Consistency (Def.~\ref{def:mmpomset}) rules out the rightmost pomset, since
 the conjunction of preconditions is unsatisfiable.
 No order is required between the writes.
-
 % Thus,
 % $\sem{x\GETS r\SEMI z\GETS r}$ can only contains pomsets such as:
 % \begin{align*}
-%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%   \hbox{\begin{tikzinline}[node distance=1em]
 %       \event{wx}{r{=}1\mid\DW{x}{1}}{}
 %       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
 %     \end{tikzinline}}  
 %   &&
-%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%   \hbox{\begin{tikzinline}[node distance=1em]
 %       \event{wx}{r=2\mid\DW{x}{2}}{}
 %       \event{wz}{r=2\mid\DW{z}{2}}{right=of wx}
 %     \end{tikzinline}}  
 % \end{align*}
-Combining the two sides of the conditional, 
+Combining the middle pomset with $(r{=}0\mid \DW{x}{1})$,
+the conditional
 \begin{math}
   \sem{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI}
 \end{math}
 contains:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{r{=}1\lor r{=}0\mid\DW{x}{1}}{}
       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
@@ -1787,7 +1822,7 @@ contains:
 
 When prefixing ``$r\GETS y$,'' we first substitute $[y/r]$, resulting in:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
       \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
@@ -1798,29 +1833,29 @@ Adding the read action,
 \end{math}
 contains:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
-      \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{(y{=}1\lor y{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
+      \event{wz}{(y{=}1) \land (1{=}1)\mid\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
     \end{tikzinline}}
 \end{gather*}
-Since $(y{=}1)[2/y]$ is unsatisfiable, \ref{4b} prevents pomsets such as:
+The second conjunct in each event is required by \ref{4b}. \ref{4b} also prevents inconsistent reads such as:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
-      \event{wz}{y{=}1\mid\DW{z}{1}}{right=of wx}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{(y{=}1\lor y{=}0) \land(2{=}1\lor 2{=}0)\mid\DW{x}{1}}{}
+      \event{wz}{(y{=}1) \land (1{=}1)\mid\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{2}}{left=of wx}
     \end{tikzinline}}
 \end{gather*}
-Thus the read must be consistent with the predicates.
 
 \ref{4b} also allows predicates to weaken, in which case \ref{5a} requires order:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
-      \event{wz}{\DW{z}{1}}{right=of wx}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{(y{=}1\lor y{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
+      %\event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
+      \event{wz}{(1{=}1) \land (1{=}1)\mid\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
-      \po[out=15,in=165]{ry}{wz}
+      \po[out=10,in=170]{ry}{wz}
     \end{tikzinline}}
 \end{gather*}
 Adding the write,
@@ -1829,29 +1864,30 @@ Adding the write,
 \end{math}
 substitutes $[0/y]$, resulting in: 
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx}{0{=}1\lor 0{=}0\mid\DW{x}{1}}{}
-      \event{wz}{\DW{z}{1}}{right=of wx}
-      \event{ry}{\DR{y}{2}}{left=of wx}
-      \event{wy}{\DW{y}{0}}{left=of ry}
-      \po[out=15,in=165]{ry}{wz}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{(0{=}1\lor 0{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
+      %\event{wx}{0{=}1\lor 0{=}0\mid\DW{x}{1}}{}
+      \event{wz}{(1{=}1) \land (1{=}1)\mid\DW{z}{1}}{right=of wx}
+      %\event{wz}{\DW{z}{1}}{right=of wx}
+      \event{ry}{\DR{y}{1}}{left=of wx}
+      \event{wy}{0{=}0\mid\DW{y}{0}}{left=of ry}
+      \po[out=10,in=170]{ry}{wz}
       \wk{wy}{ry}
     \end{tikzinline}}
 \end{gather*}
-Since $0{=}1\lor 0{=}0$ is a tautology, we have:
+Simplifying the tautologies, we have:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{\DW{x}{1}}{}
       \event{wz}{\DW{z}{1}}{right=of wx}
-      \event{ry}{\DR{y}{2}}{left=of wx}
+      \event{ry}{\DR{y}{1}}{left=of wx}
       \event{wy}{\DW{y}{0}}{left=of ry}
       \po[out=15,in=165]{ry}{wz}
       \wk{wy}{ry}
     \end{tikzinline}}
 \end{gather*}
 
-As discussed at the beginning of this section, an attempt to replicate this execution with \eqref{OOTA!} fails,
-introducing a cycle:
+As discussed at the beginning of this section, an attempt to replicate this execution with \eqref{OOTA!} fails:
 \begin{gather*}
   \tag{\ref{OOTA!}}
   \begin{gathered}
@@ -1880,27 +1916,27 @@ introducing a cycle:
 \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-The difference can be seen immediately when looking at the two sides of the
-conditional
+The difference between \eqref{OOTA?} and \eqref{OOTA!} can be seen
+in the conditional
 \begin{math}
   \sem{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI},
 \end{math}
 which contains:
 \begin{align*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{r{=}1\mid\DW{x}{1}}{}
       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
   &&
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{r{=}2\lor r{=}0\mid\DW{x}{2}}{}
       \event{wz}{r{=}2\mid\DW{z}{2}}{right=of wx}
     \end{tikzinline}}  
 \end{align*}
-In particular, there is no $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
-It is only possible to satisfy the precondition of $(r{=}1\mid\DW{x}{1})$
-using \ref{4b} when prefixing $(\DR{y}{1})$, which forces a dependency
-between the read and write via \ref{5a}.
+However, there is no pomset that contains $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
+Using the left pomset above, it is only possible to satisfy the precondition
+of $(r{=}1\mid\DW{x}{1})$ using \ref{4b} when prefixing $(\DR{y}{1})$. This
+forces a dependency between the read and write via \ref{5a}.
 
 \endinput
 
@@ -1990,7 +2026,7 @@ Prepending $\aReg\GETS\aLoc$ first causes the substitution $[x/r]$:
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
-Item \ref{4b} then the substitutes the chosen value $[1/x]$:
+\ref{4b} then the substitutes the chosen value $[1/x]$:
 \begin{align}
   \label{ex-2}
   \begin{gathered}
@@ -2048,7 +2084,7 @@ resulting pomset has a read event that must be \emph{fulfilled}.
 % are given disjoint preconditions.
 
 %The use of $\parallel$ is unnecessary  for reads.
-% : the read rule does not introduce read preconditions, and item \ref{5a} of
+% : the read rule does not introduce read preconditions, and \ref{5a} of
 % Definition \ref{def:prefix} ignores them.
 Whereas a write action introduces a precondition---satisfied
 sequentially---on the value to be written; a read introduces a pomset
@@ -2114,7 +2150,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 % \subsection{General Prefixing}
 % \label{sec:gp}
 
-% We now relax item \ref{5} so that only some program order is {preserved}.
+% We now relax  \ref{5} so that only some program order is {preserved}.
 % The final definition has a small delta with respect to
 % Candidate \ref{def:pre-sc}.  Program order need only be preserved from
 % a read to a dependent write (\ref{5a}), between conflicting events
@@ -2135,7 +2171,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 %   $\PRE{\aPSS'}$ %$\aPSS'$ 
 % where
 % $\aPS'\in\aPSS'$ when
-% there is some $\aPS\in\aPSS$ that satisfies items \ref{1}-\ref{4} of
+% there is some $\aPS\in\aPSS$ that satisfies \ref{1}-\ref{4} of
 % Candidate \ref{def:pre-sc} such that:
 % \begin{enumerate}
 % \item[{\labeltext[5a]{(5a)}{5a}}] %$\bEv$ \externally reads and
@@ -2255,7 +2291,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 % by the triple
 % $\hoare{\TRUE}{\aCmd}{y=1}$.
 
-Item \ref{5a} imposes order from read to write when weakening the
+\ref{5a} imposes order from read to write when weakening the
 precondition of the write via \ref{4b}, as on the left hand side of
 \eqref{ex-2}.
 % \begin{gather*}
@@ -2267,8 +2303,8 @@ precondition of the write via \ref{4b}, as on the left hand side of
 %       \po{rx1}{wy1}
 %     \end{tikzinline}}
 % \end{gather*}
-Item \ref{4b} \emph{allows} a precondition to weaken, but does not \emph{require} it.
-Item \ref{5a} only requires order when the precondition weakens.
+\ref{4b} \emph{allows} a precondition to weaken, but does not \emph{require} it.
+\ref{5a} only requires order when the precondition weakens.
 Thus, no order is required in: % the following execution:
 \begin{gather*}
   \aCmd=(r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI)
@@ -2285,7 +2321,7 @@ The existence of this pomset is justified
 by the Hoare triple $\hoare{x\geq0}{\aCmd}{y=1}$.  It is not justified by the value of the read
 action.  
 
-Nonetheless, item \ref{4b} requires that the value of the read action must
+Nonetheless, \ref{4b} requires that the value of the read action must
 be \emph{consistent} with subsequent formulae, via
 $\labelingForm(\aEv)[\aVal/\aLoc]$.  In this example, the pomset becomes inconsistent
 if ${-}2$ is read for $x$:
@@ -2326,11 +2362,11 @@ pomset on the left below, but not that inconsistent ``pomset'' on the right:
     \end{tikzinline}}
 \end{align*}
 
-Like item \ref{4b}, which substitutes $[\aVal/\aLoc]$ during a read, Candidate
+Like \ref{4b}, which substitutes $[\aVal/\aLoc]$ during a read, Candidate
 \ref{cand:ord} substitutes $[\aExp/\aLoc]$ during a write.  Like \ref{4b}, this
 affects subsequent preconditions, either allowing them to weaken, or
 requiring them to strengthen.  For write prefixing, however, there is no rule
-corresponding to item \ref{5a}. Unlike a read event, order is \emph{not} imposed from
+corresponding to  \ref{5a}. Unlike a read event, order is \emph{not} imposed from
 a write event to the subsequent events whose precondition it weakens:
 \begin{align*}
 \begin{gathered}

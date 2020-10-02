@@ -15,15 +15,15 @@ preconditions.  In that paper we studied \emph{micro\hyp{}architecture},
 where failed speculative execution is visible via cache effects.  Here we
 presented an \emph{architectural} model, which allows us to impose
 \emph{consistency}, ignoring failed speculative execution, and \emph{causal
-  strengthening}.  As discussed in \textsection\ref{sec:limits},
+  strengthening}.  As we  discuss in \textsection\ref{sec:limits},
 \cite{2019-sp} used 3-valued pomsets, as opposed to the simple pomsets used
-here.  The previous paper was not focussed on memory models, and thus did not
+here.  The previous paper was not focused on memory models, and thus did not
 prove the soundness of compiler optimizations, the absence of thin air reads,
 efficient implementability, or \drfsc{}.
 
-Both \cite{2019-sp} and this paper are inspired by \citeauthor{Batty17}'s
-[\citeyear{Batty17}] call for a compositional approach to the semantics of
-relaxed memory concurrency.  
+% Both \cite{2019-sp} and this paper are inspired by \citeauthor{Batty17}'s
+% [\citeyear{Batty17}] call for a compositional approach to the semantics of
+% relaxed memory concurrency.  
 % in relaxed 
 % outlines the program of trying to
 % understand relaxed dependency modularly, inspiring \citet{2019-sp} and
@@ -77,7 +77,7 @@ reordering of a relaxed write with a following relaxed read.
 % The paper develops an axiomatic semantics and studies effects on compilation.  
 \textsc{bmm} is designed as a restriction of the \jmm\ that compiles efficiently to
 \tso.  It requires fencing on other architectures.
-
+%
 \citet{DBLP:conf/fm/LahavV16} characterized \tso\ as being derived by
 considering Write-Read (\textsf{WR}) reordering and Read-After-Write
 (\textsf{RAW}) elimination.  They also showed that the release acquires of
@@ -231,10 +231,10 @@ sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
 We have not attempted validate all program transformations that involve
 synchronization, fences or \RMWs{}
 \cite{DBLP:conf/popl/VafeiadisBCMN15,DBLP:phd/hal/Morisset17}.  Nonetheless,
-our semantics validates roach motel (\ref{RelW}, \ref{AcqW}), redundant load
-and fence removal (\ref{RL}, \ref{RF}), and store forwarding (\ref{SF}).  We
+our semantics validates roach motel (\ref{RelW}, \ref{AcqW}), redundant load (\ref{RL}),
+fence removal (\ref{RF}), and store forwarding (\ref{SF}).  We
 expect that dead store elimination (\ref{DS}) generalizes to non-relaxed
-access by generalizing Definition \ref{def:cover} of $\relfilt[]{\aLoc}$.
+access by generalizing the Definition \ref{def:cover} of $\relfilt[]{\aLoc}$.
 Some transformations are not sound in the model, but we expect them to be
 provable as meta properties.  For example, access-mode strengthening (such as
 replacing $\modeRLX$ by $\modeRA$) is valid up to an equivalence that ignores
@@ -330,7 +330,7 @@ to fulfill $(\DR{y}{1})$.  % Proving this requires the ability to reason about
 % values.
 % \labeltext{The}{page:logic:limits} logic we presented in \textsection\ref{sec:logic} is only strong enough
 % to prove a few examples.
-
+%
 As another example,
 consider the following, from \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}:
 \begin{gather*}
@@ -364,12 +364,12 @@ consider the following, from \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}
 \end{gathered}
 \end{gather*}
 The attempted execution is \emph{not} allowed by our semantics, due to the
-evident cycle.  Surprisingly, this outcome is allowed by the promising
+evident cycle.  Intuitively, it is not possible for the left thread to
+read $3$ for $x$ when the right thread reads $2$.  Proving this may require a
+logic with modalities to deal with intervening writes and coherence.  Surprisingly, this outcome is allowed by the promising
 semantics \cite{DBLP:conf/popl/KangHLVD17}.
 \citeauthor{DBLP:journals/pacmpl/ChakrabortyV19} developed \weakestmo{} to
-address this example.  Intuitively, it is not possible for the left thread to
-read $3$ for $x$ when the right thread reads $2$.  Proving this may require a
-logic with modalities to deal with intervening writes and coherence.
+address this example; however, \weakestmo{} does not address \ref{OOTA1}.  
 % \emph{On the upside, our logic is powerful enough to show that our semantics
 %   disallows \oota{} executions of \ref{OOTA4} --- \weakestmo{} and the
 %   promising semantics both permit \oota{} executions of \ref{OOTA4} (see \textsection\ref{sec:promising}).}
@@ -402,6 +402,7 @@ In the discussion of \ref{MCA2}, we noted that our model does not enforce
 order between reads dues to address and control dependencies.  This has
 implications for Java's final field semantics.  Consider:
 \begin{gather*}
+  \taglabel{addr}
   \begin{gathered}
   (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
   \PAR

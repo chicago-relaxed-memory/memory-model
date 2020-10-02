@@ -85,7 +85,7 @@ immediately after executing $x\GETS1$.  Compare \eqref{OOTA?} with:
 \end{gather}
 which has a similar execution where $z=2$, but does not have an execution
 where $z=1$. Note that the only difference between \eqref{OOTA?} and
-\eqref{OOTA!} is the code in the branch which was not taken. This means that
+\eqref{OOTA!} is the code in the branch that was not taken. This means that
 any model of relaxed memory that supports common compiler optimizations (such
 as the transformations above) must take into account code that was not
 executed. This is why most relaxed memory models include some form of
@@ -158,10 +158,10 @@ to validate CSE, at least not for relaxed atomic access (consider the case
 where $x$ and $y$ are aliased above).  C11 \emph{does} allow the
 transformation for \emph{plain} access, but this comes with the threat of
 \emph{undefined behavior} should any plain access ever possibly engage in a
-data race \cite{undefined}.  C11 also suffers from ``Out Of Thin Air''
-(\oota) behavior \cite{DBLP:conf/esop/BattyMNPS15}, allowing spurious values
-to arise from cycles in causality.  Undefined and \oota{} behaviors are
-antithetical to the goals of safe languages.
+data race \cite{undefined}.  C11 also allows values that arise ``Out Of Thin
+Air'' (\oota) \cite{DBLP:conf/esop/BattyMNPS15}, exploiting causality cycles.
+Undefined and \oota{} behaviors are antithetical to the goals of safe
+languages.
 % Thus the folklore belief that ``every substantial C program has
 % undefined behavior.''
 
@@ -239,15 +239,15 @@ dependencies.
 
 The logical perspective provides a clear intuition as to why certain compiler
 transformations should be valid.  Such intuitions are not always readily
-available in relaxed memory models.  For example, value range analysis---used
-in the discussion of \eqref{OOTA?}---is very difficult in many models.  As
-another example, models such as \armeight{} distinguish \emph{internal}
-reads, which are fulfilled by a write of the same thread, from
-\emph{external} ones.  Unlike externally fulfilled reads, internal reads are
-not necessarily recorded in the dependency relation.  As exemplified by
-$\aCmd_3$, this allows a compiler to reorder the fulfilling write and the
-subsequent code that depends on the read.  Internal reads require no special
-treatment in our model.
+available in relaxed memory models.  For example, \emph{value range
+  analysis}---used in the discussion of \eqref{OOTA?}---is very difficult in
+many models.  As another example, models such as \armeight{} distinguish
+\emph{internal} reads, which are fulfilled by a write of the same thread,
+from \emph{external} ones.  Unlike externally fulfilled reads, internal reads
+are not necessarily recorded in the dependency relation.  As exemplified by
+$\aCmd_3$, this allows a compiler to reorder the fulfilling write with
+subsequent code that depends on the read.  Neither value range analysis nor
+internal reads require no special treatment in our model.
 
 
 

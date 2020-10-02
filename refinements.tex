@@ -1,4 +1,5 @@
-\section{Refinements}
+%\section{Refinements}
+\section{Case Analysis, Access Elimination, and Read Introduction}
 \label{sec:refine}
 
 The previous section shows the simplicity and beauty of pomsets with
@@ -8,7 +9,7 @@ complications and ugliness.
 We limit attention to relaxed access---Candidate \ref{cand:ord} provides our
 final definition of prefixing for $\modeRA$/$\modeSC$ access.  In particular,
 we do not attempt to validate rewrites that eliminate $\modeRA$/$\modeSC$
-accesses.  In this section, we elide $\modeRLX$-mode annotations in definitions.
+accesses, beyond those already given.  
 
 For relaxed access, the following definition enriches Candidate
 \ref{cand:ord} with additional pomsets.  As we discuss below, this definition
@@ -17,18 +18,19 @@ store elimination \eqref{DS}, and case analysis \eqref{CA}.  We end this
 section with a brief discussion of a read-enriched semantics that validates
 irrelevant read introduction \eqref{RI}.
 
-
+In this section, we elide
+$\modeRLX$-mode annotations in definitions.
 \begin{definition}
   \label{def:cover}
   Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ %$\aPSS'$
   where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
-  items \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
+  \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
   \begin{itemize}
   \item[{\labeltextsc[P6]{(P6)}{6}}]
     if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
     is location independent.
   \end{itemize}  
-  
+
   Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$,
   ${\le'} = {\le}$, $\labelingAct' = \labelingAct$, and either
@@ -36,19 +38,22 @@ irrelevant read introduction \eqref{RI}.
   $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
     such that $\bEv\le\aEv$} and
   $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
-  % $\labelingForm'(\aEv)$ implies $\TRUE$ if  and
-  % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  %
+  % % $\labelingForm'(\aEv)$ implies $\TRUE$ if  and
+  % % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
 
-  Let $(\Rdis{\aLoc}{}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  $\labelingAct' = \labelingAct$,
-  and either
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
-  $\le$-minimal and
-  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$).
-  % $\labelingForm'(\aEv)$ implies $\TRUE$ if
-  % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$) and
-  % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  Let $(\Rdis{\aLoc}{}\aPSS) = \textstyle\bigcup_\aVal \Rdis{\aLoc}{\aVal}\aPSS$.
+  % Let $(\Rdis{\aLoc}{}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  % when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+  % $\labelingAct' = \labelingAct$,
+  % and either
+  % $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
+  % $\le$-minimal and
+  % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$).
+  % %
+  % % $\labelingForm'(\aEv)$ implies $\TRUE$ if
+  % % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$) and
+  % % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
 
   Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
@@ -116,7 +121,7 @@ irrelevant read introduction \eqref{RI}.
 \end{definition}
 There are six changes in the definition: To validate read elimination, we
 include $\sem{\aCmd}[\aLoc/\aReg]$.  To ensure that this does not allow stale
-reads, we add item \ref{6} to the definition of prefixing.  To validate case
+reads, we add requirement \ref{6} to the definition of prefixing.  To validate case
 analysis on reads actions, we apply $\Rdis{\aLoc}{\aVal}$ to
 $\sem{\aCmd} [\aLoc/\aReg]$ before prefixing.  To validate case analysis with
 eliminated reads, we apply $\Rdis{\aLoc}{}$ to $\sem{\aCmd} [\aLoc/\aReg]$.
@@ -150,7 +155,7 @@ $\supseteq\sem{\SKIP}$ % since
 % % $\not\supseteq\sem{r\GETS x\SEMI r\GETS{}x}$.
 % This inequation holds 
 even though there is no context in the language of this paper that can
-distinguish these programs.  If one accepts these programs should be equated
+distinguish these programs.  If one accepts that these programs should be equated
 at an architectural level, then one would expect the semantics to validate
 % Although Candidate \ref{cand:ord} validates redundant load elimination
 % \eqref{RL}, it does \emph{not} validate either general 
@@ -179,10 +184,10 @@ With read elimination, the read action $(\DR{y}{1})$ can be elided in
 \ref{Internal2}; regardless, the substitution into the write of $z$ is the
 same.  On a more troubling note, the read action $(\DR{x}{1})$ can be also
 elided in \ref{Internal1}, potentially converting this non-execution into a
-valid execution, violating \drfsc{}.  The addition of requirement \ref{6} to
+valid execution, violating \drfsc{}.  The addition of  \ref{6} to
 the definition of prefixing prevents this outcome.  When computing
 $\sem{x\GETS1 \SEMI a\REL\GETS1 \SEMI \IF{b\ACQ}\THEN y\GETS x \FI}$,
-requirement \ref{6} prevents prefixing $(\DWRel{a}{1})$ in front of:
+ \ref{6} prevents prefixing $(\DWRel{a}{1})$ in front of:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a6}{\DRAcq{b}{1}}{}
@@ -193,7 +198,7 @@ requirement \ref{6} prevents prefixing $(\DWRel{a}{1})$ in front of:
   \sync[out=10,in=170]{a6}{a8}
     \end{tikzinline}}
 \end{gather*}
-In order to satisfy requirement \ref{6}, the precondition of $(\DW{y}{1})$
+In order to satisfy  \ref{6}, the precondition of $(\DW{y}{1})$
 must be location independent.
 
 % \eqref{SF} follows from item \ref{1} in the definition of
@@ -218,8 +223,7 @@ is unsound.  For example, ``${x\GETS 0}$'' and ``${x\GETS 0\SEMI x\GETS 1}$''
 can be distinguished by the context ``$\hole{}\PAR z\GETS x$''.
 
 \ref{DS} is valid under Definition \ref{def:cover}.  A write may only be
-removed if it is \emph{covered} by a following write.  In general, there may
-need to be many following writes, one for each subsequent release.  This
+removed if it is \emph{covered} by a following write.  This
 prevents bad executions, such as:
 \begin{gather*}
   %\taglabel{Cover}
@@ -243,8 +247,9 @@ prevents bad executions, such as:
   \sync[out=-10,in=-170]{a1}{a3}
     \end{tikzinline}}
 \end{gather*}
-In this drawing, we have included a ``non-event''---dashed border---to mark
-the eliminated write.
+In this diagram, we have included a ``non-event''---dashed border---to mark
+the eliminated write.  In general, there may
+need to be many following writes, one for each subsequent release.  
 
 % The restriction Although store elimination is unsound generally, one might expect it to hold for dead
 % stores \eqref{DS}.
@@ -401,8 +406,7 @@ Definition \ref{def:cover} satisfies \emph{disjunction closure}.
 % \end{align*}
 % The reverse of code lifting \ref{CL} (\textsection\ref{sec:valid}) is case
 % analysis \eqref{CA}:
-In the definition of composition, any actions with the same label and downset
-can coalesce.  Disjunction closure is sufficient to establish case analysis
+Disjunction closure is sufficient to establish case analysis
 \eqref{CA}:
 \begin{align*}
   \taglabel{CA}
@@ -413,17 +417,18 @@ As we discuss below, Candidate \ref{cand:ord} is not disjunction closed;
 however, it \emph{becomes} closed if \ref{5b} is strengthened to include
 read-read coherence, thus sacrificing sacrifice \ref{CSE}.  This compromise
 is considered reasonable for C11 atomics, which are meant to be used sparingly.
-It is less attractive for plain access in Java-like languages.
+It is less attractive for relaxed access in safe languages, like Java.
 
-We start the discussion in this section assuming Candidate \ref{cand:ord}
-with read-coherence.  We then look at three relaxations in turn: write
-elimination, reads elimination, and finally dropping read-read coherence.
-Definition \ref{def:cover} performs a bit of disjunctive closure in each
-case.
+We start the discussion of case analysis with a version of Candidate
+\ref{cand:ord} that strengthens \ref{5b} to include \emph{read-read
+  coherence}.  We then look at three relaxations in turn: write elimination,
+reads elimination, and finally dropping read-read coherence.  Definition
+\ref{def:cover} performs a bit of disjunctive closure in each case.
 
 Write elimination causes disjunction closure to fail.  For example, consider
-the following executions of $\cmdW$; the second uses write elimination. (To make coalescing explicit, we show the
- element of the carrier set $\Event$ to left of its label.)
+the following executions of $\cmdW$; the second uses write elimination. (To
+make coalescing explicit, we show the element of the carrier set $\Event$ to
+left of the label.)
 \begin{gather*}
   \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI
   \\
@@ -438,14 +443,15 @@ the following executions of $\cmdW$; the second uses write elimination. (To make
     \end{tikzinline}}
 \end{gather*}
 Using disjunction, $\sem{\IF{s}\THEN \cmdW \ELSE \cmdW \FI}$ includes the
-singleton $d{:}(\DW{x}{1})$, but $\sem{\cmdW}$ does not.  Our solution is to
-weaken the preconditions on writes to the same location when eliminating a
-write.  We do this using the function $\Wdis{\aLoc}{\aExp}$, which weakens
-the precondition of any $<$-minimal $\DW[\modeRLXquiet]{\aLoc}{\aVal}$ to
-$(\aExp=\aVal \lor \aForm)$, where $\aForm$ is formula before prefixing.
-When eliminating $(\DW{x}{1})$ in front of $(r\mid\DW{x}{1})$ in the example above, we
-arrive at the formula $(1=1\lor r)$ for the ``old'' write, which is a
-tautology.
+singleton $d{:}(\DW{x}{1})$, but $\sem{\cmdW}$ does not: In the definition of
+composition, any actions with the same label and downset can coalesce.  Our
+solution is to weaken the preconditions on writes to the same location when
+eliminating a write.  We do this using the function $\Wdis{\aLoc}{\aExp}$,
+which weakens the precondition of any $<$-minimal
+$(\DW[\modeRLXquiet]{\aLoc}{\aVal})$ to $(\aExp=\aVal \lor \aForm)$, where
+$\aForm$ is formula before prefixing.  When eliminating $(\DW{x}{1})$ in
+front of $(r\mid\DW{x}{1})$ in the example above, we arrive at the tautology
+$(1=1\lor r)$ for the ``old'' write.
 
 With read-read coherence, reads and read elimination are completely symmetric.
 
@@ -558,7 +564,7 @@ f$\sem{\cmdR}$ and $\sem{\IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI}$ include:
 \end{align*}
 Note that the precondition on the reads are weaker than one would expect.
 This is not a problem for reads, since they must also be fulfilled---allowing
-more reads actually increases the obligations of fulfillment.  The same
+more reads \emph{increases} the obligations of fulfillment.  The same
 solution would not work for writes---as we discussed at the end of
 \textsection\ref{sec:props}, allowing more writes is simply unsound.
 Fortunately, this problem does not occur when prefixing a write in front of
@@ -801,9 +807,10 @@ of the form $(\DR{x}{v})$ to the left-hand side, validating the inclusion.
 
 Let $\readc(\aPSS)$ be the set $\aPSS'$ where
 $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and $\exists D$ such that $\Event'= \Event\uplus D$,
-${\le'}\supseteq{\le\restrict{\Event}}$,
-${\labeling'} \supseteq{\labeling\restrict{\Event}}$, and for every
-$\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
+${\le'}\supseteq{\le}$,
+${\labeling'} \supseteq{\labeling}$, and
+$\forall \bEv\in D.\;\exists\aLoc.\;\exists\aVal$.
+%for every $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
 $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
 % \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
 % $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
@@ -832,8 +839,8 @@ Read introduction \eqref{RI} is valid under the saturated semantics.
 
 With \ref{RI}, the model satisfies all of the transformations of
 \citet[\textsection 5.3-4]{SevcikThesis} except redundant write after read
-elimination (which is unsound in every shared-memory model) and reordering
-with external actions (which we do not model.)
+elimination (see \textsection\ref{sec:valid}) and reordering with external
+actions, which we do not model.
 % \citet[\textsection 5.3]{SevcikThesis}
 % Sevcik 5.3:
 % !!!! Redundant Write after Read Elimination

@@ -45,6 +45,7 @@ from the introduction.
 % In this case, the violation is a subtler
 % temporal property.  We develop a logic sufficient to prove that our semantics
 % disallows \oota\ on \eqref{lochbihler}.  
+
 The logic given here is not meant to be definitive; on page
 \pageref{page:logic:limits}, we discuss \oota{} examples that require
 non-trivial extensions
@@ -164,7 +165,7 @@ Let
 
 %\paragraph*{Proof rules for programs}
 We present two proof rules. 
-The first provides a logical view of \emph{$\aLoc$-closure} (Definition~\ref{def:rf}):
+The first provides a logical view of \emph{$\aLoc$-closure} (Def.~\ref{def:rf}):
 %The soundness proof is straightforward.
 % \begin{math}
 %   \closed(\aLoc) = (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}).
@@ -535,9 +536,11 @@ Many examples are superficially similar, but in fact have fewer dependencies,
 such as \eqref{OOTA?} from \textsection\ref{sec:intro}.
 
 \citeauthor{BoehmOOTA}'s [\citeyear{BoehmOOTA}] \ref{RFUB} example presents
-another potential form of \oota{} behavior, in the context of compiler
-optimization.  Our analysis shows that there is no \oota{} behavior in
-\ref{RFUB}, instead \citeauthor{BoehmOOTA}'s analysis has a false dependency:
+another potential form of \oota{} behavior.
+% , in the context of compiler
+% optimization.
+Our analysis shows that there is no \oota{} behavior in
+\ref{RFUB}, only a false dependency:
 %\citet{BoehmOOTA} \labeltext{considers}{page:rfub} the following programs:
 \begin{gather*}
   \tag{\textsc{rfub}}\label{RFUB}

@@ -88,8 +88,7 @@ Consider the following variant of \ref{Pub1}:
 \ref{5f} requires that $(\DFS{\modeREL})\le(\DW{y}{1})$.  \ref{5e} requires
 that $(\DR{y}{1})\le(\DFS{\modeACQ})$.  The other order involving fences is
 required by \ref{5c}.  The attempted execution is
-\emph{invalid}: the stale read $(\DR{x}{0})$ violates the last requirement of
-fulfillment (Definition \ref{def:rf}).
+\emph{invalid}: the stale read $(\DR{x}{0})$ violates \ref{rf4}.
 
 % Fences can simulate release/acquire access:
 % \begin{gather*}  
@@ -483,7 +482,7 @@ semantics simply by expanding this encoding.  Applying this technique to Candida
     \\
   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
-    \bigl(\textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+    \bigl(\textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]\bigr)
   \end{align*}
   The same technique to can be applied to Definition \ref{def:cover}---we
   elide the lengthy but obvious definition. For degenerate programs that include only
@@ -579,12 +578,11 @@ in the syntax.
 
 \labeltext{Because}{page:strengthening} we do not enforce order between
 reads, there is some danger that address calculations could introduce
-anomalous behaviors that arise \emph{out of thin air} (\oota)
-\cite{DBLP:conf/esop/BattyMNPS15}.  Consider the following program, where
+anomalous behaviors that arise \emph{out of thin air} (\oota).  Consider the following program, where
 initially $x=0$, $y=0$, $\REF{0}=0$, $\REF{1}=2$, and $\REF{2}=1$.  It should
 only be possible to read $0$, disallowing the attempted execution below:
 \begin{gather*}
-  \tag{\textsc{oota3}}
+  \label{strengthening}\tag{\textsc{oota3}}
   \begin{gathered}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
@@ -618,7 +616,7 @@ intermediate state of $\sem{\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg}$:
     \end{tikzinline}}
 \end{gather*}
 The precondition on $(\DW{x}{1})$ is required by causal strengthening
-(Definition~\ref{def:mmpomset}). % : if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
+(Def.~\ref{def:mmpomset}). % : if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
 % implies $\labelingForm(\bEv)$.
 
 
