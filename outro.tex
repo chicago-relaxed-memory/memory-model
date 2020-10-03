@@ -231,18 +231,19 @@ sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
 We have not attempted validate all program transformations that involve
 synchronization, fences or \RMWs{}
 \cite{DBLP:conf/popl/VafeiadisBCMN15,DBLP:phd/hal/Morisset17}.  Nonetheless,
-our semantics validates roach motel (\ref{RelW}, \ref{AcqW}), redundant load (\ref{RL}),
-fence removal (\ref{RF}), and store forwarding (\ref{SF}).  We
+our semantics validates roach motel (\ref{AcqW}, \ref{RelW}), redundant load
+(\ref{RL}), fence removal (\ref{RF}), and store forwarding (\ref{SF}).  We
 expect that dead store elimination (\ref{DS}) generalizes to non-relaxed
-access by generalizing the Definition \ref{def:cover} of $\relfilt[]{\aLoc}$.
+access by generalizing $\relfilt[]{\aLoc}$ in Definition \ref{def:cover}.
 Some transformations are not sound in the model, but we expect them to be
-provable as meta properties.  For example, access-mode strengthening (such as
+provable as metaproperties.  For example, access-mode strengthening (such as
 replacing $\modeRLX$ by $\modeRA$) is valid up to an equivalence that ignores
 access modes on actions.  Other transformations worth studying include
 commuting adjacent synchronizations and implementing non-relaxed access using
-relaxed access and fences.  Lock elision and access-mode weakening are only
-sound in certain contexts.  We expect all of these transformations to be
-valid, given an appropriate notional of validity.
+relaxed access and fences.  Lock elision and access-mode weakening are also
+interesting, although these are only sound in certain contexts.  We expect
+all of these transformations to be valid, given an appropriate notional of
+validity.
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 
@@ -325,7 +326,7 @@ different a logic, capable of showing that the following program cannot write
         \rf[out=170,in=10]{wx}{rx}
       \end{tikzinline}}
 \end{align*}
-The attempted execution is \emph{not} allowed by our semantics since there is no write
+The attempted execution is \emph{not} allowed by our semantics, since there is no write
 to fulfill $(\DR{y}{1})$.  % Proving this requires the ability to reason about
 % values.
 % \labeltext{The}{page:logic:limits} logic we presented in \textsection\ref{sec:logic} is only strong enough

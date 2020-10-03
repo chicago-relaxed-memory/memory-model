@@ -31,6 +31,7 @@
 
 \newcounter{mypara}
 \newcommand{\myparagraph}[1]{\paragraph{#1}\stepcounter{mypara}\belowpdfbookmark{#1}{mypara\arabic{mypara}}}
+\newcommand{\noparagraph}[1]{\stepcounter{mypara}\belowpdfbookmark{#1}{mypara\arabic{mypara}}}
 
 
 \newcommand{\modeRLXquiet}{{}}

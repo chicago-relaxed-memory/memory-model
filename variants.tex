@@ -19,8 +19,9 @@ $(\DFS{\modeSC})$ is both a release and an acquire.
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
 With no further changes, syntactic fences would impose exactly the same order
-as synchronization actions.  This is insufficient to simulate
-$\modeRA$/$\modeSC$-accesses.
+as synchronization actions.  This is sufficient to simulate $\modeSC$
+accesses, since $\modeSC$ fences are very strong.  However, it is
+insufficient to simulate $\modeRA$ accesses.
 % Consider a variant of \ref{Pub1}:
 % \begin{gather*}
 %   \label{Pub2}\tag{Pub2}

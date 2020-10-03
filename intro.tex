@@ -7,21 +7,21 @@ for system designers.''
 
 %In order to sharpen the criteria to evaluate memory models, we first outline desiderata  that concretize the above prescription.  
 
-There are two aspects of ``implementation flexibility.''  First, relaxed
-atomic access should not require hardware synchronization.  Second, the model
-should facilitate compiler transformations, such as the reordering of independent
-statements; ideally the model should support all valid optimizations of
-synchronization\hyp{}free single\hyp{}threaded code.
-% A
-% canonical example is that independent statements should commute.
-
-There are also two aspects to ``ease of use.''  First, the expectation of
+There are  two aspects to ``ease of use.''  First, the expectation of
 \emph{sequential consistency for data race free programs}
 (\drfsc)~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits
 the programmer to forget about relaxed memory for correctly synchronized
 programs.  Second, all programs---even those with data races---should support
 compositional reasoning on temporal safety
 properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.
+
+There are also two aspects of ``implementation flexibility.''  First, relaxed
+atomic access should not require hardware synchronization.  Second, the model
+should facilitate compiler transformations, such as the reordering of independent
+statements; ideally the model should support all valid optimizations of
+synchronization\hyp{}free single\hyp{}threaded code.
+% A
+% canonical example is that independent statements should commute.
 
 Sailing between this Scylla and Charybdis has proven very difficult.  Three
 lines of code can leave the top experts in the field flabbergasted.  The
@@ -247,7 +247,7 @@ from \emph{external} ones.  Unlike externally fulfilled reads, internal reads
 are not necessarily recorded in the dependency relation.  As exemplified by
 $\aCmd_3$, this allows a compiler to reorder the fulfilling write with
 subsequent code that depends on the read.  Neither value range analysis nor
-internal reads require no special treatment in our model.
+internal reads require special treatment in our model.
 
 
 
@@ -291,9 +291,9 @@ can see non-zero values:
   x\GETS0\SEMI y\GETS0\SEMI
   (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
 \end{gather*}
-We rule out non-zero reads as follows: The write of $\aLoc$ on the left hand
-side is dependent on the read to $\bLoc$.  Similarly, the write of $\bLoc$ on
-the right is dependent on the read to $\aLoc$.  Since a non-zero read can
+We rule out non-zero reads as follows: The write of $\bLoc$ on the left hand
+side is dependent on the read to $\aLoc$.  Similarly, the write of $\aLoc$ on
+the right is dependent on the read to $\bLoc$.  Since a non-zero read can
 only be satisfied externally, both reads are part of the dependency order,
 leading to a cycle.  Such a cycle contradicts the assumption that dependency
 forms a partial order.

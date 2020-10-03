@@ -1,4 +1,4 @@
-\section{Understanding ``Thin Air Reads'' using Temporal Logic}
+\section{Understanding ``Out Of Thin Air'' using Temporal Logic}
 \label{sec:logic}
 
 A significant challenge for a software memory model is to relax order enough
@@ -53,6 +53,7 @@ The logic given here is not meant to be definitive; on page
 non-trivial extensions
 \cite{DBLP:conf/esop/SvendsenPDLV18,DBLP:journals/pacmpl/ChakrabortyV19}.
 
+\noparagraph{Definitions}
 We adapt past linear temporal logic (\pLTL)
 \cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
 instant operator and adopting strict versions of the temporal operators.
@@ -246,6 +247,7 @@ consider the special case with a single invariant.
 
 \begin{example}
 \label{ex:thin}
+\noparagraph{Basic Examples}
 With all variables initialized to $0$, we show that \ref{OOTA3}
 satisfies
 \begin{math}
@@ -321,11 +323,12 @@ would violate \drfsc{}.
 
 \begin{example}
   \label{ex:lochb}
-  Because our language lacks object creation, we cannot consider \ref{OOTA1}
-  directly.  The essential temporal property of \ref{OOTA1} is ``allocation
-  at type \texttt{C} is preceded by a read of $1$ for $z$.''  The following
-  variant retains this structure: ``any write to memory location $a$ is
-  preceded by a read of $1$ for $z$.''  We elide initialization.
+  \noparagraph{Lochbihler's Example} The essential temporal property of
+  \ref{OOTA1} is ``allocation at type \texttt{C} is preceded by a read of $1$
+  from $z$.''  Because our language lacks object creation, we cannot consider
+  \ref{OOTA1} directly.  Instead we study \ref{OOTA4}, which has the same
+  temporal structure: ``a write of $1$ to location $a$ is preceded by a read
+  of $1$ from $z$.''
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{align*}
   \tag{\textsc{oota4}}\label{OOTA4}
@@ -343,14 +346,18 @@ would violate \drfsc{}.
   %     W=c;
   %   }
   %\VAR  x\GETS0\SEMI \VAR  y\GETS0\SEMI \VAR  z\GETS0\SEMI
-  z\GETS1
+  z\GETS0\SEMI
+    z\GETS1
   \PAR
+  y\GETS0\SEMI
     y\GETS x
   \PAR
+  x\GETS0\SEMI
+  a\GETS0\SEMI
     \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
   \end{align*}
   As a warmup, note that attempting to write $1$ to $a$ results
-  in a cycle:
+  in a cycle (we elide initialization):
 \begin{tikzdisplay}[node distance=1.5em]
   \event{rx}{\DR{x}{1}}{}
   \event{wz1}{\DW{z}{1}}{left=2em of rx}
@@ -537,6 +544,7 @@ chain with <>Wx0 => not(<>Wx1)
 Many examples are superficially similar, but in fact have fewer dependencies,
 such as \eqref{OOTA?} from \textsection\ref{sec:intro}.
 
+\noparagraph{RFUB: Register assignment From an Unexecuted Branch}
 \citeauthor{BoehmOOTA}'s [\citeyear{BoehmOOTA}] \ref{RFUB} example presents
 another potential form of \oota{} behavior.
 % , in the context of compiler
@@ -555,10 +563,10 @@ The right command is dubbed \rfub{}, for \emph{Register assignment From an
   Unexecuted Branch}.  \citeauthor{BoehmOOTA} observes that in the context
 $x\GETS y \PAR \hole{}$, these programs have different behaviors.  Yet the
 \oota{} example on the left never writes $1$.  Why should the unexecuted
-branch change that?  As it turns out, both branches of the conditional in
-\ref{RFUB} can execute, since the write to $x$ is independent of the read
-from $y$.  It useful to considering the Hoare logic formulas satisfied by the
-two threads above: we have $\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
+branch change that?  Because of the conditional, the write to $x$ in
+\ref{RFUB} is independent of the read from $y$.  It useful to considering the
+Hoare logic formulas satisfied by the two threads above: we have
+$\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
 $\hoare{\TRUE}{\text{\oota}}{x=1}$.  The change in the thread from
 \ref{OOTA3} to \ref{RFUB} is not a valid refinement under Hoare logic; as a
 result, it is expected that \ref{RFUB} may have additional behaviors.
@@ -569,8 +577,9 @@ greatest minds in the field!  % We believe that \emph{logic} is the only tool
 % Preconditions provide a \emph{natural} solution to working out these
 % dependencies.
 This example shows the wisdom of using existing tools, such as preconditions
-and Hoare logic, to model new problems, such as relaxed memory.  We don't
-need to abandon established ideas; we only need to adapt them.
+and Hoare logic, to model new problems, such as relaxed memory.
+% We don't
+% need to abandon established ideas; we only need to adapt them!
 % On page \pageref{page:rfub}, we discuss \citeauthor{BoehmOOTA}'s
 % [\citeyear{BoehmOOTA}] \ref{RFUB} example, which presents another potential
 % form of \oota{} behavior, in the context of compiler optimization.  Our

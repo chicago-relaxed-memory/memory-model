@@ -15,7 +15,7 @@
 
 
 \RequirePackage{amssymb}  %% bizarre error previous def of Bbbk if after documentclass
-\documentclass[acmsmall,review,screen]{acmart}\settopmatter{printfolios=true}
+\documentclass[acmsmall,screen]{acmart}\settopmatter{printfolios=true}
 \hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=3}
 %\makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
 \settopmatter{printfolios=true}
@@ -169,8 +169,7 @@
 
 
 %% Paper note
-\thanks{
-This paper has been greatly improved by the comments of
+\thanks{This paper has been greatly improved by the comments of
 the anonymous reviewers.
 
 % Jagadeesan and Riely are supported by National Science Foundation
@@ -256,8 +255,8 @@ necessarily reflect the views of the National Science Foundation.}
 
 %% Keywords
 %% comma separated list
-\keywords{Relaxed Memory Models, Pomsets, Preconditions, 
-  Temporal Safety Properties, Compiler Optimizations, Thin-Air Reads} %% \keywords is optional
+\keywords{Concurrency, Relaxed Memory Models, Multi-Copy Atomicity, ARMv8, Pomsets, Preconditions, 
+  Temporal Safety Properties, Thin-Air Reads, Compiler Optimizations} %% \keywords is optional
 
 
 %% \maketitle
