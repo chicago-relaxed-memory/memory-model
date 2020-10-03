@@ -29,6 +29,9 @@
 % \newcommand{\geloc}{\sqsupseteq}
 % \newcommand{\gtloc}{\sqsupset}
 
+\newcounter{mypara}
+\newcommand{\myparagraph}[1]{\paragraph{#1}\stepcounter{mypara}\belowpdfbookmark{#1}{mypara\arabic{mypara}}}
+
 
 \newcommand{\modeRLXquiet}{{}}
 \newcommand{\Rdis}[2]{\mathsf{weaken}_{\mathsf{R}#1#2}}

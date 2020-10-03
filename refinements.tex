@@ -129,7 +129,7 @@ To validate write elimination, we include
 $\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$. To validate case analysis with
 eliminated writes, we apply $\Wdis{\aLoc}{\aVal}$.
 
-\paragraph{Read Elimination and Store Forwarding}
+\myparagraph{Read Elimination and Store Forwarding}
 
 % Suppose you want to validate the following:
 % % \begin{displaymath}
@@ -211,7 +211,7 @@ must be location independent.
 % $\sem{\aLoc \GETS \aExp \SEMI \aReg \GETS \aLoc}$ contains no such pomset.
 
 
-\paragraph{Dead Store Elimination}
+\myparagraph{Dead Store Elimination}
 Dead store elimination \eqref{DS} is symmetric to redundant load elimination.
 \begin{align*}
   \taglabel{DS}
@@ -366,7 +366,7 @@ need to be many following writes, one for each subsequent release.
 
 
 
-\paragraph{Case Analysis}
+\myparagraph{Case Analysis}
 Definition \ref{def:cover} satisfies \emph{disjunction closure}.
 \begin{definition}
   \label{def:dis}
@@ -776,7 +776,7 @@ another write, due to the order required by \ref{5b}.
 % d2 in E2'
 
 
-%\paragraph{Irrelevant Read Elimination}
+%\myparagraph{Irrelevant Read Elimination}
 
 
 
@@ -787,7 +787,7 @@ another write, due to the order required by \ref{5b}.
 
 
 
-\paragraph{Irrelevant Read Introduction}
+\myparagraph{Irrelevant Read Introduction}
 Compilers sometimes introduce reads in order to lift code.  Consider the
 following example \cite[\textsection1.4.5]{SevcikThesis}:
 \begin{align*}

@@ -1,11 +1,11 @@
-\section{Extensions}
+\section{Fences, Read-Modify-Write, and Address Calculation}
 \label{sec:variants}
 
 We extend the model to include additional features: fences, read-modify-write
 actions (\RMWs), and address calculation. The proofs given later in the paper
 extend to include these features.
 
-\paragraph{Fences}
+\myparagraph{Fences}
 
 Syntactic fences
 ``$\FENCE^{\fmode} \SEMI \aCmd$'' have corresponding  actions: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
@@ -202,7 +202,7 @@ but immediate in the various models of C11.
 % It is a testament to the
 % complexity of C11 that it allows these executions.
 
-% \paragraph{Silent Actions and Fences.}
+% \myparagraph{Silent Actions and Fences.}
 
 % For the actions of a data model, we require that there is a set
 % $\Int\subseteq\Act$ such that
@@ -342,7 +342,7 @@ but immediate in the various models of C11.
 % The executions are disallowed, due to cycles.  It is a testament to the
 % complexity of C11 that it allows these executions.
 
-\paragraph{Read-Modify-Write} We discuss \RMW\ operations that work on a
+\myparagraph{Read-Modify-Write} We discuss \RMW\ operations that work on a
 single location in memory, such as \emph{fetch-and-add} ($\FADD$) and
 \emph{compare-and-swap} ($\CAS$).  These operations can be modeled using read/write
 actions or using an additional relation between events.  The second approach
@@ -438,7 +438,7 @@ following, which is allowed by \armeight{}
 \end{gathered}
 \end{gather*}
 
-\paragraph{Address Calculation}
+\myparagraph{Address Calculation}
 
 In the definition of a data model, we require
 that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$

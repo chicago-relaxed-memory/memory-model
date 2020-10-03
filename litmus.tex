@@ -25,7 +25,7 @@ also agrees with the \oota{} examples of \citet[\textsection
 behaviors'' of \citet[\textsection 8]{Manson:2005:JMM:1047659.1040336}.  See
 \cite{DBLP:conf/esop/PaviottiCPWOB20} for an exhaustive list of litmus tests.
 
-\paragraph{Buffering}
+\myparagraph{Buffering}
 
 Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
 \begin{align*}
@@ -110,7 +110,7 @@ Because there are no intra-thread dependencies, the desired outcomes are allowed
 % To allow these executions, we drop the order marked $\rpox$.
 
 
-\paragraph{Publication}
+\myparagraph{Publication}
 \ref{rf3}--\ref{rf4} and \ref{5b}--\ref{5c} ensure correct publication,
 prohibiting stale reads:
 %from seeing stale values:
@@ -142,7 +142,7 @@ $(\DW x0) \lt (\DW x1) \lt (\DR x0)$.  Attempting to satisfy this
 requirement, one might order $(\DR x0)$ before $(\DW x1)$, but this would
 create a cycle.
 
-\paragraph{Coherence}
+\myparagraph{Coherence}
 
 Our model of coherence does not correspond to either Java or C11.  We have
 chosen the model to validate \ref{CSE} (unlike C11 relaxed atomics) and the
@@ -310,7 +310,7 @@ races (\textsection\ref{sec:sc}).
 % (r:=x; x:=1) || (s:=x; x:=2)
 % Rx2 -co-> Wx1 -rf-> Rx1 -co-> Wx2 -rf-> Rx2}
 
-\paragraph{MCA} We present a few examples that are hallmarks of \mca{}
+\myparagraph{MCA} We present a few examples that are hallmarks of \mca{}
 architectures.  
 % \begin{gather*}
 %   \renewcommand{\arraycolsep}{1pt}
@@ -538,7 +538,7 @@ be introduced between the reads. See example \ref{addr}
 % \end{align*}
 % \end{definition}
 
-\paragraph{Internal Reads and Value Range Analysis}
+\myparagraph{Internal Reads and Value Range Analysis}
 The JMM causality test cases \citep{PughWebsite} are justified via
 compiler analysis, possibly in collusion with the scheduler: If every 
 observed value can be shown to satisfy a precondition, then the precondition
@@ -799,7 +799,7 @@ complicates the proof for \armeight{} (\textsection\ref{sec:arm}).
 
 
 
-\paragraph{SC access}
+\myparagraph{SC access}
 %This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
 \ref{5d} ensures that program order between SC operations is always
 preserved.  Combined with \ref{rf3}--\ref{rf4}, this is
@@ -1327,7 +1327,7 @@ we have \emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
 
 %\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
-\paragraph{Invalid Rewrites}
+\myparagraph{Invalid Rewrites}
 %\label{sec:invalid}
 
 The definition of location binding does not validate renaming of locations:
