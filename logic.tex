@@ -4,7 +4,9 @@
 A significant challenge for a software memory model is to relax order enough
 to allow efficient implementation without admitting anomalous
 behaviors---called \emph{out of thin air} (\oota) in the literature
-\cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example is:
+\cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example
+is \ref{OOTA3} from \textsection\ref{sec:intro}.  Here we inline
+initialization in order to fit the format of our proof rules:
 \begin{align*}
   \label{OOTA3}\tag{\textsc{oota2}}
   y\GETS0\SEMI 
