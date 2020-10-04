@@ -360,17 +360,17 @@ would violate \drfsc{}.
   x\GETS0\SEMI
   a\GETS0\SEMI
   \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
-  \\
-\hbox{\begin{tikzinline}[node distance=1.2em]
+  \\[-1ex]
+\hbox{\begin{tikzinline}[node distance=1.25em]
   \event{wz0}{\DW{z}{0}}{}
-  \event{wz1}{\DW{z}{1}}{right=of wz0}
+  \event{wz1}{\DW{z}{1}}{right=.8em of wz0}
   \wk{wz0}{wz1}
-  \event{wy0}{\DW{y}{0}}{right=2em of wz1}
-  \event{rx}{\DR{x}{1}}{right=of wy0}
+  \event{wy0}{\DW{y}{0}}{right=1.2em of wz1}
+  \event{rx}{\DR{x}{1}}{right=.5em of wy0}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
   \event{wx0}{\DW{x}{0}}{right=2em of wy}
-  \event{wa0}{\DW{a}{0}}{right=of wx0}
+  \event{wa0}{\DW{a}{0}}{right=.5em of wx0}
   \event{rz}{\DR{z}{0}}{right=of wa0}
   \event{ry}{\DR{y}{1}}{right=of rz}
   \event{wx}{\DW{x}{1}}{right=of ry}
