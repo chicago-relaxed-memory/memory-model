@@ -145,7 +145,9 @@ reclamation impossible.
 As confirmed by \cite{kang,soham}, the promising semantics
 \cite{DBLP:conf/popl/KangHLVD17} and related models
 \citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19} all
-invalidate compositional reasoning, as in \ref{OOTA1}.  % See
+invalidate compositional reasoning, as in \ref{OOTA1}.  (Specifically, they
+allow the variant \ref{OOTA4} given in \textsection\ref{sec:logic}.)
+% See
 % \textsection\ref{sec:promising} for confirmation from the authors themselves.
 This means that these models \emph{cannot support both type safety and
   realistic memory reclamation}.
@@ -284,7 +286,7 @@ order on events, compositionality helps explain how our model disallows
 composition does not create unexpected
 behaviors.  % The fact that the dependency relation is a partial order forbids
 % \oota\ behaviors.  
-The standard \oota{} litmus test asks whether either of the following threads
+The simplest \oota{} litmus test asks whether either of the following threads
 can see non-zero values:
 \begin{gather*}
   \tag{\ref{OOTA3}}
@@ -296,7 +298,7 @@ side is dependent on the read to $\aLoc$.  Similarly, the write of $\aLoc$ on
 the right is dependent on the read to $\bLoc$.  Since a non-zero read can
 only be satisfied externally, both reads are part of the dependency order,
 leading to a cycle.  Such a cycle contradicts the assumption that dependency
-forms a partial order.
+forms a partial order.  We discuss \ref{OOTA1} in \textsection\ref{sec:logic}.
 
 
 
