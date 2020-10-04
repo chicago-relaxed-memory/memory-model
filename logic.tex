@@ -69,7 +69,7 @@ The atoms of our logic are write and read events.
 %   \mid \always\afo
 % \end{displaymath}
 %\begin{definition} %[Satisfaction]
-Given a pomset $\aPS$ and event $\aEv$, define:\footnote{Let $\FALSE$, $\lor$,
+Given a pomset $\aPS$ and event $\aEv$, define:\nofootnote{Let $\FALSE$, $\lor$,
   $\Rightarrow$ and $\once$ as usual;
   for example,
   $\once\afo = \lnot(\always\lnot\afo)$.}
@@ -85,6 +85,8 @@ Given a pomset $\aPS$ and event $\aEv$, define:\footnote{Let $\FALSE$, $\lor$,
       \aPS,\aEv &\models& \once\afo &\text{ if } \exists \bEv \lt \aEv.\;  \aPS,\bEv \models \afo 
     \end{array} 
   \end{displaymath}
+
+  Define $\FALSE$, $\lor$, and $\Rightarrow$ as usual.
 
   % \begin{definition}
   Let $\aPS \models \afo$ if
@@ -125,10 +127,10 @@ Let
 % and $\afo \Rightarrow \bfo$ for $\lnot \afo \lor \bfo$.
   The past operators do not include the current instant, and so
   do \emph{not} satisfy
-  $(\always\afo\Rightarrow\once\afo)$.\footnote{The order-minimal elements always validate
+  $(\always\afo\Rightarrow\once\afo)$. The order-minimal elements always validate
     $\always\afo$ and invalidate
-    $\once\afo$.}
-  However, the following hold:
+    $\once\afo$.
+  However, we can prove the following:
 % \begin{align*}  
 %   \frac{\aPS \models \afo \Rightarrow\once{\afo}}{\aPS \models \lnot \afo}\text{(Coinduction)}
 %   &&
@@ -167,7 +169,7 @@ Let
 %We now present two proof rules for programs. 
 
 %\paragraph*{Proof rules for programs}
-We present two proof rules. 
+We present two additional proof rules. 
 The first provides a logical view of \emph{$\aLoc$-closure} (Def.~\ref{def:rf}):
 %The soundness proof is straightforward.
 % \begin{math}
@@ -330,7 +332,7 @@ would violate \drfsc{}.
   temporal structure: ``a write of $1$ to location $a$ is preceded by a read
   of $1$ from $z$.''
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
-\begin{align*}
+\begin{gather*}
   \tag{\textsc{oota4}}\label{OOTA4}
   %   Z=1;
   % ||
@@ -345,7 +347,8 @@ would violate \drfsc{}.
   %     X=c;
   %     W=c;
   %   }
-  %\VAR  x\GETS0\SEMI \VAR  y\GETS0\SEMI \VAR  z\GETS0\SEMI
+  %     \VAR  x\GETS0\SEMI \VAR  y\GETS0\SEMI \VAR  z\GETS0\SEMI
+  \begin{gathered}
   z\GETS0\SEMI
     z\GETS1
   \PAR
@@ -354,25 +357,55 @@ would violate \drfsc{}.
   \PAR
   x\GETS0\SEMI
   a\GETS0\SEMI
-    \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
-  \end{align*}
-  As a warmup, note that attempting to write $1$ to $a$ results
-  in a cycle (we elide initialization):
-\begin{tikzdisplay}[node distance=1.5em]
-  \event{rx}{\DR{x}{1}}{}
-  \event{wz1}{\DW{z}{1}}{left=2em of rx}
+  \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
+  \\
+\hbox{\begin{tikzinline}[node distance=1.2em]
+  \event{wz0}{\DW{z}{0}}{}
+  \event{wz1}{\DW{z}{1}}{right=of wz0}
+  \wk{wz0}{wz1}
+  \event{wy0}{\DW{y}{0}}{right=2em of wz1}
+  \event{rx}{\DR{x}{1}}{right=of wy0}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
-  \event{rz}{\DR{z}{0}}{right=2em of wy}
+  \event{wx0}{\DW{x}{0}}{right=2em of wy}
+  \event{wa0}{\DW{a}{0}}{right=of wx0}
+  \event{rz}{\DR{z}{0}}{right=of wa0}
   \event{ry}{\DR{y}{1}}{right=of rz}
   \event{wx}{\DW{x}{1}}{right=of ry}
   \event{wa}{\DW{a}{1}}{right=of wx}
   \po{ry}{wx}
   \rf[out=15,in=165]{wy}{ry}
   \rf[out=-170,in=-10]{wx}{rx}
-  \po[out=-10,in=-170]{rz}{wa}
-  \po[out=15,in=165]{ry}{wa}
-\end{tikzdisplay}
+  \po[out=-18,in=-162]{rz}{wa}
+  \po[out=25,in=155]{ry}{wa}
+  \wk[out=25,in=155]{wy0}{wy}
+  \wk[out=15,in=165]{wx0}{wx}
+  \wk[out=15,in=165]{wa0}{wa}
+  \rf[out=-10,in=-170]{wz0}{rz}
+\end{tikzinline}}
+% \hbox{\begin{tikzinline}[node distance=1.5em]
+%   \event{rx}{\DR{x}{1}}{}
+%   \event{wz1}{\DW{z}{1}}{left=3em of rx}
+%   \event{wy}{\DW{y}{1}}{right=of rx}
+%   \po{rx}{wy}
+%   \event{rz}{\DR{z}{0}}{right=3em of wy}
+%   \event{ry}{\DR{y}{1}}{right=of rz}
+%   \event{wx}{\DW{x}{1}}{right=of ry}
+%   \event{wa}{\DW{a}{1}}{right=of wx}
+%   \po{ry}{wx}
+%   \rf[out=15,in=165]{wy}{ry}
+%   \rf[out=-170,in=-10]{wx}{rx}
+%   \po[out=-10,in=-170]{rz}{wa}
+%   \po[out=15,in=165]{ry}{wa}
+% \end{tikzinline}}
+  \end{gathered}  
+  \end{gather*}
+  Attempting to write $1$ to $a$ results in the cycle shown above.  Thus, the
+  outcome is disallowed by our semantics.  It is also disallowed by
+  \citep{DBLP:journals/lmcs/JeffreyR19}, but the logic given there is
+  insufficient to establish this fact.
+  The outcome is \emph{allowed} by
+  \citep{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19}.
 % \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
@@ -398,7 +431,7 @@ would violate \drfsc{}.
 %   \po[bend right]{rz}{wa}
 % \end{tikzdisplay}
 
-We prove the formula
+To establish that this outcome is disallowed, we prove the formula
 \begin{math}
   \lnot\DW{a}{1},
 \end{math}

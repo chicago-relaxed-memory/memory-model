@@ -534,7 +534,7 @@ $(\DW{x}{1})\xrf(\DR{x}{1})$ is a \emph{reads-from} requirement: the read of $x$
 must be \emph{fulfilled} by a matching write.
 $(\DR{x}{1})\xpo(\DW{y}{1})$ is a \emph{local dependency} requirement: the
 write to $y$ is 
-\emph{data dependent} the read of $x$; \emph{control} and \emph{address} dependencies are
+\emph{data dependent} on the read of $x$; \emph{control} and \emph{address} dependencies are
 also local.
 $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
 \emph{fencing/synchronization} requirements.
