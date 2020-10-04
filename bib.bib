@@ -54,6 +54,7 @@
   publisher = {{ACM}},
   year      = {2017},
   url       = {http://dl.acm.org/citation.cfm?id=3009839},
+  doi = {10.1145/3009837.3009839},
   timestamp = {Tue, 06 Nov 2018 11:07:42 +0100},
   biburl    = {https://dblp.org/rec/conf/popl/FlurSPNMGSBS17.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
@@ -243,15 +244,19 @@ series = {ASPLOS ’15}
 @inproceedings{DBLP:conf/cgo/ChakrabortyV17,
   author    = {Soham Chakraborty and
                Viktor Vafeiadis},
+  editor    = {Vijay Janapa Reddi and
+               Aaron Smith and
+               Lingjia Tang},
   title     = {Formalizing the concurrency semantics of an {LLVM} fragment},
   booktitle = {Proceedings of the 2017 International Symposium on Code Generation
                and Optimization, {CGO} 2017, Austin, TX, USA, February 4-8, 2017},
   pages     = {100--110},
+  publisher = {{ACM}},
   year      = {2017},
-  crossref  = {DBLP:conf/cgo/2017},
-  Xurl       = {http://dl.acm.org/citation.cfm?id=3049844},
+  url       = {http://dl.acm.org/citation.cfm?id=3049844},
+  doi = {10.5555/3049832.3049844},
   timestamp = {Mon, 06 Feb 2017 08:16:50 +0100},
-  biburl    = {https://dblp.org/rec/bib/conf/cgo/ChakrabortyV17},
+  biburl    = {https://dblp.org/rec/conf/cgo/ChakrabortyV17.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @proceedings{DBLP:conf/cgo/2017,
@@ -356,23 +361,6 @@ series = {ASPLOS ’15}
   doi       = {10.1145/3290383},
   timestamp = {Fri, 10 May 2019 11:01:57 +0200},
   biburl    = {https://dblp.org/rec/bib/journals/pacmpl/ChakrabortyV19},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-@article{DBLP:journals/corr/abs-1911-06567,
-  author    = {Evgenii Moiseenko and
-               Anton Podkopaev and
-               Ori Lahav and
-               Orestis Melkonian and
-               Viktor Vafeiadis},
-  title     = {Reconciling Event Structures with Modern Multiprocessors},
-  journal   = {CoRR},
-  volume    = {abs/1911.06567},
-  year      = {2019},
-  url       = {http://arxiv.org/abs/1911.06567},
-  archivePrefix = {arXiv},
-  eprint    = {1911.06567},
-  timestamp = {Mon, 02 Dec 2019 13:44:01 +0100},
-  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1911-06567},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @article{DBLP:journals/jar/RoseBL12,
@@ -482,7 +470,7 @@ series = {ASPLOS ’15}
   title = {A denotational semantics for weak memory concurrency},
   year = {2016},
   note = {Midlands Graduate School in the Foundations of Computing Science},
-  howpublished = {\url{http://www.cs.bham.ac.uk/~pbl/mgs2016/brookesslides.pdf}http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1780r0.html}}
+  howpublished = {\url{http://www.cs.bham.ac.uk/~pbl/mgs2016/brookesslides.pdf}}
 }
 @MISC{gordonHoare,
   author = {Mike Gordon},
@@ -873,40 +861,55 @@ series = {ASPLOS ’15}
 } 
 
 @InProceedings{PnueliSafety,
-author="Pnueli, Amir",
-editor="Apt, Krzysztof R.",
-title="In Transition From Global to Modular Temporal Reasoning about Programs",
-booktitle="Logics and Models of Concurrent Systems",
-year="1985",
-publisher="Springer Berlin Heidelberg",
-address="Berlin, Heidelberg",
-pages="123--144"
+  author    = {Amir Pnueli},
+  editor    = {Krzysztof R. Apt},
+  title     = {In Transition From Global to Modular Temporal Reasoning about Programs},
+  booktitle = {Logics and Models of Concurrent Systems - Conference proceedings,
+               Colle-sur-Loup (near Nice), France, 8-19 October 1984},
+  series    = {{NATO} {ASI} Series},
+  volume    = {13},
+  pages     = {123--144},
+  publisher = {Springer},
+  year      = {1984},
+  url       = {https://doi.org/10.1007/978-3-642-82453-1\_5},
+  doi       = {10.1007/978-3-642-82453-1\_5},
+  timestamp = {Fri, 17 Apr 2020 17:57:08 +0200},
+  biburl    = {https://dblp.org/rec/conf/nato/Pnueli84.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @InProceedings{StarkSafety,
-author="Stark, Eugene W.",
-editor="Maheshwari, S. N.",
-title="A proof technique for rely/guarantee properties",
-booktitle="Foundations of Software Technology and Theoretical Computer Science",
-year="1985",
-publisher="Springer Berlin Heidelberg",
-address="Berlin, Heidelberg",
-pages="369--391"
+  author    = {Eugene W. Stark},
+  editor    = {S. N. Maheshwari},
+  title     = {A Proof Technique for Rely/Guarantee Properties},
+  booktitle = {Foundations of Software Technology and Theoretical Computer Science,
+               Fifth Conference, New Delhi, India, December 16-18, 1985, Proceedings},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {206},
+  pages     = {369--391},
+  publisher = {Springer},
+  year      = {1985},
+  url       = {https://doi.org/10.1007/3-540-16042-6\_21},
+  doi       = {10.1007/3-540-16042-6\_21},
+  timestamp = {Tue, 14 May 2019 10:00:51 +0200},
+  biburl    = {https://dblp.org/rec/conf/fsttcs/Stark85.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
-
 @article{Misra:1981:PNP:1313338.1313770,
- author = {Misra, J. and Chandy, K. M.},
- title = {Proofs of Networks of Processes},
- journal = {IEEE Trans. Softw. Eng.},
- issue_date = {July 1981},
- volume = {7},
- number = {4},
- month = jul,
- year = {1981},
- issn = {0098-5589},
- pages = {417--426},
- publisher = {IEEE Press}
-} 
+  author    = {Jayadev Misra and
+               K. Mani Chandy},
+  title     = {Proofs of Networks of Processes},
+  journal   = {{IEEE} Trans. Software Eng.},
+  volume    = {7},
+  number    = {4},
+  pages     = {417--426},
+  year      = {1981},
+  url       = {https://doi.org/10.1109/TSE.1981.230844},
+  doi       = {10.1109/TSE.1981.230844},
+  timestamp = {Wed, 17 May 2017 10:56:37 +0200},
+  biburl    = {https://dblp.org/rec/journals/tse/MisraC81.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
 
 
 
@@ -1142,7 +1145,7 @@ month = {may}
   title     = {The {C11} and {C++11} concurrency model},
   school    = {University of Cambridge, {UK}},
   year      = {2015},
-  url       = {http://ethos.bl.uk/OrderDetails.do?uin=uk.bl.ethos.708458},
+  Xurl       = {http://ethos.bl.uk/OrderDetails.do?uin=uk.bl.ethos.708458},
   timestamp = {Wed, 20 Mar 2019 13:55:31 +0100},
   biburl    = {https://dblp.org/rec/bib/phd/ethos/Batty15},
   bibsource = {dblp computer science bibliography, https://dblp.org}
@@ -1157,6 +1160,7 @@ number = 2104,
  month = oct,
  year = {2017},
  issn = {1364-503X},
+ doi = {10.1098/rsta.2015.0406},
  publisher = {Royal Society}
 }
 
@@ -1172,7 +1176,25 @@ number = 2104,
 
                   
 
-@InProceedings{imm-sc,
+@article{imm-sc,
+  note = {To appear in ECOOP 2020},
+  author    = {Evgenii Moiseenko and
+               Anton Podkopaev and
+               Ori Lahav and
+               Orestis Melkonian and
+               Viktor Vafeiadis},
+  title     = {Reconciling Event Structures with Modern Multiprocessors},
+  journal   = {CoRR},
+  volume    = {abs/1911.06567},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1911.06567},
+  archivePrefix = {arXiv},
+  eprint    = {1911.06567},
+  timestamp = {Mon, 02 Dec 2019 13:44:01 +0100},
+  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1911-06567},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+InProceedings{xxx,
   author =       {Evgenii Moiseenko and Anton Podkopaev and Ori Lahav and Orestis Melkonian and Viktor Vafeiadis},
   title =        {Reconciling Event Structures with Modern Multiprocessors},
   booktitle = {ECOOP},
@@ -1185,16 +1207,18 @@ number = 2104,
                Viktor Vafeiadis},
   title     = {Bridging the gap between programming languages and hardware weak memory
                models},
-  journal   = {{PACMPL}},
+  journal   = {Proc. {ACM} Program. Lang.},
   volume    = {3},
   number    = {{POPL}},
   pages     = {69:1--69:31},
   year      = {2019},
-  url       = {https://dl.acm.org/citation.cfm?id=3290382},
-  timestamp = {Tue, 22 Jan 2019 15:27:56 +0100},
-  biburl    = {https://dblp.org/rec/bib/journals/pacmpl/PodkopaevLV19},
+  url       = {https://doi.org/10.1145/3290382},
+  doi       = {10.1145/3290382},
+  timestamp = {Thu, 16 Apr 2020 13:51:48 +0200},
+  biburl    = {https://dblp.org/rec/journals/pacmpl/PodkopaevLV19.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+
 @inproceedings{DBLP:conf/oopsla/VafeiadisN13,
   author    = {Viktor Vafeiadis and
                Chinmay Narayan},
@@ -1463,16 +1487,22 @@ month={July},}
                Kyndylan Nienhuis and
                Jean Pichon{-}Pharabod and
                Peter Sewell},
+  editor    = {Jan Vitek},
   title     = {The Problem of Programming Language Concurrency Semantics},
-  booktitle = {{Proc. European Symp. on Programming}},
+  booktitle = {Programming Languages and Systems - 24th European Symposium on Programming,
+               {ESOP} 2015, Held as Part of the European Joint Conferences on Theory
+               and Practice of Software, {ETAPS} 2015, London, UK, April 11-18, 2015.
+               Proceedings},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {9032},
   pages     = {283--307},
+  publisher = {Springer},
   year      = {2015},
-  crossref  = {DBLP:conf/esop/2015},
-  xurl       = {http://dx.doi.org/10.1007/978-3-662-46669-8_12},
-  xdoi       = {10.1007/978-3-662-46669-8_12},
-  timestamp = {Tue, 07 Apr 2015 15:19:02 +0200},
-  biburl    = {http://dblp.uni-trier.de/rec/bib/conf/esop/BattyMNPS15},
-  bibsource = {dblp computer science bibliography, http://dblp.org}
+  url       = {https://doi.org/10.1007/978-3-662-46669-8\_12},
+  doi       = {10.1007/978-3-662-46669-8\_12},
+  timestamp = {Tue, 20 Aug 2019 15:27:49 +0200},
+  biburl    = {https://dblp.org/rec/conf/esop/BattyMNPS15.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @proceedings{DBLP:conf/esop/2015,
   Xeditor    = {Jan Vitek},
@@ -1768,6 +1798,7 @@ isbn = {3-540-15648-8},
 pages = {196--218},
 numpages = {23},
 url = {http://dl.acm.org/citation.cfm?id=648065.747612},
+doi = {10.5555/648065.747612},
 acmid = {747612},
 publisher = {Springer-Verlag},
 address = {London, UK, UK},
@@ -1946,6 +1977,7 @@ year="1999"}
  pages = {117--128},
  numpages = {12},
  url = {http://dl.acm.org/citation.cfm?id=266557.266600},
+ doi = {10.5555/266557.266600},
  acmid = {266600},
  publisher = {AMS Press, Inc.},
  address = {New York, NY, USA},

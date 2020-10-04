@@ -59,11 +59,12 @@ only hold in their model up to observational refinement.
 True concurrency techniques have been applied to relaxed memory by
 \citet{DBLP:conf/esop/CenciarelliKS07}, \citet{Castellan},
 \citet{Pichon-Pharabod:2016:CSR:2837614.2837616}, and
-\citet{DBLP:conf/cgo/ChakrabortyV17}.
-% See
-% \citet{DBLP:journals/lmcs/JeffreyR19} for a discussion.
-Partial order models have been developed by \citet{brookes} and
-\citet{DBLP:journals/lmcs/KavanaghB19}.
+\citet{DBLP:conf/cgo/ChakrabortyV17}.  See
+\cite[\textsection8]{DBLP:journals/lmcs/JeffreyR19} for a discussion.
+A partial order approach to weak memory was sketched by \citet{brookes} and
+fleshed out for TSO by \citet{DBLP:journals/lmcs/KavanaghB19}.  Their action
+labels include buffers, encoding the operational behavior of TSO inside the
+pomsets themselves.
 
 There is also a rich literature on the use of transformations over SC
 executions to model relaxed memory:

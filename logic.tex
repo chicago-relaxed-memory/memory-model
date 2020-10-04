@@ -401,9 +401,9 @@ would violate \drfsc{}.
   \end{gathered}  
   \end{gather*}
   Attempting to write $1$ to $a$ results in the cycle shown above.  Thus, the
-  outcome is disallowed by our semantics.  It is also disallowed by
-  \citep{DBLP:journals/lmcs/JeffreyR19}, but the logic given there is
-  insufficient to establish this fact.
+  outcome is disallowed by our semantics.  It was also disallowed by our
+  event structures model, although the logic given there is insufficient to
+  establish this fact \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19}.
   The outcome is \emph{allowed} by
   \citep{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19}.
 % \begin{tikzdisplay}[node distance=1.5em]
@@ -431,7 +431,7 @@ would violate \drfsc{}.
 %   \po[bend right]{rz}{wa}
 % \end{tikzdisplay}
 
-To establish that this outcome is disallowed, we prove the formula
+To establish that this outcome is disallowed here, we prove 
 \begin{math}
   \lnot\DW{a}{1},
 \end{math}
