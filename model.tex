@@ -312,7 +312,11 @@ For the actions of a data model, we require that
 % there is a function $\f: \Act \fun (\Loc \times \Val)$
 there are partial functions $\rreads$ and
 $\rwrites: \Act \fun (\Loc \times \Val)$, and there are subsets of $\Act$:
-$\Acq$, $\Rel$, $\SC$, and $\Term$.
+$\Acq$, $\Rel$, $\SC$, and $\Term$
+such that
+$\fdom(\rreads)\cap\SC\subseteq\Acq$,
+$\fdom(\rwrites)\cap\SC\subseteq\Rel$, and
+$\Term\subseteq\Rel$.
 % We derive the partial function
 % $\floc: \Act \fun \Loc$ as follows: $\floc(\aAct)= \aLoc$ if
 % $\rreads(\aAct) = (\aLoc,\dontcare)$ or
@@ -355,9 +359,9 @@ $\Acq$, $\Rel$, $\SC$, and $\Term$.
     \emph{fencing} actions.  We say that $\aAct$ is an \emph{acquire} if
     $\aAct\in\Acq$, $\aAct$ is a \emph{release} if $\aAct\in\Rel$, and
     $\aAct$ is \emph{SC} if $\aAct\in\SC$.  We require that every SC read is
-    an acquire, and every SC write is a release:
-    $\fdom(\rreads)\cap\SC\subseteq\Acq$ and 
-    $\fdom(\rwrites)\cap\SC\subseteq\Rel$.
+    an acquire, and every SC write is a release.
+    % $\fdom(\rreads)\cap\SC\subseteq\Acq$ and 
+    % $\fdom(\rwrites)\cap\SC\subseteq\Rel$.
   % Note that these are \emph{not}
   % disjoint.
 % % We say that $\aAct$ is a
@@ -367,9 +371,9 @@ $\Acq$, $\Rel$, $\SC$, and $\Term$.
 % $\SC\cap\fdom(\rwrites)\subseteq\Rel$,
 % and
     
-  \item Actions in $\Term$ are \emph{termination} actions. We require $\Term\subseteq\Rel$.
-    % that
-    % termination events are releasing.
+  \item Actions in $\Term$ are \emph{termination} actions. We
+    require %$\Term\subseteq\Rel$.
+    that termination events are releasing.
   \end{itemize}
 
   Our example language includes actions of the form $(\DSTOP)$, which is a
