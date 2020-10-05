@@ -328,11 +328,12 @@ would violate \drfsc{}.
 \begin{example}
   \label{ex:lochb}
   \noparagraph{Lochbihler's Example} The essential temporal property of
-  \ref{OOTA1} is ``allocation at type \texttt{C} is preceded by a read of $1$
-  from $z$.''  Because our language lacks object creation, we cannot consider
+  \ref{OOTA1} is: \emph{allocation at type $\classC$ is preceded by reading $0$ for
+  $z$}.  Because our language lacks object creation, we cannot consider
   \ref{OOTA1} directly.  Instead we study \ref{OOTA4}, which has the same
-  temporal structure: ``a write of $1$ to location $a$ is preceded by a read
-  of $1$ from $z$.''  We show an attempted execution that violates this invariant:
+  temporal structure: \emph{writing $1$ for $x$ is preceded by reading $0$ for
+  $z$}.  We show an attempted execution that violates
+  this invariant:
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{gather*}
   \tag{\textsc{oota4}}\label{OOTA4}
@@ -356,7 +357,7 @@ would violate \drfsc{}.
   \PAR
   x\GETS0\SEMI
   a\GETS0\SEMI
-  \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
+  \IF{z}\THEN  r\GETS y \SEMI x\GETS r \SEMI a\GETS r \ELSE x\GETS1 \FI
   \PAR
   z\GETS0\SEMI
     z\GETS1
@@ -368,7 +369,7 @@ would violate \drfsc{}.
   \po{rx}{wy}
   \event{wx0}{\DW{x}{0}}{right=2em of wy}
   \event{wa0}{\DW{a}{0}}{right=.5em of wx0}
-  \event{rz}{\DR{z}{0}}{right=of wa0}
+  \event{rz}{\DR{z}{1}}{right=of wa0}
   \event{ry}{\DR{y}{1}}{right=of rz}
   \event{wx}{\DW{x}{1}}{right=of ry}
   \event{wa}{\DW{a}{1}}{right=of wx}
@@ -378,12 +379,12 @@ would violate \drfsc{}.
   \wk{wz0}{wz1}
   \rf[out=15,in=165]{wy}{ry}
   \rf[out=-170,in=-10]{wx}{rx}
-  \po[out=25,in=155]{ry}{wa}
+  \po[out=25,in=25]{ry}{wa}
   \wk[out=25,in=155]{wy0}{wy}
-  \wk[out=15,in=165]{wx0}{wx}
-  \wk[out=15,in=165]{wa0}{wa}
-  \rf[out=-165,in=-17]{wz0}{rz}
-  \po[out=-11,in=-160]{rz}{wa}
+  \wk[out=19,in=161]{wx0}{wx}
+  \wk[out=19,in=161]{wa0}{wa}
+  \rf[out=-170,in=-17]{wz1}{rz}
+  \po[out=-160,in=-160]{rz}{wa}
 \end{tikzinline}}
 % \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{rx}{\DR{x}{1}}{}
@@ -402,14 +403,14 @@ would violate \drfsc{}.
 % \end{tikzinline}}
   \end{gathered}  
   \end{gather*}
-  Attempting to write $1$ to $a$ results in the cycle shown above.  Thus, the
-  outcome is disallowed by our semantics.  It was also disallowed by our
-  event structures model
+  We include location $a$ to flag the branch taken.
+  The outcome is disallowed, due to the cycle.  This outcome was also
+  disallowed by our event structures model
   \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19}, although the logic
   given there is insufficient to establish this fact.  The outcome is
-  \emph{allowed} by 
-  \citep{DBLP:conf/esop/JagadeesanPR10}, \citep{DBLP:conf/popl/KangHLVD17},
-  and \citep{DBLP:journals/pacmpl/ChakrabortyV19}.
+  \emph{allowed} by \citep{DBLP:conf/esop/JagadeesanPR10},
+  \citep{DBLP:conf/popl/KangHLVD17}, and
+  \citep{DBLP:journals/pacmpl/ChakrabortyV19}.
 % \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}

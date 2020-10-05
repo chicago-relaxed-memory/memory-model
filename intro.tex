@@ -123,7 +123,7 @@ all memory locations are initialized to $0$:
   \taglabel{OOTA1}
   y\GETS x
   \PAR
-  \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \classC \ELSE \aReg \GETS \NEW \classD \FI  \SEMI x \GETS \aReg 
+  \aReg\GETS y \SEMI \IF{z} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
   \PAR %\\[-1ex] \PAR&
   z \GETS 1
 \end{gather}
@@ -140,7 +140,7 @@ compositional reasoning for temporal safety properties:  the individual
 threads of \ref{OOTA1} satisfy the invariant
 % \emph{allocation at type $\classD$ is preceded by reading zero for $z$}.
 % They also satisfy:
-\emph{allocation at type $\classC$ is preceded by reading a nonzero value for
+\emph{allocation at type $\classC$ is preceded by reading $0$ for
   $z$}, but the composed program does not.  This lack of compositionality
 forced \citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by
 type in order to prove type safety.  This formal device means that memory
