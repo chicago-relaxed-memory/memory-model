@@ -351,21 +351,18 @@ would violate \drfsc{}.
   %   }
   %     \VAR  x\GETS0\SEMI \VAR  y\GETS0\SEMI \VAR  z\GETS0\SEMI
   \begin{gathered}
-  z\GETS0\SEMI
-    z\GETS1
-  \PAR
   y\GETS0\SEMI
     y\GETS x
   \PAR
   x\GETS0\SEMI
   a\GETS0\SEMI
   \IF{z}\THEN x\GETS1 \ELSE r\GETS y \SEMI x\GETS r \SEMI a\GETS r \FI
+  \PAR
+  z\GETS0\SEMI
+    z\GETS1
   \\[-1ex]
 \hbox{\begin{tikzinline}[node distance=1.25em]
-  \event{wz0}{\DW{z}{0}}{}
-  \event{wz1}{\DW{z}{1}}{right=.8em of wz0}
-  \wk{wz0}{wz1}
-  \event{wy0}{\DW{y}{0}}{right=1.2em of wz1}
+  \event{wy0}{\DW{y}{0}}{}
   \event{rx}{\DR{x}{1}}{right=.5em of wy0}
   \event{wy}{\DW{y}{1}}{right=of rx}
   \po{rx}{wy}
@@ -376,14 +373,17 @@ would violate \drfsc{}.
   \event{wx}{\DW{x}{1}}{right=of ry}
   \event{wa}{\DW{a}{1}}{right=of wx}
   \po{ry}{wx}
+  \event{wz0}{\DW{z}{0}}{right=2em of wa}
+  \event{wz1}{\DW{z}{1}}{right=.8em of wz0}
+  \wk{wz0}{wz1}
   \rf[out=15,in=165]{wy}{ry}
   \rf[out=-170,in=-10]{wx}{rx}
-  \po[out=-18,in=-162]{rz}{wa}
   \po[out=25,in=155]{ry}{wa}
   \wk[out=25,in=155]{wy0}{wy}
   \wk[out=15,in=165]{wx0}{wx}
   \wk[out=15,in=165]{wa0}{wa}
-  \rf[out=-10,in=-170]{wz0}{rz}
+  \rf[out=-165,in=-17]{wz0}{rz}
+  \po[out=-11,in=-160]{rz}{wa}
 \end{tikzinline}}
 % \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{rx}{\DR{x}{1}}{}
