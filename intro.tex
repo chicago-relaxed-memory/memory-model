@@ -121,11 +121,11 @@ all memory locations are initialized to $0$:
 %\vspace{-.5ex}
 \begin{gather}
   \taglabel{OOTA1}
-  z \GETS 1
-  \PAR %\\[-1ex] \PAR&
   y\GETS x
   \PAR
   \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \classC \ELSE \aReg \GETS \NEW \classD \FI  \SEMI x \GETS \aReg 
+  \PAR %\\[-1ex] \PAR&
+  z \GETS 1
 \end{gather}
 \ref{OOTA1} ``is type correct if it declares $x$, $y$ and $r$ of type
 $\classD$. However, it has a legal execution where they reference a $\classC$
