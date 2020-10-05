@@ -46,7 +46,8 @@ To get a sense of the problems involved,
 % relaxed memory models: the presence of an execution may depend on code that was not executed. Consider:
 consider that the existence of an execution in a relaxed memory model may
 depend on code that was \emph{not} executed. Let $r$ and $s$ be registers and
-$x$-$z$ be shared memory locations.  Consider:
+$x$-$z$ be shared memory locations.  Consider the following program, where
+all memory locations are initialized to $0$:
 \begin{gather}
   \tag{\ref{OOTA?}}
     y\GETS x
@@ -113,11 +114,10 @@ greatly advanced the state of the art.
 
 
 \citeauthor{DBLP:journals/toplas/Lochbihler13}'s
-[\citeyear{DBLP:journals/toplas/Lochbihler13}] monumental study of the JMM
-revealed a surprising limitation: The following program ``is type correct if
-it declares $x$, $y$ and $r$ of type \texttt{D}. However, it has a legal
-execution where they reference a \texttt{C} object''
-\citep[Fig.~8]{DBLP:journals/toplas/Lochbihler13}:
+monumental study of the JMM
+revealed a surprising limitation. Consider the following program
+\citep[Fig.~8]{DBLP:journals/toplas/Lochbihler13}, where again
+all memory locations are initialized to $0$:
 %\vspace{-.5ex}
 \begin{gather}
   \taglabel{OOTA1}
@@ -125,16 +125,29 @@ execution where they reference a \texttt{C} object''
   \PAR %\\[-1ex] \PAR&
   y\GETS x
   \PAR
-  \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \texttt{C} \ELSE \aReg \GETS \NEW \texttt{D} \FI  \SEMI x \GETS \aReg 
+  \aReg\GETS y \SEMI \IF{z} \THEN \bReg \GETS \NEW \classC \ELSE \aReg \GETS \NEW \classD \FI  \SEMI x \GETS \aReg 
 \end{gather}
-Informally, all threads satisfy the invariant ``allocation at type \texttt{C}
-is preceded by reading $1$ for $z$'' and ``allocation at type \texttt{D} is
-preceded by reading $0$ for $z$.''  If composability of safety properties were to hold,
-the full program would satisfy both invariants.  The lack of composability
-forced \citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by
-type in order to prove type safety.  This formal device means that memory
-cannot be used at different types over time, making practical memory
-reclamation impossible.
+\ref{OOTA1} ``is type correct if it declares $x$, $y$ and $r$ of type
+$\classD$. However, it has a legal execution where they reference a $\classC$
+object.''  The JMM allows $(\aReg\GETS y)$ to see the object created by
+$\NEW$, by bouncing it through $(x \GETS \aReg)$ and $(y\GETS x)$.  This
+allows the address of the allocated object to be read $(\aReg\GETS y)$ before
+its type is determined $(\IF{z})$.  For a simpler variant without
+allocation, see \ref{OOTA4} in \textsection\ref{sec:logic}.
+
+As a result of such \emph{bait-and-switch} behaviors, the JMM does not allow
+compositional reasoning for temporal safety properties.  Each individual
+thread of \ref{OOTA1} satisfies the invariant
+% \emph{allocation at type $\classD$ is preceded by reading zero for $z$}.
+% They also satisfy:
+\emph{allocation at type $\classC$ is preceded by reading a nonzero value for
+  $z$}.  Yet the parallel composition of these threads does not.  This lack
+of compositionality forced \citeauthor{DBLP:journals/toplas/Lochbihler13} to
+partition memory by type in order to prove type safety.  This formal device
+means that memory cannot be used at different types over time, making
+practical memory reclamation impossible.  Even with this solution for type
+safety, there are implications for the Java security architecture
+\cite[\textsection5.4]{DBLP:journals/toplas/Lochbihler13}.
 
 % The JMM is defined using an operational model that incorporates the idea of
 % restarting executions.  Similar models have used speculation
@@ -145,8 +158,11 @@ reclamation impossible.
 As confirmed by \cite{kang,soham}, the promising semantics
 \cite{DBLP:conf/popl/KangHLVD17} and related models
 \citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19} all
-invalidate compositional reasoning, as in \ref{OOTA1}.  (Specifically, they
-allow the variant \ref{OOTA4} given in \textsection\ref{sec:logic}.)
+allow \ref{OOTA4}, invalidating compositional reasoning for temporal safety
+properties.
+% , as in
+% \ref{OOTA1}.  % (Specifically, they
+% allow the variant \ref{OOTA4} given in \textsection\ref{sec:logic}.)
 % See
 % \textsection\ref{sec:promising} for confirmation from the authors themselves.
 This means that these models \emph{cannot support both type safety and

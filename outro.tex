@@ -11,15 +11,15 @@ attempt to bridge the two, see \citep{DBLP:journals/pacmpl/PodkopaevLV19}.
 \armeight{} in the style of \cite{DBLP:conf/popl/KangHLVD17}.
 
 In our previous work~\cite{2019-sp}, we introduced the notion of pomsets with
-preconditions.  In that paper we studied \emph{micro\hyp{}architecture},
+preconditions.  In \citeyear{2019-sp}, we studied \emph{micro\hyp{}architecture},
 where failed speculative execution is visible via cache effects.  Here we
 presented an \emph{architectural} model, which allows us to impose
 \emph{consistency}, ignoring failed speculative execution, and \emph{causal
-  strengthening}.  As we  discuss in \textsection\ref{sec:limits},
-\cite{2019-sp} used 3-valued pomsets, as opposed to the simple pomsets used
-here.  The previous paper was not focused on memory models, and thus did not
-prove the soundness of compiler optimizations, the absence of thin air reads,
-efficient implementability, or \drfsc{}.
+  strengthening}.  In \citeyear{2019-sp}, we used 3-valued pomsets, as
+opposed to the simple pomsets used here; see \textsection\ref{sec:limits} for
+further discussion.  The previous paper was not focused on memory models, and
+thus did not prove the soundness of compiler optimizations, the absence of
+thin air reads, efficient implementability, or \drfsc{}.
 
 % Both \cite{2019-sp} and this paper are inspired by \citeauthor{Batty17}'s
 % [\citeyear{Batty17}] call for a compositional approach to the semantics of
