@@ -99,13 +99,13 @@
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @MISC{undefined,
-  author = {Hans Boehm},
+  author = {Hans-J. Boehm},
   title = {Memory Model Rationales},
   year = {2007},
   howpublished = {\url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2176}}
 }
 @MISC{boehm-tar,
-  author = {Hans Boehm},
+  author = {Hans-J. Boehm},
   title = {Specifying the Absence of ``Out Of Thin Air'' Results},
   year = {2013},
   howpublished = {\url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3710}}
@@ -844,7 +844,7 @@ series = {ASPLOS ’15}
 }
 
 @MISC{BoehmOOTA,
-  author = {Boehm, Hans},
+  author = {Boehm, Hans-J.},
   title = {Out-of-thin-air, revisited, again},
   year = {2018},
   howpublished = {\url{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1217r0}}
@@ -1023,7 +1023,7 @@ series = {ASPLOS ’15}
  keywords = {compilers, concurrency, memory models},
 }
 @article{Lamport:1979:MMC:1311099.1311750,
- author = {Lamport, L.},
+ author = {Lamport, Leslie},
  title = {How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs},
  journal = {IEEE Trans. Comput.},
  issue_date = {September 1979},
@@ -1131,22 +1131,25 @@ url="https://doi.org/10.1007/978-3-319-10575-8_32"
 }
 
 @INPROCEEDINGS {2019-sp,
-author = {C. Disselkoen and R. Jagadeesan and A. Jeffrey and J. Riely},
-booktitle = {IEEE Symposium on Security and Privacy (SP)},
-title = {The Code That Never Ran: Modeling Attacks on Speculative Evaluation},
-year = {2019},
-volume = {},
-issn = {CFP19020-ART},
-pages = {930--947},
-doi = {10.1109/SP.2019.00047},
-url = {https://doi.ieeecomputersociety.org/10.1109/SP.2019.00047},
-publisher = {IEEE Computer Society},
-address = {Los Alamitos, CA, USA},
-month = {may}
+  author    = {Craig Disselkoen and
+               Radha Jagadeesan and
+               Alan Jeffrey and
+               James Riely},
+  title     = {The Code That Never Ran: Modeling Attacks on Speculative Evaluation},
+  booktitle = {2019 {IEEE} Symposium on Security and Privacy, {SP} 2019, San Francisco,
+               CA, USA, May 19-23, 2019},
+  pages     = {1238--1255},
+  publisher = {{IEEE}},
+  year      = {2019},
+  url       = {https://doi.org/10.1109/SP.2019.00047},
+  doi       = {10.1109/SP.2019.00047},
+  timestamp = {Wed, 16 Oct 2019 14:14:51 +0200},
+  biburl    = {https://dblp.org/rec/conf/sp/DisselkoenJJR19.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @phdthesis{DBLP:phd/ethos/Batty15,
-  author    = {Mark John Batty},
+  author    = {Mark Batty},
   title     = {The {C11} and {C++11} concurrency model},
   school    = {University of Cambridge, {UK}},
   year      = {2015},
@@ -1157,7 +1160,7 @@ month = {may}
 }
 
 @article{Batty17,
- author = {Mark John Batty},
+ author = {Mark Batty},
  title = {Compositional relaxed concurrency},
  journal = {Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences},
  volume = {375},
@@ -1480,7 +1483,7 @@ month={July},}
  keywords = {Secure Multi-Execution, Information Flow, Noninterference},
 }
 @MISC{PughWebsite,
-  author = {W. Pugh},
+  author = {William Pugh},
   title = {Causality Test Cases},
   year = 2004,
   url = {https://perma.cc/PJT9-XS8Z},
@@ -1527,7 +1530,7 @@ month={July},}
   bibsource = {dblp computer science bibliography, http://dblp.org}
 }
 @article{DBLP:journals/toplas/Lochbihler13,
-  author    = {A. Lochbihler},
+  author    = {Andreas Lochbihler},
   title     = {Making the {Java} memory model safe},
   journal   = {{ACM} Trans. Program. Lang. Syst.},
   volume    = {35},
@@ -1541,8 +1544,8 @@ month={July},}
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @inproceedings{DBLP:conf/lics/JeffreyR16,
-  author    = {A. Jeffrey and
-               J. Riely},
+  author    = {Alan Jeffrey and
+               James Riely},
   title     = {On Thin Air Reads Towards an Event Structures Model of Relaxed Memory},
   booktitle = {Proceedings of the 31st Annual {ACM/IEEE} Symposium on Logic in Computer
                Science, {LICS} '16, New York, NY, USA, July 5-8, 2016},
@@ -1606,29 +1609,31 @@ month={July},}
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @inproceedings{DBLP:conf/popl/KangHLVD17,
-  author    = {J. Kang and
-               C.{-}K. Hur and
-               O. Lahav and
-               V. Vafeiadis and
-               D. Dreyer},
+  author    = {Jeehoon Kang and
+               Chung{-}Kil Hur and
+               Ori Lahav and
+               Viktor Vafeiadis and
+               Derek Dreyer},
+  editor    = {Giuseppe Castagna and
+               Andrew D. Gordon},
   title     = {A promising semantics for relaxed-memory concurrency},
   booktitle = {Proceedings of the 44th {ACM} {SIGPLAN} Symposium on Principles of
                Programming Languages, {POPL} 2017, Paris, France, January 18-20,
                2017},
   pages     = {175--189},
-  year      = 2017,
-  crossref  = {DBLP:conf/popl/2017},
+  publisher = {{ACM}},
+  year      = {2017},
   url       = {http://dl.acm.org/citation.cfm?id=3009850},
-  timestamp = {Wed, 28 Dec 2016 13:22:29 +0100},
-  biburl    = {http://dblp.org/rec/bib/conf/popl/KangHLVD17},
-  bibsource = {dblp computer science bibliography, http://dblp.org}
+  timestamp = {Tue, 06 Nov 2018 11:07:42 +0100},
+  biburl    = {https://dblp.org/rec/conf/popl/KangHLVD17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 @misc{kang,
-  author    = {J. Kang and
-               C.{-}K. Hur and
-               O. Lahav and
-               V. Vafeiadis and
-               D. Dreyer},
+  author    = {Jeehoon Kang and
+               Chung{-}Kil Hur and
+               Ori Lahav and
+               Viktor Vafeiadis and
+               Derek Dreyer},
   title     = {Private correspondence},
   month =  apr,
   year      = 2018,
@@ -1764,8 +1769,7 @@ month={July},}
 }
  
 @PHDTHESIS{AlglaveThesis,
-  oAUTHOR =       {Alglave, Jade},
-  AUTHOR =       {Alglave, J.},
+  AUTHOR =       {Alglave, Jade},
   TITLE =        {A shared memory poetics},
   SCHOOL =       {Universit\'e Paris 7 and INRIA},
   YEAR =         2010,
@@ -2080,7 +2084,7 @@ doi="10.1007/978-94-009-5203-4_2",
 url="https://doi.org/10.1007/978-94-009-5203-4_2"
 }
 @article{Brookes:1984:TCS:828.833,
- author = {Brookes, S. D. and Hoare, C. A. R. and Roscoe, A. W.},
+ author = {Brookes, S.D. and Hoare, C.A.R. and Roscoe, A.W.},
  title = {A Theory of Communicating Sequential Processes},
  journal = {J. ACM},
  issue_date = {July 1984},
@@ -2098,7 +2102,7 @@ url="https://doi.org/10.1007/978-94-009-5203-4_2"
  address = {New York, NY, USA},
 }
 @article{Hoare:1969:ABC:363235.363259,
- author = {Hoare, C. A. R.},
+ author = {Hoare, C.A.R.},
  title = {An Axiomatic Basis for Computer Programming},
  journal = {Commun. ACM},
  issue_date = {Oct. 1969},
