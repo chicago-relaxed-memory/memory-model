@@ -302,12 +302,15 @@ order on events, compositionality helps explain how our model disallows
 composition does not create unexpected
 behaviors.  % The fact that the dependency relation is a partial order forbids
 % \oota\ behaviors.  
-The simplest \oota{} litmus test asks whether either of the following threads
-can see non-zero values:
+The simplest \oota{} litmus test is the following variant of \eqref{OOTA?} without $z$ or
+the conditional.  Again all memory locations are initialized to $0$:
+% asks whether either of the following threads
+% can see non-zero values:
 \begin{gather*}
   \tag{\ref{OOTA3}}
-  x\GETS0\SEMI y\GETS0\SEMI
-  (\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
+  %x\GETS0\SEMI y\GETS0\SEMI
+  %(\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
+  \bLoc \GETS \aLoc \PAR r\GETS y\SEMI x\GETS r  
 \end{gather*}
 We rule out non-zero reads as follows: The write of $\bLoc$ on the left hand
 side is dependent on the read to $\aLoc$.  Similarly, the write of $\aLoc$ on

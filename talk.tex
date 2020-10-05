@@ -1,6 +1,4 @@
-% tlmgr install translator
-\documentclass[t]{beamer}
-%\documentclass[t]{beamer}
+\documentclass[t]{beamer} %tlmgr install translator
 %\includeonlyframes{current}  %%%% USE: \begin{frame}[label=current]
 \usepackage{macros}
 \usepackage{talk}
@@ -14,6 +12,7 @@
     \begin{itemize}
     \item 
     \end{itemize}
+
 
 To convert from PDF to KeyNOTE: use the automator suggestion here
 https://apple.stackexchange.com/questions/95856/import-multiple-pages-from-a-pdf-as-separate-slides-in-keynote
@@ -41,6 +40,7 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
 \only<>{during}                    onlyenv
 \alt<>{during}{other}              altenv
 \temporal<>{before}{during}{after}
+\setbeamercovered{transparent=35}
 \end{comment}
 
 \title{Pomsets with Preconditions}
@@ -67,9 +67,76 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
 % \end{frame}
 
 \begin{frame}
-  \frametitle{What can a programmer conclude about this code?}
-  \setbeamercovered{transparent=35}
+  \frametitle{Can this program write 1 to z?}
+  \begin{gather*}
+    y\GETS x
+    \PAR
+    r\GETS y\SEMI
+    x\GETS r\SEMI
+    z\GETS r
+  \end{gather*}
+  initially $x=y=z=0$
+
+ 
+  \pause
+  \vspace{1in}
+  what about
+  \begin{gather*}
+    y\GETS x
+    \PAR
+    r\GETS y\SEMI
+    \highlight{\IF{r}\THEN} x\GETS r\SEMI z\GETS r \highlight{\ELSE x\GETS1 \FI}
+  \end{gather*}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Can this program write 1 to z?}
+  \begin{gather*}
+    y\GETS x
+    \PAR
+    r\GETS y\SEMI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI
+  \end{gather*}
+  \pause
+  $x$ and $y$ can only be $0$ or $1$  
+  \begin{gather*}
+    y\GETS x
+    \PAR
+    r\GETS y\SEMI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS 1 \ELSE x\GETS1 \FI
+  \end{gather*}
+  \pause
+  lift common code
+\begin{gather*}
+  %\taglabelpp{OOTA?}
+  y\GETS x
+  \PAR
+  r\GETS y\SEMI
+  x\GETS1\SEMI
+  \IF{r}\THEN z\GETS 1 \FI
+\end{gather*}
+  \pause
+  commute independent statements
+\begin{gather*}
+  %\taglabelpp{OOTA?}
+  y\GETS x
+  \PAR
+  x\GETS1\SEMI
+  r\GETS y\SEMI
+  \IF{r}\THEN z\GETS 1 \FI
+\end{gather*}
+  \pause
+  interleaving
+\begin{gather*}
+  %\taglabelpp{OOTA?}
+  x\GETS1\SEMI
+  y\GETS x\SEMI
+  r\GETS y\SEMI
+  \IF{r}\THEN z\GETS 1 \FI
+\end{gather*}
+\end{frame}
+
+
 \end{document}
 
 % Local Variables:
