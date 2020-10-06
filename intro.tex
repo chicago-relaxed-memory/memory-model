@@ -7,18 +7,35 @@ for system designers.''
 
 %In order to sharpen the criteria to evaluate memory models, we first outline desiderata  that concretize the above prescription.  
 
-There are  two aspects to ``ease of use.''  First, the expectation of
-\emph{sequential consistency for data race free programs}
-(\drfsc)~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits
-the programmer to forget about relaxed memory for correctly synchronized
-programs.  Second, all programs---even those with data races---should support
-compositional reasoning on temporal safety
+There are two aspects to ``ease of use.''  First, programs should support
+\emph{compositional} and \emph{local} reasoning; in this paper, we emphasize
+temporal safety
 properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.
+Second, relaxed memory should be not change the behavior of correctly
+synchronized programs; this property is known as \emph{sequential consistency
+  for data race free programs} (\drfsc)~\cite{DBLP:journals/tpds/AdveH93,
+  DBLP:conf/isca/AdveH90}.
+ % Second, the expectation of
+% \emph{sequential consistency for data race free programs}
+% (\drfsc)~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90} permits
+% the programmer to forget about relaxed memory for correctly synchronized
+% programs.
+
+% There are two aspects to ``ease of use.''  First, programmers should be able
+% to reason about program fragments \emph{compositionally} and \emph{locally};
+% in this paper we emphasize compositional reasoning about temporal safety
+% properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.
+% Second, programmers should be able to forget about relaxed memory in
+% correctly synchronized programs; this property is known as \emph{sequential
+%   consistency for data race free programs}
+% (\drfsc)~\cite{DBLP:journals/tpds/AdveH93, DBLP:conf/isca/AdveH90}.
 
 There are also two aspects of ``implementation flexibility.''  First, relaxed
-atomic access should not require hardware synchronization.  Second, the model
+atomic access should not require hardware synchronization (at least for the
+word size of the machine).  Second, the model
 should facilitate compiler transformations, such as the reordering of independent
-statements; ideally the model should support all valid optimizations of
+statements; ideally the model should support all %valid
+optimizations of
 synchronization\hyp{}free single\hyp{}threaded code.
 % A
 % canonical example is that independent statements should commute.

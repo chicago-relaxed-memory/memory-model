@@ -1,4 +1,4 @@
-\documentclass[t]{beamer} %tlmgr install translator
+\documentclass[t,aspectratio=169]{beamer} %tlmgr install translator
 %\includeonlyframes{current}  %%%% USE: \begin{frame}[label=current]
 \usepackage{macros}
 \usepackage{talk}
@@ -13,6 +13,8 @@
     \item 
     \end{itemize}
 
+    Great Beamer guide here:
+    https://www.overleaf.com/learn/latex/Beamer_Presentations:_A_Tutorial_for_Beginners_(Part_4)—Overlay_Specifications
 
 To convert from PDF to KeyNOTE: use the automator suggestion here
 https://apple.stackexchange.com/questions/95856/import-multiple-pages-from-a-pdf-as-separate-slides-in-keynote
@@ -41,6 +43,14 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
 \alt<>{during}{other}              altenv
 \temporal<>{before}{during}{after}
 \setbeamercovered{transparent=35}
+
+
+\begin{itemize}[<+-| alert@+>]
+\item Apple
+\item Peach
+\item Plum
+\item Orange
+\end{itemize}
 \end{comment}
 
 \title{Pomsets with Preconditions}
@@ -75,7 +85,8 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
     x\GETS r\SEMI
     z\GETS r
   \end{gather*}
-  initially $x=y=z=0$
+  $r$ is a register\\
+  $x$, $y$, $z$ are shared memory locations, initially $0$
 
  
   \pause
@@ -85,7 +96,7 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    \highlight{\IF{r}\THEN} x\GETS r\SEMI z\GETS r \highlight{\ELSE x\GETS1 \FI}
+    \alert{\IF{r}\THEN} x\GETS r\SEMI z\GETS r \alert{\ELSE x\GETS1 \FI}
   \end{gather*}
 \end{frame}
 
@@ -136,7 +147,47 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
 \end{gather*}
 \end{frame}
 
+{
+  \setbeamertemplate{navigation symbols}{
+    \href{https://en.wikipedia.org/wiki/Nuclear_explosion\#/media/File:Operation_Upshot-Knothole_-_Badger_001.jpg}{Photo in the Public domain}
+  }
+  \usebackgroundtemplate{\includegraphics[width=\paperwidth]{images/abomb.jpg}}
+\begin{frame}
+\end{frame}
+}
 
+{
+  \setbeamertemplate{navigation symbols}{\href{https://commons.wikimedia.org/wiki/File:Tulips,Hitachi_Seaside_Park,Hitachinaka-city,Japan.JPG}{Photo
+  by Katorisi, 2010, Creative Commons}}
+\usebackgroundtemplate{\includegraphics[height=\paperheight]{images/katorisi.jpeg}}
+\begin{frame}
+\end{frame}
+}
+
+
+\begin{frame}
+  \frametitle{It's going to be okay}
+  \begin{itemize}[<+->]
+  \item Concurrent observers see more [Plotkin and Pratt , 1990]: \emph{Teams
+      Can See Pomsets}]
+    \begin{itemize}
+    \item compiler optimization only sound for sequential programs      
+    \end{itemize}
+  \item Use \emph{Sequential consistency} as correctness criterion [Lamport,
+    1979]: \emph{How to Make a Multiprocessor Computer That Correctly
+      Executes Multiprocess Programs}
+    \begin{itemize}
+    \item It's too slow
+    \end{itemize}
+  \item 
+  \item Orange
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \fontsize{80}{80}\selectfont
+  Hello
+\end{frame}
 \end{document}
 
 % Local Variables:
