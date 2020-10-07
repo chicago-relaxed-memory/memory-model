@@ -219,10 +219,13 @@
     Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
     $\aPS'\in\aPSS'$ when $\labelingForm(\aEv')$ implies $\aForm$
   \item 
-    Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
+    %Let $(\aPSS\aSub)$
+    Let $(\aPSS[M/x])$
+    be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
     $\aPS\in\aPSS$ such that\\ $\Event' = \Event$, ${\le'} = {\le}$,
     $\labelingAct' = \labelingAct$, and
-    $\labelingForm'(\aEv) = \labelingForm(\aEv)\aSub$
+    $\labelingForm'(\aEv) = \labelingForm(\aEv)[M/x]$
+    %$\labelingForm'(\aEv) = \labelingForm(\aEv)\aSub$
     
     
   \item 
@@ -248,37 +251,37 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}<1-2>
+  \setbeamercovered{transparent=35}
   \frametitle{Operators}
   \begin{itemize}
   \item 
-    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+    Let $(\aForm \mid \aAct) \aPSS$ be the set
     $\PRE{\aPSS'}$ 
     where
     $\aPS'\in\aPSS'$ when 
     there is $\aPS\in\aPSS$ such that
     \begin{enumerate}
-    \item[{\labeltextsc[P1]{(P1)}{1}}] $\Event' = \Event \cup \{\bEv\}$,
-    \item[{\labeltextsc[P2]{(P2)}{2}}]  ${\le'}\supseteq{\le}$, 
-    \item[{\labeltextsc[P3]{(P3a)}{3a}}]\labeltextsc[P3]{}{3}$\labelingAct'(\bEv) = \aAct$,
-    \item[{\labeltextsc[P3b]{(P3b)}{3b}}] $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
-    \item[{\labeltextsc[P4a]{(P4a)}{4a}}]\labeltextsc[P4]{}{4}$\labelingForm'(\bEv)$ implies $\aForm$, 
+    \item[{\labeltextsc[P1]{(P1)}{1}}] $\Event' = \Event \cup \{\bEv\}$
+    \item<1>[{\labeltextsc[P2]{(P2)}{2}}]  ${\le'}\supseteq{\le}$
+    \item[{\labeltextsc[P3]{(P3a)}{3a}}]\labeltextsc[P3]{}{3}$\labelingAct'(\bEv) = \aAct$
+    \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}] $\labelingAct'(\aEv) = \labelingAct(\aEv)$
+    \item[{\labeltextsc[P4a]{(P4a)}{4a}}]\labeltextsc[P4]{}{4}$\labelingForm'(\bEv)$ implies $\aForm$,
     \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
       if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
       if $\bEv$ does not \externally read then
-      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
+      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}if $\aEv$ writes
       then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies
-      $\labelingForm(\aEv)$,
+      $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
-      if $\bEv$ and $\aEv$ are \external actions in conflict,
-      then $\bEv\lt'\aEv$, 
+      if $\bEv$ and $\aEv$ are actions in conflict then $\bEv\lt'\aEv$
     \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
-      if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
     \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
-      if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
+      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
     \end{enumerate}
   \end{itemize}
 \end{frame}
