@@ -1401,27 +1401,26 @@ there is $\aPS\in\aPSS$ such that
   \end{gather*}
 \end{candidate}
 
-The semantics of read and write introduce a separate pomset for each possible
-value read or written.  The value is fixed in each pomset.  For writes, the
-dependence on $\aExp$ appears in the precondition $(\aExp=\aVal)$.
-
 The main work happens in the definition of prefixing ($\prefix$).  \ref{1}
 introduces a new event.  \ref{2} ensures that no order is removed from old
 events.  \ref{3} specifies the actions labelling the events.  \ref{4}
 specifies the preconditions (along with \ref{5a}).  \ref{5} specifies the
 preserved program order.
 
-Writes introduce preconditions that must be satisfied using substitution and
-\ref{4b}.  Reads introduce a fulfillment requirement, which is constrained by
-the program order that is preserved by \ref{5}.
+The semantics of read and write introduce a separate pomset for each possible
+value read or written.  The value is fixed in each pomset.  For writes, the
+dependence on $\aExp$ appears in the precondition $(\aExp=\aVal)$.  This
+precondition must be satisfied using the substitutions in the semantic rules
+and \ref{4b}.  Whereas writes introduce a precondition that must be satisfied
+sequentially, reads introduce a fulfillment requirement
+(\textsection\ref{sec:fulfillment}) that must be satisfied concurrently.
 
-Requirement \ref{5a} connects
-the sequential semantics of write to the concurrent semantics of read.
-%\ref{5a} captures \emph{read to write  dependency}.
-\ref{5a} requires order from read to write when the precondition of the write
+The possibilities for fulfillment are limited by the program
+order that is preserved by \ref{5}.  Requirement \ref{5a} connects
+the sequential semantics of write to the concurrent semantics of read; it %\ref{5a}
+requires order from read to write when the precondition of the write
 is \emph{weakened} using \ref{4b} (when $\bEv$ is not a read, \ref{4c}
 trivially implies \ref{5a}).
-
 The other requirements in \ref{5} are standard.  \ref{5b} captures the
 extended coherence requirement on sequential actions that touch the same location.
 \ref{5c} imposes the order required by acquire and release actions.  \ref{5d}
@@ -1639,6 +1638,7 @@ of $(r{=}1\mid\DW{x}{1})$ using \ref{4b} when prefixing $(\DR{y}{1})$. This
 forces a dependency between the read and write via \ref{5a}.
 
 \subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
+\label{sec:fulfillment}
 At the point that $\aLoc$ is bound, we can require that every read of $\aLoc$
 be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
 \emph{coherence} play in other relaxed memory models, yet it is not the same.
