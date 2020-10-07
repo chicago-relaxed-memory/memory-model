@@ -262,25 +262,27 @@
     $\aPS'\in\aPSS'$ when 
     there is $\aPS\in\aPSS$ such that
     \begin{enumerate}
-    \item[{\labeltextsc[P1]{(P1)}{1}}] $\Event' = \Event \cup \{\bEv\}$
-    \item<1>[{\labeltextsc[P2]{(P2)}{2}}]  ${\le'}\supseteq{\le}$
-    \item[{\labeltextsc[P3]{(P3a)}{3a}}]\labeltextsc[P3]{}{3}$\labelingAct'(\bEv) = \aAct$
-    \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}] $\labelingAct'(\aEv) = \labelingAct(\aEv)$
-    \item[{\labeltextsc[P4a]{(P4a)}{4a}}]\labeltextsc[P4]{}{4}$\labelingForm'(\bEv)$ implies $\aForm$,
+    \item[{\labeltextsc[P1]{(P1)}{1}}]
+      $\Event' = \Event \cup \{\bEv\}$
+    \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
+      ${\le'}\supseteq{\le}$
+    \item[{\labeltextsc[P3]{(P3a)}{3a}}]\labeltextsc[P3]{}{3}%
+      $\labelingAct'(\bEv) = \aAct$
+    \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
+      $\labelingAct'(\aEv) = \labelingAct(\aEv)$
+    \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}}]\labeltextsc[P4]{}{4}%
+      $\labelingForm'(\bEv)$ implies $\aForm$,
     \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-      if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
+      if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-      if $\bEv$ does not \externally read then
-      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
-    \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}if $\aEv$ writes
-      then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies
-      $\labelingForm(\aEv)$
-    \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
+      if $\bEv$ does not read then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+    \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}%
+      if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+    \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
       if $\bEv$ and $\aEv$ are actions in conflict then $\bEv\lt'\aEv$
-    \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
+    \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
       if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
-    \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
+    \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
       if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
     \end{enumerate}
   \end{itemize}
