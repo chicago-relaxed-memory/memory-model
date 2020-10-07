@@ -1205,10 +1205,13 @@ violates consistency.
 \subsection{Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
 
-Prefixing adds a new event to a pomset.  We present a candidate definition for prefixing.  The full definition follows
-in \textsection\ref{sec:refine}.   We expect the semantics to be downclosed.
-The definition is simplified by performing this closure explicitly.
-Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
+Prefixing adds a new read or write event to the beginning of a pomset.  We
+present a candidate definition for prefixing here; the full definition
+follows in \textsection\ref{sec:refine}.
+
+Maintaining downset closure complicates the definition in uninteresting ways;
+therefore, we perform this closure explicitly.  Let
+$\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
   
 
 % \begin{candidate}
