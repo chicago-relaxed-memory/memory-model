@@ -1,13 +1,14 @@
 \section{Properties of the Basic Model}
 \label{sec:props}
 
-It is amazing how much Candidate \ref{cand:ord} ``gets right'' out of the
-box, including value range analysis, internal reads, and SC access, all of
-which can be complex in other models.  In this section, we walk through
-several litmus tests, valid rewrites and invalid rewrites.  The examples show
-that rules \ref{rf3}--\ref{rf4} and \ref{5a}--\ref{5d} are understandable as
-\emph{general principles}, not merely as the intersection of a series of
-relations.
+It is amazing how much the semantics of \textsection\ref{sec:model} ``gets
+right'' out of the box, including value range analysis, internal reads, and
+SC access, all of which can be complex in other models.  In this section, we
+walk through several litmus tests, valid rewrites and invalid rewrites.  The
+examples show that \ref{5a}--\ref{5d} and \ref{rf3}--\ref{rf4} are
+understandable as \emph{general principles}.  The interaction of these
+principles is limited to a single, global, pomset order.  We discuss tweaks
+to the semantics in \textsection\ref{sec:refine}.
 
 \subsection{Litmus Tests}
 \label{sec:litmus}

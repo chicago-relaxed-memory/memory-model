@@ -1205,9 +1205,10 @@ violates consistency.
 \subsection{Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
 
-Prefixing adds a new read or write event to the beginning of a pomset.  We
-present a candidate definition for prefixing here; the full definition
-follows in \textsection\ref{sec:refine}.
+Prefixing adds a new read or write event to the beginning of a pomset.  As
+for composition, we allow coalescing.  The candidate definition given here
+fails to validate some compiler optimizations.  We give the final definition
+in \textsection\ref{sec:refine}.
 
 Maintaining downset closure complicates the definition in uninteresting ways;
 therefore, we perform this closure explicitly.  Let
