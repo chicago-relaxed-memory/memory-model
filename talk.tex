@@ -147,23 +147,82 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
 \end{gather*}
 \end{frame}
 
-{
-  \setbeamertemplate{navigation symbols}{
-    \href{https://en.wikipedia.org/wiki/Nuclear_explosion\#/media/File:Operation_Upshot-Knothole_-_Badger_001.jpg}{Photo in the Public domain}
-  }
-  \usebackgroundtemplate{\includegraphics[width=\paperwidth]{images/abomb.jpg}}
-\begin{frame}
-\end{frame}
-}
+\imagepage{images/abomb3.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=198310}{Photo in the Public domain}}
+\imagepage{images/flowers.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Photo in the Public domain}}
 
-{
-  \setbeamertemplate{navigation symbols}{\href{https://commons.wikimedia.org/wiki/File:Tulips,Hitachi_Seaside_Park,Hitachinaka-city,Japan.JPG}{Photo
-  by Katorisi, 2010, Creative Commons}}
-\usebackgroundtemplate{\includegraphics[height=\paperheight]{images/katorisi.jpeg}}
-\begin{frame}
-\end{frame}
-}
+% \imagepage{images/katorisi.jpeg}{\href{https://commons.wikimedia.org/wiki/File:Tulips,Hitachi_Seaside_Park,Hitachinaka-city,Japan.JPG}{Photo
+%   by Katorisi, 2010, Creative Commons}}
 
+
+\begin{frame}
+  \frametitle{Sequential Semantics}
+
+  \begin{gather*}
+    \begin{gathered}
+      \only<9->{\IF{r}\THEN}
+      \only<4->{x\GETS r\SEMI}
+      z\GETS r
+      \only<9->{\FI}
+      \\
+      \only<1>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}0\mid\DW{z}{0}}{}
+          \end{tikzinline}}}
+      \only<2>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}1\mid\DW{z}{1}}{}
+          \end{tikzinline}}}
+      \only<3>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}2\mid\DW{z}{2}}{}
+          \end{tikzinline}}}
+      \only<4>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}0\mid\DW{z}{0}}{}
+            \event{wx}{r{=}0\mid\DW{x}{0}}{left=of wz}
+          \end{tikzinline}}}
+      \only<5,8>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}1\mid\DW{z}{1}}{}
+            \event{wx}{r{=}1\mid\DW{x}{1}}{left=of wz}
+          \end{tikzinline}}}
+      \only<6-7>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \nonevent{wz}{r{=}1\mid\DW{z}{1}}{}
+            \nonevent{wx}{r{=}0\mid\DW{x}{0}}{left=of wz}
+          \end{tikzinline}}}
+      \only<9>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{\neq}0 \land r{=}1\mid\DW{z}{1}}{}
+            \event{wx}{r{\neq}0 \land r{=}1\mid\DW{x}{1}}{left=of wz}
+          \end{tikzinline}}}
+      \only<10->{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}1\mid\DW{z}{1}}{}
+            \event{wx}{r{=}1\mid\DW{x}{1}}{left=of wz}
+          \end{tikzinline}}}
+    \end{gathered}
+    \only<8->{\qquad \qquad\qquad\begin{gathered}
+      \only<9->{\IF{\lnot r}\THEN}
+        x\GETS 1
+      \only<9->{\FI}
+      \\
+      \only<8>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wx}{1{=}1\mid\DW{x}{1}}{}
+          \end{tikzinline}}}
+      \only<9>{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wx}{r{=}0 \land 1{=}1\mid\DW{x}{1}}{}
+          \end{tikzinline}}}
+      \only<10->{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wx}{r{=}0\mid\DW{x}{1}}{}
+          \end{tikzinline}}}
+      \end{gathered}}
+  \\[3ex]
+  \begin{gathered}
+    \only<11->{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS 1\FI}
+    \\
+      \only<11->{\hbox{\begin{tikzinline}[node distance=.5em]
+            \event{wz}{r{=}1\mid\DW{z}{1}}{}
+            \event{wx}{r{=}0\lor r{=}1\mid\DW{x}{1}}{left=of wz}
+          \end{tikzinline}}}    
+    \end{gathered}
+  \end{gather*}
+  \begin{center}
+    \only<7>{$r{=}0$ and $r{=}1$ are \emph{inconsistent}}
+  \end{center}
+\end{frame}
 
 \begin{frame}
   \frametitle{It's going to be okay}
@@ -184,9 +243,17 @@ Another display option is to use http://dspdfviewer.danny-edel.de, which require
   \end{itemize}
 \end{frame}
 
+
+\imagepage{images/keynote-talk/keynote-talk.001.jpeg}{}
+\imagepage{images/keynote-talk/keynote-talk.002.jpeg}{}
+\imagepage{images/keynote-talk/keynote-talk.003.jpeg}{}
+\imagepage{images/keynote-talk/keynote-talk.004.jpeg}{}
+\imagepage{images/keynote-talk/keynote-talk.005.jpeg}{}
+
+
+
+
 \begin{frame}
-  \fontsize{80}{80}\selectfont
-  Hello
 \end{frame}
 \end{document}
 

@@ -806,313 +806,6 @@ yields a set of pomsets, ranged over by $\aPSS$.
 % theory that the most interesting are local declarations ($\VAR\aLoc\SEMI\aCmd$)
 % and parallel composition ($\aCmd \PAR \bCmd$).
 
-\subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
-At the point that $\aLoc$ is bound, we can require that every read of $\aLoc$
-be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
-\emph{coherence} play in other relaxed memory models, yet it is not the same.
-
-\begin{definition}
-   \label{def:rf}
- Two actions \emph{conflict} if one writes a location and the other
-either reads or writes the same location.
-We say $\bEv$ \emph{fulfills $\aEv$} (on $\aLoc$) if 
-% \begin{itemize}    
-% \item
-\labeltextsc[F1]{(F1)}{rf1} $\bEv$ \externally writes $\aVal$ to $\aLoc$, 
-% \item
-\labeltextsc[F2]{(F2)}{rf2} $\aEv$ \externally reads $\aVal$ from $\aLoc$,
-% \item
-\labeltextsc[F3]{(F3)}{rf3} $\bEv \lt \aEv$, and
-% \item
-\labeltextsc[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either $\cEv
-\gtN \bEv$ or $\aEv \gtN \cEv$. %, or $\fthrd(\aEv)=\fthrd(\cEv)$ and $\aEv \leloc \cEv$.
-% \end{itemize}
-\end{definition}
-% Throughout this section, we will ignore the last disjunct in \ref{rf4}; we
-% discuss it in \textsection\ref{
-
-\ref{rf3} requires that a write $\bEv$ is ordered before any read $\aEv$
-that it fulfills; this order is typically called \emph{reads from}. 
-\ref{rf4} requires that any conflicting write $\cEv$ is ordered before $\bEv$
-or after $\aEv$; this order is typically called \emph{extended coherence}.
-For readability, we draw the order required by \ref{rf3} using bold green
-arrows and the order required by \ref{rf4} using dashed red arrows.
-% The causal order required by \ref{rf4} is part
-% of, and we draw it with dashed red
-% arrows.  % In our model, these are not separate orders.  We include the
-% % \emph{reason} for the order only to improve readability. 
-As an example, consider:
-\begin{gather*}
-  \taglabel{Co1}
-  x\GETS 1
-  \PAR
-  x\GETS2
-  \PAR
-  x\GETS 3
-  \PAR
-  x\GETS 4
-  \PAR
-  x\GETS 5
-  \PAR
-  r\GETS x\SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x
-  \\
-  \hbox{\begin{tikzinline}[node distance=.7em and 2em]
-  \event{wx1}{\DW{x}{1}}{}
-  \event{rx1a}{\DR{x}{1}}{above right=of wx1}
-  \event{rx1b}{\DR{x}{1}}{above=of rx1a}
-  \event{wx2}{\DW{x}{2}}{below right=of rx1a}
-  \event{rx2a}{\DR{x}{2}}{above right=of wx2}
-  \event{rx2b}{\DR{x}{2}}{above=of rx2a}
-  \event{wx3}{\DW{x}{3}}{above right=of rx2a}            
-  \event{wx4}{\DW{x}{4}}{right=of rx2a}
-  \event{wx5}{\DW{x}{5}}{below right=of wx4}
-  \event{rx5}{\DR{x}{5}}{above right=of wx5}
-  \rf{wx1}{rx1a}
-  \rf{wx1}{rx1b}
-  \rf{wx2}{rx2a}
-  \rf{wx2}{rx2b}
-  \wk{rx1a}{wx2}
-  \wk{rx1b}{wx2}
-  \wk{rx2a}{wx3}
-  \wk{rx2a}{wx4}
-  \wk{rx2b}{wx3}
-  \wk{rx2b}{wx4}
-  \wk{wx3}{wx5}
-  \wk{wx4}{wx5}
-  \rf{wx5}{rx5}
-    \end{tikzinline}}
-\end{gather*}
-A write is \emph{relevant} if it is read from.  In order to fulfill all of
-the reads on $x$ in the example, we pick a total order on the relevant
-writes: in this case, $(\DW{x}{1})\le (\DW{x}{2})\le(\DW{x}{5})$.  The reads
-slot between these, immediately after their fulfilling write.  Reads are not
-necessarily ordered with respect to each other, even if they come from the
-same thread, as do the reads here.  Irrelevant writes also float relative to
-each other, as do $(\DW{x}{3})$ and $(\DW{x}{4})$.  But irrelevant writes
-must be ordered with respect to relevant writes and reads.  The resulting
-order is somewhat weaker than traditional extended coherence, which requires
-a total order on the writes, regardless of whether they are relevant.  We
-discuss coherence further on page \pageref{page:coherence2}.
-
-% The restriction of pomset order to conflicting events is called the
-% \emph{extended coherence order} ($\reco$).  This relation can always be
-% extended to totally order all conflicting events, as is common in hardware
-% memory models.
-
-% When a location is bound, every read of that location must be {fulfilled} by a
-% matching write.
-In order to be $\aLoc$-closed, a pomset must be ``done'' with $\aLoc$, in
-both the concurrent and the sequential semantics.  The concurrent semantics
-requires that all reads of $\aLoc$ be fulfilled.  The sequential semantics
-requires that all formulae be \emph{independent of $\aLoc$} (Def.~\ref{def:independent}):
-$\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
-
-
-\begin{definition}
-  A pomset is \emph{$\aLoc$-closed} if every \external read on $\aLoc$ is fulfilled,
-  and every formula is independent of $\aLoc$.
-  Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ such that $\aPS'{\in}\aPSS'$
-  when $\aPS'$ is $\aLoc$-closed.
-  We define:
-\begin{align*}
-  \sem[\aThrd]{\VAR\aLoc\SEMI \aCmd} & \eqdef
-  \nu \aLoc \DOT \sem[\aThrd]{\aCmd}  
-\end{align*}
-  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location
-  $\aLoc$.  
-\end{definition}
-Together with \ref{rf4}, the definition of $x$-closed disallows the following execution:
-\begin{gather}
-  \label{blocker}
-  \begin{gathered}
-  \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
-  \PAR
-  \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
-  \PAR
-  r\GETS z_2^\modeRA\SEMI s\GETS x)
-  \\[-.5ex]
-  \hbox{\begin{tikzinline}[node distance=1em]
-  \event{a}{\DW{x}{1}}{}
-  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
-  \event{c}{\DR{z_1}{1}}{right=1.8em of b}
-  \event{d}{\DW{x}{2}}{right=of c}
-  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
-  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
-  \event{g}{\DR{x}{1}}{right=of f}
-  \sync{a}{b}
-  \po{c}{d}
-  \sync{d}{e}
-  \sync{f}{g}
-  \rf[out=8,in=172]{a}{g}
-    \end{tikzinline}}
-\end{gathered}
-\end{gather}
-In order to close $x$, we must choose whether $(\DW{x}{2})$ is
-preceding $(\DW{x}{2}\xwk\DW{x}{1})$ or following
-$(\DR{x}{1}\xwk\DW{x}{2})$.  This prevents $(\DW{x}{2})$ from blocking the
-read after parallel composition.  For example, 
-if \eqref{blocker} were placed in the context
-\begin{math}
-  b\GETS a
-  \PAR
-  d\GETS c
-  \PAR
-  \hole{},
-\end{math}
-we would have:
-\begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=.8em]
-  \event{a}{\DW{x}{1}}{}
-  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
-  \event{w}{\DR{y_1}{1}}{right=1.8em of b}
-  \event{x}{\DW{z_1}{1}}{right=of w}
-  \event{c}{\DR{z_1}{1}}{right=1.8em of x}
-  \event{d}{\DW{x}{2}}{right=of c}
-  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
-  \event{y}{\DR{y_2}{1}}{right=1.8em of e}
-  \event{z}{\DW{z_2}{1}}{right=of y}
-  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of z}
-  \event{g}{\DR{x}{1}}{right=of f}
-  \sync{a}{b}
-  \po{c}{d}
-  \sync{d}{e}
-  \sync{f}{g}
-  \po{w}{x}
-  \rf{b}{w}
-  \rf{x}{c}
-  \po{y}{z}
-  \rf{e}{y}
-  \rf{z}{f}
-    \end{tikzinline}}
-\end{gather*}
-This violates the conventional, weaker statement of \ref{rf4}: there is no
-conflicting write $\cEv$ such that $\bEv<\cEv<\aEv$.  By requiring order on
-$(\DW{x}{2})$ we forbid this blocker and
-% Since \ref{rf4}
-% quantifies over \emph{all} writes to $x$, the semantics
-validate scope extrusion (\textsection\ref{sec:valid}).
-
-% \todo{finish this}: Our formulation of fulfillment is As we noted in
-% \cite[\textsection B]{2019-sp}, scope extrusion fails if fulfillment
-% requirement \ref{rf4}---for every conflicting write $\cEv$, either
-% $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an existential---there
-% is no conflicting write $\cEv$ such that $\bEv<\cEv<\aEv$.
-
-
-% Such conflicting writes are called \emph{blockers}.  The universal
-% quantification ensures that parallel threads cannot turn a non-blocker into a
-% blocker.  In that paper, we advocated the use of \emph{three-valued pomsets},
-% which use strong order for \ref{rf3} and weak order for \ref{rf4}.  The
-% pomsets studied in this paper are far simpler.
-
-
-%\subsection{Fulfillment and Location Binding}
-
-
-%\subsection{Composition, Concurrency and Conditional}
-% Conditional execution is defined using pomset union and filtering, which
-% selects pomsets satisfying a formula.
-
-% \begin{definition}
-%   Let $\aPS' = (\aPS^1 \cup \aPS^2)$ when $\Event' = \Event^1 \cup \Event^2$,
-%   ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
-%   ${\labeling'}\supseteq{\labeling^1}\cup{\labeling^2}$.
-
-%   Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
-%   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
-%   $\aEv\in\Event$. 
-
-%   Let $\aPS'\in \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}$  when
-%   $\aPS\cup\aPS^1\in\sem{\aCmd}$,
-%   $\aPS\cup\aPS^2\in\sem{\bCmd}$,
-%   and ether\bigl(\aExp
-%   \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard
-%   \sem{\bCmd}\bigr)
-% \end{definition}
-
-% Composition is roughly union:
-% $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
-% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  For example, we have the
-% following execution, which unions the two sides:
-% \begin{gather*}
-%   \IF{r<0}\THEN y\GETS1\FI
-%   \PAR
-%   \IF{r\geq0}\THEN y\GETS1\FI
-%   \\
-%   \hbox{\begin{tikzinline}[node distance=1.5em]
-%   \event{wx1}{r<0\mid\DW{y}{1}}{}
-%   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
-%     \end{tikzinline}}
-% \end{gather*}
-% In addition to this execution, we allow that events with the same label to
-% coalesce, taking the disjunction of their preconditions.  Thus, the semantics
-% of this program also includes:
-% \begin{tikzdisplay}[node distance=1.5em]
-%   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
-% \end{tikzdisplay}
-% Coalesced events inherit order from both sides of the composition.
-% Thus, if
-% $\aPSS^1$ and $\aPSS^2$ contain:
-% \begin{tikzdisplay}[node distance=1.5em]
-%   \event{a}{\aForm \mid \aAct}{}
-%   \event{b}{\bForm^1 \mid \bAct}{right=of a}
-%   \po{a}{b}
-%   \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
-%   \event{c2}{\cForm \mid \cAct}{right=of b2}
-%   \po{b2}{c2}
-% \end{tikzdisplay}
-% then $\aPSS^1 \parallel \aPSS^2$ contains:
-% \begin{tikzdisplay}[node distance=1.5em]
-%   \event{a}{\aForm \mid \aAct}{}
-%   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
-%   \event{c}{\cForm \mid \cAct}{right=of b}
-%   \po{a}{b}
-%   \po{b}{c}
-% \end{tikzdisplay}
-
-% \begin{definition}
-%   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
-% when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
-% $\Event' = \Event^1 \cup \Event^2$,
-% ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
-% either
-% \begin{gather*}
-%   \begin{aligned}
-%     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
-%     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
-%     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
-%   \end{aligned}
-%   \\
-% \begin{aligned}
-%   \sem{\aCmd \PAR \bCmd} & \eqdef
-%   \sem{\aCmd} \parallel \sem{\bCmd} 
-% \end{aligned}
-% \end{gather*}
-% \end{definition}
-
-% For an example using the first clause in the definition of composition,
-%  $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
-% \begin{tikzdisplay}[node distance=1.5em]
-%   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
-% \end{tikzdisplay}
-
-% The design of the semantics is driven by Hoare rule for conditionals:
-% \begin{displaymath}
-%   \frac{
-%     \hoare{\aExp}{\aCmd}{\bForm}
-%     \quad
-%     \hoare{\lnot\aExp}{\bCmd}{\bForm}
-%   }{
-%     \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
-%   }
-% \end{displaymath}
-
-% As a result of the definition, the operators commute:
-% \begin{displaymath}
-%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
-%   =
-%   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
-% \end{displaymath}
 
 %\subsection{Composition, Concurrency and Conditional}
 \subsection{Composition}
@@ -1512,9 +1205,9 @@ violates consistency.
 \subsection{Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
 
-We present a candidate definition for prefixing.  The full definition follows
+Prefixing adds a new event to a pomset.  We present a candidate definition for prefixing.  The full definition follows
 in \textsection\ref{sec:refine}.   We expect the semantics to be downclosed.
-This definition is simplified by performing this closure explicitly.
+The definition is simplified by performing this closure explicitly.
 Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
   
 
@@ -1733,7 +1426,7 @@ imposes the additional order required by SC actions.  (Recall that SC reads
 are acquires, and that SC writes and termination actions are releases.)
 
 We explain the concurrent semantics in the next section using standard litmus
-tests.  In the remainder of this section, we focus on the sequential
+tests.  In  this subsection, we focus on the sequential
 semantics.
 % Whereas a write action introduces a precondition---that must be satisfied
 % sequentially---on the value to be written; a read introduces a pomset
@@ -1941,6 +1634,314 @@ However, there is no pomset that contains $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
 Using the left pomset above, it is only possible to satisfy the precondition
 of $(r{=}1\mid\DW{x}{1})$ using \ref{4b} when prefixing $(\DR{y}{1})$. This
 forces a dependency between the read and write via \ref{5a}.
+
+\subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
+At the point that $\aLoc$ is bound, we can require that every read of $\aLoc$
+be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
+\emph{coherence} play in other relaxed memory models, yet it is not the same.
+
+\begin{definition}
+   \label{def:rf}
+ Two actions \emph{conflict} if one writes a location and the other
+either reads or writes the same location.
+We say $\bEv$ \emph{fulfills $\aEv$} (on $\aLoc$) if 
+% \begin{itemize}    
+% \item
+\labeltextsc[F1]{(F1)}{rf1} $\bEv$ \externally writes $\aVal$ to $\aLoc$, 
+% \item
+\labeltextsc[F2]{(F2)}{rf2} $\aEv$ \externally reads $\aVal$ from $\aLoc$,
+% \item
+\labeltextsc[F3]{(F3)}{rf3} $\bEv \lt \aEv$, and
+% \item
+\labeltextsc[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either $\cEv
+\gtN \bEv$ or $\aEv \gtN \cEv$. %, or $\fthrd(\aEv)=\fthrd(\cEv)$ and $\aEv \leloc \cEv$.
+% \end{itemize}
+\end{definition}
+% Throughout this section, we will ignore the last disjunct in \ref{rf4}; we
+% discuss it in \textsection\ref{
+
+\ref{rf3} requires that a write $\bEv$ is ordered before any read $\aEv$
+that it fulfills; this order is typically called \emph{reads from}. 
+\ref{rf4} requires that any conflicting write $\cEv$ is ordered before $\bEv$
+or after $\aEv$; this order is typically called \emph{extended coherence}.
+For readability, we draw the order required by \ref{rf3} using bold green
+arrows and the order required by \ref{rf4} using dashed red arrows.
+% The causal order required by \ref{rf4} is part
+% of, and we draw it with dashed red
+% arrows.  % In our model, these are not separate orders.  We include the
+% % \emph{reason} for the order only to improve readability. 
+As an example, consider:
+\begin{gather*}
+  \taglabel{Co1}
+  x\GETS 1
+  \PAR
+  x\GETS2
+  \PAR
+  x\GETS 3
+  \PAR
+  x\GETS 4
+  \PAR
+  x\GETS 5
+  \PAR
+  r\GETS x\SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x
+  \\
+  \hbox{\begin{tikzinline}[node distance=.7em and 2em]
+  \event{wx1}{\DW{x}{1}}{}
+  \event{rx1a}{\DR{x}{1}}{above right=of wx1}
+  \event{rx1b}{\DR{x}{1}}{above=of rx1a}
+  \event{wx2}{\DW{x}{2}}{below right=of rx1a}
+  \event{rx2a}{\DR{x}{2}}{above right=of wx2}
+  \event{rx2b}{\DR{x}{2}}{above=of rx2a}
+  \event{wx3}{\DW{x}{3}}{above right=of rx2a}            
+  \event{wx4}{\DW{x}{4}}{right=of rx2a}
+  \event{wx5}{\DW{x}{5}}{below right=of wx4}
+  \event{rx5}{\DR{x}{5}}{above right=of wx5}
+  \rf{wx1}{rx1a}
+  \rf{wx1}{rx1b}
+  \rf{wx2}{rx2a}
+  \rf{wx2}{rx2b}
+  \wk{rx1a}{wx2}
+  \wk{rx1b}{wx2}
+  \wk{rx2a}{wx3}
+  \wk{rx2a}{wx4}
+  \wk{rx2b}{wx3}
+  \wk{rx2b}{wx4}
+  \wk{wx3}{wx5}
+  \wk{wx4}{wx5}
+  \rf{wx5}{rx5}
+    \end{tikzinline}}
+\end{gather*}
+A write is \emph{relevant} if it is read from.  In order to fulfill all of
+the reads on $x$ in the example, we pick a total order on the relevant
+writes: in this case, $(\DW{x}{1})\le (\DW{x}{2})\le(\DW{x}{5})$.  The reads
+slot between these, immediately after their fulfilling write.  Reads are not
+necessarily ordered with respect to each other, even if they come from the
+same thread, as do the reads here.  Irrelevant writes also float relative to
+each other, as do $(\DW{x}{3})$ and $(\DW{x}{4})$.  But irrelevant writes
+must be ordered with respect to relevant writes and reads.  The resulting
+order is somewhat weaker than traditional extended coherence, which requires
+a total order on the writes, regardless of whether they are relevant.  We
+discuss coherence further on page \pageref{page:coherence2}.
+
+% The restriction of pomset order to conflicting events is called the
+% \emph{extended coherence order} ($\reco$).  This relation can always be
+% extended to totally order all conflicting events, as is common in hardware
+% memory models.
+
+% When a location is bound, every read of that location must be {fulfilled} by a
+% matching write.
+In order to be $\aLoc$-closed, a pomset must be ``done'' with $\aLoc$, in
+both the concurrent and the sequential semantics.  The concurrent semantics
+requires that all reads of $\aLoc$ be fulfilled.  The sequential semantics
+requires that all formulae be \emph{independent of $\aLoc$} (Def.~\ref{def:independent}):
+$\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
+
+
+\begin{definition}
+  A pomset is \emph{$\aLoc$-closed} if every \external read on $\aLoc$ is fulfilled,
+  and every formula is independent of $\aLoc$.
+  Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ such that $\aPS'{\in}\aPSS'$
+  when $\aPS'$ is $\aLoc$-closed.
+  We define:
+\begin{align*}
+  \sem[\aThrd]{\VAR\aLoc\SEMI \aCmd} & \eqdef
+  \nu \aLoc \DOT \sem[\aThrd]{\aCmd}  
+\end{align*}
+  A pomset is \emph{top-level} if it is $\aLoc$-closed for every location
+  $\aLoc$.  
+\end{definition}
+Together with \ref{rf4}, the definition of $x$-closed disallows the following execution:
+\begin{gather}
+  \label{blocker}
+  \begin{gathered}
+  \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
+  \PAR
+  \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
+  \PAR
+  r\GETS z_2^\modeRA\SEMI s\GETS x)
+  \\[-.5ex]
+  \hbox{\begin{tikzinline}[node distance=1em]
+  \event{a}{\DW{x}{1}}{}
+  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+  \event{c}{\DR{z_1}{1}}{right=1.8em of b}
+  \event{d}{\DW{x}{2}}{right=of c}
+  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
+  \event{g}{\DR{x}{1}}{right=of f}
+  \sync{a}{b}
+  \po{c}{d}
+  \sync{d}{e}
+  \sync{f}{g}
+  \rf[out=8,in=172]{a}{g}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather}
+In order to close $x$, we must choose whether $(\DW{x}{2})$ is
+preceding $(\DW{x}{2}\xwk\DW{x}{1})$ or following
+$(\DR{x}{1}\xwk\DW{x}{2})$.  This prevents $(\DW{x}{2})$ from blocking the
+read after parallel composition.  For example, 
+if \eqref{blocker} were placed in the context
+\begin{math}
+  b\GETS a
+  \PAR
+  d\GETS c
+  \PAR
+  \hole{},
+\end{math}
+we would have:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=.8em]
+  \event{a}{\DW{x}{1}}{}
+  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+  \event{w}{\DR{y_1}{1}}{right=1.8em of b}
+  \event{x}{\DW{z_1}{1}}{right=of w}
+  \event{c}{\DR{z_1}{1}}{right=1.8em of x}
+  \event{d}{\DW{x}{2}}{right=of c}
+  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+  \event{y}{\DR{y_2}{1}}{right=1.8em of e}
+  \event{z}{\DW{z_2}{1}}{right=of y}
+  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of z}
+  \event{g}{\DR{x}{1}}{right=of f}
+  \sync{a}{b}
+  \po{c}{d}
+  \sync{d}{e}
+  \sync{f}{g}
+  \po{w}{x}
+  \rf{b}{w}
+  \rf{x}{c}
+  \po{y}{z}
+  \rf{e}{y}
+  \rf{z}{f}
+    \end{tikzinline}}
+\end{gather*}
+This violates the conventional, weaker statement of \ref{rf4}: there is no
+conflicting write $\cEv$ such that $\bEv<\cEv<\aEv$.  By requiring order on
+$(\DW{x}{2})$ we forbid this blocker and
+% Since \ref{rf4}
+% quantifies over \emph{all} writes to $x$, the semantics
+validate scope extrusion (\textsection\ref{sec:valid}).
+
+% \todo{finish this}: Our formulation of fulfillment is As we noted in
+% \cite[\textsection B]{2019-sp}, scope extrusion fails if fulfillment
+% requirement \ref{rf4}---for every conflicting write $\cEv$, either
+% $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an existential---there
+% is no conflicting write $\cEv$ such that $\bEv<\cEv<\aEv$.
+
+
+% Such conflicting writes are called \emph{blockers}.  The universal
+% quantification ensures that parallel threads cannot turn a non-blocker into a
+% blocker.  In that paper, we advocated the use of \emph{three-valued pomsets},
+% which use strong order for \ref{rf3} and weak order for \ref{rf4}.  The
+% pomsets studied in this paper are far simpler.
+
+
+%\subsection{Fulfillment and Location Binding}
+
+
+%\subsection{Composition, Concurrency and Conditional}
+% Conditional execution is defined using pomset union and filtering, which
+% selects pomsets satisfying a formula.
+
+% \begin{definition}
+%   Let $\aPS' = (\aPS^1 \cup \aPS^2)$ when $\Event' = \Event^1 \cup \Event^2$,
+%   ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
+%   ${\labeling'}\supseteq{\labeling^1}\cup{\labeling^2}$.
+
+%   Let $(\aForm \guard \aPSS)$ be the subset of $\aPSS$ such that
+%   $\aPS\in\aPSS$ when $\aForm$ implies $\labelingForm(\aEv)$, for every
+%   $\aEv\in\Event$. 
+
+%   Let $\aPS'\in \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}$  when
+%   $\aPS\cup\aPS^1\in\sem{\aCmd}$,
+%   $\aPS\cup\aPS^2\in\sem{\bCmd}$,
+%   and ether\bigl(\aExp
+%   \guard \sem{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard
+%   \sem{\bCmd}\bigr)
+% \end{definition}
+
+% Composition is roughly union:
+% $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.  For example, we have the
+% following execution, which unions the two sides:
+% \begin{gather*}
+%   \IF{r<0}\THEN y\GETS1\FI
+%   \PAR
+%   \IF{r\geq0}\THEN y\GETS1\FI
+%   \\
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%   \event{wx1}{r<0\mid\DW{y}{1}}{}
+%   \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
+%     \end{tikzinline}}
+% \end{gather*}
+% In addition to this execution, we allow that events with the same label to
+% coalesce, taking the disjunction of their preconditions.  Thus, the semantics
+% of this program also includes:
+% \begin{tikzdisplay}[node distance=1.5em]
+%   \event{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
+% \end{tikzdisplay}
+% Coalesced events inherit order from both sides of the composition.
+% Thus, if
+% $\aPSS^1$ and $\aPSS^2$ contain:
+% \begin{tikzdisplay}[node distance=1.5em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \mid \bAct}{right=of a}
+%   \po{a}{b}
+%   \event{b2}{\bForm^2 \mid \bAct}{right=6em of b}
+%   \event{c2}{\cForm \mid \cAct}{right=of b2}
+%   \po{b2}{c2}
+% \end{tikzdisplay}
+% then $\aPSS^1 \parallel \aPSS^2$ contains:
+% \begin{tikzdisplay}[node distance=1.5em]
+%   \event{a}{\aForm \mid \aAct}{}
+%   \event{b}{\bForm^1 \lor \bForm^2 \mid \bAct}{right=of a}
+%   \event{c}{\cForm \mid \cAct}{right=of b}
+%   \po{a}{b}
+%   \po{b}{c}
+% \end{tikzdisplay}
+
+% \begin{definition}
+%   Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$
+% when there are $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
+% $\Event' = \Event^1 \cup \Event^2$,
+% ${\le'}\supseteq{\le^1}\cup{\le^2}$, and
+% either
+% \begin{gather*}
+%   \begin{aligned}
+%     \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+%     &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+%     &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+%   \end{aligned}
+%   \\
+% \begin{aligned}
+%   \sem{\aCmd \PAR \bCmd} & \eqdef
+%   \sem{\aCmd} \parallel \sem{\bCmd} 
+% \end{aligned}
+% \end{gather*}
+% \end{definition}
+
+% For an example using the first clause in the definition of composition,
+%  $\sem{\IF{\aExp}\THEN y\GETS1 \ELSE y\GETS1\FI}$ includes:
+% \begin{tikzdisplay}[node distance=1.5em]
+%   \event{wy1}{\aExp\lor\lnot\aExp\mid \DW{y}{1}}{}
+% \end{tikzdisplay}
+
+% The design of the semantics is driven by Hoare rule for conditionals:
+% \begin{displaymath}
+%   \frac{
+%     \hoare{\aExp}{\aCmd}{\bForm}
+%     \quad
+%     \hoare{\lnot\aExp}{\bCmd}{\bForm}
+%   }{
+%     \hoare{\aExp\lor \lnot\aExp}{\IF{\aExp}\THEN \aCmd \ELSE \bCmd\FI}{\bForm}
+%   }
+% \end{displaymath}
+
+% As a result of the definition, the operators commute:
+% \begin{displaymath}
+%   \sem{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI}
+%   =
+%   \sem{\IF{\aExp} \THEN \aCmd \FI \PAR \IF{\lnot\aExp} \THEN \bCmd \FI}
+% \end{displaymath}
 
 \endinput
 
