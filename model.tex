@@ -1639,7 +1639,7 @@ forces a dependency between the read and write via \ref{5a}.
 
 \subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
 \label{sec:fulfillment}
-At the point that $\aLoc$ is bound, we can require that every read of $\aLoc$
+At the point that $\aLoc$ is bound, we require that every read of $\aLoc$
 be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
 \emph{coherence} play in other relaxed memory models, yet it is not the same.
 
@@ -1724,7 +1724,7 @@ each other, as do $(\DW{x}{3})$ and $(\DW{x}{4})$.  But irrelevant writes
 must be ordered with respect to relevant writes and reads.  The resulting
 order is somewhat weaker than traditional extended coherence, which requires
 a total order on the writes, regardless of whether they are relevant.  We
-discuss coherence further on page \pageref{page:coherence2}.
+discuss coherence further in \textsection\ref{sec:litmus}.
 
 % The restriction of pomset order to conflicting events is called the
 % \emph{extended coherence order} ($\reco$).  This relation can always be
