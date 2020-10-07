@@ -881,14 +881,16 @@ either:
 % $\Event' \supseteq \{ \bEv \in \Event^i \mid \exists\aEv\in\Event'.\; \bEv\le^i\aEv\}$,
 % ${\le'}\supseteq({\le^1}\cup{\le^2})\restrict{\Event'}$, and for all $\aEv\in\Event'$,
 % either:
-\begin{gather*}
-  \begin{aligned}
-    \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
-    &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
-    &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
-  \end{aligned}
-\end{gather*}
-% \end{gather*}
+\begin{align*}
+  \aEv \not\in \Event^2,\; \labelingAct'(\aEv) &= \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),
+  \\[-1ex]
+  \aEv \not\in \Event^1,\; \labelingAct'(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv),\textor
+  \\[-1ex]
+  \labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv).
+  % \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
+  % &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
+  % &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+\end{align*}
 % if $\aEv\in (\Event^1 \cup \Event^2)\setminus\Event'$, then there is some
 % $\bEv\in \Event'$ such that $\labelingForm^1(\aEv)\land
 % \labelingForm^2(\aEv)$ is unsatisfiable.

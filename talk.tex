@@ -16,6 +16,10 @@
   Great Beamer guide here:
   https://www.overleaf.com/learn/latex/Beamer_Presentations:_A_Tutorial_for_Beginners_(Part_4)—Overlay_Specifications
 
+  How to present on mac without blurring:
+  Use firefox, or Presentation.app
+  https://tex.stackexchange.com/questions/431423/os-x-blurry-beamer-presentations-on-sierra-high-sierra
+
   To convert from PDF to KeyNOTE: use the automator suggestion here
   https://apple.stackexchange.com/questions/95856/import-multiple-pages-from-a-pdf-as-separate-slides-in-keynote
   I put the automator app here: https://www.dropbox.com/sh/1o36nes45cydmbx/AADPVWpeEBZj2vemVXkGKQXVa?dl=0
@@ -104,20 +108,21 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Can this program write 1 to z?}
+  \frametitle{Can this program write 1 to z?}  
+  \vspace{-2\baselineskip}
   \begin{gather*}
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE \only<7>{\alert}{x\GETS\alt<6>{2}{1}} \FI
   \end{gather*}
   \pause
-  $x$ and $y$ can only be $0$ or $1$  
+  $x$ and $y$ can only be $0$ or $\alt<6>{2}{1}$  
   \begin{gather*}
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    \IF{r}\THEN x\GETS r\SEMI z\GETS 1 \ELSE x\GETS1 \FI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS \alt<6>{2}{1} \ELSE \only<7>{\alert}{x\GETS\alt<6>{2}{1}} \FI
   \end{gather*}
   \pause
   lift common code
@@ -126,32 +131,32 @@
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    x\GETS1\SEMI
-    \IF{r}\THEN z\GETS 1 \FI
+    x\GETS\alt<6>{2}{1}\SEMI
+    \IF{r}\THEN z\GETS \alt<6>{2}{1} \FI
   \end{gather*}
   \pause
   commute independent statements
   \begin{gather*}
     % \taglabelpp{OOTA?}
-    \only<5->{\alert}{y\GETS x}
+    \only<5>{\alert}{y\GETS x}
     \PAR
-    x\GETS1\SEMI
+    x\GETS\alt<6>{2}{1}\SEMI
     r\GETS y\SEMI
-    \IF{r}\THEN z\GETS 1 \FI
+    \IF{r}\THEN z\GETS \alt<6>{2}{1} \FI
   \end{gather*}
   \pause
   interleaving
   \begin{gather*}
     % \taglabelpp{OOTA?}
-    x\GETS1\SEMI
-    \alert{y\GETS x}\SEMI
+    x\GETS\alt<6>{2}{1}\SEMI
+    \alert<5>{y\GETS x}\SEMI
     r\GETS y\SEMI
-    \IF{r}\THEN z\GETS 1 \FI
+    \IF{r}\THEN z\GETS \alt<6>{2}{1} \FI
   \end{gather*}
 \end{frame}
 
 \imagepage{images/abomb3.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=198310}{Image in the Public domain}}
-%\imagepage{images/flowers.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+% \imagepage{images/flowers.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 \imagepage{images/keynote-images/keynote-images.006.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 \imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
@@ -161,40 +166,47 @@
 
 \begin{frame}
   \frametitle{Definitions}
-  A \emph{pomset with preconditions} is a tuple
-  $(\Event, {\le}, %{\leloc},
-  \labeling)$, such that
   \begin{itemize}
-  \item $\Event$ is a set of \emph{events},
-  \item ${\le} \subseteq (\Event\times\Event)$ is a partial order, 
-  \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling},
-    from which we derive functions
+  \item 
+    A \emph{pomset with preconditions} is a tuple
+    $(\Event, {\le}, %{\leloc},
+    \labeling)$
     \begin{itemize}
-    \item $\labelingForm:\Event\fun\Formulae$ and
-    \item $\labelingAct:\Event\fun\Act$,
+    \item $\Event$ is a set of \emph{events}
+    \item ${\le} \subseteq (\Event\times\Event)$ is a partial order
+    \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling}
+      from which we derive functions
+      \begin{itemize}
+      \item $\labelingForm:\Event\fun\Formulae$ %  --- formulae include $r{=}v$  $x{=}v$
+      \item $\labelingAct:\Event\fun\Act$  %--- actions include $\DW{x}{v}$, $\DR{x}{v}$, and $\DSTOP$
+      \end{itemize}
+    \item<2-> $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
+      \emph{(consistency)}
+    \item<3-> if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
+      $\labelingForm(\bEv)$ \emph{(causal strengthening)}
     \end{itemize}
-  \item<2-> $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
-    \emph{(consistency)}, and
-  \item<3-> if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
-    $\labelingForm(\bEv)$ \emph{(causal strengthening)}.
+  \item<4->
+    We say $\bEv$ \emph{fulfills $\aEv$} if 
+    %\labeltextsc[F1]{(F1)}{rf1}
+    $\labelingAct(\bEv)=\DW{x}{v}$,
+    %\labeltextsc[F2]{(F2)}{rf2}
+    $\labelingAct(\aEv)=\DR{x}{v}$,
+    \begin{itemize}
+    % \item[{\labeltextsc[F1]{(F1)}{rf1}}] $\labelingAct(\bEv)=\DW{x}{v}$,
+    % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
+    \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
+      $\bEv \lt \aEv$
+    \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
+      for every conflicting write $\cEv$, either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
+    \end{itemize}
+  \item<5->
+    A pomset is \emph{$\aLoc$-closed} if
+    \begin{itemize}
+    \item every read on $\aLoc$ is fulfilled
+    \item every $\labelingForm(\aEv)$ is independent of $x$: $\labelingForm(\aEv) \vDash \labelingForm(\aEv)[\aVal/\aLoc] \vDash
+      \labelingForm(\aEv)$
+    \end{itemize}
   \end{itemize}
-\end{frame}
-\begin{frame}
-  \frametitle{Definitions}
-  % Two actions \emph{conflict} if one writes a location and the other
-  % either reads or writes the same location.
-
-  We say $\bEv$ \emph{fulfills $\aEv$} (on $\aLoc$) if 
-  \begin{itemize}
-  \item[{\labeltextsc[F1]{(F1)}{rf1}}] $\bEv$ writes $\aVal$ to $\aLoc$,
-  \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\aEv$ reads $\aVal$ from $\aLoc$,
-  \item[{\labeltextsc[F3]{(F3)}{rf3}}] $\bEv \lt \aEv$, and
-  \item[{\labeltextsc[F4]{(F4)}{rf4}}] for every conflicting write $\cEv$,
-    either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$.
-  \end{itemize}
-  \pause
-  A pomset is \emph{$\aLoc$-closed} if every read on $\aLoc$ is fulfilled,
-  and $\labelingForm(\aEv) \vDash \labelingForm(\aEv)[\aVal/\aLoc] \vDash \labelingForm(\aEv)$. 
 \end{frame}
 
 \begin{frame}
@@ -202,31 +214,37 @@
   \begin{itemize}[<+->]
   \item 
     Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ such that $\aPS'{\in}\aPSS'$
-    when $\aPS'$ is $\aLoc$-closed.
+    when $\aPS'$ is $\aLoc$-closed
   \item 
     Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
     $\aPS'\in\aPSS'$ when $\labelingForm(\aEv')$ implies $\aForm$
-    $(\forall\aEv'\in\Event')$. 
   \item 
     Let $(\aPSS\aSub)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
-    $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
+    $\aPS\in\aPSS$ such that\\ $\Event' = \Event$, ${\le'} = {\le}$,
     $\labelingAct' = \labelingAct$, and
-    $\labelingForm'(\aEv) = \labelingForm(\aEv)\aSub$.
+    $\labelingForm'(\aEv) = \labelingForm(\aEv)\aSub$
     
     
   \item 
     Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$ when there are
     $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ such that
-    % $\aPS^1$ is completed exactly when $\aPS^2$ is completed, there is at most one termination in $\Event'$,
+    \\% $\aPS^1$ is completed exactly when $\aPS^2$ is completed, there is at most one termination in $\Event'$,
     $\Event' = \Event^1 \cup \Event^2$,
     ${\le'}\supseteq{\le^1}\cup{\le^2}$, and for all $\aEv\in\Event'$, either:
     \begin{gather*}
       \begin{aligned}
-        \;\;&\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),\\[-1ex]
-        &\;\;\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),\; \textor\\[-1ex]
-        &\;\;\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv).
+        \aEv \not\in \Event^2,\; \labelingAct'(\aEv) &= \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),
+        \\[-1ex]
+        \aEv \not\in \Event^1,\; \labelingAct'(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv),\textor
+        \\[-1ex]
+        \labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)
       \end{aligned}
     \end{gather*}
+    % \begin{itemize}
+    % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),$
+    % \item $\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),$ or
+    % \item $\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
+    % \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -234,76 +252,76 @@
   \frametitle{Operators}
   \begin{itemize}
   \item 
-  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
-  $\PRE{\aPSS'}$ 
-  where
-  $\aPS'\in\aPSS'$ when 
-  there is $\aPS\in\aPSS$ such that
-  \begin{enumerate}
-  \item[{\labeltextsc[P1]{(P1)}{1}}] $\Event' = \Event \cup \{\bEv\}$,
-  \item[{\labeltextsc[P2]{(P2)}{2}}]  ${\le'}\supseteq{\le}$, 
-  \item[{\labeltextsc[P3]{(P3a)}{3a}}]\labeltextsc[P3]{}{3}$\labelingAct'(\bEv) = \aAct$,
-  \item[{\labeltextsc[P3b]{(P3b)}{3b}}] $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
-  \item[{\labeltextsc[P4a]{(P4a)}{4a}}]\labeltextsc[P4]{}{4}$\labelingForm'(\bEv)$ implies $\aForm$, 
-  \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-    if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-  \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-    if $\bEv$ does not \externally read then
-    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
-  \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}if $\aEv$ writes
-    then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies
-    $\labelingForm(\aEv)$,
-  \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
-    if $\bEv$ and $\aEv$ are \external actions in conflict,
-    then $\bEv\lt'\aEv$, 
-  \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
-    if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
-  \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
-    if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
-  \end{enumerate}
-\end{itemize}
+    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+    $\PRE{\aPSS'}$ 
+    where
+    $\aPS'\in\aPSS'$ when 
+    there is $\aPS\in\aPSS$ such that
+    \begin{enumerate}
+    \item[{\labeltextsc[P1]{(P1)}{1}}] $\Event' = \Event \cup \{\bEv\}$,
+    \item[{\labeltextsc[P2]{(P2)}{2}}]  ${\le'}\supseteq{\le}$, 
+    \item[{\labeltextsc[P3]{(P3a)}{3a}}]\labeltextsc[P3]{}{3}$\labelingAct'(\bEv) = \aAct$,
+    \item[{\labeltextsc[P3b]{(P3b)}{3b}}] $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
+    \item[{\labeltextsc[P4a]{(P4a)}{4a}}]\labeltextsc[P4]{}{4}$\labelingForm'(\bEv)$ implies $\aForm$, 
+    \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
+      if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
+      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
+    \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
+      if $\bEv$ does not \externally read then
+      $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
+    \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}if $\aEv$ writes
+      then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies
+      $\labelingForm(\aEv)$,
+    \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
+      if $\bEv$ and $\aEv$ are \external actions in conflict,
+      then $\bEv\lt'\aEv$, 
+    \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
+      if $\bEv$ is an acquire or $\aEv$ is a release, then $\bEv \lt' \aEv$, and
+    \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
+      if $\bEv$ is an SC write and $\aEv$ is an SC read, then $\bEv \lt' \aEv$.
+    \end{enumerate}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Language {\normalsize ($\amode \BNFDEF \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC$)}}
   \begin{gather*}
-  % \begin{aligned}
-  %   \aCmd,\,\bCmd
-  %   \BNFDEF& \SKIP
-  %   \BNFSEP \aReg\GETS\aExp\SEMI \aCmd
-  %   \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
-  %   \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
-  %   \\[-.5ex]
-  %   \BNFSEP&\aCmd \PAR[\aThrd][\bThrd] \bCmd
-  %   \BNFSEP \VAR\aLoc\SEMI \aCmd
-  %   \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
-  % \end{aligned}
-  % \\
-  \begin{aligned}
-    \sem[\aThrd]{\SKIP} & \eqdef
-    \{ \DSTOP \}
-    \\
-    \sem[\aThrd]{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
-    \sem[\aThrd]{\aCmd}[\aExp/\aReg] 
-    \\ 
-    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
-    (\DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
-    \\
-    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
-    \prefix \sem{\aCmd}[\aExp/\aLoc]
-    \\
-    \sem[\aThrd]{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
-    \bigl(\aExp \guard \sem[\aThrd]{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem[\aThrd]{\bCmd}\bigr) 
-    \\
-    \sem[\aThrd]{\aCmd \PAR[\bThrd][\bThrd'] \bCmd} & \eqdef
-    \sem[\bThrd]{\aCmd} \parallel \sem[\bThrd']{\bCmd} 
-    \\
-    \sem[\aThrd]{\VAR\aLoc\SEMI \aCmd} & \eqdef
-    \nu \aLoc \DOT \sem[\aThrd]{\aCmd}  
-  \end{aligned}
-\end{gather*}
+    % \begin{aligned}
+    %   \aCmd,\,\bCmd
+    %   \BNFDEF& \SKIP
+    %   \BNFSEP \aReg\GETS\aExp\SEMI \aCmd
+    %   \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCmd 
+    %   \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
+    %   \\[-.5ex]
+    %   \BNFSEP&\aCmd \PAR[\aThrd][\bThrd] \bCmd
+    %   \BNFSEP \VAR\aLoc\SEMI \aCmd
+    %   \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
+    % \end{aligned}
+    % \\
+    \begin{aligned}
+      \sem[\aThrd]{\SKIP} & \eqdef
+      \{ \DSTOP \}
+      \\
+      \sem[\aThrd]{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
+      \sem[\aThrd]{\aCmd}[\aExp/\aReg] 
+      \\ 
+      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
+      (\DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
+      \\
+      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
+      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
+      \prefix \sem{\aCmd}[\aExp/\aLoc]
+      \\
+      \sem[\aThrd]{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
+      \bigl(\aExp \guard \sem[\aThrd]{\aCmd}\bigr) \parallel \bigl(\lnot\aExp \guard \sem[\aThrd]{\bCmd}\bigr) 
+      \\
+      \sem[\aThrd]{\aCmd \PAR[\bThrd][\bThrd'] \bCmd} & \eqdef
+      \sem[\bThrd]{\aCmd} \parallel \sem[\bThrd']{\bCmd} 
+      \\
+      \sem[\aThrd]{\VAR\aLoc\SEMI \aCmd} & \eqdef
+      \nu \aLoc \DOT \sem[\aThrd]{\aCmd}  
+    \end{aligned}
+  \end{gather*}
 \end{frame}
 
 \imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
@@ -369,7 +387,7 @@
     \\[3ex]
     \begin{gathered}
       \only<11->{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS \alt<12>{2}{1}\FI}
-     \\
+      \\
       \only<11,13>{\hbox{\begin{tikzinline}[node distance=.5em]
             \event{wz}{r{=}1\mid\DW{z}{1}}{}
             \event{wx}{r{=}0\lor r{=}1\mid\DW{x}{1}}{left=of wz}
@@ -416,11 +434,11 @@
 \begin{frame}
   \frametitle{Examples?}
   lochbihler
-oota1
-alanAddress
-ex-1
-SB
-ex-2
+  oota1
+  alanAddress
+  ex-1
+  SB
+  ex-2
 \end{frame}
 
 
@@ -428,13 +446,13 @@ ex-2
 %   \frametitle{It's going to be okay}
 %   \begin{itemize}[<+->]
 %   \item Concurrent observers see more [Plotkin and Pratt , 1990]: \emph{Teams
-%       Can See Pomsets}]
+%     Can See Pomsets}]
 %     \begin{itemize}
 %     \item compiler optimization only sound for sequential programs      
 %     \end{itemize}
 %   \item Use \emph{Sequential consistency} as correctness criterion [Lamport,
 %     1979]: \emph{How to Make a Multiprocessor Computer That Correctly
-%       Executes Multiprocess Programs}
+%     Executes Multiprocess Programs}
 %     \begin{itemize}
 %     \item It's too slow
 %     \end{itemize}
