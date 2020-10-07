@@ -60,23 +60,23 @@ expected pomset (where $\DSTOP$ indicates termination):
 \begin{gather}
   \label{OOTA?}
   \begin{gathered}
-  y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+  x\GETS 0 \SEMI y\GETS 0\SEMI (y\GETS x
   \PAR
   r\GETS y\SEMI \IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx0}{\DR{x}{0}}{right=3em of wx0}
+  \event{wy0}{\DW{y}{0}}{}
+  \event{wx0}{\DW{x}{0}}{left=of wy0}
+  \event{rx0}{\DR{x}{0}}{right=3em of wy0}
   \event{wy0a}{\DW{y}{0}}{right=of rx0}
   \event{ry0}{\DR{y}{0}}{right=3em of wy0a}
   \event{wx1}{\DW{x}{1}}{right=of ry0}
   \event{stop}{\DSTOP}{right=of wx1}
-  \rf{wx0}{rx0}
+  \rf[out=19,in=161]{wx0}{rx0}
   \rf{wy0a}{ry0}
   \wk[out=15,in=165]{rx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy0a}
+  \wk[out=19,in=161]{wy0}{wy0a}
   \po{rx0}{wy0a}
   \sync{wx1}{stop}
   \sync[out=20,in=160]{ry0}{stop}
@@ -103,10 +103,10 @@ expected pomset (where $\DSTOP$ indicates termination):
 % \begin{gather}
 %   \\[-1.2\baselineskip]
   \label{unexpected}
-  \smash{\hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \smash[t]{\hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{wy0}{\DW{y}{0}}{}
+  \event{wx0}{\DW{x}{0}}{left=of wy0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wy0}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
@@ -115,7 +115,7 @@ expected pomset (where $\DSTOP$ indicates termination):
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy1}
+  \wk[out=19,in=161]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=20,in=160]{ry1}{wa1}
   \sync[out=20,in=160]{wx1}{stop}
@@ -154,14 +154,14 @@ since it introduces a cycle:
 \begin{gather}
   \label{OOTA!}
   \begin{gathered}
-  y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
+  x\GETS 0 \SEMI y\GETS 0\SEMI (  y\GETS x
   \PAR
     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy0}{\DW{y}{0}}{}
+  \event{wx0}{\DW{x}{0}}{left=of wy0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wy0}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
@@ -170,7 +170,7 @@ since it introduces a cycle:
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy1}
+  \wk[out=19,in=161]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=20,in=160]{ry1}{wa1}
   \sync[out=20,in=160]{wx1}{stop}
@@ -1447,15 +1447,15 @@ Let us revisit %the unexpected execution
 \begin{gather*}
   \tag{\ref{unexpected}}
   \begin{gathered}
-  y\GETS 0 \SEMI x\GETS 0\SEMI (y\GETS x
+  x\GETS 0 \SEMI y\GETS 0\SEMI (y\GETS x
   \PAR
   r\GETS y\SEMI \IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
   \\
   \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy0}{\DW{y}{0}}{}
+  \event{wx0}{\DW{x}{0}}{left=of wy0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wy0}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
@@ -1464,12 +1464,12 @@ Let us revisit %the unexpected execution
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy1}
+  \wk[out=19,in=161]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=20,in=160]{ry1}{wa1}
   \sync[out=20,in=160]{wx1}{stop}
   \sync{wa1}{stop}
-    \end{tikzinline}}  
+\end{tikzinline}}
 \end{gathered}
 \end{gather*}
 % Note that $\sem{z\GETS r}$ contains $(r{=}0\mid\DW{z}{0})$,
@@ -1583,7 +1583,7 @@ Simplifying the tautologies, we have:
       \event{wz}{\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
       \event{wy}{\DW{y}{0}}{left=of ry}
-      \po[out=15,in=165]{ry}{wz}
+      \po[out=25,in=155]{ry}{wz}
       \wk{wy}{ry}
     \end{tikzinline}}
 \end{gather*}
@@ -1592,14 +1592,14 @@ As discussed at the beginning of this section, an attempt to replicate this exec
 \begin{gather*}
   \tag{\ref{OOTA!}}
   \begin{gathered}
-  y\GETS 0 \SEMI x\GETS 0\SEMI (  y\GETS x
+  x\GETS 0 \SEMI y\GETS 0\SEMI (  y\GETS x
   \PAR
     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wy0}{\DW{y}{0}}{left=of wx0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+  \event{wy0}{\DW{y}{0}}{}
+  \event{wx0}{\DW{x}{0}}{left=of wy0}
+  \event{rx1}{\DR{x}{1}}{right=3em of wy0}
   \event{wy1}{\DW{y}{1}}{right=of rx1}
   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
   \event{wx1}{\DW{x}{1}}{right=of ry1}
@@ -1608,7 +1608,7 @@ As discussed at the beginning of this section, an attempt to replicate this exec
   \rf[out=-165,in=-15]{wx1}{rx1}
   \rf{wy1}{ry1}
   \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=15,in=165]{wy0}{wy1}
+  \wk[out=19,in=161]{wy0}{wy1}
   \po{rx1}{wy1}
   \po[out=20,in=160]{ry1}{wa1}
   \sync[out=20,in=160]{wx1}{stop}
