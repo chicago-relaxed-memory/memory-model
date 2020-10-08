@@ -62,8 +62,8 @@ To get a sense of the difficulties involved,
 % \citeauthor{DBLP:journals/toplas/Lochbihler13}'s example shows a surprising feature of
 % relaxed memory models: the presence of an execution may depend on code that was not executed. Consider:
 consider that the existence of an execution in a relaxed memory model may
-depend on code that was \emph{not} executed. Let $r$ and $s$ be registers and
-$x$-$z$ be shared memory locations.  Consider the following program, where
+depend on code that was \emph{not} executed. Let $r$--$s$ be registers and
+$b$, $x$--$z$ be shared memory locations.  Consider the following program, where
 all memory locations are initialized to $0$:
 \begin{gather}
   \tag{\ref{OOTA?}}
@@ -140,25 +140,26 @@ all memory locations are initialized to $0$:
   \taglabel{OOTA1}
   y\GETS x
   \PAR
-  \aReg\GETS y \SEMI \IF{z} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
+  \aReg\GETS y \SEMI \IF{b} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
   \PAR %\\[-1ex] \PAR&
-  z \GETS 1
+  b \GETS 1
 \end{gather}
 \ref{OOTA1} ``is type correct if it declares $x$, $y$ and $r$ of type
 $\classD$. However, it has a legal execution where they reference a $\classC$
 object.''  The JMM allows $(\aReg\GETS y)$ to see the object created by
 $\NEW$, by bouncing it through $(x \GETS \aReg)$ and $(y\GETS x)$.  This
 allows the address of the allocated object to be read $(\aReg\GETS y)$ before
-its type is determined $(\IF{z})$.  For a simpler variant without
-allocation, see \ref{OOTA4} in \textsection\ref{sec:logic}.
+its type is determined $(\IF{b})$.  See \ref{OOTA4} in
+\textsection\ref{sec:logic} for a simple variant of \eqref{OOTA?} with this
+behavior.
 
 By allowing such \emph{bait-and-switch} behaviors, the JMM fails to support
 compositional reasoning for temporal safety properties:  the individual
 threads of \ref{OOTA1} satisfy the invariant
-% \emph{allocation at type $\classD$ is preceded by reading zero for $z$}.
+% \emph{allocation at type $\classD$ is preceded by reading zero for $b$}.
 % They also satisfy:
 \emph{allocation at type $\classC$ is preceded by reading $0$ for
-  $z$}, but the composed program does not.  This lack of compositionality
+  $b$}, but the composed program does not.  This lack of compositionality
 forced \citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by
 type in order to prove type safety.  This formal device means that memory
 cannot be used at different types over time, making practical memory

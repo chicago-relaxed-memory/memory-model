@@ -329,11 +329,11 @@ would violate \drfsc{}.
   \label{ex:lochb}
   \noparagraph{Lochbihler's Example} The essential temporal property of
   \ref{OOTA1} is: \emph{allocation at type $\classC$ is preceded by reading $0$ for
-  $z$}.  Because our language lacks object creation, we cannot consider
+  $b$}.  Because our language lacks object creation, we cannot consider
   \ref{OOTA1} directly.  Instead we study \ref{OOTA4}, which has the same
   temporal structure: \emph{writing $1$ for $x$ is preceded by reading $0$ for
-  $z$}.  We show an attempted execution that violates
-  this invariant:
+  $b$}.  We show an attempted execution that violates
+  this invariant,  eliding initialization:
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{gather*}
   \tag{\textsc{oota4}}\label{OOTA4}
@@ -352,65 +352,67 @@ would violate \drfsc{}.
   %   }
   %     \VAR  x\GETS0\SEMI \VAR  y\GETS0\SEMI \VAR  z\GETS0\SEMI
   \begin{gathered}
-  y\GETS0\SEMI
+    %y\GETS0\SEMI
     y\GETS x
   \PAR
-  x\GETS0\SEMI
-  a\GETS0\SEMI
-  \IF{z}\THEN  r\GETS y \SEMI x\GETS r \SEMI a\GETS r \ELSE x\GETS1 \FI
+  % x\GETS0\SEMI
+  % z\GETS0\SEMI
+  r\GETS y \SEMI \IF{b}\THEN  x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
   \PAR
-  z\GETS0\SEMI
-    z\GETS1
+  %b\GETS0\SEMI
+    b\GETS1
   \\[-1ex]
-\hbox{\begin{tikzinline}[node distance=1.25em]
-  \event{wy0}{\DW{y}{0}}{}
-  \event{rx}{\DR{x}{1}}{right=.5em of wy0}
-  \event{wy}{\DW{y}{1}}{right=of rx}
-  \po{rx}{wy}
-  \event{wx0}{\DW{x}{0}}{right=2em of wy}
-  \event{wa0}{\DW{a}{0}}{right=.5em of wx0}
-  \event{rz}{\DR{z}{1}}{right=of wa0}
-  \event{ry}{\DR{y}{1}}{right=of rz}
-  \event{wx}{\DW{x}{1}}{right=of ry}
-  \event{wa}{\DW{a}{1}}{right=of wx}
-  \po{ry}{wx}
-  \event{wz0}{\DW{z}{0}}{right=2em of wa}
-  \event{wz1}{\DW{z}{1}}{right=.8em of wz0}
-  \wk{wz0}{wz1}
-  \rf[out=15,in=165]{wy}{ry}
-  \rf[out=-170,in=-10]{wx}{rx}
-  \po[out=25,in=25]{ry}{wa}
-  \wk[out=25,in=155]{wy0}{wy}
-  \wk[out=19,in=161]{wx0}{wx}
-  \wk[out=19,in=161]{wa0}{wa}
-  \rf[out=-170,in=-17]{wz1}{rz}
-  \po[out=-160,in=-160]{rz}{wa}
-\end{tikzinline}}
-% \hbox{\begin{tikzinline}[node distance=1.5em]
-%   \event{rx}{\DR{x}{1}}{}
-%   \event{wz1}{\DW{z}{1}}{left=3em of rx}
+% \hbox{\begin{tikzinline}[node distance=1.25em]
+%   \event{wy0}{\DW{y}{0}}{}
+%   \event{rx}{\DR{x}{1}}{right=.5em of wy0}
 %   \event{wy}{\DW{y}{1}}{right=of rx}
 %   \po{rx}{wy}
-%   \event{rz}{\DR{z}{0}}{right=3em of wy}
-%   \event{ry}{\DR{y}{1}}{right=of rz}
+%   \event{wx0}{\DW{x}{0}}{right=2em of wy}
+%   \event{wz0}{\DW{z}{0}}{right=.5em of wx0}
+%   \event{ry}{\DR{y}{1}}{right=of wz0}
 %   \event{wx}{\DW{x}{1}}{right=of ry}
-%   \event{wa}{\DW{a}{1}}{right=of wx}
+%   \event{wz}{\DW{z}{1}}{right=of wx}
 %   \po{ry}{wx}
+%   \event{rb}{\DR{b}{1}}{right=of wz}
+%   \event{wb0}{\DW{b}{0}}{right=2em of rb}
+%   \event{wb1}{\DW{b}{1}}{right=.8em of wb0}
+%   \wk{wb0}{wb1}
 %   \rf[out=15,in=165]{wy}{ry}
 %   \rf[out=-170,in=-10]{wx}{rx}
-%   \po[out=-10,in=-170]{rz}{wa}
-%   \po[out=15,in=165]{ry}{wa}
+%   \po[out=25,in=25]{ry}{wz}
+%   \wk[out=25,in=155]{wy0}{wy}
+%   \wk[out=19,in=161]{wx0}{wx}
+%   \wk[out=19,in=161]{wz0}{wz}
+%   \rf[out=-170,in=-17]{wb1}{rb}
+%   \po{rb}{wz}
 % \end{tikzinline}}
+\hbox{\begin{tikzinline}[node distance=1.5em]
+      \event{rx}{\DR{x}{1}}{}
+      \event{wy}{\DW{y}{1}}{right=of rx}
+      \po{rx}{wy}
+      \event{ry}{\DR{y}{1}}{right=3em of wy} 
+      \event{wx}{\DW{x}{1}}{right=of ry}
+      \event{wz}{\DW{z}{1}}{right=of wx}
+      \event{rb}{\DR{b}{1}}{right=of wz}
+      \event{wb1}{\DW{b}{1}}{right=3em of rb}
+      \po{ry}{wx}
+      \rf{wb1}{rb}
+      \rf[out=15,in=165]{wy}{ry}
+      \rf[out=-170,in=-10]{wx}{rx}
+      \po{rb}{wz}
+      \po[out=15,in=165]{ry}{wz}
+\end{tikzinline}}
   \end{gathered}  
-  \end{gather*}
-  We include location $a$ to indicate the branch taken.
-  The outcome is disallowed, due to the cycle.  This outcome is also
-  disallowed by our event structures model
-  \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19}, although the logic
-  given in that paper is insufficient to establish this fact.  The outcome is
-  \emph{allowed} by \citep{DBLP:conf/esop/JagadeesanPR10},
-  \citep{DBLP:conf/popl/KangHLVD17}, and
-  \citep{DBLP:journals/pacmpl/ChakrabortyV19}.
+\end{gather*}
+Like \eqref{unexpected}, and \emph{unlike} \eqref{OOTA?}, there is a
+dependency from $(\DR{y}{1})$ to $(\DW{x}{1})$.
+  %We include location $z$ to indicate the branch taken.
+Thus, the outcome is disallowed.  This outcome is also disallowed by our
+event structures model \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19},
+although the logic given in that paper is insufficient to establish this
+fact.  The outcome is \emph{allowed} by
+\citep{DBLP:conf/esop/JagadeesanPR10}, \citep{DBLP:conf/popl/KangHLVD17}, and
+\citep{DBLP:journals/pacmpl/ChakrabortyV19}.
 % \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
@@ -438,7 +440,7 @@ would violate \drfsc{}.
 
 To establish that this outcome is disallowed here, we prove 
 \begin{math}
-  \lnot\DW{a}{1},
+  \lnot\DW{z}{1},
 \end{math}
 starting with invariant:
 % which holds for each of the three threads, and thus, by composition, for the
@@ -448,7 +450,7 @@ starting with invariant:
 \begin{align*}
   [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
   \land
-  [\notonce\DW{a}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
+  [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
 \end{align*}
 \end{scope}
 Closing $y$ and chaining into the left conjunct:
@@ -465,7 +467,7 @@ Closing $y$ and chaining into the left conjunct:
 % \end{math}
 Chaining into the right conjunct:
 \begin{displaymath}
-  \notonce\DW{a}{1} \Rightarrow (\once\DR{x}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{x}{1}))
+  \notonce\DW{z}{1} \Rightarrow (\once\DR{x}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{x}{1}))
 \end{displaymath}
 Closing $x$:
 % \begin{math}
@@ -474,15 +476,15 @@ Closing $x$:
 %  Weakening and chaining again:
 %we can replace $\once\DR{x}{1}$ with $\once\DW{x}{1}$:
 \begin{math}
-  \notonce\DW{a}{1} \Rightarrow (\once\DW{x}{1} \land \always(\DW{x}{1} \Rightarrow \once\DW{x}{1}).
+  \notonce\DW{z}{1} \Rightarrow (\once\DW{x}{1} \land \always(\DW{x}{1} \Rightarrow \once\DW{x}{1}).
 \end{math}
 Applying coinduction to the right conjunct:
 \begin{displaymath}
-  \notonce\DW{a}{1} \Rightarrow (\once\DW{x}{1} \land \always(\lnot \DW{x}{1}))
+  \notonce\DW{z}{1} \Rightarrow (\once\DW{x}{1} \land \always(\lnot \DW{x}{1}))
 \end{displaymath}
 Simplifying:
 \begin{math}
-  \notonce\DW{a}{1} \Rightarrow \FALSE,
+  \notonce\DW{z}{1} \Rightarrow \FALSE,
 \end{math}
 as required.
 \end{example}

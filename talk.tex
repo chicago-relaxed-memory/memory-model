@@ -157,8 +157,8 @@
 
 \imagepage{images/abomb3.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=198310}{Image in the Public domain}}
 % \imagepage{images/flowers.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.006.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.007.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.006.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
 % \imagepage{images/katorisi.jpeg}{\href{https://commons.wikimedia.org/wiki/File:Tulips,Hitachi_Seaside_Park,Hitachinaka-city,Japan.JPG}{Image
 % by Katorisi, 2010, Creative Commons}}
@@ -213,28 +213,36 @@
 \begin{frame}
   \frametitle{Semantic Operations (1/2)}
   \begin{itemize}[<+->]
+  \item
+    Let $\aPS\phantom{'}\in(\nu\aLoc\!\DOT\!\aPSS) \mkern22mu$ when $\phantom{(\exists}\aPS\in\aPSS$
+    and $\aPS$ is $\aLoc$-closed
+    % Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$
+    % when $\aPS'$ is $\aLoc$-closed
   \item 
-    Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$
-    when $\aPS'$ is $\aLoc$-closed
+    % Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ where
+    % $\aPS'\in\aPSS'$ when $\labelingForm(\aEv')$ implies $\aForm$
+    Let $\aPS\phantom{'}\in(\aForm \guard \aPSS)\mkern16mu$ when $\phantom{(\exists}\aPS\in\aPSS$ and 
+    $(\forall\aEv\in\Event)$ $\labelingForm(\aEv)$ implies $\aForm$
   \item 
-    Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ where
-    $\aPS'\in\aPSS'$ when $\labelingForm(\aEv')$ implies $\aForm$
-  \item 
-    % Let $(\aPSS\aSub)$
-    Let $(\aPSS[M/x])$
-    be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
-    $\aPS\in\aPSS$ where\\ $\Event' = \Event$, ${\le'} = {\le}$,
+    Let $\aPS'\in(\aPSS[M/x])\mkern2mu$ when
+    $(\exists\aPS\in\aPSS$)\\\qquad $\Event' = \Event$, ${\le'} = {\le}$,
     $\labelingAct' = \labelingAct$, and
-    $\labelingForm'(\aEv) = \labelingForm(\aEv)[M/x]$
-    % $\labelingForm'(\aEv) = \labelingForm(\aEv)\aSub$
+    $(\forall\aEv\in\Event')$ $\labelingForm'(\aEv) = \labelingForm(\aEv)[M/x]$
+    % % Let $(\aPSS\aSub)$
+    % Let $(\aPSS[M/x])$
+    % be the set $\aPSS'$ where $\aPS'\in\aPSS'$ when there is
+    % $\aPS\in\aPSS$ where\\ $\Event' = \Event$, ${\le'} = {\le}$,
+    % $\labelingAct' = \labelingAct$, and
+    % $\labelingForm'(\aEv) = \labelingForm(\aEv)[M/x]$
+    % % $\labelingForm'(\aEv) = \labelingForm(\aEv)\aSub$
     
     
   \item 
-    Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$ when there are
-    $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$ where
+    Let $\aPS' \in (\aPSS^1 \parallel \aPSS^2)$ when
+    $(\exists\aPS^1 \in \aPSS^1)$ $(\exists\aPS^2 \in \aPSS^2)$
     \\% $\aPS^1$ is completed exactly when $\aPS^2$ is completed, there is at most one termination in $\Event'$,
-    $\Event' = \Event^1 \cup \Event^2$,
-    ${\le'}\supseteq{\le^1}\cup{\le^2}$, and for all $\aEv\in\Event'$, either:
+    \qquad $\Event' = \Event^1 \cup \Event^2$,
+    ${\le'}\supseteq{\le^1}\cup{\le^2}$, and $(\forall\aEv\in\Event')$ either
     \begin{gather*}
       \begin{aligned}
         \aEv \not\in \Event^2,\; \labelingAct'(\aEv) &= \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),
@@ -256,12 +264,9 @@
   \setbeamercovered{transparent=15}
   \frametitle{Semantic Operations (2/2)}
   \begin{itemize}
-  \item 
-    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
-    ${\aPSS'}$ 
-    where
-    $\aPS'\in\aPSS'$ when 
-    there is $\aPS\in\aPSS$ where
+  \item Let $\aPS'\in(\aForm \mid \aAct) \prefix \aPSS$ when
+    $(\exists\aPS\in\aPSS)$
+    $(\forall\aEv\in\Event)$
     \begin{enumerate}
     \item[{\labeltextsc[P1]{(P1)}{1}}]
       $\Event' = \Event \cup \{\bEv\}$
@@ -278,7 +283,7 @@
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
       if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu\neq(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
     \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
       if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
     \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
@@ -335,9 +340,9 @@
     \end{align*}}
 \end{frame}
 
-\imagepage{images/keynote-images/keynote-images.007.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
-\begin{imageframe}{images/keynote-images/keynote-images.014.png}{}
+\begin{imageframe}{images/keynote-images/keynote-images.014.jpeg}{}
   \frametitle{Sequential Semantics}
 
   \begin{gather*}
@@ -427,7 +432,7 @@
 \end{imageframe}
 
 
-\begin{imageframe}{images/keynote-images/keynote-images.014.png}{}
+\begin{imageframe}{images/keynote-images/keynote-images.014.jpeg}{}
   \frametitle{Sequential Semantics}
 
   \begin{gather*}
@@ -483,7 +488,7 @@
   \end{center}
 \end{imageframe}
 
-\begin{imageframe}{images/keynote-images/keynote-images.015.png}{}<1-3>
+\begin{imageframe}{images/keynote-images/keynote-images.015.jpeg}{}<1-3>
   \frametitle{Concurrent Semantics}
 
   \begin{gather*}
@@ -552,7 +557,7 @@
     }
   \end{center}
 \end{imageframe}
-\begin{imageframe}{images/keynote-images/keynote-images.016.png}{}<4->
+\begin{imageframe}{images/keynote-images/keynote-images.016.jpeg}{}<4->
   \frametitle{Concurrent Semantics}
 
   \begin{gather*}
@@ -623,13 +628,48 @@
 \end{imageframe}
 
 
+\begin{frame}
+  \frametitle{Reading Values Out Of Thin Air (OOTA)}
+Eliding $0$-initialization:
+\begin{gather*}
+  % y\GETS0\SEMI
+  y\GETS x
+  \PAR
+  % x\GETS0\SEMI
+  % z\GETS0\SEMI
+  \IF{b}\THEN  r\GETS y \SEMI x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
+  \PAR
+  %b\GETS0\SEMI
+  b\GETS1
+  \\
+  \uncover<2->{\hbox{\begin{tikzinline}[node distance=1.5em]
+      \event{rx}{\DR{x}{1}}{}
+      \event{wy}{\DW{y}{1}}{right=of rx}
+      \po{rx}{wy}
+      \event{ry}{\DR{y}{1}}{right=3em of wy} 
+      \event{wx}{\DW{x}{1}}{right=of ry}
+      \event{wz}{\DW{z}{1}}{right=of wx}
+      \event{rb}{\DR{b}{1}}{right=of wz}
+      \event{wb1}{\DW{b}{1}}{right=3em of rb}
+      \po{ry}{wx}
+      \rf{wb1}{rb}
+      \rf[out=15,in=165]{wy}{ry}
+      \rf[out=-170,in=-10]{wx}{rx}
+      \po{rb}{wz}
+      \po[out=15,in=165]{ry}{wz}
+    \end{tikzinline}}}
+\end{gather*}
+\emph{writing $1$ for $x$ is preceded by reading $0$ for $z$}
 
-\imagepage{images/keynote-images/keynote-images.008.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.009.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.010.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.011.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.012.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.013.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\end{frame}
+
+
+\imagepage{images/keynote-images/keynote-images.008.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.009.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.010.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.011.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.012.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.013.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
 
 
@@ -674,7 +714,7 @@
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
       if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu\neq(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
     \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
       if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
     \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
@@ -735,11 +775,14 @@
   \end{aligned}$
   \item[]
   \small
-    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
-    ${\aPSS'}$ 
-    where
-    $\aPS'\in\aPSS'$ when 
-    there is $\aPS\in\aPSS$ where
+  Let $\aPS'\in(\aForm \mid \aAct) \prefix \aPSS$ when
+    $(\exists\aPS\in\aPSS)$
+    $(\forall\aEv\in\Event)$
+    % Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+    % ${\aPSS'}$ 
+    % where
+    % $\aPS'\in\aPSS'$ when 
+    % there is $\aPS\in\aPSS$ where
     \begin{itemize}
     \item[]
       \vspace{-.5ex}
@@ -759,7 +802,7 @@
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
       if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu\neq(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
     \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
       if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
     % \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
