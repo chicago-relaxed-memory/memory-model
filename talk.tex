@@ -157,8 +157,8 @@
 
 \imagepage{images/abomb3.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=198310}{Image in the Public domain}}
 % \imagepage{images/flowers.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.006.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.006.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.007.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
 % \imagepage{images/katorisi.jpeg}{\href{https://commons.wikimedia.org/wiki/File:Tulips,Hitachi_Seaside_Park,Hitachinaka-city,Japan.JPG}{Image
 % by Katorisi, 2010, Creative Commons}}
@@ -174,18 +174,18 @@
     \begin{itemize}
     \item $\Event$ is a set of \emph{events}
     \item ${\le} \subseteq (\Event\times\Event)$ is a partial order
-    \item $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling}
+    \item<+-> $\labeling: \Event \fun (\Formulae\times\Act)$ is a \emph{labeling}
       from which we derive functions
       \begin{itemize}
       \item $\labelingForm:\Event\fun\Formulae$ \emph{(formulae)} % include $r{=}v$  $x{=}v$
       \item $\labelingAct:\Event\fun\Act$  \emph{(actions)} %include $\DW{x}{v}$, $\DR{x}{v}$, and $\DSTOP$
       \end{itemize}
-    \item<2-> $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
+    \item<+-> $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
       \emph{(consistency)}
-    \item<3-> if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
+    \item<+-> if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
       $\labelingForm(\bEv)$ \emph{(causal strengthening)}
     \end{itemize}
-  \item<4->
+  \item<+->
     We say $\labelingAct(\bEv)=(\DW{x}{v})$ \emph{fulfills} $\labelingAct(\aEv)=(\DR{x}{v})$ if 
     % We say $\bEv$ \emph{fulfills $\aEv$} if 
     % % \labeltextsc[F1]{(F1)}{rf1}
@@ -197,15 +197,15 @@
       % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
     \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
       $\bEv \lt \aEv$
-    \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
+    \item<+->%[{\labeltextsc[F4]{(F4)}{rf4}}]
       if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
     \end{itemize}
-  \item<5->
+  \item<+->
     A pomset is \emph{$\aLoc$-closed} if
     \begin{itemize}
     \item every $\labelingAct(\aEv)=(\DR{\aLoc}{..})$ is fulfilled
-    \item every $\labelingForm(\aEv)$ is independent of $x$: $\labelingForm(\aEv) \vDash \labelingForm(\aEv)[\aVal/\aLoc] \vDash
-      \labelingForm(\aEv)$
+    \item<+-> every $\labelingForm(\aEv)$ is independent of $x$: $\bigl(\forall v.\;\labelingForm(\aEv) \vDash \labelingForm(\aEv)[\aVal/\aLoc] \vDash
+      \labelingForm(\aEv)\bigr)$
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -214,7 +214,7 @@
   \frametitle{Semantic Operations (1/2)}
   \begin{itemize}[<+->]
   \item 
-    Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'{\subseteq}\aPSS$ where $\aPS'{\in}\aPSS'$
+    Let $(\nu\aLoc\!\DOT\!\aPSS)$ be  $\aPSS'\subseteq\aPSS$ where $\aPS'\in\aPSS'$
     when $\aPS'$ is $\aLoc$-closed
   \item 
     Let $(\aForm \guard \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ where
@@ -335,9 +335,9 @@
     \end{align*}}
 \end{frame}
 
-\imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.007.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
-\begin{frame}
+\begin{imageframe}{images/keynote-images/keynote-images.014.png}{}
   \frametitle{Sequential Semantics}
 
   \begin{gather*}
@@ -424,10 +424,10 @@
     \only<12>{We \emph{cannot} coalesce the writes to $x$}
     \only<13->{Preconditions must be consistent}
   \end{center}
-\end{frame}
+\end{imageframe}
 
 
-\begin{frame}
+\begin{imageframe}{images/keynote-images/keynote-images.014.png}{}
   \frametitle{Sequential Semantics}
 
   \begin{gather*}
@@ -481,16 +481,18 @@
     \only<9>{[\alert{1}/y] from $\DR{y}{1}$ requires order, [\alert{0}/y] from $\DW{y}{0}$ does not}
     \only<10>{Simplifying tautologies}
   \end{center}
-\end{frame}
+\end{imageframe}
 
-\begin{frame}
+\begin{imageframe}{images/keynote-images/keynote-images.015.png}{}<1-3>
   \frametitle{Concurrent Semantics}
 
   \begin{gather*}
     \only<2->{x\GETS 0\SEMI}
     y\GETS 0\SEMI
+    \only<3->{(y\GETS x \PAR}
     r\GETS y\SEMI
-    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS 1\FI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS \alt<9>{\alert{2}}{1}\FI
+    \only<3->{)}
     \\
     \only<1>{\hbox{\begin{tikzinline}[node distance=2em]
           \event{wx}{\DW{x}{1}}{}
@@ -510,23 +512,180 @@
           \wk{wy}{ry}
           \wk[out=-22,in=-158]{wx0}{wx}
         \end{tikzinline}}}
+    \only<3->{\hbox{\begin{tikzinline}[node distance=2em]
+          \event{wy0}{\DW{y}{0}}{}
+          \event{wx0}{\DW{x}{0}}{left=of wy0}
+          \event{rx1}{\DR{x}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \event{wa1}{\DW{z}{1}}{right=of wx1}
+          \only<3>{
+            \wk[out=-22,in=-158]{wx0}{rx1}
+            \wk[out=-22,in=-158]{wy0}{ry1}
+          }
+          \only<4->{
+            \rf[out=-165,in=-15]{wx1}{rx1}
+            \rf{wy1}{ry1}
+          }
+          \only<9->{
+            \po{ry1}{wx1}
+          }
+          \wk[out=-18,in=-162]{wx0}{wx1}
+          \wk[out=-22,in=-158]{wy0}{wy1}
+          \po{rx1}{wy1}
+          \po[bend right]{ry1}{wa1}
+        \end{tikzinline}}}
   \end{gather*}
   \begin{center}
     \only<1>{Must preserve order on \emph{conflicting} accesses (WW, WR)}
     \only<2>{Initializing $x$}
+    \only<3>{Introducing $y\GETS x$}
+    \only<4>{Fulfillment requirements}
+    \only<5-8>{Allowed!
+      \uncover<6->{\\ Partial order}
+      \uncover<7->{\\ All reads fulfilled}
+      \uncover<8->{\\ All preconditions tautologies}
+    }
+    \only<9->{Disallowed!
+      \uncover<9->{\\ Cycle}
+    }
   \end{center}
+\end{imageframe}
+\begin{imageframe}{images/keynote-images/keynote-images.016.png}{}<4->
+  \frametitle{Concurrent Semantics}
+
+  \begin{gather*}
+    \only<2->{x\GETS 0\SEMI}
+    y\GETS 0\SEMI
+    \only<3->{(y\GETS x \PAR}
+    r\GETS y\SEMI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS \alt<9>{\alert{2}}{1}\FI
+    \only<3->{)}
+    \\
+    \only<1>{\hbox{\begin{tikzinline}[node distance=2em]
+          \event{wx}{\DW{x}{1}}{}
+          \event{wz}{\DW{z}{1}}{right=of wx}
+          \event{ry}{\DR{y}{1}}{left=of wx}
+          \event{wy}{\DW{y}{0}}{left=of ry}
+          \po[bend right]{ry}{wz}
+          \wk{wy}{ry}
+        \end{tikzinline}}}
+    \only<2>{\hbox{\begin{tikzinline}[node distance=2em]
+          \event{wx}{\DW{x}{1}}{}
+          \event{wz}{\DW{z}{1}}{right=of wx}
+          \event{ry}{\DR{y}{1}}{left=of wx}
+          \event{wy}{\DW{y}{0}}{left=of ry}
+          \event{wx0}{\DW{x}{0}}{left=of wy}
+          \po[bend right]{ry}{wz}
+          \wk{wy}{ry}
+          \wk[out=-22,in=-158]{wx0}{wx}
+        \end{tikzinline}}}
+    \only<3->{\hbox{\begin{tikzinline}[node distance=2em]
+          \event{wy0}{\DW{y}{0}}{}
+          \event{wx0}{\DW{x}{0}}{left=of wy0}
+          \event{rx1}{\DR{x}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \event{wa1}{\DW{z}{1}}{right=of wx1}
+          \only<3>{
+            \wk[out=-22,in=-158]{wx0}{rx1}
+            \wk[out=-22,in=-158]{wy0}{ry1}
+          }
+          \only<4->{
+            \rf[out=-165,in=-15]{wx1}{rx1}
+            \rf{wy1}{ry1}
+          }
+          \only<9->{
+            \po{ry1}{wx1}
+          }
+          \wk[out=-18,in=-162]{wx0}{wx1}
+          \wk[out=-22,in=-158]{wy0}{wy1}
+          \po{rx1}{wy1}
+          \po[bend right]{ry1}{wa1}
+        \end{tikzinline}}}
+  \end{gather*}
+  \begin{center}
+    \only<1>{Must preserve order on \emph{conflicting} accesses (WW, WR)}
+    \only<2>{Initializing $x$}
+    \only<3>{Introducing $y\GETS x$}
+    \only<4>{Fulfillment requirements}
+    \only<5-8>{Allowed!
+      \uncover<6->{\\ Partial order}
+      \uncover<7->{\\ All reads fulfilled}
+      \uncover<8->{\\ All preconditions tautologies}
+    }
+    \only<9->{Disallowed!
+      \uncover<9->{\\ Cycle}
+    }
+  \end{center}
+\end{imageframe}
+
+
+
+\imagepage{images/keynote-images/keynote-images.008.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.009.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.010.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.011.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.012.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+\imagepage{images/keynote-images/keynote-images.013.png}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
+
+
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{frame}<2->
+  \setbeamercovered{transparent=15}
+  \frametitle{Key Definitions}
+  \begin{itemize}
+  \item
+    \begin{math}
+      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} \eqdef \textstyle\bigcup_\aVal\;
+      (\DR[\amode]\aLoc\aVal)\prefix \sem{\aCmd} [\aLoc/\aReg]
+    \end{math}
+  \item
+    \begin{math}
+      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} \eqdef
+      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\amode]\aLoc\aVal)\prefix \sem{\aCmd}[\aExp/\aLoc]
+    \end{math}
+  \item 
+    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+    ${\aPSS'}$ 
+    where
+    $\aPS'\in\aPSS'$ when 
+    there is $\aPS\in\aPSS$ where
+    \begin{enumerate}
+    \item[{\labeltextsc[P1]{(P1)}{1}}]
+      $\Event' = \Event \cup \{\bEv\}$
+    \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
+      ${\le'}\supseteq{\le}$
+    \item<1>[{\labeltextsc[P3]{(P3a)}{3a}\labeltextsc[P3]{}{3}}]%
+      $\labelingAct'(\aEv) = \labelingAct(\aEv)$
+    \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
+      $\labelingAct'(\bEv) = \aAct$
+    \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
+      $\labelingForm'(\bEv)$ implies $\aForm$
+    \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
+      if $\labelingAct(\bEv)=(\DR{\aVal}{\aLoc})\mkern4mu$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
+    \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
+      if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+    \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
+      if $\labelingAct(\aEv)\mkern1.8mu\neq(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+    \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
+      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
+    \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
+      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
+    \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
+      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
+    \end{enumerate}
+  \end{itemize}
 \end{frame}
 
 
-
-
-
-\imagepage{images/keynote-images/keynote-images.008.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.009.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.010.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.011.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.012.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
-\imagepage{images/keynote-images/keynote-images.013.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
 
 \begin{frame}
@@ -540,24 +699,96 @@
 \end{frame}
 
 
-% \begin{frame}
-%   \frametitle{It's going to be okay}
-%   \begin{itemize}[<+->]
-%   \item Concurrent observers see more [Plotkin and Pratt , 1990]: \emph{Teams
-%     Can See Pomsets}]
-%     \begin{itemize}
-%     \item compiler optimization only sound for sequential programs      
-%     \end{itemize}
-%   \item Use \emph{Sequential consistency} as correctness criterion [Lamport,
-%     1979]: \emph{How to Make a Multiprocessor Computer That Correctly
-%     Executes Multiprocess Programs}
-%     \begin{itemize}
-%     \item It's too slow
-%     \end{itemize}
-%   \item 
-%   \item Orange
-%   \end{itemize}
-% \end{frame}
+\begin{frame}
+  \frametitle{It's going to be okay}
+  \begin{itemize}[<+->]
+  \item Concurrent observers see more [Plotkin and Pratt , 1990]: \emph{Teams
+    Can See Pomsets}]
+    \begin{itemize}
+    \item compiler optimization only sound for sequential programs      
+    \end{itemize}
+  \item Use \emph{Sequential consistency} as correctness criterion [Lamport,
+    1979]: \emph{How to Make a Multiprocessor Computer That Correctly
+    Executes Multiprocess Programs}
+    \begin{itemize}
+    \item It's too slow
+    \end{itemize}
+  \item 
+  \item Orange
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \setbeamercovered{transparent=30}
+  \frametitle{Image for background}
+  \pause
+  \begin{itemize}
+  \item[]
+  \footnotesize
+  $\begin{aligned}
+    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} &\eqdef \textstyle\bigcup_\aVal\;
+    (\DR[\amode]\aLoc\aVal)\prefix \sem{\aCmd} [\aLoc/\aReg]
+    \\
+    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} &\eqdef
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\amode]\aLoc\aVal)\prefix \sem{\aCmd}[\aExp/\aLoc]
+  \end{aligned}$
+  \item[]
+  \small
+    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+    ${\aPSS'}$ 
+    where
+    $\aPS'\in\aPSS'$ when 
+    there is $\aPS\in\aPSS$ where
+    \begin{itemize}
+    \item[]
+      \vspace{-.5ex}
+      \begin{enumerate}
+    \item[{\labeltextsc[P1]{(P1)}{1}}]
+      $\Event' = \Event \cup \{\bEv\}$
+    % \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
+    %   ${\le'}\supseteq{\le}$
+    % \item<1>[{\labeltextsc[P3]{(P3a)}{3a}\labeltextsc[P3]{}{3}}]%
+    %   $\labelingAct'(\aEv) = \labelingAct(\aEv)$
+    % \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
+    %   $\labelingAct'(\bEv) = \aAct$
+    % \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
+    %   $\labelingForm'(\bEv)$ implies $\aForm$
+    \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
+      if $\labelingAct(\bEv)=(\DR{\aVal}{\aLoc})\mkern4mu$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
+    \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
+      if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+    \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
+      if $\labelingAct(\aEv)\mkern1.8mu\neq(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+    \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
+      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
+    % \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
+    %   if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
+    % \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
+    %   if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
+    \end{enumerate}
+  \end{itemize}
+\item[]
+      We say $\labelingAct(\bEv)=(\DW{x}{v})$ \emph{fulfills} $\labelingAct(\aEv)=(\DR{x}{v})$ if 
+    % We say $\bEv$ \emph{fulfills $\aEv$} if 
+    % % \labeltextsc[F1]{(F1)}{rf1}
+    % $\labelingAct(\bEv)=\DW{x}{v}$,
+    % % \labeltextsc[F2]{(F2)}{rf2}
+    % $\labelingAct(\aEv)=\DR{x}{v}$,
+    \begin{itemize}
+    \item[]
+      \vspace{-.5ex}
+    \begin{itemize}
+      % \item[{\labeltextsc[F1]{(F1)}{rf1}}] $\labelingAct(\bEv)=\DW{x}{v}$,
+      % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
+    \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
+      $\bEv \lt \aEv$
+    \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
+      if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+\end{frame}
 
 \end{document}
 
