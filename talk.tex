@@ -198,7 +198,7 @@
     \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
       $\bEv \lt \aEv$
     \item<+->%[{\labeltextsc[F4]{(F4)}{rf4}}]
-      if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
+      if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \le \bEv$ or $\aEv \le \cEv$
     \end{itemize}
   \item<+->
     A pomset is \emph{$\aLoc$-closed} if
@@ -277,19 +277,24 @@
     \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
       $\labelingAct'(\bEv) = \aAct$
     \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
-      $\labelingForm'(\bEv)$ implies $\aForm$
+      $\labelingForm'(\bEv)$ implies $\aForm\land(\bEv\not\in\Event\lor\labelingForm(\bEv))$
+      % \\
+      % if $\bEv\not\in\Event$ then $\labelingForm'(\bEv)$ implies
+      % $\aForm$;
+      % if $\bEv\in\Event$ then $\labelingForm'(\bEv)$ implies
+      % $\aForm\lor\labelingForm(\bEv)$;
     \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-      if $\labelingAct(\bEv)=(\DR{\aVal}{\aLoc})\mkern4mu$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
+      if $\bEv\neq(\DR{..)}{}\mkern86mu$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-      if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+      if $\bEv=(\DR{\aVal}{\aLoc})\mkern75mu$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+      if $\bEv=(\DR{..)}{}$, $\aEv=(\DW{..)}{}$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
     \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
-      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
+      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
     \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
-      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
+      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
     \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
-      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
+      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
     \end{enumerate}
   \end{itemize}
 \end{frame}
@@ -637,10 +642,10 @@ Eliding $0$-initialization:
   \PAR
   % x\GETS0\SEMI
   % z\GETS0\SEMI
-  \IF{b}\THEN  r\GETS y \SEMI x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
-  \PAR
+  r\GETS y \SEMI \IF{\alt<1>{r}{b}}\THEN  x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
+  \uncover<2->{\PAR
   %b\GETS0\SEMI
-  b\GETS1
+  b\GETS1}
   \\
   \uncover<2->{\hbox{\begin{tikzinline}[node distance=1.5em]
       \event{rx}{\DR{x}{1}}{}
@@ -712,15 +717,15 @@ Eliding $0$-initialization:
     \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
       if $\labelingAct(\bEv)=(\DR{\aVal}{\aLoc})\mkern4mu$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-      if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+      if $\labelingAct(\bEv)=(\DW{..)}{}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+      if $\labelingAct(\aEv)=(\DW{..)}{}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
     \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
-      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
+      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
     \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
-      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
+      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
     \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
-      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
+      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
     \end{enumerate}
   \end{itemize}
 \end{frame}
@@ -802,13 +807,13 @@ Eliding $0$-initialization:
     \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
       if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
     \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$
+      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
     \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
-      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\lt'\aEv$
+      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
     % \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
-    %   if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$
+    %   if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
     % \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
-    %   if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$
+    %   if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
     \end{enumerate}
   \end{itemize}
 \item[]
@@ -825,7 +830,7 @@ Eliding $0$-initialization:
       % \item[{\labeltextsc[F1]{(F1)}{rf1}}] $\labelingAct(\bEv)=\DW{x}{v}$,
       % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
     \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
-      $\bEv \lt \aEv$
+      $\bEv \le \aEv$
     \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
       if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
     \end{itemize}

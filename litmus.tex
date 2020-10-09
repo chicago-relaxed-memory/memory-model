@@ -672,7 +672,7 @@ Note that in
   \IF{r{=}s}\THEN y\GETS 1\FI},
 \end{math}
 the precondition on $(\DW{y}{1})$ must imply $(r{=}x \land r{=}1)$.  The
-first is imposed by \ref{5a}, the second by \ref{4b}, ensuring that the two
+first is imposed by \ref{5a}, the second by \ref{4c}, ensuring that the two
 reads see the same value.
 
 Using \armeight{} terminology, these executions involve \emph{internal
@@ -712,7 +712,7 @@ ignoring concurrent blocking writes.
 \end{gathered}
 \end{gather*}
 Here, $(\DW{x}{1})$ is violates \ref{rf4}.  The precondition $(1{=}1)$ is
-imposed by \ref{4b}.  The pomset becomes inconsistent if we change
+imposed by \ref{4c}.  The pomset becomes inconsistent if we change
 $(\DR{x}{1})$ to $(\DR{x}{2})$, since the precondition would change to $(2{=}1)$.
 % there is no order from $(\DR{x}{1})$ to
 % $(\DW{y}{1})$, potentially allowing the program to write a stale value.

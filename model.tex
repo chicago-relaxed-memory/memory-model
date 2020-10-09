@@ -1366,15 +1366,17 @@ there is $\aPS\in\aPSS$ such that
 % \item[(3b)] $\labelingForm'(\bEv)$ implies $\aForm$,
 % \item[(4a)] $\labelingAct'(\aEv) = \labelingAct(\aEv)$,
 \item[{\labeltextsc[P4a]{(P4a)}{4a}}]{\labeltextsc[P4]{}{4}}%
-  $\labelingForm'(\bEv)$ implies $\aForm$, 
+  if $\bEv\in\Event$ then $\labelingForm'(\bEv)$ implies
+  $\aForm\lor\labelingForm(\bEv)$, otherwise $\labelingForm'(\bEv)$ implies $\aForm$,
 \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-  if $\bEv$ \externally reads $\aVal$ from $\aLoc$ then
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-\item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-  if $\bEv$ does not \externally read then
+  if $\bEv$ does not read then either $\aEv=\bEv$ or
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
+\item[{\labeltextsc[P4c]{(P4c)}{4c}}]
+  if $\bEv$ reads $\aVal$ from $\aLoc$ then either $\aEv=\bEv$ or
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
 \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}%
-  if $\aEv$ writes then either $\bEv\lt'\aEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$,
+  if $\bEv$ reads and $\aEv$ writes then either $\aEv=\bEv$ or $\labelingForm'(\aEv)$
+  implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$,
 % \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
 %   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
 %   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
@@ -1419,7 +1421,7 @@ The semantics of read and write introduce a separate pomset for each possible
 value read or written.  The value is fixed in each pomset.  For writes, the
 dependence on $\aExp$ appears in the precondition $(\aExp=\aVal)$.  This
 precondition must be satisfied using the substitutions in the semantic rules
-and \ref{4b}.  Whereas writes introduce a precondition that must be satisfied
+and \ref{4c}.  Whereas writes introduce a precondition that must be satisfied
 sequentially, reads introduce a fulfillment requirement
 (\textsection\ref{sec:fulfillment}) that must be satisfied concurrently.
 
@@ -1427,8 +1429,7 @@ The possibilities for fulfillment are limited by the program
 order that is preserved by \ref{5}.  Requirement \ref{5a} connects
 the sequential semantics of write to the concurrent semantics of read; it %\ref{5a}
 requires order from read to write when the precondition of the write
-is \emph{weakened} using \ref{4b} (when $\bEv$ is not a read, \ref{4c}
-trivially implies \ref{5a}).
+is \emph{weakened} using \ref{4c}. % (when $\bEv$ is not a read, \ref{4b} trivially implies \ref{5a}).
 The other requirements in \ref{5} are standard.  \ref{5b} captures the
 extended coherence requirement on sequential actions that touch the same location.
 \ref{5c} imposes the order required by acquire and release actions.  \ref{5d}
@@ -1546,7 +1547,7 @@ contains:
       \event{ry}{\DR{y}{1}}{left=of wx}
     \end{tikzinline}}
 \end{gather*}
-The second conjunct in each event is required by \ref{4b}. \ref{4b} also prevents inconsistent reads such as:
+The second conjunct in each event is required by \ref{4c}. \ref{4c} also prevents inconsistent reads such as:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{(y{=}1\lor y{=}0) \land(2{=}1\lor 2{=}0)\mid\DW{x}{1}}{}
@@ -1555,7 +1556,7 @@ The second conjunct in each event is required by \ref{4b}. \ref{4b} also prevent
     \end{tikzinline}}
 \end{gather*}
 
-\ref{4b} also allows predicates to weaken, in which case \ref{5a} requires order:
+\ref{4c} also allows predicates to weaken, in which case \ref{5a} requires order:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{(y{=}1\lor y{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
@@ -1642,7 +1643,7 @@ which contains:
 \end{align*}
 However, there is no pomset that contains $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
 Using the left pomset above, it is only possible to satisfy the precondition
-of $(r{=}1\mid\DW{x}{1})$ using \ref{4b} when prefixing $(\DR{y}{1})$. This
+of $(r{=}1\mid\DW{x}{1})$ using \ref{4c} when prefixing $(\DR{y}{1})$. This
 forces a dependency between the read and write via \ref{5a}.
 
 \subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
@@ -1998,9 +1999,9 @@ after giving the formal definitions.
 
 For the new event, \ref{4a} requires that the precondition in $\aPS'$ implies
 $\aForm$.
-For old writes, \ref{4c} requires that the new precondition in
+For old writes, \ref{4b} requires that the new precondition in
 $\aPS'$ must imply the old precondition in $\aPS$.
-For reads, \ref{4b} allows some preconditions to weaken and requires
+For reads, \ref{4c} allows some preconditions to weaken and requires
 others to strengthen.  Recall the pomsets given previously \eqref{ex-1} for $y\GETS r$ and
 $\IF{r<0}\THEN y\GETS1 \FI$. % from the beginning of this section:
 % \begin{align*}
@@ -2044,7 +2045,7 @@ Prepending $\aReg\GETS\aLoc$ first causes the substitution $[x/r]$:
       \end{tikzinline}}
   \end{gathered}
 \end{align*}
-\ref{4b} then the substitutes the chosen value $[1/x]$:
+\ref{4c} then the substitutes the chosen value $[1/x]$:
 \begin{align}
   \label{ex-2}
   \begin{gathered}
@@ -2310,7 +2311,7 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 % $\hoare{\TRUE}{\aCmd}{y=1}$.
 
 \ref{5a} imposes order from read to write when weakening the
-precondition of the write via \ref{4b}, as on the left hand side of
+precondition of the write via \ref{4c}, as on the left hand side of
 \eqref{ex-2}.
 % \begin{gather*}
 %   r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
@@ -2321,7 +2322,7 @@ precondition of the write via \ref{4b}, as on the left hand side of
 %       \po{rx1}{wy1}
 %     \end{tikzinline}}
 % \end{gather*}
-\ref{4b} \emph{allows} a precondition to weaken, but does not \emph{require} it.
+\ref{4c} \emph{allows} a precondition to weaken, but does not \emph{require} it.
 \ref{5a} only requires order when the precondition weakens.
 Thus, no order is required in: % the following execution:
 \begin{gather*}
@@ -2339,7 +2340,7 @@ The existence of this pomset is justified
 by the Hoare triple $\hoare{x\geq0}{\aCmd}{y=1}$.  It is not justified by the value of the read
 action.  
 
-Nonetheless, \ref{4b} requires that the value of the read action must
+Nonetheless, \ref{4c} requires that the value of the read action must
 be \emph{consistent} with subsequent formulae, via
 $\labelingForm(\aEv)[\aVal/\aLoc]$.  In this example, the pomset becomes inconsistent
 if ${-}2$ is read for $x$:
@@ -2380,8 +2381,8 @@ pomset on the left below, but not that inconsistent ``pomset'' on the right:
     \end{tikzinline}}
 \end{align*}
 
-Like \ref{4b}, which substitutes $[\aVal/\aLoc]$ during a read, Candidate
-\ref{cand:ord} substitutes $[\aExp/\aLoc]$ during a write.  Like \ref{4b}, this
+Like \ref{4c}, which substitutes $[\aVal/\aLoc]$ during a read, Candidate
+\ref{cand:ord} substitutes $[\aExp/\aLoc]$ during a write.  Like \ref{4c}, this
 affects subsequent preconditions, either allowing them to weaken, or
 requiring them to strengthen.  For write prefixing, however, there is no rule
 corresponding to  \ref{5a}. Unlike a read event, order is \emph{not} imposed from
