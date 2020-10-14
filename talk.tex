@@ -80,7 +80,7 @@
 %   \end{framecenter}
 % \end{frame}
 
-\begin{frame}
+\begin{frame}<-2,5->
   \frametitle{Can this program write 1 to z?}
   \begin{gather*}
     y\GETS x
@@ -114,15 +114,15 @@
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE \only<7>{\alert}{x\GETS\alt<6>{2}{1}} \FI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS\alt<6>{\alert{2}}{1} \FI
   \end{gather*}
   \pause
-  $x$ and $y$ can only be $0$ or $\alt<6>{2}{1}$  
+  $x$ and $y$ can only be $0$ or $\alt<6>{\alert{2}}{1}$  
   \begin{gather*}
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    \IF{r}\THEN x\GETS r\SEMI z\GETS \alt<6>{2}{1} \ELSE \only<7>{\alert}{x\GETS\alt<6>{2}{1}} \FI
+    \IF{r}\THEN x\GETS r\SEMI z\GETS \alt<6>{\alert{2}}{1} \ELSE x\GETS\alt<6>{\alert{2}}{1} \FI
   \end{gather*}
   \pause
   lift common code
@@ -131,8 +131,8 @@
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    x\GETS\alt<6>{2}{1}\SEMI
-    \IF{r}\THEN z\GETS \alt<6>{2}{1} \FI
+    x\GETS\alt<6>{\alert{2}}{1}\SEMI
+    \IF{r}\THEN z\GETS \alt<6>{\alert{2}}{1} \FI
   \end{gather*}
   \pause
   commute independent statements
@@ -140,22 +140,22 @@
     % \taglabelpp{OOTA?}
     \only<5>{\alert}{y\GETS x}
     \PAR
-    x\GETS\alt<6>{2}{1}\SEMI
+    x\GETS\alt<6>{\alert{2}}{1}\SEMI
     r\GETS y\SEMI
-    \IF{r}\THEN z\GETS \alt<6>{2}{1} \FI
+    \IF{r}\THEN z\GETS \alt<6>{\alert{2}}{1} \FI
   \end{gather*}
   \pause
   interleaving
   \begin{gather*}
     % \taglabelpp{OOTA?}
-    x\GETS\alt<6>{2}{1}\SEMI
+    x\GETS\alt<6>{\alert{2}}{1}\SEMI
     \alert<5>{y\GETS x}\SEMI
     r\GETS y\SEMI
-    \IF{r}\THEN z\GETS \alt<6>{2}{1} \FI
+    \IF{r}\THEN z\GETS \alt<6>{\alert{2}}{1} \FI
   \end{gather*}
 \end{frame}
 
-\imagepage{images/abomb3.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=198310}{Image in the Public domain}}
+%\imagepage{images/abomb3.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=198310}{Image in the Public domain}}
 % \imagepage{images/flowers.jpg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 \imagepage{images/keynote-images/keynote-images.006.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 \imagepage{images/keynote-images/keynote-images.007.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
