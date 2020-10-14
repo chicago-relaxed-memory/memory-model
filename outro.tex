@@ -232,14 +232,14 @@ sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
 
 We have only considered peephole optimizations---other optimizations may be
 valid.  For example, the model does \emph{not} satisfy redundant write after
-read elimination as a peephole optimization.  Consider the example from
+read elimination as a peephole optimization.  Consider this example from
 \cite[\textsection 5.3.1]{SevcikThesis}:
 \begin{displaymath}
   \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
   \not\supseteq
   \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
 \end{displaymath}
-In Java, these are distinguished by the context
+In the JMM, these are distinguished by the context
 \begin{math}
   x\GETS1 \SEMI a^\modeRA\GETS 1
   \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
@@ -247,9 +247,10 @@ In Java, these are distinguished by the context
 \end{math}
 That is not case here, however, due to local \drfsc{}.  Nonetheless,
 completed pomsets from the left include a write to $x$, which is not found on
-the right.  At top-level, however, the read of $x$ must be fulfilled by
-\emph{some} write---assuming that these writes can coalesce, the optimization
-can be validated.
+the right.  This write to $x$ cannot be eliminated using $\relfilt[]{\aLoc}$
+because there is no following write.  At top-level, however, the read of $x$
+must be fulfilled by \emph{some} write---assuming that these writes can
+coalesce, the optimization can be validated.
 
 We have not attempted validate all program transformations that involve
 synchronization, fences or \RMWs{}
@@ -257,7 +258,7 @@ synchronization, fences or \RMWs{}
 our semantics validates roach motel (\ref{AcqW}, \ref{RelW}), redundant load
 (\ref{RL}), fence removal (\ref{RF}), and store forwarding (\ref{SF}).  We
 expect that dead store elimination (\ref{DS}) generalizes to non-relaxed
-access by generalizing $\relfilt[]{\aLoc}$ in Definition \ref{def:cover}.
+access by generalizing $\relfilt[]{\aLoc}$ (Def.~\ref{def:cover}.)
 Some transformations are not sound in the model, but we expect them to be
 provable as metaproperties.  For example, access-mode strengthening (such as
 replacing $\modeRLX$ by $\modeRA$) is valid up to an equivalence that ignores
