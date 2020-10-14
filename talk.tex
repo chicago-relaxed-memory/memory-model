@@ -261,7 +261,7 @@
 \end{frame}
 
 \begin{frame}<1-2>
-  \setbeamercovered{transparent=15}
+  \setbeamercovered{transparent=20}
   \frametitle{Semantic Operations (2/2)}
   \begin{itemize}
   \item Let $\aPS'\in(\aForm \mid \aAct) \prefix \aPSS$ when
@@ -295,6 +295,10 @@
       if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
     \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
       if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
+    \item<1>[{\labeltextsc[P5e]{(P5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+      $\bEv \le' \aEv$
+    \item<1>[{\labeltextsc[P5f]{(P5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+      $\bEv \le' \aEv$
     \end{enumerate}
   \end{itemize}
 \end{frame}
@@ -509,7 +513,7 @@
           \event{wz}{\DW{z}{1}}{right=of wx}
           \event{ry}{\DR{y}{1}}{left=of wx}
           \event{wy}{\DW{y}{0}}{left=of ry}
-          \po[bend right]{ry}{wz}
+          \po[out=-28,in=-152]{ry}{wz}
           \wk{wy}{ry}
         \end{tikzinline}}}
     \only<2>{\hbox{\begin{tikzinline}[node distance=2em]
@@ -518,7 +522,7 @@
           \event{ry}{\DR{y}{1}}{left=of wx}
           \event{wy}{\DW{y}{0}}{left=of ry}
           \event{wx0}{\DW{x}{0}}{left=of wy}
-          \po[bend right]{ry}{wz}
+          \po[out=-28,in=-152]{ry}{wz}
           \wk{wy}{ry}
           \wk[out=-22,in=-158]{wx0}{wx}
         \end{tikzinline}}}
@@ -544,7 +548,7 @@
           \wk[out=-18,in=-162]{wx0}{wx1}
           \wk[out=-22,in=-158]{wy0}{wy1}
           \po{rx1}{wy1}
-          \po[bend right]{ry1}{wa1}
+          \po[out=-28,in=-152]{ry1}{wa1}
         \end{tikzinline}}}
   \end{gather*}
   \begin{center}
@@ -578,7 +582,7 @@
           \event{wz}{\DW{z}{1}}{right=of wx}
           \event{ry}{\DR{y}{1}}{left=of wx}
           \event{wy}{\DW{y}{0}}{left=of ry}
-          \po[bend right]{ry}{wz}
+          \po[out=-28,in=-152]{ry}{wz}
           \wk{wy}{ry}
         \end{tikzinline}}}
     \only<2>{\hbox{\begin{tikzinline}[node distance=2em]
@@ -587,7 +591,7 @@
           \event{ry}{\DR{y}{1}}{left=of wx}
           \event{wy}{\DW{y}{0}}{left=of ry}
           \event{wx0}{\DW{x}{0}}{left=of wy}
-          \po[bend right]{ry}{wz}
+          \po[out=-28,in=-152]{ry}{wz}
           \wk{wy}{ry}
           \wk[out=-22,in=-158]{wx0}{wx}
         \end{tikzinline}}}
@@ -613,7 +617,7 @@
           \wk[out=-18,in=-162]{wx0}{wx1}
           \wk[out=-22,in=-158]{wy0}{wy1}
           \po{rx1}{wy1}
-          \po[bend right]{ry1}{wa1}
+          \po[out=-28,in=-152]{ry1}{wa1}
         \end{tikzinline}}}
   \end{gather*}
   \begin{center}
@@ -635,37 +639,718 @@
 
 \begin{frame}
   \frametitle{Reading Values Out Of Thin Air (OOTA)}
-Eliding $0$-initialization:
-\begin{gather*}
-  % y\GETS0\SEMI
-  y\GETS x
-  \PAR
-  % x\GETS0\SEMI
-  % z\GETS0\SEMI
-  r\GETS y \SEMI \IF{\alt<1>{r}{b}}\THEN  x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
-  \uncover<2->{\PAR
-  %b\GETS0\SEMI
-  b\GETS1}
-  \\
-  \uncover<2->{\hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{rx}{\DR{x}{1}}{}
-      \event{wy}{\DW{y}{1}}{right=of rx}
-      \po{rx}{wy}
-      \event{ry}{\DR{y}{1}}{right=3em of wy} 
-      \event{wx}{\DW{x}{1}}{right=of ry}
-      \event{wz}{\DW{z}{1}}{right=of wx}
-      \event{rb}{\DR{b}{1}}{right=of wz}
-      \event{wb1}{\DW{b}{1}}{right=3em of rb}
-      \po{ry}{wx}
-      \rf{wb1}{rb}
-      \rf[out=15,in=165]{wy}{ry}
-      \rf[out=-170,in=-10]{wx}{rx}
-      \po{rb}{wz}
-      \po[out=15,in=165]{ry}{wz}
-    \end{tikzinline}}}
-\end{gather*}
-\emph{writing $1$ for $x$ is preceded by reading $0$ for $z$}
+  Eliding $0$-initialization:
+  \begin{gather*}
+    % y\GETS0\SEMI
+    y\GETS x
+    \PAR
+    % x\GETS0\SEMI
+    % z\GETS0\SEMI
+    r\GETS y \SEMI \IF{\alt<1>{r\mkern2mu}{\alert<2>{b}}}\THEN  x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
+    \uncover<2->{\alert<2>{\PAR
+        % b\GETS0\SEMI
+        b\GETS1}}
+    \\
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{rx}{\DR{x}{1}}{}
+        \event{wy}{\DW{y}{1}}{right=of rx}
+        \po{rx}{wy}
+        \event{ry}{\DR{y}{1}}{right=3em of wy} 
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \event{wz}{\DW{z}{1}}{right=of wx}
+        \rf{wy}{ry}
+        \rf[out=-160,in=-20]{wx}{rx}
+        \po[out=-28,in=-152]{ry}{wz}
+        \uncover<2->{
+          \po{ry}{wx}
+          \event{rb}{\DR{b}{1}}{right=of wz}
+          \event{wb1}{\DW{b}{1}}{right=3em of rb}
+          \po{rb}{wz}
+          \rf{wb1}{rb}
+        }
+      \end{tikzinline}}
+  \end{gather*}
+  \begin{itemize}    
+  \item<3->
+        Proof using
+  \begin{scope}
+    \small
+    \begin{math}
+      [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
+      \land
+      [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
+    \end{math}
+  \end{scope}
 
+  \item<4-> Semantics using existential justification get this wrong:
+    \begin{itemize}
+    \item{} Commitment (JMM) [Manson, Pugh, Adve, 2005]
+    \item{} Speculation [Jagadeesan, Pitcher, Riely, 2010]
+    \item{} Promising  [Kang, Hur, Lahav, Vafeiadis, Dreyer 2017]
+    \end{itemize}
+  \item<5-> Semantics using universal justification get this right:
+    \begin{itemize}
+    \item{} Event Structures [Jeffrey, Riely, 2016]
+      \uncover<5->{\\But this model is too strong (eg, inefficient on ARMv8)}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Reading Values Out Of Thin Air (OOTA)}
+  Consider [Lochbihler, 2013, Fig.~8]:
+  \begin{gather*}
+    y\GETS x
+    \PAR
+    \aReg\GETS y \SEMI \IF{b} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
+    \PAR %\\[-1ex] \PAR&
+    b \GETS 1
+  \end{gather*}
+  \begin{itemize}
+  \item<2-> Causes type safety to fail
+    \begin{itemize}
+    \item{} Lochbihler partitions memory by type
+    \item{} Conflicts with realist allocation
+    \end{itemize}
+  \item<3-> Invalidates Java Security Architecture
+    \begin{itemize}
+    \item{} Allocation of security-sensitive constants
+    \end{itemize}
+  \end{itemize}  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Buffering}
+\begin{gather*}
+  \taglabel{SB}
+  \begin{gathered}
+  x\GETS0\SEMI
+  y\GETS0\SEMI
+  (
+  x\GETS1\SEMI\aReg\GETS y
+  \PAR
+  y\GETS1\SEMI \aReg\GETS x)
+  \\[-1.5ex]
+  \hbox{\begin{tikzinline}[node distance=.9em]
+      \event{wx0}{\DW{x}{0}}{}
+      \event{wy0}{\DW{y}{0}}{right=of wx0}
+      \event{wx}{\DW{x}{1}}{right=3em of wy0}
+      \event{ry}{\DR{y}{0}}{right=of wx}
+      \event{wy}{\DW{y}{1}}{right=3em of ry}
+      \event{rx}{\DR{x}{0}}{right=of wy}
+      %\wk[out=15,in=165]{wx0}{wx}
+      %\wk[out=15,in=165]{wy0}{wy}
+      \rf[out=15,in=165]{wy0}{ry}
+      \rf[out=10,in=170]{wx0}{rx}
+      \wk{ry}{wy}
+      \wk[out=-165,in=-15]{rx}{wx}
+      % \po{rx}{wy}
+      % \pox{wy}[below]{rx}
+      % \pox{wx}{ry}
+    \end{tikzinline}}
+  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+  %     \event{wx0}{\DW{x}{0}}{}
+  %     \event{wy0}{\DW{y}{0}}{below=of wx0}
+  %     \event{wx}{\DW{x}{1}}{right=of wx0}
+  %     \event{wy}{\DW{y}{1}}{right=of wy0}
+  %     \event{ry}{\DR{y}{0}}{right=of wx}
+  %     \event{rx}{\DR{x}{0}}{right=of wy}
+  %     \wk{wx0}{wx}
+  %     \wk{wy0}{wy}
+  %     \rf{wy0}{ry}
+  %     \rf{wx0}{rx}
+  %     \wk[out=-150,in=15]{ry}{wy}
+  %     \wk[out=150,in=-15]{rx}{wx}
+  %     % \po{rx}{wy}
+  %     % \pox{wy}[below]{rx}
+  %     % \pox{wx}{ry}
+  %   \end{tikzinline}}
+\end{gathered}
+\\
+\taglabel{LB}
+  \begin{gathered}
+  \aReg\GETS y\SEMI x\GETS1
+  \PAR
+  \aReg\GETS x\SEMI y\GETS1
+  \\
+  \hbox{\begin{tikzinline}[node distance=.9em]
+      \event{ry}{\DR{y}{1}}{}
+      \event{wx}{\DW{x}{1}}{right=of ry}
+      \event{rx}{\DR{x}{1}}{right=3em of wx}
+      \event{wy}{\DW{y}{1}}{right=of rx}
+      \rf{wx}{rx}
+      \rf[out=-165,in=-15]{wy}{ry}
+      % \pox{rx}[below]{wy}
+      % \pox{ry}{wx}
+      % \po{rx}{wy}
+    \end{tikzinline}}
+  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+  %     \event{ry}{\DR{y}{1}}{}
+  %     \event{rx}{\DR{x}{1}}{below=of ry}
+  %     \event{wx}{\DW{x}{1}}{right=of ry}
+  %     \event{wy}{\DW{y}{1}}{right=of rx}
+  %     \rf{wy}{ry}
+  %     \rf{wx}{rx}
+  %     % \pox{rx}[below]{wy}
+  %     % \pox{ry}{wx}
+  %     % \po{rx}{wy}
+  %   \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Internal Reads}
+  \begin{gather*}
+    \taglabel{TC1}
+    \begin{gathered}
+      x\GETS 0 \SEMI
+      (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+      \PAR
+      x\GETS y)
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+          \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \po{ry1}{wx1}
+          \rf[out=-168,in=-12]{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \wk[out=10,in=170]{wx0}{wx1}
+          \wk{wx0}{rx1}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{TC9}
+    \begin{gathered}
+      x\GETS 0 \SEMI
+      (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+      \PAR
+      x\GETS y
+      \PAR
+      x\GETS {-2})
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+          \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
+          \po{ry1}{wx1}
+          \rf[out=-168,in=-12]{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \wk[out=10,in=170]{wx0}{wx1}
+          \wk{wx0}{rx1}
+          \wk{wx1}{wx2}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{TC2}
+    \begin{gathered}
+      r\GETS x\SEMI
+      s\GETS x\SEMI
+      \IF{r{=}s}\THEN y\GETS 1\FI
+      \PAR
+      x\GETS y
+      \\[-1ex]
+      \nonumber
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{x}{1}}{}
+          \event{a2}{\DR{x}{1}}{right=of a1}
+          \event{a3}{(x{=}x)\land(1{=}1)\mid\DW{y}{1}}{right=of a2}
+          % \po{a2}{a3}
+          % \po[out=15,in=165]{a1}{a3}
+          \event{b1}{\DR{y}{1}}{right=3em of a3}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          \rf{a3}{b1}
+          \po{b1}{b2}
+          \rf[out=169,in=11]{b2}{a2}
+          \rf[out=169,in=11]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{Internal2}
+    \begin{gathered}
+      \aReg\GETS x\SEMI
+      y\REL\GETS 1\SEMI
+      \bReg\GETS y\SEMI
+      z\GETS \bReg
+      % z\GETS y
+      \PAR
+      x\GETS z
+      \\[-1ex]
+      \nonumber
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{x}{1}}{}
+          \event{a2}{\DWRel{y}{1}}{right=of a1}
+          \sync{a1}{a2}
+          \event{a3}{\DR{y}{1}}{right=of a2}
+          \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
+          \rf{a2}{a3}
+          % \po{a3}{a4}
+          \event{b1}{\DR{z}{1}}{right=3em of a4}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          % \po[out=10,in=170]{a2}{a4}
+          \po{b1}{b2}
+          \rf{a4}{b1}
+          \rf[out=170,in=10]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}
+\end{frame}
+
+\begin{frame}<2->
+  \setbeamercovered{transparent=20}
+  \frametitle{Synchronization and Fences}
+  \begin{itemize}
+  \item Let $\aPS'\in(\aForm \mid \aAct) \prefix \aPSS$ when
+    $(\exists\aPS\in\aPSS)$
+    $(\forall\aEv\in\Event)$
+    \begin{enumerate}
+    \item<1>[{\labeltextsc[P1]{(P1)}{1}}]
+      $\Event' = \Event \cup \{\bEv\}$
+    \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
+      ${\le'}\supseteq{\le}$
+    \item<1>[{\labeltextsc[P3]{(P3a)}{3a}\labeltextsc[P3]{}{3}}]%
+      $\labelingAct'(\aEv) = \labelingAct(\aEv)$
+    \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
+      $\labelingAct'(\bEv) = \aAct$
+    \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
+      $\labelingForm'(\bEv)$ implies $\aForm\land(\bEv\not\in\Event\lor\labelingForm(\bEv))$
+      % \\
+      % if $\bEv\not\in\Event$ then $\labelingForm'(\bEv)$ implies
+      % $\aForm$;
+      % if $\bEv\in\Event$ then $\labelingForm'(\bEv)$ implies
+      % $\aForm\lor\labelingForm(\bEv)$;
+    \item<1>[{\labeltextsc[P4b]{(P4b)}{4b}}]
+      if $\bEv\neq(\DR{..)}{}\mkern86mu$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+    \item<1>[{\labeltextsc[P4c]{(P4c)}{4c}}]
+      if $\bEv=(\DR{\aVal}{\aLoc})\mkern75mu$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
+    \item<1>[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
+      if $\bEv=(\DR{..)}{}$, $\aEv=(\DW{..)}{}$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
+    \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
+      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
+    \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
+      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
+    \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
+      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
+    \item[{\labeltextsc[P5e]{(P5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+      $\bEv \le' \aEv$
+    \item[{\labeltextsc[P5f]{(P5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+      $\bEv \le' \aEv$
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Publication}
+  \begin{gather}
+    \taglabel{Pub1}
+    \begin{gathered}
+      x\GETS0\SEMI %y\GETS0\SEMI
+      x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
+      \\[-.4ex]
+      \nonumber
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wx1}{\DW{x}{1}}{right=of wx0}
+          \event{wy1}{\DWRel{y}{1}}{right=of wx1}
+          \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+          \event{rx0}{\DR{x}{0}}{right=of ry1}
+          \sync{wx1}{wy1}
+          \sync{ry1}{rx0}
+          \rf{wy1}{ry1}
+          % \rf[out=10,in=170]{wx0}{rx0}
+          \wk{wx0}{wx1}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{Internal1}
+    \begin{gathered}
+      x\GETS1 \SEMI
+      a\REL\GETS1 \SEMI
+      \IF{z\ACQ}\THEN  y\GETS x \FI
+      \PAR
+      \IF{a\ACQ}\THEN  x\GETS 2\SEMI z\REL\GETS1 \FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=1.2em]
+          \event{a1}{\DW{x}{1}}{}
+          \event{a2}{\DWRel{a}{1}}{right=of a1}
+          \sync{a1}{a2}
+          \event{b3}{\DRAcq{a}{1}}{below right=0em and 3em of a2}
+          % \event{b3}{\DRAcq{a}{1}}{right=3em of a2}
+          \rf{a2}{b3}
+          \event{b4}{\DW{x}{2}}{right=of b3}
+          \sync{b3}{b4}
+          \event{b5}{\DWRel{z}{1}}{right=of b4}
+          \sync{b4}{b5}
+          \event{a6}{\DRAcq{b}{1}}{above right=0em and 3em of b5}
+          % \event{a6}{\DRAcq{z}{1}}{right=3em of b5}
+          \rf{b5}{a6}
+          \event{a7}{\DR{x}{1}}{right=of a6}
+          \sync{a6}{a7}
+          \event{a8}{1{=}1\mid\DW{y}{1}}{right=of a7}
+          \graypo{a7}{a8}
+          \sync[out=-18,in=-162]{a6}{a8}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather}
+\end{frame}
+
+\begin{frame}
+  \frametitle{SC Access}
+  \begin{gather*}
+    \taglabel{SC1}
+    \begin{gathered}
+      r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
+      \PAR
+      % y\GETS0\SEMI
+      x^\modeSC\GETS2 \SEMI y\GETS1
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{\DR{y}{1}}{}
+          \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
+          \sync{a}{b}
+          \event{bb}{\DR{x}{2}}{right=of b}
+          \wk{b}{bb}
+          % \event{c}{\DW{y}{0}}{right=2em of bb}
+          % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
+          % \po{c}{d}
+          \event{d}{\DW[\modeSC]{x}{2}}{right=3em of bb}
+          \event{e}{\DW{y}{1}}{right=of d}
+          % \rf[out=170,in=10]{d}{bb}
+          \rf{d}{bb}
+          \rf[out=-170,in=-10]{e}{a}
+          \wk[in=165,out=15]{b}{d}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{SC2}
+    \begin{gathered}
+      x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
+      \PAR
+      y^\modeSC\GETS1 \SEMI y^\modeSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\modeSC
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{\DW[\modeSC]{x}{1}}{}
+          \event{b}{\DR[\modeSC]{y}{1}}{right=of a}
+          \event{c}{\DW[\modeSC]{y}{1}}{right=3em of b}
+          \event{d}{\DW[\modeSC]{y}{2}}{right=of c}
+          \event{e}{\DW{x}{2}}{right=of d}
+          \event{f}{\DR[\modeSC]{x}{1}}{right=of e}
+          \sync{a}{b}
+          \sync{c}{d}
+          \sync[out=15,in=165]{d}{f}
+          \rf{c}{b}
+          \rf[out=-8,in=-172]{a}{f}
+          \wk[in=10,out=170]{e}{a}
+          \wk{e}{f}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Fences}
+  \begin{gather*}
+    \taglabel{Pub2}
+    \begin{gathered}
+      x\GETS0\SEMI %y\GETS0\SEMI
+      x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+      \PAR
+      r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wx1}{\DW{x}{1}}{right=of wx0}
+          \event{fr}{\DFS{\modeREL}}{right=of wx1}
+          \event{wy1}{\DW{y}{1}}{right=of fr}
+          \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+          \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+          \event{rx0}{\DR{x}{0}}{right=of fa}
+          \sync{wx1}{fr}
+          \sync{fr}{wy1}
+          \sync{ry1}{fa}
+          \sync{fa}{rx0}
+          \rf{wy1}{ry1}
+          \rf[out=10,in=170]{wx0}{rx0}
+          \wk{wx0}{wx1}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{SC3}
+    \begin{gathered}
+      x\GETS1
+      \PAR
+      r\GETS x\SEMI   
+      \FENCE^{\modeSC}\SEMI
+      r\GETS y  
+      \PAR
+      y\GETS 1 \SEMI
+      \FENCE^{\modeSC}\SEMI
+      r\GETS x  
+      \\[-.1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DW{x}{1}}{}
+          \event{b1}{\DR{x}{1}}{right=3em of a1}
+          \event{b2}{\DFS{\modeSC}}{right=of b1}
+          \sync{b1}{b2}
+          \event{b3}{\DR{y}{0}}{right=of b2}
+          \sync{b2}{b3}
+          \event{c1}{\DW{y}{1}}{right=3em of b3}
+          \event{c2}{\DFS{\modeSC}}{right=of c1}
+          \sync{c1}{c2}
+          \event{c3}{\DR{x}{0}}{right=of c2}
+          \sync{c2}{c3}
+          \wk{b3}{c1}
+          \rf{a1}{b1}
+          \wk[out=-170,in=-10]{c3}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \taglabel{SC4}
+    \begin{gathered}
+      x\GETS1\SEMI   
+      z\REL\GETS1\SEMI   
+      \PAR
+      r\ACQ\GETS z\SEMI   
+      \FENCE^{\modeSC}\SEMI
+      r\GETS y  
+      \PAR
+      y\GETS 1 \SEMI
+      \FENCE^{\modeSC}\SEMI
+      r\GETS x  
+      \\[-.1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DW{x}{1}}{}
+          \event{a2}{\DWRel{z}{1}}{right=of a1}
+          \sync{a1}{a2}
+          \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
+          \event{b2}{\DFS{\modeSC}}{right=of b1}
+          \sync{b1}{b2}
+          \event{b3}{\DR{y}{0}}{right=of b2}
+          \sync{b2}{b3}
+          \event{c1}{\DW{y}{1}}{right=2em of b3}
+          \event{c2}{\DFS{\modeSC}}{right=of c1}
+          \sync{c1}{c2}
+          \event{c3}{\DR{x}{0}}{right=of c2}
+          \sync{c2}{c3}
+          \wk{b3}{c1}
+          \rf{a2}{b1}
+          \wk[out=-170,in=-10]{c3}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}  
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{Valid Transformations}
+  \begin{align*}
+    % \taglabel{WW}
+    \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+    \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{ if } \aLoc\neq\bLoc
+    \\
+    % \taglabel{RW}
+    \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+    \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{ if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
+    \\
+    % \taglabel{RR}
+    \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
+    \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{ if } \aReg\neq\bReg
+    \\
+    % \tag{\textsc{roach1}}\label{AcqW}
+    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
+    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    &&\textif x\neq y&&\hbox{}
+    \\
+    % \tag{\textsc{roach2}}\label{RelW}
+    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
+    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
+    &&\textif x\neq y&&\hbox{}
+    \\
+    % \taglabel{RL}
+    \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg^\amode  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+    \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+    \\
+    % \taglabel{CSE}
+    \sem{r_1\GETS \aLoc \SEMI
+      s\GETS \bLoc \SEMI  
+      r_2\GETS \aLoc\SEMI\aCmd}
+    &\supseteq
+    \sem{r_1\GETS \aLoc \SEMI     
+      r_2\GETS r_1\SEMI
+      s\GETS \bLoc \SEMI\aCmd}
+    &&\textif \aReg_2\neq\bReg
+    \\
+    % \taglabel{DC}
+    \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+    \sem{\aCmd}
+    &&\textif \aExp \text{ is a tautology}
+    \\
+    % \taglabel{CL/CA}
+    \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
+    \sem{\aCmd}
+    \\
+    % \taglabel{SE}
+    \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd} &=
+    \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
+    &&\text{ if } \aLoc\not\in\free(\aCmd)
+  \end{align*}  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Valid Transformations (with a little more work)}
+  \begin{align*}
+    % \taglabel{RE}
+    \sem{\aReg  \GETS \aLoc\SEMI\aCmd} & \supseteq
+    \sem{\aCmd}  
+    &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}
+    \\
+    % \taglabel{SF}
+    \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+    \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
+    \\
+    % \taglabel{DS}
+    \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp\SEMI\aCmd} &\supseteq 
+    \sem{\aLoc \GETS \bExp\SEMI\aCmd}    
+    \\
+    % \taglabel{RI}
+    \readc\sem{\aCmd} & \supseteq
+    \readc\sem{\aReg  \GETS \aLoc\SEMI\aCmd}  
+    &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}  
+  \end{align*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Invalid Transformations}
+  \begin{itemize}
+  \item Thread inlining
+  \item Relevant read introduction
+  \item Write introduction    
+  \item Redundant write after read elimination
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other Results}
+  \begin{itemize}[<+->]
+  \item Compiles efficiently to ARMv8
+  \item Local data race freedom
+    \only<2>{
+      \begin{gather*}
+      x\GETS 0 \SEMI y\GETS 0 \SEMI  (x \GETS 1  \SEMI y \GETS 1
+      \PAR
+      \IF{y}\THEN \aReg \GETS x \FI)
+      \\[-.5ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+          \event{wy0}{\DW{y}{0}}{}
+          \event{wx0}{\DW{x}{0}}{below=of wy0}
+          \event{wx1}{\DW{x}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{y}{1}}{right=of wx1}
+          \event{ry1}{\DR{y}{1}}{below=of wx1}
+          \event{rx}{\DR{x}{0}}{below=of wy1}
+          \rf[bend right]{wx0}{rx}
+          \rf{wy1}{ry1}
+          \wk[bend left]{wy0}{wy1}
+          \pox{wx1}{wy1}
+          \pox{ry1}[below]{rx}
+          \wk{rx}{wx1}
+          \node(ix)[left=of wx0]{};
+          \node(iy)[left=of wy0]{};
+          \bgoval[yellow!50]{(ix)(iy)}{P}
+          \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P'''\setminus P'}
+          \pox{wx0}{wy0}
+          \pox{wy0}{wx1}
+          \pox{wy0}[below]{ry1}
+        \end{tikzinline}}
+      \qquad
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+          \event{wy0}{\DW{y}{0}}{}
+          \event{wx0}{\DW{x}{0}}{below=of wy0}
+          \event{wx1}{\DW{x}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{y}{1}}{right=of wx1}
+          \event{ry1}{\DR{y}{1}}{below=of wx1}
+          \event{rx}{\DR{x}{1}}{below=of wy1}
+          \rf{wx1}{rx}
+          \rf{wy1}{ry1}
+          \wk[bend left]{wy0}{wy1}
+          \pox{wx1}{wy1}
+          \pox{ry1}[below]{rx}
+          \wk{wx0}{wx1}
+          \node(ix)[left=of wx0]{};
+          \node(iy)[left=of wy0]{};
+          \bgoval[yellow!50]{(ix)(iy)}{P}
+          \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P'''\setminus P'}
+          \pox{wx0}{wy0}
+          \pox{wy0}{wx1}
+          \pox{wy0}[below]{ry1}
+        \end{tikzinline}}
+    \end{gather*}}
+  \only<3>{
+    \begin{gather*}
+      x\GETS 0 \SEMI y\GETS 0 \SEMI (\aReg \GETS x  \SEMI y \GETS 1
+      \PAR
+      \bReg \GETS y \SEMI x \GETS \bReg)
+      \\[-.5ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+          \event{wx0}{\DW{y}{0}}{}
+          \event{ry}{\DR{x}{1}}{right=3em of wx0}
+          \event{wx1}{\DW{y}{1}}{right=of ry}
+          \event{wy0}{\DW{x}{0}}{below=of wx0}
+          \event{rx1}{\DR{y}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{x}{1}}{right=of rx1}
+          \rf{wx1}{rx1}
+          \rf{wy1}{ry}
+          \po{rx1}{wy1}
+          \pox{ry}{wx1}
+          \wk[bend left]{wx0}{wx1}
+          \wk[bend right]{wy0}{wy1}
+          % \wk{wx0}{rx1}
+          % \wk{wy0}{ry}
+          \node(ix)[left=of wx0]{};
+          \node(iy)[left=of wy0]{};
+          \bgoval[yellow!50]{(ix)(iy)}{P}
+          \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+          \bgoval[green!10]{(ry)(wx1)(rx1)(wy1)}{P''\setminus P'}
+          \pox{wy0}{wx0}
+          \pox{wx0}{ry}
+          \pox{wx0}[below]{rx1}
+        \end{tikzinline}}
+      \qquad
+      \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+          \event{wx0}{\DW{y}{0}}{}
+          \event{ry}{\DR{x}{0}}{right=3em of wx0}
+          \event{wx1}{\DW{y}{1}}{right=of ry}
+          \event{wy0}{\DW{x}{0}}{below=of wx0}
+          \event{rx1}{\DR{y}{1}}{right=3em of wy0}
+          \event{wy1}{\DW{x}{1}}{right=of rx1}
+          \pox{ry}{wx1}
+          \wk[bend left]{wx0}{wx1}
+          \rf{wx1}{rx1}
+          \rf{wy0}{ry}
+          \po{rx1}{wy1}
+          \wk{ry}{wy1}
+          \node(ix)[left=of wx0]{};
+          \node(iy)[left=of wy0]{};
+          \bgoval[yellow!50]{(ix)(iy)}{P}
+          \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
+          \bgoval[green!10]{(ry)(wx1)(rx1)(wy1)}{P'''\setminus P'}
+          \pox{wy0}{wx0}
+          \pox{wx0}{ry}
+          \pox{wx0}[below]{rx1}
+        \end{tikzinline}}
+    \end{gather*}}
+
+  \end{itemize}
 \end{frame}
 
 
@@ -676,59 +1361,12 @@ Eliding $0$-initialization:
 \imagepage{images/keynote-images/keynote-images.012.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 \imagepage{images/keynote-images/keynote-images.013.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
+\imagepage{images/keynote-images/keynote-images.017.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
 
 \end{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-
-
-\begin{frame}<2->
-  \setbeamercovered{transparent=15}
-  \frametitle{Key Definitions}
-  \begin{itemize}
-  \item
-    \begin{math}
-      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} \eqdef \textstyle\bigcup_\aVal\;
-      (\DR[\amode]\aLoc\aVal)\prefix \sem{\aCmd} [\aLoc/\aReg]
-    \end{math}
-  \item
-    \begin{math}
-      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} \eqdef
-      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\amode]\aLoc\aVal)\prefix \sem{\aCmd}[\aExp/\aLoc]
-    \end{math}
-  \item 
-    Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
-    ${\aPSS'}$ 
-    where
-    $\aPS'\in\aPSS'$ when 
-    there is $\aPS\in\aPSS$ where
-    \begin{enumerate}
-    \item[{\labeltextsc[P1]{(P1)}{1}}]
-      $\Event' = \Event \cup \{\bEv\}$
-    \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
-      ${\le'}\supseteq{\le}$
-    \item<1>[{\labeltextsc[P3]{(P3a)}{3a}\labeltextsc[P3]{}{3}}]%
-      $\labelingAct'(\aEv) = \labelingAct(\aEv)$
-    \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
-      $\labelingAct'(\bEv) = \aAct$
-    \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
-      $\labelingForm'(\bEv)$ implies $\aForm$
-    \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-      if $\labelingAct(\bEv)=(\DR{\aVal}{\aLoc})\mkern4mu$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
-    \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-      if $\labelingAct(\bEv)=(\DW{..)}{}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
-    \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)=(\DW{..)}{}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
-    \item<1>[{\labeltextsc[P5b]{(P5b)}{5b}}]
-      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
-    \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
-      if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
-    \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
-      if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
-    \end{enumerate}
-  \end{itemize}
-\end{frame}
 
 
 
@@ -748,13 +1386,13 @@ Eliding $0$-initialization:
   \frametitle{It's going to be okay}
   \begin{itemize}[<+->]
   \item Concurrent observers see more [Plotkin and Pratt , 1990]: \emph{Teams
-    Can See Pomsets}]
+      Can See Pomsets}]
     \begin{itemize}
     \item compiler optimization only sound for sequential programs      
     \end{itemize}
   \item Use \emph{Sequential consistency} as correctness criterion [Lamport,
     1979]: \emph{How to Make a Multiprocessor Computer That Correctly
-    Executes Multiprocess Programs}
+      Executes Multiprocess Programs}
     \begin{itemize}
     \item It's too slow
     \end{itemize}
@@ -770,17 +1408,17 @@ Eliding $0$-initialization:
   \pause
   \begin{itemize}
   \item[]
-  \footnotesize
-  $\begin{aligned}
-    \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} &\eqdef \textstyle\bigcup_\aVal\;
-    (\DR[\amode]\aLoc\aVal)\prefix \sem{\aCmd} [\aLoc/\aReg]
-    \\
-    \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} &\eqdef
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\amode]\aLoc\aVal)\prefix \sem{\aCmd}[\aExp/\aLoc]
-  \end{aligned}$
+    \footnotesize
+    $\begin{aligned}
+      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} &\eqdef \textstyle\bigcup_\aVal\;
+      (\DR[\amode]\aLoc\aVal)\prefix \sem{\aCmd} [\aLoc/\aReg]
+      \\
+      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} &\eqdef
+      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\amode]\aLoc\aVal)\prefix \sem{\aCmd}[\aExp/\aLoc]
+    \end{aligned}$
   \item[]
-  \small
-  Let $\aPS'\in(\aForm \mid \aAct) \prefix \aPSS$ when
+    \small
+    Let $\aPS'\in(\aForm \mid \aAct) \prefix \aPSS$ when
     $(\exists\aPS\in\aPSS)$
     $(\forall\aEv\in\Event)$
     % Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
@@ -792,32 +1430,32 @@ Eliding $0$-initialization:
     \item[]
       \vspace{-.5ex}
       \begin{enumerate}
-    \item[{\labeltextsc[P1]{(P1)}{1}}]
-      $\Event' = \Event \cup \{\bEv\}$
-    % \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
-    %   ${\le'}\supseteq{\le}$
-    % \item<1>[{\labeltextsc[P3]{(P3a)}{3a}\labeltextsc[P3]{}{3}}]%
-    %   $\labelingAct'(\aEv) = \labelingAct(\aEv)$
-    % \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
-    %   $\labelingAct'(\bEv) = \aAct$
-    % \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
-    %   $\labelingForm'(\bEv)$ implies $\aForm$
-    \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-      if $\labelingAct(\bEv)=(\DR{\aVal}{\aLoc})\mkern4mu$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
-    \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-      if $\labelingAct(\bEv)=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
-    \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
-      if $\labelingAct(\aEv)\mkern1.8mu=(\DW{..)}{\phantom{\aLoc}}$ then $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
-    \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
-      if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
-    % \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
-    %   if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
-    % \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
-    %   if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
-    \end{enumerate}
-  \end{itemize}
-\item[]
-      We say $\labelingAct(\bEv)=(\DW{x}{v})$ \emph{fulfills} $\labelingAct(\aEv)=(\DR{x}{v})$ if 
+      \item[{\labeltextsc[P1]{(P1)}{1}}]
+        $\Event' = \Event \cup \{\bEv\}$
+        % \item<1>[{\labeltextsc[P2]{(P2)}{2}}]
+        %   ${\le'}\supseteq{\le}$
+        % \item<1>[{\labeltextsc[P3]{(P3a)}{3a}\labeltextsc[P3]{}{3}}]%
+        %   $\labelingAct'(\aEv) = \labelingAct(\aEv)$
+        % \item<1>[{\labeltextsc[P3b]{(P3b)}{3b}}]
+        %   $\labelingAct'(\bEv) = \aAct$
+        % \item<1>[{\labeltextsc[P4a]{(P4a)}{4a}\labeltextsc[P4]{}{4}}]%
+        %   $\labelingForm'(\bEv)$ implies $\aForm\land(\bEv\not\in\Event\lor\labelingForm(\bEv))$
+      \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
+        if $\bEv\neq(\DR{..)}{}\mkern86mu$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$
+      \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
+        if $\bEv=(\DR{\aVal}{\aLoc})\mkern75mu$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$
+      \item[{\labeltextsc[P5a]{(P5a)}{5a}\labeltextsc[P5]{}{5}}]%
+        if $\bEv=(\DR{..)}{}$, $\aEv=(\DW{..)}{}$ then $\aEv=\bEv$ or $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$
+      \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
+        if $\bEv$ and $\aEv$ are conflicting actions then $\bEv\le'\aEv$
+        % \item<1>[{\labeltextsc[P5c]{(P5c)}{5c}}]
+        %   if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$
+        % \item<1>[{\labeltextsc[P5d]{(P5d)}{5d}}]
+        %   if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$
+      \end{enumerate}
+    \end{itemize}
+  \item[]
+    We say $\labelingAct(\bEv)=(\DW{x}{v})$ \emph{fulfills} $\labelingAct(\aEv)=(\DR{x}{v})$ if 
     % We say $\bEv$ \emph{fulfills $\aEv$} if 
     % % \labeltextsc[F1]{(F1)}{rf1}
     % $\labelingAct(\bEv)=\DW{x}{v}$,
@@ -826,16 +1464,16 @@ Eliding $0$-initialization:
     \begin{itemize}
     \item[]
       \vspace{-.5ex}
-    \begin{itemize}
-      % \item[{\labeltextsc[F1]{(F1)}{rf1}}] $\labelingAct(\bEv)=\DW{x}{v}$,
-      % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
-    \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
-      $\bEv \le \aEv$
-    \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
-      if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
+      \begin{itemize}
+        % \item[{\labeltextsc[F1]{(F1)}{rf1}}] $\labelingAct(\bEv)=\DW{x}{v}$,
+        % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
+      \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
+        $\bEv \le \aEv$
+      \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
+        if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$
+      \end{itemize}
     \end{itemize}
   \end{itemize}
-\end{itemize}
 \end{frame}
 
 \end{document}

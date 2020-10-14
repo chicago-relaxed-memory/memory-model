@@ -65,56 +65,92 @@ consider that the existence of an execution in a relaxed memory model may
 depend on code that was \emph{not} executed. Let $r$--$s$ be registers and
 $b$, $x$--$z$ be shared memory locations.  Consider the following program, where
 all memory locations are initialized to $0$:
-\begin{gather}
+\begin{align*}
   \tag{\ref{OOTA?}}
     y\GETS x
-  \PAR
+  \PAR&
   r\GETS y\SEMI\IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI
-\end{gather}
-Most programmers would be surprised to learn that this program does allow an
-execution in which $z=1$. To see why, imagine that a compiler does type
+\intertext{Most programmers would be surprised to learn that this program does allow an
+execution in which $z{=}1$. To see why, imagine that a compiler does type
 inference and finds that $x$ and $y$ are booleans, with value either $0$ or
-$1$.  This enables the program to be optimized to the following:
-\begin{gather*}
+$1$.  This enables the program to be optimized to the following:}
   %\taglabelp{OOTA?}
     y\GETS x
-  \PAR
+  \PAR&
   r\GETS y\SEMI\IF{r}\THEN 
   x\GETS 1\SEMI z\GETS 1 \ELSE x\GETS1 \FI
-\end{gather*}
-Since $x\GETS1$ occurs in both branches of the conditional, the compiler can
-then lift it, and reorder with the independent read of $y$, yielding:
-\begin{gather*}
+\intertext{Since $x\GETS1$ occurs in both branches of the conditional, the compiler can
+then lift it, and reorder with the independent read of $y$, yielding:}
   %\taglabelpp{OOTA?}
     y\GETS x
-  \PAR
+  \PAR&
   x\GETS1\SEMI
   r\GETS y\SEMI\IF{r}\THEN z\GETS 1 \FI
-\end{gather*}
-Then $z=1$ at then end of an execution where the first thread is interleaved
-immediately after executing $x\GETS1$.  Compare \eqref{OOTA?} with:
-\begin{gather}
+\intertext{Then $z{=}1$ at then end of an execution where the first thread is interleaved
+immediately after executing $x\GETS1$.
+Without the conditional in \eqref{OOTA?}, it is obvious that the program should not write $1$:}
+  \tag{\ref{OOTA3}}
+  %x\GETS0\SEMI y\GETS0\SEMI
+  %(\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
+  \bLoc \GETS \aLoc \PAR&
+  r\GETS y\SEMI x\GETS r  \SEMI z\GETS r
+\end{align*}
+In \ref{OOTA3}, the constant $1$ arises ``Out Of Thin Air'' (\oota)
+\cite{DBLP:conf/esop/BattyMNPS15}.  As a result, any model of relaxed memory
+that supports common compiler optimizations, as above, must take into account
+code that was not executed.  This is why many models of relaxed memory
+include some form of speculative execution, with the goal of allowing the
+outcome $z{=}1$ for \eqref{OOTA?}, but not \ref{OOTA3}.
+
+\oota{} behaviors can be quite subtle.
+Consider the following variants of \eqref{OOTA?}:
+\begin{align}
   \tag{\ref{OOTA!}}
     y\GETS x
-  \PAR
+  \PAR&
   r\GETS y\SEMI \IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI
-\end{gather}
-which has a similar execution where $z=2$, but does not have an execution
-where $z=1$. Note that the only difference between \eqref{OOTA?} and
-\eqref{OOTA!} is the code in the branch that was not taken. This means that
-any model of relaxed memory that supports common compiler optimizations (such
-as the transformations above) must take into account code that was not
-executed. This is why most relaxed memory models include some form of
-speculative execution.
+  \\
+  \tag{\ref{OOTA4}}
+  y\GETS x
+  \PAR&
+  r\GETS y \SEMI \IF{b}\THEN  x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
+  \PAR
+  b\GETS1
+\end{align}
+Following the reasoning above, \eqref{OOTA!} has an execution where
+$z{=}2$, but it does not have an execution where $z{=}1$.   Neither does
+\ref{OOTA4}.  In this case, it not sound to assume that  $1$ is
+written on both sides of the conditional, invalidating the first optimization
+given for \eqref{OOTA?} above.
+% Note that the only
+% difference between \eqref{OOTA?} and \eqref{OOTA!} is the code in the branch
+% that was not taken.  
+  
 
+% Many models of relaxed
+% memory include some form of speculative execution in order to allow $1$ in
+% \eqref{OOTA?}, but not \eqref{OOTA!} and \ref{OOTA3}.
+% Any model of relaxed memory that supports common compiler optimizations
+% (such as the transformations above) must take into account code that was
+% not executed. This is why many models of relaxed memory include some form
+% of speculative execution.
+
+% Any model of relaxed memory that supports common compiler optimizations, as
+% above, must take into account code that was not executed.  This is why many
+% models of relaxed memory include some form of speculative execution, with the
+% goal of allowing $1$ in \eqref{OOTA?}, but not \eqref{OOTA!} and
+% \ref{OOTA3}.
+% Many models of relaxed memory include some form of speculative execution in
+% order to allow $1$ in \eqref{OOTA?}, but not \eqref{OOTA!} and
+% \ref{OOTA3}.
 
 
 \citeauthor{DBLP:conf/java/Pugh99} [\citeyear{DBLP:conf/java/Pugh99},
 \textsection2.3] initiated the modern study of relaxed memory by noting that
 Java 1.1 failed to validate Common Subexpression Elimination (CSE) in the
-presence of aliasing. For example, given that $\aReg_2\neq\bReg$, is it valid
+presence of aliasing. For example, given that $\aReg_2{\neq}\bReg$, is it valid
 to transform the program on the left to that on the right?
 \begin{align*}
   %\tag{\ref{CSE}}
@@ -137,10 +173,10 @@ revealed a surprising limitation. Consider the following program
 all memory locations are initialized to $0$:
 %\vspace{-.5ex}
 \begin{gather}
-  \taglabel{OOTA1}
+  \tag{\textsc{oota4}}\label{OOTA1}
   y\GETS x
   \PAR
-  \aReg\GETS y \SEMI \IF{b} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
+  \aReg\GETS y \SEMI \IF{b} \THEN \aReg \GETS \NEW \classD \SEMI x \GETS \aReg \SEMI z\GETS \aReg \ELSE \bReg \GETS \NEW \classC \SEMI x \GETS \aReg \FI  
   \PAR %\\[-1ex] \PAR&
   b \GETS 1
 \end{gather}
@@ -149,42 +185,58 @@ $\classD$. However, it has a legal execution where they reference a $\classC$
 object.''  The JMM allows $(\aReg\GETS y)$ to see the object created by
 $\NEW$, by bouncing it through $(x \GETS \aReg)$ and $(y\GETS x)$.  This
 allows the address of the allocated object to be read $(\aReg\GETS y)$ before
-its type is determined $(\IF{b})$.  See \ref{OOTA4} in
-\textsection\ref{sec:logic} for a simple variant of \eqref{OOTA?} with this
-behavior.
+its type is determined $(\IF{b})$.
 
-By allowing such \emph{bait-and-switch} behaviors, the JMM fails to support
-compositional reasoning for temporal safety properties:  the individual
-threads of \ref{OOTA1} satisfy the invariant
-% \emph{allocation at type $\classD$ is preceded by reading zero for $b$}.
-% They also satisfy:
-\emph{allocation at type $\classC$ is preceded by reading $0$ for
-  $b$}, but the composed program does not.  This lack of compositionality
-forced \citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by
-type in order to prove type safety.  This formal device means that memory
-cannot be used at different types over time, making practical memory
-reclamation impossible.  Even with this solution for type safety, there are
+% See \ref{OOTA4} in
+% \textsection\ref{sec:logic} for a simple variant of \eqref{OOTA?} with this
+% behavior.
+
+% By allowing such \emph{bait-and-switch} behaviors, the JMM fails to support
+% compositional reasoning for temporal safety properties:  the individual
+% threads of \ref{OOTA1} satisfy the invariant
+% % \emph{allocation at type $\classD$ is preceded by reading zero for $b$}.
+% % They also satisfy:
+% \emph{allocation at type $\classC$ is preceded by reading $0$ for
+%   $b$}, but the composed program does not.  This lack of compositionality
+
+This type of {bait-and-switch} behavior forced
+\citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by type in
+order to prove type safety.  This formal device means that memory cannot be
+used at different types over time, making practical memory reclamation
+impossible.  Even partitioning memory to achieve type safety, there are
 implications for the Java security architecture
 \cite[\textsection5.4]{DBLP:journals/toplas/Lochbihler13}.
+
+In both \ref{OOTA4} and \ref{OOTA1}, the \oota{} outcome occurs by
+\emph{baiting} with the \texttt{else} branch, then \emph{switching} to the
+\texttt{then} branch.  As confirmed by \cite{kang,soham}, the promising
+semantics \cite{DBLP:conf/popl/KangHLVD17} and related models
+\citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19} all
+allow \oota{} behaviors of \ref{OOTA4}\footnote{Call the threads \texttt{s},
+  \texttt{t}, and \texttt{u}.  To get the result in the promising semantics,
+  first execute \texttt{u} to get message \texttt{<b:1@1>}.  Then \texttt{t}
+  promises \texttt{<x:1@1>}, which it can fulfill by reading \texttt{b==0}.
+  Then execute \texttt{s} to get message \texttt{<y:1@1>}.  Then execute
+  \texttt{t}, reading \texttt{b==1} and \texttt{y==1} and fulfill the promise
+  by writing \texttt{<x:1@1>}.}.  Due to the similarity of \ref{OOTA4} and
+\ref{OOTA1}, it is reasonable to conclude that these models \emph{cannot
+  support both type safety and realistic memory reclamation}.
 
 % The JMM is defined using an operational model that incorporates the idea of
 % restarting executions.  Similar models have used speculation
 % \cite{DBLP:conf/esop/JagadeesanPR10} or promises
 % \cite{DBLP:conf/popl/KangHLVD17}.
 
-% Whereas the JMM was designed with these two aims,
-As confirmed by \cite{kang,soham}, the promising semantics
-\cite{DBLP:conf/popl/KangHLVD17} and related models
-\citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19} all
-allow \ref{OOTA4}, invalidating compositional reasoning for temporal safety
-properties.
-% , as in
-% \ref{OOTA1}.  % (Specifically, they
-% allow the variant \ref{OOTA4} given in \textsection\ref{sec:logic}.)
-% See
-% \textsection\ref{sec:promising} for confirmation from the authors themselves.
-This means that these models \emph{cannot support both type safety and
-  realistic memory reclamation}.
+% % Whereas the JMM was designed with these two aims,
+% , invalidating compositional reasoning for temporal safety
+% properties.
+% % , as in
+% % \ref{OOTA1}.  % (Specifically, they
+% % allow the variant \ref{OOTA4} given in \textsection\ref{sec:logic}.)
+% % See
+% % \textsection\ref{sec:promising} for confirmation from the authors themselves.
+% This means that these models \emph{cannot support both type safety and
+%   realistic memory reclamation}.
 
 
 % Due to the shortcomings of the JMM, many subsequent models preferred an
@@ -194,10 +246,9 @@ to validate CSE, at least not for relaxed atomic access (consider the case
 where $x$ and $y$ are aliased above).  C11 \emph{does} allow the
 transformation for \emph{plain} access, but this comes with the threat of
 \emph{undefined behavior} should any plain access ever possibly engage in a
-data race \cite{undefined}.  C11 also allows values that arise ``Out Of Thin
-Air'' (\oota) \cite{DBLP:conf/esop/BattyMNPS15}, exploiting causality cycles.
-Undefined and \oota{} behaviors are antithetical to the goals of safe
-languages.
+data race \cite{undefined}.  C11 also allows \oota{} behaviors, exploiting
+causality cycles.  Undefined/\oota{} behavior is antithetical to the goals of
+safe languages.
 % Thus the folklore belief that ``every substantial C program has
 % undefined behavior.''
 
@@ -257,16 +308,16 @@ of \emph{preserved} program order ($\rppo$) in hardware models.  $\rppo$
 captures the \emph{essential dependencies} between events in the same thread.
 Consider the following program fragments: \begingroup \allowdisplaybreaks
 \begin{align*}
-  & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
-  \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
-  \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
-  %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
+  & \aCmd^1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
+  \\[-1ex] & \aCmd^2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
+  \\[-1ex] & \aCmd^3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
+  %\\[-1ex] &\aCmd^4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
 \endgroup
-All these fragments satisfy $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
+All these fragments satisfy $\hoare{\TRUE}{\aCmd^i}{\bLoc =1}$; thus, in each
 case, the write of $y$ is independent of any code that precedes it in program
-order. While $\aCmd_1$ reflects syntactic independence, $\aCmd_2$ reflects
-the independence derived by case analysis, and $\aCmd_3$ reflects the
+order. While $\aCmd^1$ reflects syntactic independence, $\aCmd^2$ reflects
+the independence derived by case analysis, and $\aCmd^3$ reflects the
 independence deduced from partial evaluation (in the restricted form of
 constant propagation).
 
@@ -281,7 +332,7 @@ many models.  As another example, models such as \armeight{} distinguish
 \emph{internal} reads, which are fulfilled by a write of the same thread,
 from \emph{external} ones.  Unlike externally fulfilled reads, internal reads
 are not necessarily recorded in the dependency relation.  As exemplified by
-$\aCmd_3$, this allows a compiler to reorder the fulfilling write with
+$\aCmd^3$, this allows a compiler to reorder the fulfilling write with
 subsequent code that depends on the read.  Neither value range analysis nor
 internal reads require special treatment in our model.
 
@@ -312,31 +363,6 @@ internal reads require special treatment in our model.
 % \[ \bLoc \GETS 42 \SEMI \aReg_3 \GETS \aLoc \SEMI \IF{\aReg_3 \neq 42} \THEN \aLoc \GETS 42  \FI \SEMI \aReg_1 \GETS \aLoc \SEMI \]
 % from which the required execution follows.
 
-The executions of a program are computed compositionally, by induction on the
-structure of the program.  Thus, our model falls into the style of relaxed
-memory models advocated by~\citet{Batty17}.  Combined with a single global
-order on events, compositionality helps explain how our model disallows
-\oota{} execution.  After all, compositionality states that parallel
-composition does not create unexpected
-behaviors.  % The fact that the dependency relation is a partial order forbids
-% \oota\ behaviors.  
-The simplest \oota{} litmus test is the following variant of \eqref{OOTA?}
-and \ref{OOTA1}---without $z$ or
-the conditional.  Again all memory locations are initialized to $0$:
-% asks whether either of the following threads
-% can see non-zero values:
-\begin{gather*}
-  \tag{\ref{OOTA3}}
-  %x\GETS0\SEMI y\GETS0\SEMI
-  %(\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
-  \bLoc \GETS \aLoc \PAR r\GETS y\SEMI x\GETS r  
-\end{gather*}
-We rule out non-zero reads as follows: The write of $\bLoc$ on the left hand
-side is dependent on the read to $\aLoc$.  Similarly, the write of $\aLoc$ on
-the right is dependent on the read to $\bLoc$.  Since a non-zero read can
-only be satisfied externally, both reads are part of the dependency order,
-leading to a cycle.  Such a cycle contradicts the assumption that dependency
-forms a partial order.  We discuss \ref{OOTA1} in \textsection\ref{sec:logic}.
 
 
 
@@ -394,7 +420,7 @@ In \textsection\ref{sec:model} and \textsection\ref{sec:refine}, we define the m
 \item captures all C11 concurrency features  %, including relaxed, release-acquire and SC atomics, fences, and RMW
   (\textsection\ref{sec:variants}),
 
-\item allows compositional reasoning for safety, disallowing \oota{} behavior %properties
+\item allows compositional reasoning for temporal safety, disallowing \oota{} behavior %properties
   (\textsection\ref{sec:logic}),
 
 \item is implementable on \armeight/\tso\ {\em without} extra synchronization for
@@ -405,6 +431,74 @@ In \textsection\ref{sec:model} and \textsection\ref{sec:refine}, we define the m
 
 \end{itemize}
 We conclude by discussing relating work (\textsection\ref{sec:related}) and limitations (\textsection\ref{sec:limits}).
+
+
+\citet{Batty17} observed that ``the current crop of relaxed memory models can
+only be used to calculate the behavior of a whole program\ldots'' and argued
+that instead, we should ``consider a program as an aggregate of components
+over different models, composed together.''  Our work is inspired by this
+call for \emph{compositionality} in models of relaxed concurrency.
+
+Our model is compositional in the normal sense of a denotational semantics:
+for example, the denotation $\sem{C^1\!{\PAR}\! C^2}$ is computed from
+$\sem{C^1}$ and $\sem{C^2}$.  The model obeys laws such as scope
+extrusion---$\sem{\aCmd\!{\PAR}\! \VAR\aLoc\SEMI\bCmd} =
+\sem{\VAR\aLoc\SEMI(\aCmd\!{\PAR}\!\bCmd)}$ when $\aLoc\not\in\free(\aCmd)$---and
+case analysis---$\sem{\aCmd} = \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI}$.
+This kind of algebraic reasoning is not supported by current models.
+
+Our model also supports compositional reasoning about \emph{data races}
+(\textsection\ref{sec:sc}), isolating races in space and time.  Spatial
+separation ensures that a race on one location does not invalidate \drfsc{}
+at other locations.  Temporal separation ensures that \drfsc{} can be applied
+within a properly synchronized region, unaffected by races that precede or
+follow.
+
+Finally, our model supports compositional reasoning about \emph{temporal
+  safety properties} (\textsection\ref{sec:logic}).  Consider that each
+thread of \ref{OOTA4} satisfies the following invariant: A write of $1$ to
+$y$ must be preceded by a read of $1$ from $x$, and if $1$ is written to $z$
+then a write of $1$ to $x$ must be preceded by a read of $1$ from $y$.
+Compositionality allows us to conclude that the threads together satisfy this
+property.  This reasoning fails in
+\cite{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19},
+demonstrating a lack of compositionality.
+
+
+
+
+
+
+% The executions of a program are computed compositionally, by induction on the
+% structure of the program.  Thus, our model falls into the style of relaxed
+% memory models advocated by~\citet{Batty17}.  Combined with a single global
+% order on events, compositionality helps explain how our model disallows
+% \oota{} execution.  After all, compositionality states that parallel
+% composition does not create unexpected
+% behaviors.  % The fact that the dependency relation is a partial order forbids
+% % \oota\ behaviors.  
+% % The simplest \oota{} litmus test is the following variant of \eqref{OOTA?}
+% % and \ref{OOTA1}---without $z$ or
+% % the conditional.  Again all memory locations are initialized to $0$:
+% % % asks whether either of the following threads
+% % % can see non-zero values:
+% % \begin{gather*}
+% %   \tag{\ref{OOTA3}}
+% %   %x\GETS0\SEMI y\GETS0\SEMI
+% %   %(\bLoc \GETS \aLoc \PAR \aLoc \GETS \bLoc)
+% %   \bLoc \GETS \aLoc \PAR r\GETS y\SEMI x\GETS r  
+% % \end{gather*}
+% We rule out $z=1$ in \ref{OOTA3}--\ref{OOTA4} as follows: The write of
+% $\bLoc$ on the left hand side is dependent on the read to $\aLoc$.  If the
+% program writes $z$, then the write of $\aLoc$ on the right is dependent on
+% the read to $\bLoc$.  Since a non-zero read can only be satisfied externally,
+% both reads are part of the dependency order, leading to a cycle.  Such a
+% cycle contradicts the assumption that dependency forms a partial order.  We
+% formalize this argument in \textsection\ref{sec:logic}.
+
+
+
+
 % In the main paper, we present the model, examples, the results concerning
 % compositional reasoning  and optimization, and a discussion of
 % related work.  

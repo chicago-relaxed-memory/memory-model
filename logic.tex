@@ -7,8 +7,8 @@ behaviors---called \emph{out of thin air} (\oota) in the literature
 \cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example
 is \ref{OOTA3} from \textsection\ref{sec:intro}.  Here we inline
 initialization in order to fit the format of our proof rules:
-\begin{align*}
-  \label{OOTA3}\tag{\textsc{oota2}}
+\begin{align}
+  \label{OOTA3} \tag{\textsc{oota1}}
   y\GETS0\SEMI 
   y\GETS x
   \!\PAR\!
@@ -30,7 +30,7 @@ initialization in order to fit the format of our proof rules:
   \wk[out=-15,in=-165]{y0}{wy}
   \wk[out=-15,in=-165]{x0}{wx}
     \end{tikzinline}}}
-\end{align*}
+\end{align}
 Although Java does not allow \oota{} behaviors of \ref{OOTA3},
 \citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
 behaviors of \ref{OOTA1}, from \textsection\ref{sec:intro}.  In
@@ -327,16 +327,27 @@ would violate \drfsc{}.
 
 \begin{example}
   \label{ex:lochb}
-  \noparagraph{Lochbihler's Example} The essential temporal property of
-  \ref{OOTA1} is: \emph{allocation at type $\classC$ is preceded by reading $0$ for
-  $b$}.  Because our language lacks object creation, we cannot consider
-  \ref{OOTA1} directly.  Instead we study \ref{OOTA4}, which has the same
-  temporal structure: \emph{writing $1$ for $x$ is preceded by reading $0$ for
-  $b$}.  We show an attempted execution that violates
-  this invariant,  eliding initialization:
+  \noparagraph{Lochbihler's Example} %The essential temporal property of
+  % \ref{OOTA1} is: \emph{A write of $1$ to $y$ must be preceded by a read of
+  %   $1$ from $x$, and if $1$ is written to $z$ then a write of $1$ to $x$
+  %   must be preceded by a read of $1$ from $y$.}
+  % \emph{allocation at type $\classC$ is preceded by reading $0$ for
+  % $b$}.  
+  Because our language lacks object creation, we cannot consider
+  \citeauthor{DBLP:journals/toplas/Lochbihler13}'s example (\ref{OOTA1}) directly.  Instead we study \ref{OOTA4}, which has the same
+  temporal structure.
+  The essential temporal property of
+  \ref{OOTA4} is: \emph{A write of $1$ to $y$ must be preceded by a read of
+    $1$ from $x$, and if $1$ is written to $z$ then a write of $1$ to $x$
+    must be preceded by a read of $1$ from $y$.}
+  % : \emph{writing $1$ for $x$ is preceded by reading $0$ for
+  % $b$}.  
+  We show an attempted execution that violates this invariant, eliding
+  initialization:
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
-\begin{gather*}
-  \tag{\textsc{oota4}}\label{OOTA4}
+\begin{gather}
+  %\tag{\textsc{oota4}}
+  \label{OOTA4}\tag{\textsc{oota3}}
   %   Z=1;
   % ||
   %   a=X; // 1
@@ -397,22 +408,22 @@ would violate \drfsc{}.
       \event{wb1}{\DW{b}{1}}{right=3em of rb}
       \po{ry}{wx}
       \rf{wb1}{rb}
-      \rf[out=15,in=165]{wy}{ry}
+      \rf{wy}{ry}
       \rf[out=-170,in=-10]{wx}{rx}
       \po{rb}{wz}
       \po[out=15,in=165]{ry}{wz}
 \end{tikzinline}}
   \end{gathered}  
-\end{gather*}
-Like \eqref{unexpected}, and \emph{unlike} \eqref{OOTA?}, there is a
-dependency from $(\DR{y}{1})$ to $(\DW{x}{1})$.
-  %We include location $z$ to indicate the branch taken.
-Thus, the outcome is disallowed.  This outcome is also disallowed by our
-event structures model \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19},
-although the logic given in that paper is insufficient to establish this
-fact.  The outcome is \emph{allowed} by
-\citep{DBLP:conf/esop/JagadeesanPR10}, \citep{DBLP:conf/popl/KangHLVD17}, and
-\citep{DBLP:journals/pacmpl/ChakrabortyV19}.
+\end{gather}
+As we discussed in \textsection\ref{sec:pop} there is a dependency from
+$(\DR{y}{1})$ to $(\DW{x}{1})$; thus, the outcome is disallowed.  This
+outcome is also disallowed by our event structures model
+\citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19}, although the logic
+given in that paper is insufficient to establish this fact.  The outcome is
+\emph{allowed} by \citep{DBLP:conf/esop/JagadeesanPR10},
+\citep{DBLP:conf/popl/KangHLVD17}, and
+\citep{DBLP:journals/pacmpl/ChakrabortyV19}, demonstrating a lack of
+compositionality in these models.
 % \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}
@@ -606,10 +617,9 @@ $x\GETS y \PAR \hole{}$, these programs have different behaviors.  Yet the
 branch change that?  Because of the conditional, the write to $x$ in
 \ref{RFUB} is independent of the read from $y$.  It useful to considering the
 Hoare logic formulas satisfied by the two threads above: we have
-$\hoare{\TRUE}{\text{\rfub}}{x=1}$, but not
-$\hoare{\TRUE}{\text{\oota}}{x=1}$.  The change in the thread from
-\ref{OOTA3} to \ref{RFUB} is not a valid refinement under Hoare logic; as a
-result, it is expected that \ref{RFUB} may have additional behaviors.
+$\hoare{\TRUE}{}{x=1}$ for the right thread of \eqref{RFUB}, but not for
+\ref{OOTA3}.  The change in the thread from
+\ref{OOTA3} to \ref{RFUB} is not a valid refinement under Hoare logic; thus, it is expected that \ref{RFUB} may have additional behaviors.
 
 Understanding \oota{} behavior is notoriously difficult, even for the
 greatest minds in the field!  % We believe that \emph{logic} is the only tool

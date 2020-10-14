@@ -1,133 +1,112 @@
-%\section{Refinements}
-\section{Case Analysis, Access Elimination, and Read Introduction}
+\section{Case Analysis, Access Elimination and Read Introduction}
 \label{sec:refine}
 
 The previous section shows the simplicity and beauty of pomsets with
-preconditions as a model of relaxed memory.  In this section we look at some of the
-complications and ugliness.
+preconditions as a model of relaxed memory.  In this section we look at some
+of the complications and ugliness.  
 
-We limit attention to relaxed access---Candidate \ref{cand:ord} provides our
-final definition of prefixing for $\modeRA$/$\modeSC$ access.  In particular,
-we do not attempt to validate rewrites that eliminate $\modeRA$/$\modeSC$
-accesses, beyond those already given.  
+We consider the following optimizations on relaxed access: case analysis
+\eqref{CA}, dead store elimination \eqref{DS}, store forwarding \eqref{SF},
+read elimination \eqref{RE}, and irrelevant read introduction \eqref{RI}.  We
+do not attempt to validate rewrites that eliminate $\modeRA$/$\modeSC$
+accesses, beyond those already given.
+% The following definition validates \ref{CA}, \ref{DS}, \ref{SF} and
+% \ref{RE}. 
+% We limit attention to relaxed access---Candidate \ref{cand:ord} provides our
+% final definition of prefixing for $\modeRA$/$\modeSC$ access.  In particular,
+% we do not attempt to validate rewrites that eliminate $\modeRA$/$\modeSC$
+% accesses, beyond those already given.  
 
-For relaxed access, the following definition enriches Candidate
-\ref{cand:ord} with additional pomsets.  As we discuss below, this definition
-validates read elimination \eqref{RE}, store forwarding \eqref{SF}, dead
-store elimination \eqref{DS}, and case analysis \eqref{CA}.  We end this
-section with a brief discussion of a read-enriched semantics that validates
-irrelevant read introduction \eqref{RI}.
+% For relaxed access, the following definition enriches Candidate
+% \ref{cand:ord} with additional pomsets.  
+% The following definition validates read elimination \eqref{RE}, store
+% forwarding \eqref{SF}, dead store elimination \eqref{DS}, and case analysis
+% \eqref{CA}.  We end this section with a brief discussion of a read-enriched
+% semantics that validates irrelevant read introduction \eqref{RI}.
 
-In this section, we elide
-$\modeRLX$-mode annotations in definitions.
+% In this section, we elide
+% $\modeRLX$-mode annotations in definitions.
 \begin{definition}
   \label{def:cover}
-  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ %$\aPSS'$
-  where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
-  \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
+  Extend the definition of prefixing (Candidate \ref{def:prefix}) to require:
+  % Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ 
+  % where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
+  % \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
   \begin{itemize}
   \item[{\labeltextsc[P6]{(P6)}{6}}]
     if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
     is location independent.
   \end{itemize}  
 
-  Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$,
-  ${\le'} = {\le}$, $\labelingAct' = \labelingAct$, and either
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
-  $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
-    such that $\bEv\le\aEv$} and
-  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
-  %
-  % % $\labelingForm'(\aEv)$ implies $\TRUE$ if  and
-  % % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  % Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  % when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$,
+  % ${\le'} = {\le}$, $\labelingAct' = \labelingAct$, and either
+  % $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
+  % $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
+  %   such that $\bEv\le\aEv$} and
+  % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
 
-  Let $(\Rdis{\aLoc}{}\aPSS) = \textstyle\bigcup_\aVal \Rdis{\aLoc}{\aVal}\aPSS$.
-  % Let $(\Rdis{\aLoc}{}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  % Let $(\Rdis{\aLoc}{}\aPSS) = \textstyle\bigcup_\aVal \Rdis{\aLoc}{\aVal}\aPSS$.
+
+  % Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
   % when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  % $\labelingAct' = \labelingAct$,
+  % $\labelingAct' = \labelingAct$, 
   % and either
   % $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
-  % $\le$-minimal and
-  % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$).
-  % %
-  % % $\labelingForm'(\aEv)$ implies $\TRUE$ if
-  % % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$ (for some $\aVal$) and
-  % % there is no  $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
-
-  Let $(\Wdis{\aLoc}{\aExp}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$, ${\le'} = {\le}$,
-  $\labelingAct' = \labelingAct$, 
-  and either
-  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
-  $\le$-minimal,
-  $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$, and
-  $\labelingForm'(\aEv)$ implies $(\aExp=\aVal\lor\labelingForm(\aEv))$
-  % $\labelingForm'(\aEv)$ implies $\aExp=\aVal\lor\labelingForm(\aEv)$ if $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$ and
-  % there is no $\bEv$  such that $\bEv<\aEv$, and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ otherwise.
+  % $\le$-minimal,
+  % $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$, and
+  % $\labelingForm'(\aEv)$ implies $(\aExp=\aVal\lor\labelingForm(\aEv))$
   
   Let $(\relfilt[]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
   $\aPS'\in\aPSS'$ when for every release $\aEv'\in\Event'$, there is some
   $\bEv'\in\Event'$ such that $\bEv' \le\aEv'$ and $\bEv'$ \externally writes
   $\aLoc$.
-  % 
-  % Let $(\relfilt[\modeRLXquiet]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
-  % $\aPS'\in\aPSS'$
-  % when %$\Event$ contains a write to $\aLoc$ and
-  % %there is some $\cEv'\in\Event'$ that writes $\aLoc$ and
-  % for every release $\aEv'\in\Event'$, %that does not write $\aLoc$,
-  % there is some $\bEv'\in\Event'$ 
-  % such that $\bEv' \le\aEv'$ and $\bEv'$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLXquiet$, let
-  %
-  % Let $(\relfilt[\modeRA]{\aLoc} \aPSS)=(\relfilt[\modeSC]{\aLoc} \aPSS)=\emptyset$.
-  %
-  %Let $(\relfilt[\amode]{\aLoc} \aPSS)=\emptyset$ when $\amode\neq\modeRLXquiet$.
-  % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}
-    \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
-    \;\mathhl{\Rdis{\aLoc}{}\sem{\aCmd}[\aLoc/\aReg]}\;
+    \sem{\aReg\GETS\aLoc^\modeRLX\SEMI \aCmd} &\eqdef\;\mathhl{
+      % \Rdis{\aLoc}{}
+      \sem{\aCmd}[\aLoc/\aReg]}\;
     \cup
     \textstyle\bigcup_\aVal\;
-    (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
-    % \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & =
-    % \textstyle\bigcup_\aVal\; (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
-    % \\[-.5ex] &
-    % \;\mathhl{\cup\;
-    %   \sem{\aCmd}[\aLoc/\aReg] %  \text{ if } \amode=\modeRLXquiet
-    % }
+    (\DR[\modeRLX]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,
+    \sem{\aCmd} [\aLoc/\aReg]
     \\
-    \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
-    \;\mathhl{\Wdis{\aLoc}{\aExp}\bigl(\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]\bigr)}\;
+    \sem{\aLoc^\modeRLX\GETS\aExp\SEMI \aCmd} & \eqdef
+    \;\mathhl{%\Wdis{\aLoc}{\aExp}\bigl(
+      \relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
+      % \bigr)
+    }\;
     \cup
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLX]\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+    \\
+    \begin{aligned}
+      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd}
+      \\
+      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd}
+    \end{aligned}
+    &
+    \begin{aligned}
+      &\eqdef \textstyle\bigcup_\aVal\;
+      (\DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
+      &&\textif \amode\neq\modeRLX
+      \\
+      &\eqdef
+      \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
+      \prefix \sem{\aCmd}[\aExp/\aLoc]
+      &&\textif \amode\neq\modeRLX      
+    \end{aligned}
   \end{align*}
-  % \begin{align*}
-  %   \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
-  %   \;\mathhl{\sem{\aCmd}[\aLoc/\aReg]}\;
-  %   \cup
-  %   \textstyle\bigcup_\aVal\;
-  %   % \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & =
-  %   % \textstyle\bigcup_\aVal\; (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
-  %   % \\[-.5ex] &
-  %   % \;\mathhl{\cup\;
-  %   %   \sem{\aCmd}[\aLoc/\aReg] %  \text{ if } \amode=\modeRLXquiet
-  %   % }
-  %   \\
-  %   \sem{\aLoc^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
-  %   \;\mathhl{\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]}\;
-  %   \cup
-  %   \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Wdis{\aLoc}{\aExp}}\;\,\sem{\aCmd}[\aExp/\aLoc]
-  % \end{align*}
 \end{definition}
-There are six changes in the definition: To validate read elimination, we
-include $\sem{\aCmd}[\aLoc/\aReg]$.  To ensure that this does not allow stale
-reads, we add requirement \ref{6} to the definition of prefixing.  To validate case
-analysis on reads actions, we apply $\Rdis{\aLoc}{\aVal}$ to
-$\sem{\aCmd} [\aLoc/\aReg]$ before prefixing.  To validate case analysis with
-eliminated reads, we apply $\Rdis{\aLoc}{}$ to $\sem{\aCmd} [\aLoc/\aReg]$.
-To validate write elimination, we include
-$\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$. To validate case analysis with
-eliminated writes, we apply $\Wdis{\aLoc}{\aVal}$.
+There are four changes in the definition: To validate case analysis, we apply
+$\Rdis{\aLoc}{\aVal}$ before prefixing a read.  To validate read elimination,
+we include $\sem{\aCmd}[\aLoc/\aReg]$.  To ensure that read elimination does
+not allow stale reads, we require \ref{6}.  To validate write elimination, we
+include $\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$.
+
+We close this section with a read-enriched semantics that validates
+irrelevant read introduction.
+% To validate case analysis with eliminated reads, we apply $\Rdis{\aLoc}{}$ to $\sem{\aCmd} [\aLoc/\aReg]$.
+% To validate case analysis with
+% eliminated writes, we apply $\Wdis{\aLoc}{\aVal}$.
 
 \myparagraph{Read Elimination and Store Forwarding}
 
@@ -413,81 +392,77 @@ Disjunction closure is sufficient to establish case analysis
   \sem{\aCmd} &\supseteq
   \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} 
 \end{align*}
-As we discuss below, Candidate \ref{cand:ord} is not disjunction closed;
-however, it \emph{becomes} closed if \ref{5b} is strengthened to include
-read-read coherence, thus sacrificing sacrifice \ref{CSE}.  This compromise
-is considered reasonable for C11 atomics, which are meant to be used sparingly.
-It is less attractive for relaxed access in safe languages, like Java.
-
-We start the discussion of case analysis with a version of Candidate
-\ref{cand:ord} that strengthens \ref{5b} to include \emph{read-read
-  coherence}.  We then look at three relaxations in turn: write elimination,
-reads elimination, and finally dropping read-read coherence.  Definition
-\ref{def:cover} performs a bit of disjunctive closure in each case.
-
-Write elimination causes disjunction closure to fail.  For example, consider
-the following executions of $\cmdW$; the second uses write elimination. (To
-make coalescing explicit, we show the element of the carrier set $\Event$ to
-left of the label.)
-\begin{gather*}
-  \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=2em]
-      \eventl{d}{a}{\DW{x}{1}}{}
-      \eventl{e}{b}{r\mid\DW{x}{1}}{right=of a}
-      \wk[out=-15,in=-165]{a}{b}
-    \end{tikzinline}}
-  \qquad\qquad\qquad\qquad
-  \hbox{\begin{tikzinline}[node distance=2em]
-      \eventl{d}{b}{r\mid\DW{x}{1}}{}
-    \end{tikzinline}}
-\end{gather*}
-Using disjunction, $\sem{\IF{s}\THEN \cmdW \ELSE \cmdW \FI}$ includes the
-singleton $d{:}(\DW{x}{1})$, but $\sem{\cmdW}$ does not: In the definition of
-composition, any actions with the same label and downset can coalesce.  Our
-solution is to weaken the preconditions on writes to the same location when
-eliminating a write.  We do this using the function $\Wdis{\aLoc}{\aExp}$,
-which weakens the precondition of any $<$-minimal
-$(\DW[\modeRLXquiet]{\aLoc}{\aVal})$ to $(\aExp=\aVal \lor \aForm)$, where
-$\aForm$ is formula before prefixing.  When eliminating $(\DW{x}{1})$ in
-front of $(r\mid\DW{x}{1})$ in the example above, we arrive at the tautology
-$(1=1\lor r)$ for the ``old'' write.
-
-With read-read coherence, reads and read elimination are completely symmetric.
-
-% With write elimination, a symmetric argument can be applied to pomsets of $\cmdW$:
-%  However, \ref{CA} fails for the semantics with read elimination, even with
-% read-read coherence.  For example, consider the following executions of
-% $\cmdR$; the second uses read elimination:
-% \begin{align*}
+Candidate \ref{cand:ord} is not disjunction closed.
+%
+% We start the discussion of case analysis with a version of Candidate
+% \ref{cand:ord} that strengthens \ref{5b} to include \emph{read-read
+%   coherence}.  We then look at three relaxations in turn: write elimination,
+% reads elimination, and finally dropping read-read coherence.  Definition
+% \ref{def:cover} performs a bit of disjunctive closure in each case.
+%
+% Write elimination causes disjunction closure to fail.  For example, consider
+% the following executions of $\cmdW$; the second uses write elimination. (To
+% make coalescing explicit, we show the element of the carrier set $\Event$ to
+% left of the label.)
+% \begin{gather*}
+%   \cmdW = x\GETS 1 \SEMI \IF{r}\THEN x\GETS 1 \FI
+%   \\
 %   \hbox{\begin{tikzinline}[node distance=2em]
-%       \eventl{d}{a}{\DR{x}{0}}{}
-%       \eventl{e}{b}{r\mid\DR{x}{0}}{right=of a}
+%       \eventl{d}{a}{\DW{x}{1}}{}
+%       \eventl{e}{b}{r\mid\DW{x}{1}}{right=of a}
 %       \wk[out=-15,in=-165]{a}{b}
 %     \end{tikzinline}}
-%   &&
+%   \qquad\qquad\qquad\qquad
 %   \hbox{\begin{tikzinline}[node distance=2em]
-%       \eventl{d}{b}{r\mid\DR{x}{0}}{right=of a}
-%     \end{tikzinline}}
-% \end{align*}
-% Taking the disjunction of their downsets, we expect the semantics of
-% $\IF{s}\THEN \cmdR \ELSE \cmdR \FI$ to include $d{:}(\DR{x}{0})$, but it
-% does not under Candidate \ref{cand:ord} with only read elimination.
-% Using case analysis a second time, we expect $\sem{\cmdR}$ to contain:
-% \begin{gather*}
-%   \hbox{\begin{tikzinline}[node distance=2em]
-%       \eventl{d}{a}{\DR{x}{0}}{}
-%       \eventl{e}{b}{\DR{x}{0}}{right=of a}
+%       \eventl{d}{b}{r\mid\DW{x}{1}}{}
 %     \end{tikzinline}}
 % \end{gather*}
-% Our solution is to weaken preconditions on identical reads when prefixing.
-% We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
-% precondition of any $<$-minimal $\DR[\modeRLXquiet]{\aLoc}{\aVal}$ to
-% $\TRUE$.
+% Using disjunction, $\sem{\IF{s}\THEN \cmdW \ELSE \cmdW \FI}$ includes the
+% singleton $d{:}(\DW{x}{1})$, but $\sem{\cmdW}$ does not: In the definition of
+% composition, any actions with the same label and downset can coalesce.  Our
+% solution is to weaken the preconditions on writes to the same location when
+% eliminating a write.  We do this using the function $\Wdis{\aLoc}{\aExp}$,
+% which weakens the precondition of any $<$-minimal
+% $(\DW[\modeRLXquiet]{\aLoc}{\aVal})$ to $(\aExp=\aVal \lor \aForm)$, where
+% $\aForm$ is formula before prefixing.  When eliminating $(\DW{x}{1})$ in
+% front of $(r\mid\DW{x}{1})$ in the example above, we arrive at the tautology
+% $(1=1\lor r)$ for the ``old'' write.
 %
-
-Relaxing read-read coherence causes disjunction closure to fail.  For
-example, 
+% With read-read coherence, reads and read elimination are completely symmetric.
+%
+% % With write elimination, a symmetric argument can be applied to pomsets of $\cmdW$:
+% %  However, \ref{CA} fails for the semantics with read elimination, even with
+% % read-read coherence.  For example, consider the following executions of
+% % $\cmdR$; the second uses read elimination:
+% % \begin{align*}
+% %   \hbox{\begin{tikzinline}[node distance=2em]
+% %       \eventl{d}{a}{\DR{x}{0}}{}
+% %       \eventl{e}{b}{r\mid\DR{x}{0}}{right=of a}
+% %       \wk[out=-15,in=-165]{a}{b}
+% %     \end{tikzinline}}
+% %   &&
+% %   \hbox{\begin{tikzinline}[node distance=2em]
+% %       \eventl{d}{b}{r\mid\DR{x}{0}}{right=of a}
+% %     \end{tikzinline}}
+% % \end{align*}
+% % Taking the disjunction of their downsets, we expect the semantics of
+% % $\IF{s}\THEN \cmdR \ELSE \cmdR \FI$ to include $d{:}(\DR{x}{0})$, but it
+% % does not under Candidate \ref{cand:ord} with only read elimination.
+% % Using case analysis a second time, we expect $\sem{\cmdR}$ to contain:
+% % \begin{gather*}
+% %   \hbox{\begin{tikzinline}[node distance=2em]
+% %       \eventl{d}{a}{\DR{x}{0}}{}
+% %       \eventl{e}{b}{\DR{x}{0}}{right=of a}
+% %     \end{tikzinline}}
+% % \end{gather*}
+% % Our solution is to weaken preconditions on identical reads when prefixing.
+% % We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
+% % precondition of any $<$-minimal $\DR[\modeRLXquiet]{\aLoc}{\aVal}$ to
+% % $\TRUE$.
+% %
+%
+% Relaxing read-read coherence causes disjunction closure to fail.
+For example, 
 % \begin{align*}
 %   \begin{gathered}
 %     \cmdR = \bExp\GETS x \SEMI \IF{\aExp}\THEN \bExp\GETS x \FI\\
@@ -552,7 +527,7 @@ which is:
   \end{gathered}
 \end{align*}
 But this pomset does not occur in $\sem{\cmdR}$.  
-Our solution is to weaken the preconditions on reads so that both
+Our solution is to weaken the preconditions on reads using $\Rdis{\aLoc}{\aVal}$ so that both
 $\sem{\cmdR}$ and $\sem{\IF{\bExp}\THEN \cmdR \ELSE \cmdR \FI}$ include: 
 \begin{align*}
   \begin{gathered}
@@ -569,6 +544,13 @@ solution would not work for writes---as we discussed at the end of
 \textsection\ref{sec:props}, allowing more writes is simply unsound.
 Fortunately, this problem does not occur when prefixing a write in front of
 another write, due to the order required by \ref{5b}.
+
+If \ref{5b} is strengthened to include read-read coherence, then disjunction
+closure holds without $\Rdis{\aLoc}{\aVal}$.  In this case, however,
+\ref{CSE} fails.  This compromise may be reasonable for C11 atomics, which
+are meant to be used sparingly.  It is less attractive for %relaxed access in
+safe languages, like Java.
+
 
 % The key property required to prove \ref{CA} is \emph{disjunction closure}.
 % The example shows that disjunction closure fails for Candidate

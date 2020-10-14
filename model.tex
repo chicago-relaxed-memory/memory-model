@@ -152,7 +152,7 @@ reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides
 An attempt to replicate this execution with \eqref{OOTA!} fails,
 since it introduces a cycle:
 \begin{gather}
-  \label{OOTA!}
+  \label{OOTA!}\tag{\textsc{oota2}}
   \begin{gathered}
   x\GETS 0 \SEMI y\GETS 0\SEMI (  y\GETS x
   \PAR
@@ -181,10 +181,12 @@ since it introduces a cycle:
 \end{gather}
 In this case, $(\DW{x}{1})$ only happens on one side of the conditional,
 causing a control dependency from $(\DR{y}{1})$ to $(\DW{x}{1})$.
+Similar cycles arise when attempting to write $z{=}1$ in \ref{OOTA3} and \ref{OOTA4}.
+
 %In our model, there is only using one order.  % , which stands in stark contrast with
 % other models that use many different relations.
-In these diagrams, color plays no formal role.  There is only one order.  We
-use color only to help the reader see where the order comes from:
+In the diagrams above, there is only one order---color plays no formal role.
+We use color only to help the reader see where the order comes from:
 \begin{itemize}
 \item $(\DR{y}{1})\xpo(\DW{x}{1})$ is a \emph{local} requirement,
   relating reads to writes that depend on them.
@@ -203,10 +205,11 @@ use color only to help the reader see where the order comes from:
   % concurrency controls introduce fencing)
 \end{itemize}
 
-In addition to actions, each pomset event is labeled with a
-\emph{precondition}.  Whereas read actions represent an obligation that must
-be \emph{fulfilled} concurrently by a matching write (Def.~\ref{def:rf}), preconditions represent an obligation that must be
-\emph{satisfied} sequentially via substitution.
+Each pomset event is labeled with a \emph{precondition}, in addition to the
+actions shown above.  Whereas read actions represent an obligation that must be
+\emph{fulfilled} concurrently by a matching write (Definition \ref{def:rf}),
+preconditions represent an obligation that must be \emph{satisfied}
+sequentially via substitution.
 
 To get a sense of how preconditions are satisfied, let us consider the
 evolution of the precondition of $(\DW{x}{1})$ during the calculation of
@@ -251,13 +254,14 @@ $(0{=}0 \lor 0{=}1 \mid \DW{x}{1})$.  This is a tautology, which we write as
 $(\DW{x}{1})$.   We repeat this calculation in \textsection\ref{sec:pop},
 after giving the formal definitions.
 
-The same calculation fails for the write to $x$ in \eqref{OOTA!}.  In this
-case, the writes to $x$ on either side of the conditional cannot be combined,
-since one side writes $1$ and the other side writes $2$.  Thus, the semantics
-of the conditional contains $(r{=}1 \mid \DW{x}{1})$, rather than
-$(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.  As we shall see, it is only possible to
-weaken this precondition by introducing order from $(\DR{y}{1})$ to
-$(\DW{x}{1})$.
+The same calculation fails for the write to $x$ in \ref{OOTA3}--\ref{OOTA4}.
+In \ref{OOTA!}, for example, the writes to $x$ on either side of the
+conditional cannot be combined, since one side writes $1$ and the other side
+writes $2$.  Thus, the semantics of the conditional contains
+$(r{=}1 \mid \DW{x}{1})$, rather than $(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.
+As we shall see, it is only possible to weaken this precondition by
+introducing order from $(\DR{y}{1})$ to $(\DW{x}{1})$ (requirement \ref{5a}
+of Definition \ref{def:prefix}).
 
 % though missing the features designed to capture
 % speculative execution attacks. We will present the model in this section,
@@ -590,28 +594,6 @@ $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
 % For example, interpreting the pomset on the left this way yields the valid
 % Hoare triple $\hoare{\aReg =1}{y\GETS \aReg}{y=1}$.
 
-Since each pomset represents a single execution, we require that all
-preconditions be \emph{consistent}.  For example, the semantics of
-$\IF{r<0}\THEN y\GETS1 \ELSE z\GETS1\FI$ includes pomsets with either
-$(r<0\mid\DW{y}{1})$ or $(r\geq0\mid\DW{z}{1})$, but not with both, since
-$(r<0\land r\geq0)$ is unsatisfiable.
-
-Preconditions are linked to pomset order via \emph{causal strengthening},
-which requires that formulae do not weaken over time, as measured by $\le$.
-Example \ref{strengthening} (\textsection\ref{sec:variants}) requires causal
-strengthening. % on page \pageref{page:strengthening}.
-% The precondition on $\DW{x}{1}$ is required by the data dependency induced by
-% $\bReg$ (see page \pageref{page:strengthening}).
-% For example, the semantics of $\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$ includes:
-% \begin{displaymath}
-%   \hbox{\begin{tikzinline}[node distance=1em]
-%   \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
-%   \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
-%   \po{a2}{a3}
-%     \end{tikzinline}}
-% \end{displaymath}
-% The precondition on $\DW{x}{1}$ is required by the data dependency induced by
-% $\bReg$ (see page \pageref{page:strengthening}).
 
 \begin{definition}
   \label{def:mmpomset}
@@ -651,6 +633,30 @@ We often elide explicit universal quantifiers in phrases such as ``\emph{for
 $\labelingForm(\aEv)$ implies $\labelingForm(\bEv)$.''  We lift terminology
 and notation from actions and formulae to events.  For example, we may say
 that $\aEv$ is a read when $\labelingAct(\aEv)$ is a read.
+
+Since each pomset represents a single execution, we require that all
+preconditions be \emph{consistent}.  For example, the semantics of
+$\IF{r<0}\THEN y\GETS1 \ELSE z\GETS1\FI$ includes pomsets with either
+$(r<0\mid\DW{y}{1})$ or $(r\geq0\mid\DW{z}{1})$, but not with both, since
+$(r<0\land r\geq0)$ is unsatisfiable.
+
+Preconditions are linked to pomset order via \emph{causal strengthening},
+which requires that formulae do not weaken over time, as measured by $\le$.
+Example \ref{strengthening} (\textsection\ref{sec:variants}) requires causal
+strengthening. % on page \pageref{page:strengthening}.
+% The precondition on $\DW{x}{1}$ is required by the data dependency induced by
+% $\bReg$ (see page \pageref{page:strengthening}).
+% For example, the semantics of $\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg$ includes:
+% \begin{displaymath}
+%   \hbox{\begin{tikzinline}[node distance=1em]
+%   \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
+%   \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
+%   \po{a2}{a3}
+%     \end{tikzinline}}
+% \end{displaymath}
+% The precondition on $\DW{x}{1}$ is required by the data dependency induced by
+% $\bReg$ (see page \pageref{page:strengthening}).
+
 
 A pomset is \emph{completed} if it contains a unique termination action,
 ordered after all other events.  
@@ -817,47 +823,6 @@ calculation (\textsection\ref{sec:variants}).  % In both cases, the use of
 % composition is required to ensure disjunction closure
 % (Definition~\ref{def:dis}).
 
-Because of consistency
-(Def.~\ref{def:mmpomset}), we do not include events with contradictory
-preconditions:
-% : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
-% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
-% To make coalescing more explicit in the following examples, we show the
-% element of the carrier set $\Event$ to left of its label.
-%Consider:
-\begin{align*}
-\begin{gathered}
-  \IF{r<0}\THEN y\GETS1\FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx1}{r<0\mid\DW{y}{1}}{}
-    \end{tikzinline}}
-\end{gathered}
-&&
-\begin{gathered}
-  \IF{r\geq0}\THEN y\GETS1\FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
-    \end{tikzinline}}
-\end{gathered}
-\end{align*}
-The parallel composition of these programs includes pomsets with either one
-of the two events, but not both: including both would violate consistency.
-However, events with the same label may coalesce, taking the disjunction of
-their preconditions.  Thus, the semantics of the combined program also
-includes
-\begin{math}
-  (r<0\lor r\geq0\mid\DW{y}{1})
-  % \IF{r<0}\THEN y\GETS1\FI
-  % \PAR
-  % \IF{r\geq0}\THEN y\GETS1\FI
-  % \\
-  %\hbox{\begin{tikzinline}[node distance=1.5em]
-  %(\eventl{a}{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
-  % \end{tikzinline}}
-\end{math}.
-As discussed in the next subsection, coalesced events inherit order from both sides.
 \begin{definition}
   \label{def:par}
   % Let $\Event'\in\COMPAT(\aPS^1,\,\aPS^2)$ when
@@ -901,6 +866,50 @@ either:
   \sem[\bThrd]{\aCmd} \parallel \sem[\bThrd']{\bCmd} 
 \end{align*}
 \end{definition}
+Consider the following pomsets:
+% Because of consistency
+% (Definition\ref{def:mmpomset}), pomsets do not include contradictory
+% preconditions:
+% : $(\aPS^1\cup\aPS^2) \in (\aPSS^1 \parallel \aPSS^2)$ when
+% $\aPS^1 \in \aPSS^1$ and $\aPS^2 \in \aPSS^2$.
+% To make coalescing more explicit in the following examples, we show the
+% element of the carrier set $\Event$ to left of its label.
+%Consider:
+\begin{align*}
+\begin{gathered}
+  \IF{r<0}\THEN y\GETS1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{wx1}{r<0\mid\DW{y}{1}}{}
+    \end{tikzinline}}
+\end{gathered}
+&&
+\begin{gathered}
+  \IF{r\geq0}\THEN y\GETS1\FI
+  \\
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{wx2}{r\geq0\mid\DW{y}{1}}{right=of wx1}
+    \end{tikzinline}}
+\end{gathered}
+\end{align*}
+The parallel composition of these programs includes pomsets with either one
+of the two events, but not both.  Including both would violate consistency
+(Definition\ref{def:mmpomset}).  However, the definition allows events with
+the same label to \emph{coalesce}, taking the disjunction of their
+preconditions.  Thus, the semantics of the combined program also includes
+\begin{math}
+  (r<0\lor r\geq0\mid\DW{y}{1})
+  % \IF{r<0}\THEN y\GETS1\FI
+  % \PAR
+  % \IF{r\geq0}\THEN y\GETS1\FI
+  % \\
+  %\hbox{\begin{tikzinline}[node distance=1.5em]
+  %(\eventl{a}{wx1}{r<0\lor r\geq0\mid\DW{y}{1}}{}
+  % \end{tikzinline}}
+\end{math}.
+As discussed in the next subsection, coalesced events inherit order from both sides.
+
+
 The definition requires that if $\aPS'\in(\aPS^1 \parallel \aPS^2)$ is completed,
 then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination events
 \emph{must} coalesce in $\aPS'$.
@@ -1090,8 +1099,8 @@ Substitution applies to formulae, not actions.  For example,
 $(x{=}1\mid\DW{x}{2})[0/x]=(0{=}1\mid\DW{x}{2})$. % and $(r{=}1\mid\DW{x}{2})[x/r]=(x{=}1\mid\DW{x}{2})$.
 
 As an example of the conditional, consider the following fragments:
-\begin{align}
-  \label{ex:cond}
+\begin{align*}
+  %\label{ex:cond}
   \begin{gathered}
     \IF{s}\THEN x\GETS 1 \SEMI x\GETS 2\FI
     \\
@@ -1115,7 +1124,7 @@ As an example of the conditional, consider the following fragments:
         \sync{b}{c}
       \end{tikzinline}}
   \end{gathered}
-\end{align}
+\end{align*}
 Putting these together, we can coalesce the $(\DW{x}{1})$ events:
 \begin{gather*}
   \aCmd_{\mathsf{cond}} = \IF{s}\THEN x\GETS 1 \SEMI x\GETS 2 \ELSE x\GETS 1 \SEMI x\GETS 3 \FI
@@ -1151,8 +1160,8 @@ Let us focus on the left pomset above.  It is derived from the composition:
       \end{tikzinline}}    
 \end{gather*}
 The existence of the singleton $(\lnot s \mathbin{\mid}\DW{x}{1})$ is
-guaranteed by downset closure on \eqref{ex:cond}.  Consistency prevents any
-pomset in the above $\sem{\aCmd_{\mathsf{cond}}}$ from containing both
+guaranteed by downset closure on the right pomset above.  Consistency
+prevents any pomset in $\sem{\aCmd_{\mathsf{cond}}}$ from containing both
 $(\DW{x}{2})$ and $(\DW{x}{3})$.
 
 Note that the definitions of consistency, downset, and composition prevent
@@ -1376,20 +1385,20 @@ there is $\aPS\in\aPSS$ such that
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
 \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}%
   if $\bEv$ reads and $\aEv$ writes then either $\aEv=\bEv$ or $\labelingForm'(\aEv)$
-  implies $\labelingForm(\aEv)$ or $\bEv\lt'\aEv$,
+  implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$,
 % \item[5a.]  if $\aEv$ writes then either $\labelingForm'(\aEv)$ implies
-%   $\labelingForm(\aEv)$, or some $\cEv\lt'\aEv$ reads $\aVal$
+%   $\labelingForm(\aEv)$, or some $\cEv\le'\aEv$ reads $\aVal$
 %   from $\aLoc$ and $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
 % \item[5a.] if %$\bEv$ \externally reads and
 %   $\labelingForm'(\aEv)$ does not imply $\labelingForm(\aEv)$ and $\aEv$ writes, then
-%   $\bEv\lt'\aEv$,
+%   $\bEv\le'\aEv$,
 \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
-  if $\bEv$ and $\aEv$ are \external actions in conflict then $\bEv\lt'\aEv$, %$\bEv \gtN' \aEv$,
+  if $\bEv$ and $\aEv$ are \external actions in conflict then $\bEv\le'\aEv$, %$\bEv \gtN' \aEv$,
 \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
-  if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \lt' \aEv$, and
+  if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$, and
 \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
-  if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \lt' \aEv$.
-%\item[5e.] if $\aEv$ is a termination, then $\bEv\lt'\aEv$.
+  if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$.
+%\item[5e.] if $\aEv$ is a termination, then $\bEv\le'\aEv$.
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
 \end{enumerate}
@@ -1558,13 +1567,13 @@ The second conjunct in each event is required by \ref{4c}. \ref{4c} also prevent
 
 \ref{4c} also allows predicates to weaken, in which case \ref{5a} requires order:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \smash[t]{\hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{(y{=}1\lor y{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
       %\event{wx}{y{=}1\lor y{=}0\mid\DW{x}{1}}{}
       \event{wz}{(1{=}1) \land (1{=}1)\mid\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
       \po[out=10,in=170]{ry}{wz}
-    \end{tikzinline}}
+    \end{tikzinline}}}
 \end{gather*}
 Adding the write,
 \begin{math}
@@ -1572,7 +1581,7 @@ Adding the write,
 \end{math}
 substitutes $[0/y]$, resulting in: 
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \smash[t]{\hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{(0{=}1\lor 0{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
       %\event{wx}{0{=}1\lor 0{=}0\mid\DW{x}{1}}{}
       \event{wz}{(1{=}1) \land (1{=}1)\mid\DW{z}{1}}{right=of wx}
@@ -1581,55 +1590,71 @@ substitutes $[0/y]$, resulting in:
       \event{wy}{0{=}0\mid\DW{y}{0}}{left=of ry}
       \po[out=10,in=170]{ry}{wz}
       \wk{wy}{ry}
-    \end{tikzinline}}
+    \end{tikzinline}}}
 \end{gather*}
 Simplifying the tautologies, we have:
 \begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1em]
+  \smash[t]{\hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{\DW{x}{1}}{}
       \event{wz}{\DW{z}{1}}{right=of wx}
       \event{ry}{\DR{y}{1}}{left=of wx}
       \event{wy}{\DW{y}{0}}{left=of ry}
       \po[out=25,in=155]{ry}{wz}
       \wk{wy}{ry}
-    \end{tikzinline}}
+    \end{tikzinline}}}
 \end{gather*}
 
-As discussed at the beginning of this section, an attempt to replicate this execution with \eqref{OOTA!} fails:
-\begin{gather*}
-  \tag{\ref{OOTA!}}
-  \begin{gathered}
-  x\GETS 0 \SEMI y\GETS 0\SEMI (  y\GETS x
-  \PAR
-    r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wy0}{\DW{y}{0}}{}
-  \event{wx0}{\DW{x}{0}}{left=of wy0}
-  \event{rx1}{\DR{x}{1}}{right=3em of wy0}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wa1}{\DW{z}{1}}{right=of wx1}
-  \event{stop}{\DSTOP}{right=of wa1}
-  \rf[out=-165,in=-15]{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \wk[out=12,in=168]{wx0}{wx1}
-  \wk[out=19,in=161]{wy0}{wy1}
-  \po{rx1}{wy1}
-  \po[out=20,in=160]{ry1}{wa1}
-  \sync[out=20,in=160]{wx1}{stop}
-  \sync{wa1}{stop}
-  \po{ry1}{wx1}
-\end{tikzinline}}
-\end{gathered}
-\end{gather*}
-The difference between \eqref{unexpected} and \eqref{OOTA!} can be seen
-in the conditional
+As discussed in the introduction of \textsection\ref{sec:intro},  this
+reasoning fails in \ref{OOTA3}--\ref{OOTA4}.
+
+For \ref{OOTA3}, $\sem{x\GETS r\SEMI z\GETS r}$ contains:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{r{=}1\mid\DW{x}{1}}{}
+      \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
+    \end{tikzinline}}  
+\end{align*}
+It is only possible to satisfy the precondition of $(r{=}1\mid\DW{x}{1})$
+using \ref{4c} when prefixing $(\DR{y}{1})$. This forces a dependency from
+read to write via \ref{5a}.
+
+For \ref{OOTA!}, %which writes $2$ in the \texttt{else} branch, for example, 
+% %with \ref{OOTA!} fails:
+% \begin{gather*}
+%   \tag{\ref{OOTA!}}
+%   \begin{gathered}
+%   x\GETS 0 \SEMI y\GETS 0\SEMI (  y\GETS x
+%   \PAR
+%     r\GETS y\SEMI \IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI)
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%   \event{wy0}{\DW{y}{0}}{}
+%   \event{wx0}{\DW{x}{0}}{left=of wy0}
+%   \event{rx1}{\DR{x}{1}}{right=3em of wy0}
+%   \event{wy1}{\DW{y}{1}}{right=of rx1}
+%   \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+%   \event{wx1}{\DW{x}{1}}{right=of ry1}
+%   \event{wa1}{\DW{z}{1}}{right=of wx1}
+%   \event{stop}{\DSTOP}{right=of wa1}
+%   \rf[out=-165,in=-15]{wx1}{rx1}
+%   \rf{wy1}{ry1}
+%   \wk[out=12,in=168]{wx0}{wx1}
+%   \wk[out=19,in=161]{wy0}{wy1}
+%   \po{rx1}{wy1}
+%   \po[out=20,in=160]{ry1}{wa1}
+%   \sync[out=20,in=160]{wx1}{stop}
+%   \sync{wa1}{stop}
+%   \po{ry1}{wx1}
+% \end{tikzinline}}
+% \end{gathered}
+% \end{gather*}
+%the difference with \eqref{unexpected} %and \eqref{OOTA!}
+%can be seen in
+%the semantics of
 \begin{math}
-  \sem{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI},
+  \sem{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS2 \FI}
 \end{math}
-which contains:
+contains:
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx}{r{=}1\mid\DW{x}{1}}{}
@@ -1641,10 +1666,32 @@ which contains:
       \event{wz}{r{=}2\mid\DW{z}{2}}{right=of wx}
     \end{tikzinline}}  
 \end{align*}
-However, there is no pomset that contains $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
-Using the left pomset above, it is only possible to satisfy the precondition
-of $(r{=}1\mid\DW{x}{1})$ using \ref{4c} when prefixing $(\DR{y}{1})$. This
-forces a dependency between the read and write via \ref{5a}.
+Coalescing is possible when writing $2$, as on the right above, but it is not
+possible when writing $1$, as on the left, since $(\DW{x}{1})$ and
+$(\DW{x}{2})$ are different actions.
+When writing $1$, this is no different than \ref{OOTA3}, and thus \ref{5a}
+forces a dependency from the read of $y$ to the write of $x$.
+% In an execution that reads $b{=}1$, \ref{5a} again forces a dependency
+% from the read of $y$ to the write of $x$.
+%However, there is no pomset that contains $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
+% Using the left pomset above, it is only possible to satisfy the precondition
+% of $(r{=}1\mid\DW{x}{1})$ using \ref{4c} when prefixing $(\DR{y}{1})$. This
+% forces a dependency between the read and write via \ref{5a}.
+
+For \ref{OOTA4}, %the semantics of 
+\begin{math}
+  \sem{\IF{b}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI}
+\end{math}
+contains:
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=1em]
+      \event{wx}{(r{=}1\lor b{=}0)\land (r{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
+      \event{wz}{(r{=}1\lor b{=}0)\land (r{=}1\lor 1{=}0)\mid\DW{z}{1}}{right=of wx}
+      \event{rb}{\DR{b}{1}}{left=of wx}
+    \end{tikzinline}}  
+\end{align*}
+In an execution that reads $b{=}1$, \ref{5a} again forces a dependency
+from the read of $y$ to the write of $x$.
 
 \subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
 \label{sec:fulfillment}
@@ -1685,6 +1732,7 @@ arrows and the order required by \ref{rf4} using dashed red arrows.
 As an example, consider:
 \begin{gather*}
   \taglabel{Co1}
+  \begin{gathered}
   x\GETS 1
   \PAR
   x\GETS2
@@ -1722,6 +1770,7 @@ As an example, consider:
   \wk{wx4}{wx5}
   \rf{wx5}{rx5}
     \end{tikzinline}}
+\end{gathered}
 \end{gather*}
 A write is \emph{relevant} if it is read from.  In order to fulfill all of
 the reads on $x$ in the example, we pick a total order on the relevant
@@ -1766,7 +1815,7 @@ $\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
 \end{definition}
 Together with \ref{rf4}, the definition of $x$-closed disallows the following execution:
 \begin{gather}
-  \label{blocker}
+  \taglabel{blocker}
   \begin{gathered}
   \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
   \PAR
@@ -1794,7 +1843,7 @@ In order to close $x$, we must choose whether $(\DW{x}{2})$ is
 preceding $(\DW{x}{2}\xwk\DW{x}{1})$ or following
 $(\DR{x}{1}\xwk\DW{x}{2})$.  This prevents $(\DW{x}{2})$ from blocking the
 read after parallel composition.  For example, 
-if \eqref{blocker} were placed in the context
+if \ref{blocker} were placed in the context
 \begin{math}
   b\GETS a
   \PAR

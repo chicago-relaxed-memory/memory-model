@@ -1,22 +1,24 @@
-%\usepackage[defblank]{paralist}
+% recommended by ACM
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\clubpenalty = 10000
+\widowpenalty = 10000
+\displaywidowpenalty = 10000
+
 \usepackage{anyfontsize}
-\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsmath}
 \usepackage{hyphenat}
 \usepackage{xparse}
-\usepackage[T1]{fontenc}
-\usepackage{alltt}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{hyperref}
-\usepackage{makecell}
-\usepackage{mathtools}
-\usepackage{stmaryrd}
 \usepackage{verbatim}
-\usepackage{xcolor}
-\newcommand{\mathhl}[1]{\!\!\smash{\colorbox{gray!20!white}{$\displaystyle \mathstrut\smash{#1}$}}\!\!}
-\newcommand{\mathhlscript}[1]{\!\!\smash{\colorbox{gray!20!white}{$\scriptstyle {#1}$}}\!\!}
+%\usepackage{stmaryrd}
+%\usepackage{alltt}
+%\usepackage{makecell}
 %\usepackage{soul}
 %\newcommand{\hlfancy}[2]{\sethlcolor{#1}\hl{#2}}
+% \usepackage[defblank]{paralist}
+% \usepackage[caption=false]{subfig}
 
 
 
@@ -29,6 +31,9 @@
 % \newcommand{\ltloc}{\sqsubset}
 % \newcommand{\geloc}{\sqsupseteq}
 % \newcommand{\gtloc}{\sqsupset}
+
+\newcommand{\mathhl}[1]{\!\!\smash{\colorbox{gray!20!white}{$\displaystyle \mathstrut\smash{#1}$}}\!\!}
+\newcommand{\mathhlscript}[1]{\!\!\smash{\colorbox{gray!20!white}{$\scriptstyle {#1}$}}\!\!}
 
 \newcommand{\classC}{\mathtt{C}}
 \newcommand{\classD}{\mathtt{D}}
@@ -84,15 +89,11 @@
     \labelmarkup{#2}% visible printed text.
   }
 \newcommand{\imm}{\restrict{\mathrm{imm}}}
-\renewcommand{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or
-    *\or
-    **\or
-    \dagger\or
-    \ddagger\or
-    \dagger\dagger\or
-    \ddagger\ddagger\or
-    \P\or
-    \P\P\else\@ctrerr\fi}}
+% \renewcommand{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or
+%     \dagger\dagger\or
+%     **\or
+%     \P\P\or
+%     \P\else\@ctrerr\fi}}
 
 \newcommand{\DSTOP}[1][]{\checkmark_{#1}} 
 \newcommand{\stopPS}{\textsf{SKIP}}

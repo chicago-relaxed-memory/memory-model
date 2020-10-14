@@ -51,13 +51,13 @@ insufficient to simulate $\modeRA$ accesses.
 % is subtly different from the fencing behavior of
 % $\modeRA$/$\modeSC$-accesses in C11. 
 %To ensure the order that invalidates this execution candidate,
-Thus we add the following to Definition \ref{def:prefix}:%  of
+Thus we add the following requirements to Definition \ref{def:prefix}:%  of
 % \emph{prefixing}:
 \begin{enumerate}
 \item[{\labeltextsc[P5e]{(P5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
-  $\bEv \lt' \aEv$, and
+  $\bEv \le' \aEv$, and
 \item[{\labeltextsc[P5f]{(P5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
-  $\bEv \lt' \aEv$.
+  $\bEv \le' \aEv$.
 \end{enumerate}
 Consider the following variant of \ref{Pub1}:
 \begin{gather*}
@@ -583,7 +583,7 @@ anomalous behaviors that arise \emph{out of thin air} (\oota).  Consider the fol
 initially $x=0$, $y=0$, $\REF{0}=0$, $\REF{1}=2$, and $\REF{2}=1$.  It should
 only be possible to read $0$, disallowing the attempted execution below:
 \begin{gather*}
-  \label{strengthening}\tag{\textsc{oota3}}
+  \label{strengthening}\tag{\textsc{addr1}}
   \begin{gathered}
   \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
   \PAR
