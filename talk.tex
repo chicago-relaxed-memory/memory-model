@@ -763,7 +763,7 @@
   %     % \pox{wx}{ry}
   %   \end{tikzinline}}
 \end{gathered}
-\\
+\\[5ex]
 \tag{LB}
   \begin{gathered}
   \aReg\GETS y\SEMI x\GETS1
@@ -864,7 +864,7 @@
           \wk{wx0}{wx1}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[5ex]
     \tag{PUB2}
     \begin{gathered}
       x\GETS0\SEMI %y\GETS0\SEMI
@@ -919,7 +919,7 @@
           \wk[in=165,out=15]{b}{d}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[2ex]
     \tag{SC2}
     \begin{gathered}
       x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
@@ -942,7 +942,7 @@
           \wk{e}{f}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[2ex]
     \tag{SC3}
     \begin{gathered}
       x\GETS1
@@ -972,7 +972,7 @@
           \wk[out=-170,in=-10]{c3}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[2ex]
     \tag{SC4}
     \begin{gathered}
       x\GETS1\SEMI   
@@ -1031,7 +1031,7 @@
           \wk{wx0}{rx1}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[3ex]
     \tag{TC9}
     \begin{gathered}
       x\GETS 0 \SEMI
@@ -1056,7 +1056,7 @@
           \wk{wx1}{wx2}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[3ex]
     \tag{TC2}
     \begin{gathered}
       r\GETS x\SEMI
@@ -1115,7 +1115,7 @@
           \sync[out=-18,in=-162]{a6}{a8}
         \end{tikzinline}}
     \end{gathered}
-    \\
+    \\[5ex]
     \tag{IN2}
     \begin{gathered}
       \aReg\GETS x\SEMI
@@ -1154,37 +1154,41 @@
     \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
     \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{ if } \aLoc\neq\bLoc
     \\
-    % \tag{RW}
-    \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
-    \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{ if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
-    \\
     % \tag{RR}
     \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{ if } \aReg\neq\bReg
     \\
+    % \tag{RW}
+    \sem{\aLoc \GETS \aExp  \SEMI \bReg  \GETS \bLoc \SEMI\aCmd} &=
+    \sem{\bReg  \GETS \bLoc \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{ if } \disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+    \\
     % \tag{\textsc{roach1}}\label{AcqW}
-    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
-    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
-    &&\textif x\neq y&&\hbox{}
+    \sem{x^\amode \GETS \aExp \SEMI\bReg \GETS y \SEMI\aCmd} &\supseteq
+    \sem{\bReg \GETS y  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
+    &&\text{ if } \disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
     % \tag{\textsc{roach2}}\label{RelW}
-    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
-    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
-    &&\textif x\neq y&&\hbox{}
+    \sem{x \GETS \aExp \SEMI\bReg \GETS y^\amode \SEMI\aCmd} &\supseteq
+    \sem{\bReg \GETS y^\amode  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    &&\text{ if } \disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
     % \tag{RL}
     \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aLoc^\amode\SEMI\aCmd} &\supseteq 
     \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
     \\
-    % \tag{CSE}
-    \sem{r_1\GETS \aLoc \SEMI
-      s\GETS \bLoc \SEMI  
-      r_2\GETS \aLoc\SEMI\aCmd}
-    &\supseteq
-    \sem{r_1\GETS \aLoc \SEMI     
-      r_2\GETS r_1\SEMI
-      s\GETS \bLoc \SEMI\aCmd}
-    &&\textif \aReg_2\neq\bReg
+    % \tag{RF}
+    \sem{\FENCE^\amode \SEMI \FENCE^\amode\SEMI\aCmd} &\supseteq 
+    \sem{\FENCE^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+    % \\
+    % % \tag{CSE}
+    % \sem{r_1\GETS \aLoc \SEMI
+    %   s\GETS \bLoc \SEMI  
+    %   r_2\GETS \aLoc\SEMI\aCmd}
+    % &\supseteq
+    % \sem{r_1\GETS \aLoc \SEMI     
+    %   r_2\GETS r_1\SEMI
+    %   s\GETS \bLoc \SEMI\aCmd}
+    % &&\textif \aReg_2\neq\bReg
     \\
     % \tag{DC}
     \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=

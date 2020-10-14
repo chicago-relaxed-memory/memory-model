@@ -981,13 +981,13 @@ relaxed access.
   \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
   \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
   \\
-  \taglabel{RW}
-  \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
-  \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
-  \\
   \taglabel{RR}
   \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
   \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
+  \\
+  \taglabel{RW}
+  \sem{\aLoc \GETS \aExp  \SEMI \bReg  \GETS \bLoc \SEMI\aCmd} &=
+  \sem{\bReg  \GETS \bLoc \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
 \end{align*}
 % \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
 % have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
@@ -999,19 +999,20 @@ relaxed access.
 The independent reorderings (\ref{WW}, \ref{RW} and \ref{RR})
 follow from \ref{5}, since no order
 is imposed.  \ref{5} also validates roach-motel reorderings \cite{SevcikThesis}.  For
-example, the rules for relaxed writes are:
+example, the rules for read/write pairs are:
   \begin{align*}
     \tag{\textsc{roach1}}\label{AcqW}
-    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
-    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
-    &&\textif x\neq y&&\hbox{}
+    \sem{x^\amode \GETS \aExp \SEMI\bReg \GETS y \SEMI\aCmd} &\supseteq
+    \sem{\bReg \GETS y  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
+    &&\text{if } \disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
     \tag{\textsc{roach2}}\label{RelW}
-    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
-    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
-    &&\textif x\neq y&&\hbox{}
+    \sem{x \GETS \aExp \SEMI\bReg \GETS y^\amode \SEMI\aCmd} &\supseteq
+    \sem{\bReg \GETS y^\amode  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    &&\text{if } \disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
   \end{align*}
-  Relaxed reads are similar.  Redundant load elimination \eqref{RL} follows
+
+  Redundant load elimination \eqref{RL} follows
   from \ref{1}, taking $\bEv\in\Event$.
 \begin{align*}
   \taglabel{RL}
