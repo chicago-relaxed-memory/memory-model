@@ -247,9 +247,9 @@ In Java, these are distinguished by the context
 \end{math}
 That is not case here, however, due to local \drfsc{}.  Nonetheless,
 completed pomsets from the left include a write to $x$, which is not found on
-the right.  At top-level, however, the read of $x$ must be fulfilled by some
-write---assuming that these writes can coalesce, the optimization can be
-validated.
+the right.  At top-level, however, the read of $x$ must be fulfilled by
+\emph{some} write---assuming that these writes can coalesce, the optimization
+can be validated.
 
 We have not attempted validate all program transformations that involve
 synchronization, fences or \RMWs{}

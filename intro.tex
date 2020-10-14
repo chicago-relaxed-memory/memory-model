@@ -276,7 +276,7 @@ Strong models, including Sequential Consistency
 \citep{DBLP:conf/pldi/LahavVKHD17}, and others
 \citep{Dolan:2018:BDR:3192366.3192421,DBLP:conf/pldi/LahavVKHD17,DBLP:conf/lics/JeffreyR16,Boehm:2014:OGA:2618128.2618134}
 support compositional reasoning.  However, all of these models invalidate
-reordering of independent statements.  Several require fences after relaxed
+reordering of independent statements.  All require fences after relaxed
 reads, even on \armeight.
 % \cite{Dolan:2018:BDR:3192366.3192421,BoehmOOTA,DBLP:conf/lics/JeffreyR16} forbid breaking of the program order from reads to writes and thus require extra fences after read actions in hardware implementations.
 % \citep{Boehm:2014:OGA:2618128.2618134} show that the RC11 model %\cite{DBLP:conf/pldi/LahavVKHD17}
@@ -470,10 +470,12 @@ thread of \ref{OOTA4} satisfies the following invariant: \emph{A write of $1$
   $z$ then a write of $1$ to $x$ must be preceded by a read of $1$ from $y$.}
 Compositionality allows us to conclude that whole program satisfies this
 property.  This reasoning fails in
-\cite{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19},
-demonstrating a lack of compositionality.
-
-
+\cite{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19}.
+% demonstrating a lack of compositionality
+Compositionality for temporal safety is a \emph{verifiable} criterion for claiming that a model
+rejects \oota{} executions.
+% define $\notar$ to be the ability to combine thread local reasoning and
+% compositionally prove temporal safety properties.
 
 
 
