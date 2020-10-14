@@ -106,7 +106,7 @@ outcome $z{=}1$ for \eqref{OOTA?}, but not \ref{OOTA3}.
 The control flow variant of \ref{OOTA3} is:
 \begin{displaymath}
   \label{cyc}\tag{\textsc{oota2}}
-  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \SEMI z\GETS 1\FI.
+  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \SEMI z\GETS 1\FI
 \end{displaymath}
 This program is data-race-free. Thus, allowing an execution that writes $1$
 would violate \drfsc{}.
