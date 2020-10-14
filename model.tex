@@ -152,7 +152,7 @@ reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides
 An attempt to replicate this execution with \eqref{OOTA!} fails,
 since it introduces a cycle:
 \begin{gather}
-  \label{OOTA!}\tag{\textsc{oota2}}
+  \label{OOTA!}\tag{\textsc{oota3}}
   \begin{gathered}
   x\GETS 0 \SEMI y\GETS 0\SEMI (  y\GETS x
   \PAR
@@ -181,7 +181,7 @@ since it introduces a cycle:
 \end{gather}
 In this case, $(\DW{x}{1})$ only happens on one side of the conditional,
 causing a control dependency from $(\DR{y}{1})$ to $(\DW{x}{1})$.
-Similar cycles arise when attempting to write $z{=}1$ in \ref{OOTA3} and \ref{OOTA4}.
+Similar cycles arise when attempting to write $z{=}1$ in \ref{OOTA3}--\ref{OOTA4}.
 
 %In our model, there is only using one order.  % , which stands in stark contrast with
 % other models that use many different relations.
@@ -1616,7 +1616,7 @@ For \ref{OOTA3}, $\sem{x\GETS r\SEMI z\GETS r}$ contains:
 \end{align*}
 It is only possible to satisfy the precondition of $(r{=}1\mid\DW{x}{1})$
 using \ref{4c} when prefixing $(\DR{y}{1})$. This forces a dependency from
-read to write via \ref{5a}.
+read to write via \ref{5a}.  \ref{cyc} is similar.
 
 For \ref{OOTA!}, %which writes $2$ in the \texttt{else} branch, for example, 
 % %with \ref{OOTA!} fails:

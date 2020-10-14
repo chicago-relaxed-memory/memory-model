@@ -304,26 +304,26 @@ By coinduction,
 %as required.
 \end{example}
 
-The same reasoning can be applied to the control flow variant of \ref{OOTA3}
-\cite[CYC]{DBLP:conf/popl/VafeiadisBCMN15}:
-\begin{math}
-  %\tag{\textsc{cyc}}\label{CYC}
-  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \FI.
-  % &&
-  % %\nonumber
-  % \hbox{\begin{tikzinline}[node distance=1.5em]
-  % \event{rx}{\DR{x}{1}}{}
-  % \event{wy}{\DW{y}{1}}{right=of rx}
-  % \po{rx}{wy}
-  % \event{ry}{\DR{y}{1}}{right=2em of wy}
-  % \event{wx}{\DW{x}{1}}{right=of ry}
-  % \po{ry}{wx}
-  % \rf{wy}{ry}
-  % \rf[out=170,in=10]{wx}{rx}
-  %   \end{tikzinline}}
-\end{math}
-The program is data-race-free. Thus, allowing an execution that writes $1$
-would violate \drfsc{}.
+% The same reasoning can be applied to the control flow variant of \ref{OOTA3}
+% \cite[CYC]{DBLP:conf/popl/VafeiadisBCMN15}:
+% \begin{math}
+%   %\tag{\textsc{cyc}}\label{CYC}
+%   \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \FI.
+%   % &&
+%   % %\nonumber
+%   % \hbox{\begin{tikzinline}[node distance=1.5em]
+%   % \event{rx}{\DR{x}{1}}{}
+%   % \event{wy}{\DW{y}{1}}{right=of rx}
+%   % \po{rx}{wy}
+%   % \event{ry}{\DR{y}{1}}{right=2em of wy}
+%   % \event{wx}{\DW{x}{1}}{right=of ry}
+%   % \po{ry}{wx}
+%   % \rf{wy}{ry}
+%   % \rf[out=170,in=10]{wx}{rx}
+%   %   \end{tikzinline}}
+% \end{math}
+% The program is data-race-free. Thus, allowing an execution that writes $1$
+% would violate \drfsc{}.
 
 \begin{example}
   \label{ex:lochb}
@@ -347,7 +347,7 @@ would violate \drfsc{}.
 % A more general principle, in the spirit of~\citet{Abadi:1993:CS:151646.151649} can be proved.  We chose the simple case of temporal invariants to illustrate the idea in a simple form.  Even this simple version has interesting consequences. 
 \begin{gather}
   %\tag{\textsc{oota4}}
-  \label{OOTA4}\tag{\textsc{oota3}}
+  \label{OOTA4}\tag{\textsc{oota4}}
   %   Z=1;
   % ||
   %   a=X; // 1
@@ -422,8 +422,9 @@ outcome is also disallowed by our event structures model
 given in that paper is insufficient to establish this fact.  The outcome is
 \emph{allowed} by \citep{DBLP:conf/esop/JagadeesanPR10},
 \citep{DBLP:conf/popl/KangHLVD17}, and
-\citep{DBLP:journals/pacmpl/ChakrabortyV19}, demonstrating a lack of
-compositionality in these models.
+\citep{DBLP:journals/pacmpl/ChakrabortyV19}.
+% , demonstrating a lack of
+% compositionality in these models.
 % \begin{tikzdisplay}[node distance=1.5em]
 %   \event{wy0}{\DW{y}{0}}{}
 %   \event{rx}{\DR{x}{1}}{right=4.5em of wy0}

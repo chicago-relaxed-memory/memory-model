@@ -103,6 +103,15 @@ code that was not executed.  This is why many models of relaxed memory
 include some form of speculative execution, with the goal of allowing the
 outcome $z{=}1$ for \eqref{OOTA?}, but not \ref{OOTA3}.
 
+The control flow variant of \ref{OOTA3} is:
+\begin{displaymath}
+  \label{cyc}\tag{\textsc{oota2}}
+  \IF{x}\THEN y\GETS 1 \FI \!\PAR\! \IF{y}\THEN x\GETS 1 \SEMI z\GETS 1\FI.
+\end{displaymath}
+This program is data-race-free. Thus, allowing an execution that writes $1$
+would violate \drfsc{}.
+
+
 \oota{} behaviors can be quite subtle.
 Consider the following variants of \eqref{OOTA?}:
 \begin{align}
@@ -173,7 +182,7 @@ revealed a surprising limitation. Consider the following program
 all memory locations are initialized to $0$:
 %\vspace{-.5ex}
 \begin{gather}
-  \tag{\textsc{oota4}}\label{OOTA1}
+  \tag{\textsc{oota5}}\label{OOTA1}
   y\GETS x
   \PAR
   \aReg\GETS y \SEMI \IF{b} \THEN \aReg \GETS \NEW \classD \SEMI x \GETS \aReg \SEMI z\GETS \aReg \ELSE \bReg \GETS \NEW \classC \SEMI x \GETS \aReg \FI  
@@ -456,10 +465,10 @@ follow.
 
 Finally, our model supports compositional reasoning about \emph{temporal
   safety properties} (\textsection\ref{sec:logic}).  Consider that each
-thread of \ref{OOTA4} satisfies the following invariant: A write of $1$ to
-$y$ must be preceded by a read of $1$ from $x$, and if $1$ is written to $z$
-then a write of $1$ to $x$ must be preceded by a read of $1$ from $y$.
-Compositionality allows us to conclude that the threads together satisfy this
+thread of \ref{OOTA4} satisfies the following invariant: \emph{A write of $1$
+  to $y$ must be preceded by a read of $1$ from $x$, and if $1$ is written to
+  $z$ then a write of $1$ to $x$ must be preceded by a read of $1$ from $y$.}
+Compositionality allows us to conclude that whole program satisfies this
 property.  This reasoning fails in
 \cite{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19},
 demonstrating a lack of compositionality.
