@@ -2,7 +2,6 @@
 % \let\textscorig\textsc
 % \let\textttorig\texttt
 % \renewcommand<>{\textsc}[1]{\only#2{\textscorig{#1}}}
-\renewcommand<>{\textsc}{\only#1{\beameroriginal{\textsc}}}
 \newcommand{\imagepage}[3][width=\paperwidth]{{\setbeamertemplate{navigation
       symbols}{#3}\usebackgroundtemplate{\includegraphics[#1]{#2}}\begin{frame} \end{frame}}}
 
