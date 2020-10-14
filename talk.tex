@@ -127,7 +127,6 @@
   \pause
   lift common code
   \begin{gather*}
-    % \taglabelpp{OOTA?}
     y\GETS x
     \PAR
     r\GETS y\SEMI
@@ -137,7 +136,6 @@
   \pause
   commute independent statements
   \begin{gather*}
-    % \taglabelpp{OOTA?}
     \only<5>{\alert}{y\GETS x}
     \PAR
     x\GETS\alt<6>{\alert{2}}{1}\SEMI
@@ -147,7 +145,6 @@
   \pause
   interleaving
   \begin{gather*}
-    % \taglabelpp{OOTA?}
     x\GETS\alt<6>{\alert{2}}{1}\SEMI
     \alert<5>{y\GETS x}\SEMI
     r\GETS y\SEMI
@@ -393,7 +390,7 @@
     \end{gathered}
     \only<8->{\qquad \qquad\qquad\begin{gathered}
         \only<9->{\IF{\lnot r}\THEN}
-        x\GETS \alt<12>{\alert{2}}{1}
+        x\GETS \alt<12-13>{\alert<12>{2}}{1}
         \only<9->{\FI}
         \\
         \only<8>{\hbox{\begin{tikzinline}[node distance=.5em]
@@ -402,11 +399,11 @@
         \only<9>{\hbox{\begin{tikzinline}[node distance=.5em]
               \event{wx}{r{=}0 \land 1{=}1\mid\DW{x}{1}}{}
             \end{tikzinline}}}
-        \only<10-11,13>{\hbox{\begin{tikzinline}[node distance=.5em]
+        \only<10-11>{\hbox{\begin{tikzinline}[node distance=.5em]
               \event{wx}{r{=}0\mid\DW{x}{1}}{}
             \end{tikzinline}}}
-        \only<12>{\hbox{\begin{tikzinline}[node distance=.5em]
-              \event{wx}{r{=}0\mid\DW{x}{\alert{2}}}{}
+        \only<12-13>{\hbox{\begin{tikzinline}[node distance=.5em]
+              \event{wx}{r{=}0\mid\DW{x}{\alert<12>{2}}}{}
             \end{tikzinline}}}
       \end{gathered}}
   \end{gather*}
@@ -421,7 +418,7 @@
     \only<11->{Combining both sides}
   \end{center}
   \begin{gather*}
-    \only<11->{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS \alt<12>{\alert{2}}{1}\FI}
+    \only<11->{\IF{r}\THEN x\GETS r\SEMI z\GETS r \ELSE x\GETS \alt<12-13>{\alert<12>{2}}{1}\FI}
     \\
     \only<11>{\hbox{\begin{tikzinline}[node distance=.5em]
           \event{wz}{r{=}1\mid\DW{z}{1}}{}
@@ -430,7 +427,7 @@
     \only<12-13>{\hbox{\begin{tikzinline}[node distance=.5em]
           \alt<12>{\event}{\nonevent}{wz}{r{=}1\mid\DW{z}{1}}{}
           \alt<12>{\event}{\nonevent}{wx}{r{=}1\mid\DW{x}{1}}{left=of wz}
-          \alt<12>{\event}{\nonevent}{wxx}{r{=}0\mid\DW{x}{\alert{2}}}{right=of wz}
+          \alt<12>{\event}{\nonevent}{wxx}{\alert<13>{r{=}0}\mid\DW{x}{\alert<12>{2}}}{right=of wz}
         \end{tikzinline}}}    
   \end{gather*}
   \begin{center}
@@ -722,7 +719,7 @@
 \begin{frame}
   \frametitle{Buffering}
 \begin{gather*}
-  \taglabel{SB}
+  \tag{SB}
   \begin{gathered}
   x\GETS0\SEMI
   y\GETS0\SEMI
@@ -767,7 +764,7 @@
   %   \end{tikzinline}}
 \end{gathered}
 \\
-\taglabel{LB}
+\tag{LB}
   \begin{gathered}
   \aReg\GETS y\SEMI x\GETS1
   \PAR
@@ -800,108 +797,6 @@
 \end{frame}
 
 
-\begin{frame}
-  \frametitle{Internal Reads}
-  \begin{gather*}
-    \taglabel{TC1}
-    \begin{gathered}
-      x\GETS 0 \SEMI
-      (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
-      \PAR
-      x\GETS y)
-      \\[-1ex]
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{wx0}{\DW{x}{0}}{}
-          \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-          \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
-          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-          \event{wx1}{\DW{x}{1}}{right=of ry1}
-          \po{ry1}{wx1}
-          \rf[out=-168,in=-12]{wx1}{rx1}
-          \rf{wy1}{ry1}
-          \wk[out=10,in=170]{wx0}{wx1}
-          \wk{wx0}{rx1}
-        \end{tikzinline}}
-    \end{gathered}
-    \\
-    \taglabel{TC9}
-    \begin{gathered}
-      x\GETS 0 \SEMI
-      (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
-      \PAR
-      x\GETS y
-      \PAR
-      x\GETS {-2})
-      \\[-1ex]
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{wx0}{\DW{x}{0}}{}
-          \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-          \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
-          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-          \event{wx1}{\DW{x}{1}}{right=of ry1}
-          \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
-          \po{ry1}{wx1}
-          \rf[out=-168,in=-12]{wx1}{rx1}
-          \rf{wy1}{ry1}
-          \wk[out=10,in=170]{wx0}{wx1}
-          \wk{wx0}{rx1}
-          \wk{wx1}{wx2}
-        \end{tikzinline}}
-    \end{gathered}
-    \\
-    \taglabel{TC2}
-    \begin{gathered}
-      r\GETS x\SEMI
-      s\GETS x\SEMI
-      \IF{r{=}s}\THEN y\GETS 1\FI
-      \PAR
-      x\GETS y
-      \\[-1ex]
-      \nonumber
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{a1}{\DR{x}{1}}{}
-          \event{a2}{\DR{x}{1}}{right=of a1}
-          \event{a3}{(x{=}x)\land(1{=}1)\mid\DW{y}{1}}{right=of a2}
-          % \po{a2}{a3}
-          % \po[out=15,in=165]{a1}{a3}
-          \event{b1}{\DR{y}{1}}{right=3em of a3}
-          \event{b2}{\DW{x}{1}}{right=of b1}
-          \rf{a3}{b1}
-          \po{b1}{b2}
-          \rf[out=169,in=11]{b2}{a2}
-          \rf[out=169,in=11]{b2}{a1}
-        \end{tikzinline}}
-    \end{gathered}
-    \\
-    \taglabel{Internal2}
-    \begin{gathered}
-      \aReg\GETS x\SEMI
-      y\REL\GETS 1\SEMI
-      \bReg\GETS y\SEMI
-      z\GETS \bReg
-      % z\GETS y
-      \PAR
-      x\GETS z
-      \\[-1ex]
-      \nonumber
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{a1}{\DR{x}{1}}{}
-          \event{a2}{\DWRel{y}{1}}{right=of a1}
-          \sync{a1}{a2}
-          \event{a3}{\DR{y}{1}}{right=of a2}
-          \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
-          \rf{a2}{a3}
-          % \po{a3}{a4}
-          \event{b1}{\DR{z}{1}}{right=3em of a4}
-          \event{b2}{\DW{x}{1}}{right=of b1}
-          % \po[out=10,in=170]{a2}{a4}
-          \po{b1}{b2}
-          \rf{a4}{b1}
-          \rf[out=170,in=10]{b2}{a1}
-        \end{tikzinline}}
-    \end{gathered}
-  \end{gather*}
-\end{frame}
 
 \begin{frame}<2->
   \setbeamercovered{transparent=20}
@@ -950,7 +845,7 @@
 \begin{frame}
   \frametitle{Publication}
   \begin{gather}
-    \taglabel{Pub1}
+    \tag{PUB1}
     \begin{gathered}
       x\GETS0\SEMI %y\GETS0\SEMI
       x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
@@ -970,42 +865,37 @@
         \end{tikzinline}}
     \end{gathered}
     \\
-    \taglabel{Internal1}
+    \tag{PUB2}
     \begin{gathered}
-      x\GETS1 \SEMI
-      a\REL\GETS1 \SEMI
-      \IF{z\ACQ}\THEN  y\GETS x \FI
+      x\GETS0\SEMI %y\GETS0\SEMI
+      x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
       \PAR
-      \IF{a\ACQ}\THEN  x\GETS 2\SEMI z\REL\GETS1 \FI
-      \\
-      \hbox{\begin{tikzinline}[node distance=1.2em]
-          \event{a1}{\DW{x}{1}}{}
-          \event{a2}{\DWRel{a}{1}}{right=of a1}
-          \sync{a1}{a2}
-          \event{b3}{\DRAcq{a}{1}}{below right=0em and 3em of a2}
-          % \event{b3}{\DRAcq{a}{1}}{right=3em of a2}
-          \rf{a2}{b3}
-          \event{b4}{\DW{x}{2}}{right=of b3}
-          \sync{b3}{b4}
-          \event{b5}{\DWRel{z}{1}}{right=of b4}
-          \sync{b4}{b5}
-          \event{a6}{\DRAcq{b}{1}}{above right=0em and 3em of b5}
-          % \event{a6}{\DRAcq{z}{1}}{right=3em of b5}
-          \rf{b5}{a6}
-          \event{a7}{\DR{x}{1}}{right=of a6}
-          \sync{a6}{a7}
-          \event{a8}{1{=}1\mid\DW{y}{1}}{right=of a7}
-          \graypo{a7}{a8}
-          \sync[out=-18,in=-162]{a6}{a8}
+      r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wx1}{\DW{x}{1}}{right=of wx0}
+          \event{fr}{\DFS{\modeREL}}{right=of wx1}
+          \event{wy1}{\DW{y}{1}}{right=of fr}
+          \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+          \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+          \event{rx0}{\DR{x}{0}}{right=of fa}
+          \sync{wx1}{fr}
+          \sync{fr}{wy1}
+          \sync{ry1}{fa}
+          \sync{fa}{rx0}
+          \rf{wy1}{ry1}
+          \rf[out=10,in=170]{wx0}{rx0}
+          \wk{wx0}{wx1}
         \end{tikzinline}}
     \end{gathered}
   \end{gather}
 \end{frame}
 
 \begin{frame}
-  \frametitle{SC Access}
+  \frametitle{SC Access/Fences}
   \begin{gather*}
-    \taglabel{SC1}
+    \tag{SC1}
     \begin{gathered}
       r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
       \PAR
@@ -1030,7 +920,7 @@
         \end{tikzinline}}
     \end{gathered}
     \\
-    \taglabel{SC2}
+    \tag{SC2}
     \begin{gathered}
       x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
       \PAR
@@ -1052,38 +942,8 @@
           \wk{e}{f}
         \end{tikzinline}}
     \end{gathered}
-  \end{gather*}  
-\end{frame}
-
-\begin{frame}
-  \frametitle{Fences}
-  \begin{gather*}
-    \taglabel{Pub2}
-    \begin{gathered}
-      x\GETS0\SEMI %y\GETS0\SEMI
-      x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
-      \PAR
-      r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
-      \\[-1ex]
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{wx0}{\DW{x}{0}}{}
-          \event{wx1}{\DW{x}{1}}{right=of wx0}
-          \event{fr}{\DFS{\modeREL}}{right=of wx1}
-          \event{wy1}{\DW{y}{1}}{right=of fr}
-          \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-          \event{fa}{\DFS{\modeACQ}}{right=of ry1}
-          \event{rx0}{\DR{x}{0}}{right=of fa}
-          \sync{wx1}{fr}
-          \sync{fr}{wy1}
-          \sync{ry1}{fa}
-          \sync{fa}{rx0}
-          \rf{wy1}{ry1}
-          \rf[out=10,in=170]{wx0}{rx0}
-          \wk{wx0}{wx1}
-        \end{tikzinline}}
-    \end{gathered}
     \\
-    \taglabel{SC3}
+    \tag{SC3}
     \begin{gathered}
       x\GETS1
       \PAR
@@ -1113,7 +973,7 @@
         \end{tikzinline}}
     \end{gathered}
     \\
-    \taglabel{SC4}
+    \tag{SC4}
     \begin{gathered}
       x\GETS1\SEMI   
       z\REL\GETS1\SEMI   
@@ -1148,20 +1008,157 @@
   \end{gather*}  
 \end{frame}
 
+\begin{frame}
+  \frametitle{Internal Reads}
+  \begin{gather*}
+    \tag{TC1}
+    \begin{gathered}
+      x\GETS 0 \SEMI
+      (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+      \PAR
+      x\GETS y)
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+          \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \po{ry1}{wx1}
+          \rf[out=-168,in=-12]{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \wk[out=10,in=170]{wx0}{wx1}
+          \wk{wx0}{rx1}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \tag{TC9}
+    \begin{gathered}
+      x\GETS 0 \SEMI
+      (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+      \PAR
+      x\GETS y
+      \PAR
+      x\GETS {-2})
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+          \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+          \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+          \event{wx1}{\DW{x}{1}}{right=of ry1}
+          \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
+          \po{ry1}{wx1}
+          \rf[out=-168,in=-12]{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \wk[out=10,in=170]{wx0}{wx1}
+          \wk{wx0}{rx1}
+          \wk{wx1}{wx2}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \tag{TC2}
+    \begin{gathered}
+      r\GETS x\SEMI
+      s\GETS x\SEMI
+      \IF{r{=}s}\THEN y\GETS 1\FI
+      \PAR
+      x\GETS y
+      \\[-1ex]
+      \nonumber
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{x}{1}}{}
+          \event{a2}{\DR{x}{1}}{right=of a1}
+          \event{a3}{(x{=}x)\land(1{=}1)\mid\DW{y}{1}}{right=of a2}
+          % \po{a2}{a3}
+          % \po[out=15,in=165]{a1}{a3}
+          \event{b1}{\DR{y}{1}}{right=3em of a3}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          \rf{a3}{b1}
+          \po{b1}{b2}
+          \rf[out=169,in=11]{b2}{a2}
+          \rf[out=169,in=11]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Internal Reads+Synchronization}
+  \begin{gather*}
+    \tag{IN1}
+    \begin{gathered}
+      x\GETS1 \SEMI
+      a\REL\GETS1 \SEMI
+      \IF{z\ACQ}\THEN  y\GETS x \FI
+      \PAR
+      \IF{a\ACQ}\THEN  x\GETS 2\SEMI z\REL\GETS1 \FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=1.2em]
+          \event{a1}{\DW{x}{1}}{}
+          \event{a2}{\DWRel{a}{1}}{right=of a1}
+          \sync{a1}{a2}
+          \event{b3}{\DRAcq{a}{1}}{below right=0em and 3em of a2}
+          % \event{b3}{\DRAcq{a}{1}}{right=3em of a2}
+          \rf{a2}{b3}
+          \event{b4}{\DW{x}{2}}{right=of b3}
+          \sync{b3}{b4}
+          \event{b5}{\DWRel{z}{1}}{right=of b4}
+          \sync{b4}{b5}
+          \event{a6}{\DRAcq{b}{1}}{above right=0em and 3em of b5}
+          % \event{a6}{\DRAcq{z}{1}}{right=3em of b5}
+          \rf{b5}{a6}
+          \event{a7}{\DR{x}{1}}{right=of a6}
+          \sync{a6}{a7}
+          \event{a8}{1{=}1\mid\DW{y}{1}}{right=of a7}
+          \graypo{a7}{a8}
+          \sync[out=-18,in=-162]{a6}{a8}
+        \end{tikzinline}}
+    \end{gathered}
+    \\
+    \tag{IN2}
+    \begin{gathered}
+      \aReg\GETS x\SEMI
+      y\REL\GETS 1\SEMI
+      \bReg\GETS y\SEMI
+      z\GETS \bReg
+      % z\GETS y
+      \PAR
+      x\GETS z
+      \\[-1ex]
+      \nonumber
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{x}{1}}{}
+          \event{a2}{\DWRel{y}{1}}{right=of a1}
+          \sync{a1}{a2}
+          \event{a3}{\DR{y}{1}}{right=of a2}
+          \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
+          \rf{a2}{a3}
+          % \po{a3}{a4}
+          \event{b1}{\DR{z}{1}}{right=3em of a4}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          % \po[out=10,in=170]{a2}{a4}
+          \po{b1}{b2}
+          \rf{a4}{b1}
+          \rf[out=170,in=10]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}
+\end{frame}
 
 
 \begin{frame}
   \frametitle{Valid Transformations}
   \begin{align*}
-    % \taglabel{WW}
+    % \tag{WW}
     \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
     \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{ if } \aLoc\neq\bLoc
     \\
-    % \taglabel{RW}
+    % \tag{RW}
     \sem{\aReg \GETS \aLoc \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
     \sem{\bLoc  \GETS \bExp\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{ if } \disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}
     \\
-    % \taglabel{RR}
+    % \tag{RR}
     \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{ if } \aReg\neq\bReg
     \\
@@ -1175,11 +1172,11 @@
     \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
     &&\textif x\neq y&&\hbox{}
     \\
-    % \taglabel{RL}
-    \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg^\amode  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+    % \tag{RL}
+    \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aLoc^\amode\SEMI\aCmd} &\supseteq 
     \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
     \\
-    % \taglabel{CSE}
+    % \tag{CSE}
     \sem{r_1\GETS \aLoc \SEMI
       s\GETS \bLoc \SEMI  
       r_2\GETS \aLoc\SEMI\aCmd}
@@ -1189,16 +1186,16 @@
       s\GETS \bLoc \SEMI\aCmd}
     &&\textif \aReg_2\neq\bReg
     \\
-    % \taglabel{DC}
+    % \tag{DC}
     \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
     \sem{\aCmd}
     &&\textif \aExp \text{ is a tautology}
     \\
-    % \taglabel{CL/CA}
+    % \tag{CL/CA}
     \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &=
     \sem{\aCmd}
     \\
-    % \taglabel{SE}
+    % \tag{SE}
     \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd} &=
     \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
     &&\text{ if } \aLoc\not\in\free(\aCmd)
@@ -1208,20 +1205,20 @@
 \begin{frame}
   \frametitle{Valid Transformations (with a little more work)}
   \begin{align*}
-    % \taglabel{RE}
+    % \tag{RE}
     \sem{\aReg  \GETS \aLoc\SEMI\aCmd} & \supseteq
     \sem{\aCmd}  
     &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}
     \\
-    % \taglabel{SF}
+    % \tag{SF}
     \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aLoc\SEMI\aCmd} &\supseteq 
     \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
     \\
-    % \taglabel{DS}
+    % \tag{DS}
     \sem{\aLoc \GETS \aExp \SEMI \aLoc  \GETS \bExp\SEMI\aCmd} &\supseteq 
     \sem{\aLoc \GETS \bExp\SEMI\aCmd}    
     \\
-    % \taglabel{RI}
+    % \tag{RI}
     \readc\sem{\aCmd} & \supseteq
     \readc\sem{\aReg  \GETS \aLoc\SEMI\aCmd}  
     &&\textif \aReg\not\in\free(\aCmd)&&\hbox{}  
@@ -1229,12 +1226,27 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Invalid Transformations}
+  \frametitle{Other Transformations}
   \begin{itemize}
-  \item Thread inlining
-  \item Relevant read introduction
-  \item Write introduction    
-  \item Redundant write after read elimination
+  \item<1-> Observationally invalid:
+    \begin{itemize}
+    \item Thread inlining
+    \item Relevant read introduction
+    \item Write introduction    
+    \end{itemize}
+  \item<2-> Observationally okay, invalid in model:
+    \begin{itemize}      
+    \item Redundant write after read elimination
+    \item Access mode strengthening $(\modeRLX\rightarrow\modeRA \rightarrow\modeSC)$
+    \item Commuting/Eliminating some synchronizations
+    \item Implementing synchronizations using fences
+    \item Implementing locks using synchronizations
+    \end{itemize}
+  \item<3-> Observationally okay in some contexts, invalid in model:
+    \begin{itemize}      
+    \item Access mode weakening, eg $(\modeSC\rightarrow \modeRA\rightarrow\modeRLX)$
+    \item Lock elision
+    \end{itemize}
   \end{itemize}
 \end{frame}
 

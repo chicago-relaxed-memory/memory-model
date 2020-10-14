@@ -1015,7 +1015,7 @@ example, the rules for relaxed writes are:
   from \ref{1}, taking $\bEv\in\Event$.
 \begin{align*}
   \taglabel{RL}
-  \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg^\amode  \GETS \aLoc\SEMI\aCmd} &\supseteq 
+  \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aLoc^\amode\SEMI\aCmd} &\supseteq 
   \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
 \end{align*}
 \ref{RL} holds regardless of the access mode.
