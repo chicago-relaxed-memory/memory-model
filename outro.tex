@@ -38,13 +38,14 @@ problem in C11.  Like us, they use true concurrency semantics to identify
 explicitly.  Our definition of parallel composition allows events to
 coalesce, taking preconditions via disjunction---this is mirrored by
 \citeauthor{DBLP:conf/esop/PaviottiCPWOB20}'s definition of coproduct.  We
-only compose downclosed pomsets---this is mirrored by their condition on
-$\leq^{\mathcal{X}}$ during coproduct (discussed in their \textsection6.3).
-Nonetheless, the papers have different goals, leading to different outcomes.
-For example, their model compiles efficiently to non-\mca{} architectures; our
-model clearly does not!  Conversely, our model provides an intrinsic
-characterization of optimizations, such as redundant read elimination, which
-only hold in their model up to observational refinement.
+only compose downsets of completed pomsets---this is mirrored by their
+condition on $\leq^{\mathcal{X}}$ during coproduct (discussed in their
+\textsection6.3).  Nonetheless, the papers have different goals, leading to
+different outcomes.  For example, their model compiles efficiently to
+non-\mca{} architectures; our model clearly does not!  Conversely, our model
+provides an intrinsic characterization of optimizations, such as redundant
+read elimination, which only hold in their model up to observational
+refinement.
 % In contrast to our LDRF
 % theorem, they prove an internal version of DRF, ie that race free programs
 % have SC behavior, without necessarily settling the question of discovering
@@ -229,6 +230,27 @@ sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
 \ref{rf4}.
 %The atomicity of mixed size access is not as strong as that of \RMWs.
 
+We have only considered peephole optimizations---other optimizations may be
+valid.  For example, the model does \emph{not} satisfy redundant write after
+read elimination as a peephole optimization.  Consider the example from
+\cite[\textsection 5.3.1]{SevcikThesis}:
+\begin{displaymath}
+  \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+  \not\supseteq
+  \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+\end{displaymath}
+In Java, these are distinguished by the context
+\begin{math}
+  x\GETS1 \SEMI a^\modeRA\GETS 1
+  \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
+  \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
+\end{math}
+That is not case here, however, due to local \drfsc{}.  Nonetheless,
+completed pomsets from the left include a write to $x$, which is not found on
+the right.  At top-level, however, the read of $x$ must be fulfilled by some
+write---assuming that these writes can coalesce, the optimization can be
+validated.
+
 We have not attempted validate all program transformations that involve
 synchronization, fences or \RMWs{}
 \cite{DBLP:conf/popl/VafeiadisBCMN15,DBLP:phd/hal/Morisset17}.  Nonetheless,
@@ -241,10 +263,20 @@ provable as metaproperties.  For example, access-mode strengthening (such as
 replacing $\modeRLX$ by $\modeRA$) is valid up to an equivalence that ignores
 access modes on actions.  Other transformations worth studying include
 commuting adjacent synchronizations and implementing non-relaxed access using
-relaxed access and fences.  Lock elision and access-mode weakening are also
-interesting, although these are only sound in certain contexts.  We expect
-all of these transformations to be valid, given an appropriate notional of
-validity.
+relaxed access and fences.
+%
+% We have also not attempted to validate transformations that can only be
+% validated by considering the surrounding context, such as Lock elision,
+% access-mode weakening, and redundant write after read elimination
+% \cite[\textsection 5.3.1]{SevcikThesis}.
+%
+Lock elision and access-mode weakening are also interesting, although these
+are only sound in certain contexts.
+%
+We expect all of these transformations to be valid, given an appropriate
+notional of validity.
+
+
 \begin{comment}
 https://preshing.com/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect/
 

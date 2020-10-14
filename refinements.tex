@@ -230,6 +230,31 @@ In this diagram, we have included a ``non-event''---dashed border---to mark
 the eliminated write.  In general, there may
 need to be many following writes, one for each subsequent release.  
 
+% The model does \emph{not} satisfy redundant write after read elimination as
+% a peephole optimization, although we expect that it is true for whole programs.
+% Consider the example from \cite[\textsection 5.3.1]{SevcikThesis}:
+% \begin{displaymath}
+%   \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+%   \mathrel{\supseteq?}
+%   \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+% \end{displaymath}
+% The read of $x$
+% These are distinguished by the context %
+% \begin{math}
+%   x\GETS1 \SEMI a^\modeRA\GETS 1
+%   \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
+%   \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
+% \end{math}
+
+%
+% We have also not attempted to validate transformations that can only be
+% validated by considering the surrounding context, such as Lock elision,
+% access-mode weakening, and redundant write after read elimination
+% \cite[\textsection 5.3.1]{SevcikThesis}.
+%
+
+
+
 % The restriction Although store elimination is unsound generally, one might expect it to hold for dead
 % stores \eqref{DS}.
 

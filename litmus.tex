@@ -1379,20 +1379,6 @@ Observationally, these are distinguished by the context %
 % This inequation holds even though there is no context in our
 % language that distinguishes these programs.
 
-Similarly, redundant write after read elimination is invalid \cite[\textsection
-5.3-4]{SevcikThesis}:
-\begin{displaymath}
-  \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
-  \not\supseteq
-  \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
-\end{displaymath}
-These are distinguished by the context %
-\begin{math}
-  x\GETS1 \SEMI a^\modeRA\GETS 1
-  \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
-  \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
-\end{math}
-
 Write introduction is also invalid, even when duplicating an existing write:
 \begin{displaymath}
   \sem{\aLoc \GETS 1} 
@@ -1407,6 +1393,21 @@ These are distinguished by the context:
   s\GETS x\SEMI
   \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI.
 \end{math}
+
+% Similarly, redundant write after read elimination is invalid \cite[\textsection
+% 5.3.1]{SevcikThesis}:
+% \begin{displaymath}
+%   \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+%   \not\supseteq
+%   \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+% \end{displaymath}
+% These are distinguished by the context %
+% \begin{math}
+%   x\GETS1 \SEMI a^\modeRA\GETS 1
+%   \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
+%   \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
+% \end{math}
+
 
 
 % General write elimination is invalid, even for non-racy programs:

@@ -1421,10 +1421,11 @@ there is $\aPS\in\aPSS$ such that
 \end{candidate}
 
 The main work happens in the definition of prefixing ($\prefix$).  \ref{1}
-introduces a new event.  \ref{2} ensures that no order is removed from old
-events.  \ref{3} specifies the actions labelling the events.  \ref{4}
-specifies the preconditions (along with \ref{5a}).  \ref{5} specifies the
-preserved program order.
+introduces a new event, which may coalesce with an existing event in
+$\Event$.  \ref{2} ensures that no order is removed from old events.  \ref{3}
+specifies the actions labelling the events.  \ref{4} specifies the
+preconditions (along with \ref{5a}).  \ref{5} specifies the preserved program
+order.
 
 The semantics of read and write introduce a separate pomset for each possible
 value read or written.  The value is fixed in each pomset.  For writes, the
@@ -1468,7 +1469,7 @@ Let us revisit %the unexpected execution
   r\GETS y\SEMI \IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI)
   \\
-  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \smash[t]{\hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wy0}{\DW{y}{0}}{}
   \event{wx0}{\DW{x}{0}}{left=of wy0}
   \event{rx1}{\DR{x}{1}}{right=3em of wy0}
@@ -1485,7 +1486,7 @@ Let us revisit %the unexpected execution
   \po[out=20,in=160]{ry1}{wa1}
   \sync[out=20,in=160]{wx1}{stop}
   \sync{wa1}{stop}
-\end{tikzinline}}
+\end{tikzinline}}}
 \end{gathered}
 \end{gather*}
 % Note that $\sem{z\GETS r}$ contains $(r{=}0\mid\DW{z}{0})$,
