@@ -317,16 +317,16 @@ of \emph{preserved} program order ($\rppo$) in hardware models.  $\rppo$
 captures the \emph{essential dependencies} between events in the same thread.
 Consider the following program fragments: \begingroup \allowdisplaybreaks
 \begin{align*}
-  & \aCmd^1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
-  \\[-1ex] & \aCmd^2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
-  \\[-1ex] & \aCmd^3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
-  %\\[-1ex] &\aCmd^4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
+  & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
+  \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
+  \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
+  %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
 \endgroup
-All these fragments satisfy $\hoare{\TRUE}{\aCmd^i}{\bLoc =1}$; thus, in each
+All these fragments satisfy $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
 case, the write of $y$ is independent of any code that precedes it in program
-order. While $\aCmd^1$ reflects syntactic independence, $\aCmd^2$ reflects
-the independence derived by case analysis, and $\aCmd^3$ reflects the
+order. While $\aCmd_1$ reflects syntactic independence, $\aCmd_2$ reflects
+the independence derived by case analysis, and $\aCmd_3$ reflects the
 independence deduced from partial evaluation (in the restricted form of
 constant propagation).
 
@@ -341,7 +341,7 @@ many models.  As another example, models such as \armeight{} distinguish
 \emph{internal} reads, which are fulfilled by a write of the same thread,
 from \emph{external} ones.  Unlike externally fulfilled reads, internal reads
 are not necessarily recorded in the dependency relation.  As exemplified by
-$\aCmd^3$, this allows a compiler to reorder the fulfilling write with
+$\aCmd_3$, this allows a compiler to reorder the fulfilling write with
 subsequent code that depends on the read.  Neither value range analysis nor
 internal reads require special treatment in our model.
 
@@ -449,8 +449,8 @@ over different models, composed together.''  Our work is inspired by this
 call for \emph{compositionality} in models of relaxed concurrency.
 
 Our model is compositional in the normal sense of a denotational semantics:
-for example, the denotation $\sem{C^1\!{\PAR}\! C^2}$ is computed from
-$\sem{C^1}$ and $\sem{C^2}$.  The model obeys laws such as scope
+for example, the denotation $\sem{C_1\!{\PAR}\! C_2}$ is computed from
+$\sem{C_1}$ and $\sem{C_2}$.  The model obeys laws such as scope
 extrusion---$\sem{\aCmd\!{\PAR}\! \VAR\aLoc\SEMI\bCmd} =
 \sem{\VAR\aLoc\SEMI(\aCmd\!{\PAR}\!\bCmd)}$ when $\aLoc\not\in\free(\aCmd)$---and
 case analysis---$\sem{\aCmd} = \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI}$.
