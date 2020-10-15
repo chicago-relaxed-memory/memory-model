@@ -28,7 +28,7 @@ accesses, beyond those already given.
 % $\modeRLX$-mode annotations in definitions.
 \begin{definition}
   \label{def:cover}
-  Extend the definition of prefixing (Candidate \ref{def:prefix}) to require:
+  Extend the definition of prefixing (Cand.~\ref{def:prefix}) to require:
   % Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set $\PRE{\aPSS'}$ 
   % where $\aPS'\in\aPSS'$ when there is some $\aPS\in\aPSS$ that satisfies
   % \ref{1}-\ref{5} of Candidate \ref{def:prefix} such that:
@@ -38,13 +38,6 @@ accesses, beyond those already given.
     is location independent.
   \end{itemize}  
 
-  % Let $(\Rdis{\aLoc}{\aVal}\aPSS)$ be the set $\aPSS'$ where $\aPS'\in\aPSS'$
-  % when there is $\aPS\in\aPSS$ such that: $\Event' = \Event$,
-  % ${\le'} = {\le}$, $\labelingAct' = \labelingAct$, and either
-  % $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
-  % $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
-  %   such that $\bEv\le\aEv$} and
-  % $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
 
   % Let $(\Rdis{\aLoc}{}\aPSS) = \textstyle\bigcup_\aVal \Rdis{\aLoc}{\aVal}\aPSS$.
 
@@ -57,10 +50,18 @@ accesses, beyond those already given.
   % $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$, and
   % $\labelingForm'(\aEv)$ implies $(\aExp=\aVal\lor\labelingForm(\aEv))$
   
-  Let $(\relfilt[]{\aLoc} \aPSS)$ be the set $\aPSS'\subseteq\aPSS$ such that
-  $\aPS'\in\aPSS'$ when for every release $\aEv'\in\Event'$, there is some
-  $\bEv'\in\Event'$ such that $\bEv' \le\aEv'$ and $\bEv'$ \externally writes
-  $\aLoc$.
+  Let $\aPS\in(\relfilt[]{\aLoc} \aPSS)$
+  when %be the set $\aPSS'\subseteq\aPSS$ such that
+  $\aPS\in\aPSS$ and for every release $\aEv\in\Event$, there is some
+  $\bEv\in\Event$ that writes $\aLoc$ such that $\bEv \le\aEv$.
+
+  Let $\aPS'\in(\Rdis{\aLoc}{\aVal}\aPSS)$ %be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+  when there is $\aPS\in\aPSS$ such that $\Event' = \Event$,
+  ${\le'} = {\le}$, $\labelingAct' = \labelingAct$, and either
+  $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
+  $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
+    such that $\bEv\le\aEv$.} and
+  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
   \begin{align*}
     \sem{\aReg\GETS\aLoc^\modeRLX\SEMI \aCmd} &\eqdef\;\mathhl{
       % \Rdis{\aLoc}{}
@@ -96,11 +97,11 @@ accesses, beyond those already given.
     \end{aligned}
   \end{align*}
 \end{definition}
-There are four changes in the definition: To validate case analysis, we apply
-$\Rdis{\aLoc}{\aVal}$ before prefixing a read.  To validate read elimination,
+There are four changes in the definition: To validate read elimination,
 we include $\sem{\aCmd}[\aLoc/\aReg]$.  To ensure that read elimination does
 not allow stale reads, we require \ref{6}.  To validate write elimination, we
-include $\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$.
+include $\relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]$. To validate case analysis, we apply
+$\Rdis{\aLoc}{\aVal}$ before prefixing a read.  
 
 We close this section with a read-enriched semantics that validates
 irrelevant read introduction.
@@ -201,9 +202,10 @@ The rewrite is less general than \ref{RE} because general store elimination
 is unsound.  For example, ``${x\GETS 0}$'' and ``${x\GETS 0\SEMI x\GETS 1}$''
 can be distinguished by the context ``$\hole{}\PAR z\GETS x$''.
 
-\ref{DS} is valid under Definition \ref{def:cover}.  A write may only be
-removed if it is \emph{covered} by a following write.  This
-prevents bad executions, such as:
+Using $\relfilt[]{\aLoc}$, \ref{DS} is validated by Definition
+\ref{def:cover}.  A write may only be removed if it is \emph{covered} by a
+following write.  This restriction is sufficient to prevent bad executions
+such as:
 \begin{gather*}
   %\taglabel{Cover}
   x\GETS 1\SEMI
@@ -795,7 +797,7 @@ safe languages, like Java.
 
 
 \myparagraph{Irrelevant Read Introduction}
-Compilers sometimes introduce reads in order to lift code.  Consider the
+A compiler may introduce reads in order to lift code.  Consider the
 following example \cite[\textsection1.4.5]{SevcikThesis}:
 \begin{align*}
   \sem{\IF{\aReg} \THEN \bReg \GETS \aLoc \SEMI \bLoc \GETS \bReg \FI}
@@ -812,8 +814,8 @@ of the form $(\DR{x}{v})$ to the left-hand side, validating the inclusion.
 % pomsets and
 % $(r\neq0\mid\DR{x}{v})$ to the right, thus equating them.
 
-Let $\readc(\aPSS)$ be the set $\aPSS'$ where
-$\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and $\exists D$ such that $\Event'= \Event\uplus D$,
+Let $\aPS'\in\readc(\aPSS)$ %be the set $\aPSS'$ where $\aPS'\in\aPSS'$
+when $\exists\aPS\in\aPSS$ and $\exists D$ such that $\Event'= \Event\uplus D$,
 ${\le'}\supseteq{\le}$,
 ${\labeling'} \supseteq{\labeling}$, and
 $\forall \bEv\in D.\;\exists\aLoc.\;\exists\aVal$.
@@ -833,8 +835,8 @@ $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
 % The last requirement ensures consistency with item \ref{4c} in the
 % definition of prefixing.
 %
-Note that if $\aPSS'\supseteq\aPSS$, then
-$\readc(\aPSS')\supseteq \readc(\aPSS)$.
+Note that if $\aPSS\supseteq\aPSS'$, then
+$\readc(\aPSS)\supseteq \readc(\aPSS')$.
 
 Read introduction \eqref{RI} is valid under the saturated semantics.
 \begin{align*}
@@ -846,7 +848,7 @@ Read introduction \eqref{RI} is valid under the saturated semantics.
 
 With \ref{RI}, the model satisfies all of the transformations of
 \citet[\textsection 5.3-4]{SevcikThesis} except redundant write after read
-elimination (see \textsection\ref{sec:valid}) and reordering with external
+elimination (see \textsection\ref{sec:limits}) and reordering with external
 actions, which we do not model.
 % \citet[\textsection 5.3]{SevcikThesis}
 % Sevcik 5.3:

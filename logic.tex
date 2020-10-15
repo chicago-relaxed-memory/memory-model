@@ -33,26 +33,26 @@ initialization in order to fit the format of our proof rules:
 \end{align}
 Although Java does not allow \oota{} behaviors of \ref{OOTA3},
 \citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
-behaviors of \ref{OOTA1}, from \textsection\ref{sec:intro}.  In
+behaviors of \ref{OOTA1}, also from \textsection\ref{sec:intro}.  In
 \cite{DBLP:conf/lics/JeffreyR16}, we described a logic that rules out
-\ref{OOTA3} but not \ref{OOTA1}.  In this section, we provide a more accurate
-test of \oota{} behaviors by enhancing our previous logic with temporal features.
+\ref{OOTA3} but not \ref{OOTA1} or its variant \ref{OOTA4}.  In this section,
+we provide a more accurate test of \oota{} behaviors by enhancing our
+previous logic with temporal features.
 
 On first read, we suggest that readers skip to the examples and the
-discussion that follows, coming back to the details of the logic as
-necessary.  Example~\ref{ex:thin} discusses the canonical \oota{} example
-\ref{OOTA3}; the analysis is trivial and well-known
-\cite{DBLP:conf/lics/JeffreyR16, DBLP:conf/popl/KangHLVD17}.
-Example~\ref{ex:lochb} is more interesting.  There, we discuss a variant of
-\citeauthor{DBLP:journals/toplas/Lochbihler13}'s example \ref{OOTA1},
-from the introduction.
+discussion that follows, coming back to the definitions as necessary.
+Example~\ref{ex:thin} discusses the canonical \oota{} example \ref{OOTA3};
+the analysis is trivial and well-known \cite{DBLP:conf/lics/JeffreyR16,
+  DBLP:conf/popl/KangHLVD17}.  Example~\ref{ex:lochb} is more interesting.
+There, we discuss \ref{OOTA4}, which is a variant of
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s \ref{OOTA1}.
 % In this case, the violation is a subtler
 % temporal property.  We develop a logic sufficient to prove that our semantics
 % disallows \oota\ on \eqref{lochbihler}.  
 
 The logic given here is not meant to be definitive; in
-\textsection\ref{sec:limits}, we discuss \oota{} examples that require
-non-trivial extensions
+\textsection\ref{sec:limits}, we discuss \oota{} examples that appear to
+require non-trivial extensions
 \cite{DBLP:conf/esop/SvendsenPDLV18,DBLP:journals/pacmpl/ChakrabortyV19}.
 
 \noparagraph{Definitions}
@@ -420,9 +420,9 @@ $(\DR{y}{1})$ to $(\DW{x}{1})$; thus, the outcome is disallowed.  This
 outcome is also disallowed by our event structures model
 \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19}, although the logic
 given in that paper is insufficient to establish this fact.  The outcome is
-\emph{allowed} by \citep{DBLP:conf/esop/JagadeesanPR10},
-\citep{DBLP:conf/popl/KangHLVD17}, and
-\citep{DBLP:journals/pacmpl/ChakrabortyV19}.
+\emph{allowed} by \citet{Manson:2005:JMM:1047659.1040336}, \citet{DBLP:conf/esop/JagadeesanPR10},
+\citet{DBLP:conf/popl/KangHLVD17}, and
+\citet{DBLP:journals/pacmpl/ChakrabortyV19}.
 % , demonstrating a lack of
 % compositionality in these models.
 % \begin{tikzdisplay}[node distance=1.5em]
@@ -457,14 +457,11 @@ To establish that this outcome is disallowed here, we prove
 starting with invariant:
 % which holds for each of the three threads, and thus, by composition, for the
 % aggregate program:
-\begin{scope}
-\small
 \begin{align*}
   [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
   \land
   [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
 \end{align*}
-\end{scope}
 Closing $y$ and chaining into the left conjunct:
 % \begin{math}
 %   \once\DR{y}{1} \Rightarrow \once\DW{y}{1}. % \Rightarrow \once\DR{x}{1}
@@ -618,9 +615,11 @@ $x\GETS y \PAR \hole{}$, these programs have different behaviors.  Yet the
 branch change that?  Because of the conditional, the write to $x$ in
 \ref{RFUB} is independent of the read from $y$.  It useful to considering the
 Hoare logic formulas satisfied by the two threads above: we have
-$\hoare{\TRUE}{}{x=1}$ for the right thread of \eqref{RFUB}, but not for
-\ref{OOTA3}.  The change in the thread from
-\ref{OOTA3} to \ref{RFUB} is not a valid refinement under Hoare logic; thus, it is expected that \ref{RFUB} may have additional behaviors.
+$\hoare{\TRUE}{\ref{RFUB}}{x=1}$ for the right thread of \ref{RFUB}, but not
+$\hoare{\TRUE}{\ref{OOTA3}}{x=1}$ for the right thread of \ref{OOTA3}.  The
+change in the thread from \ref{OOTA3} to \ref{RFUB} is not a valid refinement
+under Hoare logic; thus, it is expected that \ref{RFUB} may have additional
+behaviors.
 
 Understanding \oota{} behavior is notoriously difficult, even for the
 greatest minds in the field!  % We believe that \emph{logic} is the only tool

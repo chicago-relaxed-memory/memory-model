@@ -19,12 +19,12 @@ to the semantics in \textsection\ref{sec:refine}.
 
 \citet{PughWebsite} developed a set of litmus tests for the java memory
 model.  Our model gives the expected result for all but cases 16, 19 and 20
-(unrolling loops): we discuss \ref{TC16} below; TC19 and TC20 involve a
-thread join operation, which is not expressible in our language.  Our model
-also agrees with the \oota{} examples of \citet[\textsection
-4]{DBLP:conf/esop/BattyMNPS15} and the ``surprising and controversial
-behaviors'' of \citet[\textsection 8]{Manson:2005:JMM:1047659.1040336}.  See
-\cite{DBLP:conf/esop/PaviottiCPWOB20} for an exhaustive list of litmus tests.
+(unrolling loops): we discuss \ref{TC16} below; \textsc{tc19} and
+\textsc{tc20} involve a thread join operation, which is not expressible in
+our language.  Our model also agrees with the \oota{} examples of
+\citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and the ``surprising and
+controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}.  %See \cite{DBLP:conf/esop/PaviottiCPWOB20} for an exhaustive list of litmus tests.
 
 \myparagraph{Buffering}
 
@@ -184,7 +184,8 @@ coherence between relaxed atomics in order to forbid this:
 \end{gather*}
 Here, the reader sees $2$ then $1$, although they are written in the reverse
 order.
-This behavior is allowed by Java in order to validate \ref{CSE}.
+This behavior is allowed by Java in order to validate \ref{CSE} without requiring
+aliasing analysis.
 
 However, our model is more coherent than Java, which permits the following:
 \begin{gather*}
@@ -711,7 +712,7 @@ ignoring concurrent blocking writes.
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-Here, $(\DW{x}{1})$ is violates \ref{rf4}.  The precondition $(1{=}1)$ is
+Here $(\DR{x}{1})$ violates \ref{rf4}.  The precondition $(1{=}1)$ is
 imposed by \ref{4c}.  The pomset becomes inconsistent if we change
 $(\DR{x}{1})$ to $(\DR{x}{2})$, since the precondition would change to $(2{=}1)$.
 % there is no order from $(\DR{x}{1})$ to
@@ -761,12 +762,13 @@ Further prepending
 $(\DWRel{y}{1})$ results in $(1{=}1\mid \DW{z}{1})$.
 
 Our model drops order into actions that depend on a read that can be
-fulfilled \emph{internally}, by a prefixed write.  This is natural
-consequence of substitution.  The \armeight{} model has to jump through
-some hoops to ensure that internal reads are handled correctly.  \armeight{}
-takes the symmetric approach: rather than dropping order \emph{out of} an
-internal read, \armeight{} drops the order \emph{into} it.  This difference
-complicates the proof for \armeight{} (\textsection\ref{sec:arm}).
+fulfilled {internally}, by a prefixed write.  This is natural consequence of
+substitution.  The \armeight{} model has to jump through some hoops to ensure
+that internal reads are handled correctly.  \armeight{} takes the symmetric
+approach: rather than dropping order \emph{out of} an internal read,
+\armeight{} drops the order \emph{into} it.  This difference complicates the
+proof of correctness for implementing our semantics on \armeight{}
+(\textsection\ref{sec:arm}).
 
 % performs the substitution $(y=1\mid \DW{z}{1})[1/y]$ resulting in a
 % tautology.
@@ -806,7 +808,7 @@ complicates the proof for \armeight{} (\textsection\ref{sec:arm}).
 preserved.  Combined with \ref{rf3}--\ref{rf4}, this is
 sufficient to establish that programs with only SC access have only SC
 executions; for example, the executions of \ref{SB/LB} are banned when the
-actions of the two threads are all $\modeSC$.  It is also immediate that SC
+all actions are $\modeSC$.  It is also immediate that SC
 actions can be totally ordered, using any linearization of pomset order.
 Just as SC access in \armeight{} is simplified by \mca, it is simplified here
 by the global pomset order.
@@ -997,7 +999,7 @@ relaxed access.
 %   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
 % $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
-\ref{5} imposes no order between events in \ref{RR}--\ref{RW}.  Note that \ref{RR} allows aliasing.
+\ref{5} imposes no order between events in \ref{RR}--\ref{RW}.  %Note that \ref{RR} allows aliasing.
 Using augmentation closure, \ref{5} also validates roach-motel reorderings \cite{SevcikThesis}.  For
 example, on read/write pairs:
   \begin{align*}
@@ -1015,16 +1017,17 @@ example, on read/write pairs:
   \end{align*}
 
   Redundant load elimination \eqref{RL} follows
-  from \ref{1}, taking $\bEv\in\Event$.
+  from \ref{1}, taking $\bEv\in\Event$, regardless of the access mode:
 \begin{align*}
   \taglabel{RL}
   \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aLoc^\amode\SEMI\aCmd} &\supseteq 
   \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
 \end{align*}
-\ref{RL} holds regardless of the access mode.
+%\ref{RL} holds regardless of the access mode.
   % Reads on the same location are ordered in our model; thus, read optimizations
 % are limited by the power of aliasing analysis
 % \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
+
   Since \ref{5b} does not impose order between reads of the same
   location, \ref{RR} can allow the possibility that $\aLoc=\bLoc$.  As a
   result, read optimizations are not limited by the power of aliasing

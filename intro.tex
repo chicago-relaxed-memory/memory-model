@@ -71,8 +71,8 @@ all memory locations are initialized to $0$:
   \PAR&
   r\GETS y\SEMI\IF{r}\THEN 
   x\GETS r\SEMI z\GETS r \ELSE x\GETS1 \FI
-\intertext{Most programmers would be surprised to learn that this program does allow an
-execution in which $z{=}1$. To see why, imagine that a compiler does type
+\intertext{Most programmers would be surprised to learn that this program allows an
+execution that sets $z$ to $1$. To see why, imagine that a compiler does type
 inference and finds that $x$ and $y$ are booleans, with value either $0$ or
 $1$.  This enables the program to be optimized to the following:}
   %\taglabelp{OOTA?}
@@ -87,7 +87,7 @@ then lift it, and reorder with the independent read of $y$, yielding:}
   \PAR&
   x\GETS1\SEMI
   r\GETS y\SEMI\IF{r}\THEN z\GETS 1 \FI
-\intertext{Then $z{=}1$ at then end of an execution where the first thread is interleaved
+\intertext{Then $z$ is $1$ at then end of an execution where the first thread is interleaved
 immediately after executing $x\GETS1$.
 Without the conditional in \eqref{OOTA?}, it is obvious that the program should not write $1$:}
   \tag{\ref{OOTA3}}
@@ -128,7 +128,7 @@ Consider the following variants of \eqref{OOTA?}:
   \PAR
   b\GETS1
 \end{align}
-Following the reasoning above, \eqref{OOTA!} has an execution where
+Following the reasoning above, \ref{OOTA!} has an execution where
 $z{=}2$, but it does not have an execution where $z{=}1$.   Neither does
 \ref{OOTA4}.  In this case, it not sound to assume that  $1$ is
 written on both sides of the conditional, invalidating the first optimization
@@ -192,9 +192,10 @@ all memory locations are initialized to $0$:
 \ref{OOTA1} ``is type correct if it declares $x$, $y$ and $r$ of type
 $\classD$. However, it has a legal execution where they reference a $\classC$
 object.''  The JMM allows $(\aReg\GETS y)$ to see the object created by
-$\NEW$, by bouncing it through $(x \GETS \aReg)$ and $(y\GETS x)$.  This
-allows the address of the allocated object to be read $(\aReg\GETS y)$ before
-its type is determined $(\IF{b})$.
+$\NEW$, by bouncing it through $(x \GETS \aReg)$ and $(y\GETS x)$.  In the
+\emph{commitment order} of the JMM, this allows the address of the
+allocated object to be read $(\aReg\GETS y)$ before its type is determined
+$(\IF{b})$.
 
 % See \ref{OOTA4} in
 % \textsection\ref{sec:logic} for a simple variant of \eqref{OOTA?} with this
@@ -208,7 +209,7 @@ its type is determined $(\IF{b})$.
 % \emph{allocation at type $\classC$ is preceded by reading $0$ for
 %   $b$}, but the composed program does not.  This lack of compositionality
 
-This type of {bait-and-switch} behavior forced
+This type of \emph{bait-and-switch} behavior forced
 \citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by type in
 order to prove type safety.  This formal device means that memory cannot be
 used at different types over time, making practical memory reclamation
@@ -218,18 +219,22 @@ implications for the Java security architecture
 
 In both \ref{OOTA4} and \ref{OOTA1}, the \oota{} outcome occurs by
 \emph{baiting} with the \texttt{else} branch, then \emph{switching} to the
-\texttt{then} branch.  As confirmed by \cite{kang,soham}, the promising
-semantics \cite{DBLP:conf/popl/KangHLVD17} and related models
-\citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19} all
-allow \oota{} behaviors of \ref{OOTA4}\footnote{Call the threads \texttt{s},
-  \texttt{t}, and \texttt{u}.  To get the result in the promising semantics,
-  first execute \texttt{u} to get message \texttt{<b:1@1>}.  Then \texttt{t}
-  promises \texttt{<x:1@1>}, which it can fulfill by reading \texttt{b==0}.
-  Then execute \texttt{s} to get message \texttt{<y:1@1>}.  Then execute
-  \texttt{t}, reading \texttt{b==1} and \texttt{y==1} and fulfill the promise
-  by writing \texttt{<x:1@1>}.}.  Due to the similarity of \ref{OOTA4} and
-\ref{OOTA1}, it is reasonable to conclude that these models \emph{cannot
-  support both type safety and realistic memory reclamation}.
+\texttt{then} branch, based on a coin flip $(\IF{b})$.  As confirmed by
+\cite{kang,soham}, the promising semantics \cite{DBLP:conf/popl/KangHLVD17}
+and related models
+\citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19,Manson:2005:JMM:1047659.1040336}
+all allow \oota{} behaviors of \ref{OOTA4}.\footnote{Call the threads
+  \texttt{s}, \texttt{t}, and \texttt{u}.  To get the result in the promising
+  semantics, first execute \texttt{u} to get message \texttt{<b:1@1>}.  Then
+  \texttt{t} promises \texttt{<x:1@1>}, which it can fulfill by reading
+  \texttt{b}$=$\texttt{0}.  Then execute \texttt{s} to get message \texttt{<y:1@1>}.
+  Then execute \texttt{t}, reading \texttt{b}$=$\texttt{1} and \texttt{y}$=$\texttt{1} and
+  fulfill the promise by writing \texttt{<x:1@1>}. The execution is exactly
+  the same in our speculative semantics \cite{DBLP:conf/esop/JagadeesanPR10},
+  removing timestamps and replacing the word \emph{promise} by \emph{speculation}.}  Due
+to the similarity of \ref{OOTA4} and \ref{OOTA1}, it is reasonable to
+conclude that these models \emph{cannot support both type safety and
+  realistic memory reclamation}.
 
 % The JMM is defined using an operational model that incorporates the idea of
 % restarting executions.  Similar models have used speculation
@@ -286,10 +291,11 @@ reads, even on \armeight.
 \myparagraph{Our Model}
 
 In our approach, a program is a set of executions.  Each execution is a
-partial order on a set of read and write events.  The order is intended to be
-read as a ``dependency'' relation.  The dependency relation can vary between
-executions, so it is dynamic; events that are not related in an execution are
-``independent'' and can be seen by a sequential observer in either order.
+\emph{pomset}: a partial order over a set of read and write events.  The
+order is intended to be read as a \emph{dependency} relation.  The dependency
+relation is dynamic, varying between executions.  Events that are not related
+in an execution are \emph{independent} and can be seen by a sequential
+observer in either order.
 
 Cross thread dependencies arise from conflicting actions on the same
 variable: Roughly, we order any two actions on the same location, at least
@@ -313,22 +319,21 @@ Our key insight is that \emph{\mca{} permits a single, global notion of time,
   
 
 Within a thread, the dependency calculation can be viewed as the computation
-of \emph{preserved} program order ($\rppo$) in hardware models.  $\rppo$
-captures the \emph{essential dependencies} between events in the same thread.
-Consider the following program fragments: \begingroup \allowdisplaybreaks
+of \emph{preserved program order}, called $\rppo$ in hardware models.  In our
+software model, $\rppo$ captures the \emph{essential dependencies} between
+events in the same thread.  Consider the following program fragments:
 \begin{align*}
   & \aCmd_1: \aLoc \GETS 1 \SEMI \bLoc \GETS 1
   \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \bLoc \GETS 1 \ELSE \bLoc \GETS 1  \FI
   \\[-1ex] & \aCmd_3: \aLoc \GETS 1 \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \bLoc \GETS 1 \FI
   %\\[-1ex] &\aCmd_4:  \bLoc \GETS 1 \SEMI \aLoc \GETS 1
 \end{align*}
-\endgroup
-All these fragments satisfy $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
+Each of these fragments satisfy the \citeauthor{Hoare:1969:ABC:363235.363259} triple $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
 case, the write of $y$ is independent of any code that precedes it in program
 order. While $\aCmd_1$ reflects syntactic independence, $\aCmd_2$ reflects
 the independence derived by case analysis, and $\aCmd_3$ reflects the
-independence deduced from partial evaluation (in the restricted form of
-constant propagation).
+independence deduced from partial evaluation, in the restricted form of
+constant propagation.
 
 Our key insight is to that \emph{logic is better than syntax} to capture such
 dependencies.
@@ -336,14 +341,15 @@ dependencies.
 The logical perspective provides a clear intuition as to why certain compiler
 transformations should be valid.  Such intuitions are not always readily
 available in relaxed memory models.  For example, \emph{value range
-  analysis}---used in the discussion of \eqref{OOTA?}---is very difficult in
-many models.  As another example, models such as \armeight{} distinguish
+  analysis}---used in the discussion of \eqref{OOTA?}---is difficult in many
+models.  As another example, models such as \armeight{} distinguish
 \emph{internal} reads, which are fulfilled by a write of the same thread,
-from \emph{external} ones.  Unlike externally fulfilled reads, internal reads
-are not necessarily recorded in the dependency relation.  As exemplified by
-$\aCmd_3$, this allows a compiler to reorder the fulfilling write with
-subsequent code that depends on the read.  Neither value range analysis nor
-internal reads require special treatment in our model.
+from \emph{external} ones, which are fulfilled cross-thread.  Unlike
+external reads, internal reads are not necessarily recorded in
+the dependency relation.  As exemplified by $\aCmd_3$, this allows a compiler
+to reorder the fulfilling write with subsequent code that depends on the
+read.  Neither value range analysis nor internal reads require special
+treatment in our model.
 
 
 
@@ -469,8 +475,9 @@ thread of \ref{OOTA4} satisfies the following invariant: \emph{A write of $1$
   to $y$ must be preceded by a read of $1$ from $x$, and if $1$ is written to
   $z$ then a write of $1$ to $x$ must be preceded by a read of $1$ from $y$.}
 Compositionality allows us to conclude that whole program satisfies this
-property.  This reasoning fails in
-\cite{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19}.
+property.  As noted above, this reasoning \emph{fails} in models based on
+promises, speculations, or commitments.
+%\cite{DBLP:conf/popl/KangHLVD17,DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19}.
 % demonstrating a lack of compositionality
 Compositionality for temporal safety is a \emph{verifiable} criterion for claiming that a model
 rejects \oota{} executions.

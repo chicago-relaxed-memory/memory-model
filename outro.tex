@@ -32,20 +32,20 @@ thin air reads, efficient implementability, or \drfsc{}.
 %(http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1780r0.html).
 
 Our model shares important structural elements with that of
-\citet{DBLP:conf/esop/PaviottiCPWOB20}, who provide a fix for the thin-air
-problem in C11.  Like us, they use true concurrency semantics to identify
-(in)dependence in an execution and thus calculate the preserved program order
-explicitly.  Our definition of parallel composition allows events to
-coalesce, taking preconditions via disjunction---this is mirrored by
-\citeauthor{DBLP:conf/esop/PaviottiCPWOB20}'s definition of coproduct.  We
+\citet{DBLP:conf/esop/PaviottiCPWOB20}, who provide a fix for the \oota{}
+problem in C11 relaxed access.  Like us, they use true concurrency semantics
+to identify independencies in an execution and thus calculate the preserved
+program order explicitly.  Our definition of parallel composition allows
+events to coalesce, taking preconditions via disjunction---this is mirrored
+by \citeauthor{DBLP:conf/esop/PaviottiCPWOB20}'s definition of coproduct.  We
 only compose downsets of completed pomsets---this is mirrored by their
 condition on $\leq^{\mathcal{X}}$ during coproduct (discussed in their
 \textsection6.3).  Nonetheless, the papers have different goals, leading to
-different outcomes.  For example, their model compiles efficiently to
-non-\mca{} architectures; our model clearly does not!  Conversely, our model
-provides an intrinsic characterization of optimizations, such as redundant
-read elimination, which only hold in their model up to observational
-refinement.
+different outcomes.  For example, their model can be implemented efficiently
+on non-\mca{} architectures; our model clearly can not!  Conversely, our
+model provides an intrinsic characterization of optimizations, such as
+redundant read elimination, which only hold in their model up to
+observational refinement.
 % In contrast to our LDRF
 % theorem, they prove an internal version of DRF, ie that race free programs
 % have SC behavior, without necessarily settling the question of discovering
@@ -71,8 +71,8 @@ There is a rich literature on the use of transformations over SC
 executions to model relaxed memory:
 %
 \citet{Saraswat:2007:TMM:1229428.1229469}
-aimed to describe a \jmm-like model this way.  \drfsc\ holds, but \citet{SP} 
-discovered that it permits \oota\ behavior.
+aimed to describe a \jmm-like model this way---\drfsc\ holds, but \citet{SP} 
+discovered that this model permits \oota\ behavior.
 %
 \citet{DBLP:conf/popl/DemangeLZJPV13} developed \textsc{bmm}, which permits
 reordering of a relaxed write with a following relaxed read.
@@ -82,11 +82,11 @@ reordering of a relaxed write with a following relaxed read.
 %
 \citet{DBLP:conf/fm/LahavV16} characterized \tso\ as being derived by
 considering Write-Read (\textsf{WR}) reordering and Read-After-Write
-(\textsf{RAW}) elimination.  They also showed that the release acquires of
-C11 are less expressive than considering \textsf{WR} and \textsf{RAW}
-together with thread-inlining.  Our paper is inspired by their implicit
-challenge: ``Some memory models can be defined via transformations.  But
-there is more to weak memory than transformations.''
+(\textsf{RAW}) elimination.  They also showed that the release-acquire
+accesses of C11 are less expressive than considering \textsf{WR} and
+\textsf{RAW} together with thread-inlining.  Our paper is inspired by their
+implicit challenge: ``Some memory models can be defined via transformations.
+But there is more to weak memory than transformations.''
 
 % \paragraph{Modeling the Invalidation of Load Buffering.} 
 
@@ -207,7 +207,7 @@ there is more to weak memory than transformations.''
 future research.  % In several cases, these limitations have allowed us to
 % \emph{surpass prior work in significant ways}.
 
-We have not modeled loops or functions.  Loops and recursive functions
+We have not modeled loops or recursive functions.  These
 introduce complexities\allowbreak{}---such as liveness and continuity---that
 are orthogonal to the main topic of the paper.
 
@@ -231,7 +231,7 @@ sufficient to modify \ref{5b}.  To capture the use of $\rsi$ when defining
 %The atomicity of mixed size access is not as strong as that of \RMWs.
 
 We have only considered peephole optimizations---other optimizations may be
-valid.  For example, the model does \emph{not} satisfy redundant write after
+valid.  For example, the model does \emph{not} validate redundant write after
 read elimination as a peephole optimization.  Consider this example from
 \cite[\textsection 5.3.1]{SevcikThesis}:
 \begin{displaymath}
@@ -248,9 +248,9 @@ In the JMM, these are distinguished by the context
 That is not case here, however, due to local \drfsc{}.  Nonetheless,
 completed pomsets from the left include a write to $x$, which is not found on
 the right.  This write to $x$ cannot be eliminated using $\relfilt[]{\aLoc}$
-because there is no following write.  At top-level, however, the read of $x$
-must be fulfilled by \emph{some} write---assuming that these writes can
-coalesce, the optimization can be validated.
+(Def.~\ref{def:cover}) because there is no following write.  At top-level,
+however, the read of $x$ must be fulfilled by \emph{some} write---assuming
+that these writes can coalesce, the optimization can be validated.
 
 We have not attempted validate all program transformations that involve
 synchronization, fences or \RMWs{}
@@ -258,13 +258,13 @@ synchronization, fences or \RMWs{}
 our semantics validates roach motel (\ref{AcqW}, \ref{RelW}), redundant load
 (\ref{RL}), fence removal (\ref{RF}), and store forwarding (\ref{SF}).  We
 expect that dead store elimination (\ref{DS}) generalizes to non-relaxed
-access by generalizing $\relfilt[]{\aLoc}$ (Def.~\ref{def:cover}.)
-Some transformations are not sound in the model, but we expect them to be
-provable as metaproperties.  For example, access-mode strengthening (such as
-replacing $\modeRLX$ by $\modeRA$) is valid up to an equivalence that ignores
-access modes on actions.  Other transformations worth studying include
-commuting adjacent synchronizations and implementing non-relaxed access using
-relaxed access and fences.
+access by generalizing $\relfilt[]{\aLoc}$.  Some transformations are not
+sound in the model, but we expect them to be provable as metaproperties.  For
+example, access-mode strengthening (such as replacing $\modeRLX$ by
+$\modeRA$) is valid up to an equivalence that ignores access modes on
+actions.  Other transformations worth studying include commuting adjacent
+acquires, commuting adjacent releases, and implementing non-relaxed access
+using relaxed access and fences.
 %
 % We have also not attempted to validate transformations that can only be
 % validated by considering the surrounding context, such as Lock elision,
@@ -346,7 +346,7 @@ to prove a few examples.  \citet{DBLP:conf/esop/SvendsenPDLV18} presented a
 different a logic, capable of showing that the following program cannot write
 2:
 \begin{align*}
-  \tag{\textsc{oota5}}
+  \tag{\textsc{oota6}}
     ( y\GETS x+1
     \PAR
     x\GETS y ) && \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -369,7 +369,7 @@ to fulfill $(\DR{y}{1})$.  % Proving this requires the ability to reason about
 As another example,
 consider the following, from \citet[Fig.~3]{DBLP:journals/pacmpl/ChakrabortyV19}:
 \begin{gather*}
-  \tag{\textsc{oota6}}
+  \tag{\textsc{oota7}}
   \begin{gathered}
   x\GETS 2\SEMI
   \IF{x\NOTEQ2}\THEN y\GETS 1 \FI
@@ -421,7 +421,7 @@ To do so, one cannot include the order required by \ref{rf4} in pomset order.
 In \cite{2019-sp}, we modeled programs using \emph{3-valued pomsets}, using
 the \emph{weak} relation ($\gtNsp$) for \ref{rf4} and \ref{5b}.  This does
 \emph{not} provide a suitable model for non-\mca{} behavior, however, since
-it disallows \ref{MCA2}\footnote{Following \cite{DBLP:journals/dc/Lamport86},
+it disallows \ref{MCA2}.\footnote{Following \cite{DBLP:journals/dc/Lamport86},
   3-valued pomset require: (1) if $d\leq e$ then $d\gtNsp e$, (2) if
   $d\leq e$ and $e\gtNsp d$ then $d=e$, and (3) if $c\leq d \gtNsp e$ or
   $c\gtNsp d\leq e$ then $c\gtNsp e$.  \ref{MCA2} is disallowed by (2).
@@ -429,7 +429,7 @@ it disallows \ref{MCA2}\footnote{Following \cite{DBLP:journals/dc/Lamport86},
   per-location; a sufficient condition is (4) if $d\gtNsp e$ and $e\gtNsp d$
   then $d$ and $e$ do not touch the same location.  Although \ref{MCA1} is
   allowed, its two-thread variant is not, due to the combination of
-  \emph{semi\hyp{}transitivity (3)} and \emph{partial coherence (4)}.}.
+  \emph{semi\hyp{}transitivity (3)} and \emph{partial coherence (4)}.}
 
 
 

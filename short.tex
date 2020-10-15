@@ -185,12 +185,12 @@ but not $(\DW{x}{0})$, which is $\rpox$-before it.
 It is obvious how to enhance the semantics of prefixing and most other
 operators to define $\rpox$.  When combining pomsets using the conditional,
 the obvious definition may result in cycles, since $\rpox$-ordered reads may
-coalesce.  In this case we include a separate pomset for each way of breaking
-these cycles.
+coalesce---see the discussion of \ref{CA} in \textsection\ref{sec:refine}.  In
+this case we include a separate pomset for each way of breaking these cycles.
 
 Because we ignore the features of
 \textsection\ref{sec:variants}, we can adopt the simplest definition of
-\emph{synchronizes-with} ($\rsw$): Let $\bEv\xsw\aEv$ exactly when
+\emph{synchronizes\hyp{}with}~($\rsw$): Let $\bEv\xsw\aEv$ exactly when
 $\bEv$ fulfills $\aEv$, $\bEv$ is a release, $\aEv$ is an acquire, and
 $\lnot(\bEv\xpox\aEv)$.
 
@@ -199,7 +199,7 @@ Let ${\rhb}=({\rpox}\cup{\rsw})^+$ be the \emph{happens-before} relation.  In
 fails if either $\modeRA$ access is relaxed.
 
 Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
-  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they conflict
+  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they \emph{conflict}
 (Def.~\ref{def:rf}) at
 some location in $L$, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
 $\aEv\xhb\bEv$.  
@@ -220,8 +220,8 @@ there is no $\aPS\neq\aPS'\in\aPSS$ that generates $\aPS$.
 
 % Let $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
 
-Let $\semmin{\aCmd}=\{\aPS\in\sem{\aCmd} \mid \aPS$ is top-level and
-  generation-minimal in $\sem{\aCmd}\}$.
+Let $\semmin{\aCmd}=\{\aPS\in\sem{\aCmd} \mid \aPS$ is \emph{top-level}
+(Def.~\ref{def:top}) and generation-minimal in $\sem{\aCmd}\}$.
 
 \paragraph{Extensions}
 % In order to relate pomsets with syntax, we enrich commands with program
@@ -395,7 +395,7 @@ includes a race involving $\aEv$.
           \node(iy)[left=of wy0]{};
           \bgoval[yellow!50]{(ix)(iy)}{P}
           \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
-          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P'''\setminus P'}
+          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P''\setminus P'}
           \pox{wx0}{wy0}
           \pox{wy0}{wx1}
           \pox{wy0}[below]{ry1}
@@ -917,13 +917,13 @@ between ``causal future'' and ``temporal future'' is not expressible in
 % $1$ and the write of $2$.
 
 Our definition of $L$-sequentiality does not quite correspond to SC
-executions, since actions may be elided by read or write elimination
+executions, since actions may be elided by read/write elimination
 (\textsection\ref{sec:refine}).  However, for any properly initialized
 $L$-sequential pomset that uses elimination, there is larger $L$-sequential
-pomset that does not use elimination. This can be shown inductively: writes
-that are introduced this way can be ignored by existing reads; reads that are
-introduced this way can be fulfilled by some preceding write, using its
-value.
+pomset that does not use elimination. This can be shown inductively---in the
+inductive step, writes that are introduced can be ignored by existing reads,
+and reads that are introduced can be fulfilled, for some value, by some
+preceding write.
 
 \endinput
 

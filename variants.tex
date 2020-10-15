@@ -81,7 +81,7 @@ Consider the following variant of \ref{Pub1}:
       \sync{ry1}{fa}
       \sync{fa}{rx0}
       \rf{wy1}{ry1}
-      \rf[out=10,in=170]{wx0}{rx0}
+      %\rf[out=10,in=170]{wx0}{rx0}
       \wk{wx0}{wx1}
     \end{tikzinline}}
 \end{gathered}
@@ -120,8 +120,8 @@ As for \ref{RL}, redundant fence elimination \eqref{RF} follows from \ref{1},
 regardless of the access mode.
 \begin{align*}
   \taglabel{RF}
-  \sem{\FENCE^\amode \SEMI \FENCE^\amode\SEMI\aCmd} &\supseteq 
-  \sem{\FENCE^\amode \SEMI \aCmd}
+  \sem{\FENCE^\fmode \SEMI \FENCE^\fmode\SEMI\aCmd} &\supseteq 
+  \sem{\FENCE^\fmode \SEMI \aCmd}
 \end{align*}
 
 Our semantics does not suffer from overly weak fencing (\ref{SC3}) or a lack
@@ -364,7 +364,7 @@ relates the two events of a successful \RMW.  Additionally, we require that:
 % ${\xrmw'}={\xrmw}\restrict{\Event'}$, and
 % ${\labeling'}={\labeling}\restrict{\Event'}$.  
 
-Other than these two changes, nothing else changes.  In particular, \RMW{}s
+Other than these additions, nothing else changes.  In particular, \RMW{}s
 require no special treatment in Definition~\ref{def:par}: the constituent
 events of an \RMW{} may coalesce with other events as a result of parallel
 composition.  We elide the obvious and tedious semantic rules that generate $\rrmw$.
@@ -532,16 +532,15 @@ $\REF{\bExp}$, replace $\aLoc=\bLoc$ by provable equality of $\aExp$ and
 $\bExp$, and $\aLoc\neq\bLoc$ by provable inequality.  % Operations on sets can
 % be defined similarly.
 
-In Definition \ref{def:cover}, we were able to ensure disjunction closure
-  by performing targeted, local weakening via $\Rdis{\aLoc}{\aVal}$ and
-  $\Wdis{\aLoc}{\aExp}$.  This is much more difficult to do with address
-  calculation, since a single bit of syntax can refer to multiple locations.
-  Consider that 
+In Definition \ref{def:cover}, we were able to ensure disjunction closure by
+performing targeted, local weakening via $\Rdis{\aLoc}{\aVal}$.  This is much
+more difficult to do with address calculation, since a single bit of syntax
+can refer to multiple locations.  Consider that
   \begin{math}
     \sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}
   \end{math}
 includes both of the following pomsets (``$\BANG$'' is logical
-negation: ``$\BANG \aExp$'' evaluates to $1$ if
+negation---``$\BANG \aExp$'' evaluates to $1$ if
 $\aExp$ is $0$, and $0$ otherwise):
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=2em]
@@ -573,7 +572,7 @@ Thus, the disjunction closure also includes both of the following: % By using \!
       %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
     \end{tikzinline}}%\;\;\cdots
 \end{align*}
-In this example, the $d$ events that coalesce come inconsistent executions.
+In this example, the $d$ events that coalesce come from inconsistent executions.
 This is possible because the $d$ events originate from different commands.
 
 
@@ -612,11 +611,11 @@ intermediate state of $\sem{\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg}$:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
-  \event{a3}{\aReg{=}2\mid\DW{x}{1}}{right=of a2}
+  \event{a3}{\aReg{=}2\land 1{=}1\mid\DW{x}{1}}{right=of a2}
   \po{a2}{a3}
     \end{tikzinline}}
 \end{gather*}
-The precondition on $(\DW{x}{1})$ is required by causal strengthening
+The precondition $(\aReg{=}2\mid\DW{x}{1})$ is required by causal strengthening
 (Def.~\ref{def:mmpomset}). % : if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
 % implies $\labelingForm(\bEv)$.
 

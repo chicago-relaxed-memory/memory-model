@@ -149,7 +149,7 @@ reading $y$ and writing $x$, since the $(\DW{x}{1})$ event happens on both sides
 % \end{tikzinline}}
 % \end{gather*}
 
-An attempt to replicate this execution with \eqref{OOTA!} fails,
+An attempt to replicate this execution with \ref{OOTA!} fails,
 since it introduces a cycle:
 \begin{gather}
   \label{OOTA!}\tag{\textsc{oota3}}
@@ -207,7 +207,7 @@ We use color only to help the reader see where the order comes from:
 
 Each pomset event is labeled with a \emph{precondition}, in addition to the
 actions shown above.  Whereas read actions represent an obligation that must be
-\emph{fulfilled} concurrently by a matching write (Definition \ref{def:rf}),
+\emph{fulfilled} concurrently by a matching write (Def.~\ref{def:rf}),
 preconditions represent an obligation that must be \emph{satisfied}
 sequentially via substitution.
 
@@ -259,9 +259,8 @@ In \ref{OOTA!}, for example, the writes to $x$ on either side of the
 conditional cannot be combined, since one side writes $1$ and the other side
 writes $2$.  Thus, the semantics of the conditional contains
 $(r{=}1 \mid \DW{x}{1})$, rather than $(r{=}0 \lor r{=}1 \mid \DW{x}{1})$.
-As we shall see, it is only possible to weaken this precondition by
-introducing order from $(\DR{y}{1})$ to $(\DW{x}{1})$ (requirement \ref{5a}
-of Definition \ref{def:prefix}).
+As we shall see (Def.~\ref{def:prefix}), in \ref{OOTA!} it is only possible to weaken this
+precondition by introducing order from $(\DR{y}{1})$ to $(\DW{x}{1})$.
 
 % though missing the features designed to capture
 % speculative execution attacks. We will present the model in this section,
@@ -300,7 +299,7 @@ We require that data models satisfy the following:
   equalities %of the form
   $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
-  substitution,\footnote{Since formulae are closed under substitutions of the
+  substitution,\!\footnote{Since formulae are closed under substitutions of the
     form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
     $(\aEExp=\aVal)$ where $\aEExp$ is an \emph{extended expression} that
     includes memory locations.  By composition, formulae must also be closed
@@ -395,10 +394,10 @@ $\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are relea
 We systematically elide the $\modeRLX$-mode annotation, writing $(\DR{\aLoc}{\aVal})$
 as shorthand for $(\DR[\modeRLX]{\aLoc}{\aVal})$.
 
-We do not explicitly include C11-style \emph{plain} access.  If thin-air
-executions are disallowed, plain access is the same as relaxed access for
-data race free programs; data races on plain access result in undefined
-behavior \cite{undefined}.
+We do not explicitly include C11-style \emph{plain} access.  If \oota{}
+executions are disallowed for C11 relaxed access, then C11 plain access
+is the same as relaxed access for data race free programs; data races on
+plain access result in undefined behavior \cite{undefined}.
 \begin{comment}
   Thin air example from referee: if (x) y := 1 || if (y) x := 1 .
 \end{comment}
@@ -541,7 +540,8 @@ write to $y$ is
 \emph{data dependent} on the read of $x$; \emph{control} and \emph{address} dependencies are
 also local.
 $(\DW{y}{1})\xsync(\DWRel{z}{1})$ and $(\DWRel{z}{1})\xsync(\DSTOP)$ are
-\emph{fencing/synchronization} requirements.
+\emph{fencing/synchronization} requirements: $(\DWRel{z}{1})$ and $(\DSTOP)$
+are \emph{release} actions.
 
 % Although we use multiple arrows, we emphasize that they are all part
 % of the same $\le$ relation.
@@ -658,10 +658,6 @@ strengthening. % on page \pageref{page:strengthening}.
 % $\bReg$ (see page \pageref{page:strengthening}).
 
 
-A pomset is \emph{completed} if it contains a unique termination action,
-ordered after all other events.  
-Note that, by causal strengthening, the precondition of the termination event
-of a completed pomset must imply the preconditions of all other events.
 
 
 
@@ -673,9 +669,10 @@ of a completed pomset must imply the preconditions of all other events.
 % %
 % We expect sets of pomsets given by the semantics to be closed with
 % respect to \emph{augmentation}, \emph{implication} and \emph{isomorphism}:
-The semantics of programs is given as sets of completed pomsets that are
-closed with respect to \emph{downsets}, which are similar to prefixes for strings, to \emph{augmentation}, which may add order, and
-to \emph{implication}, which may strengthen formulae.  
+Let $\aPSS$ range over sets of pomsets.  The semantics of a program is given
+as a set of pomsets $\aPSS$ that is closed with respect to \emph{downsets}
+(which are similar to prefixes for strings), to \emph{augmentation} (which
+may add order), and to \emph{implication} (which may strengthen formulae).
 % The notion of \emph{downset} for pomsets is similar to the notion of
 % \emph{prefix} for strings:
 \begin{definition}
@@ -720,8 +717,17 @@ to \emph{implication}, which may strengthen formulae.
 % % \end{definition}
 
 In examples, we draw pomsets that are \emph{augmentation\hyp{}minimal} and
-\emph{implication\hyp{}minimal}.  We systematically elide the termination
-event in diagrams, unless it is relevant to the discussion.
+\emph{implication\hyp{}minimal}.
+
+A pomset is \emph{completed} if it contains a unique termination action,
+ordered after all other events.  Note that, by causal strengthening, the
+precondition of the termination event of a completed pomset must imply the
+preconditions of all other events.
+
+The semantics of a program includes only completed pomsets and their
+downsets.  We systematically elide the termination event in diagrams, unless
+it is relevant to the discussion.
+
 
 \subsection{Example Language}
 \begin{comment}
@@ -793,7 +799,7 @@ $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 % We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
 The semantic function $\sem[\aThrd]{-}$ takes a command and
-yields a set of pomsets, ranged over by $\aPSS$.
+yields a set of pomsets.
 
 % Unless it is important to the context, we elide the thread identifier,
 % writing simply $\sem{\aCmd}$.
@@ -814,12 +820,14 @@ yields a set of pomsets, ranged over by $\aPSS$.
 
 
 %\subsection{Composition, Concurrency and Conditional}
-\subsection{Composition}
+\subsection{Composition and Concurrency}
+\label{sec:par}
 Parallel composition is roughly pomset union, allowing that some events may
 \emph{coalesce}, with the resulting precondition being the disjunction of the
-precondition taken from the two sides.  Composition is used to define
-conditionals (as in \cite{2019-sp}).  We also use it to define address
-calculation (\textsection\ref{sec:variants}).  % In both cases, the use of
+precondition taken from the two sides.  As in our previous work
+\cite{2019-sp}, composition is used to define concurrency and conditionals.
+Here, we also use it to define address calculation
+(\textsection\ref{sec:variants}).  % In both cases, the use of
 % composition is required to ensure disjunction closure
 % (Definition~\ref{def:dis}).
 
@@ -894,8 +902,8 @@ Consider the following pomsets:
 \end{align*}
 The parallel composition of these programs includes pomsets with either one
 of the two events, but not both.  Including both would violate consistency
-(Def.~\ref{def:mmpomset}).  However, the definition allows events with
-the same label to \emph{coalesce}, taking the disjunction of their
+(Def.~\ref{def:mmpomset}).  However, Definition \ref{def:par} allows events
+with the same label to \emph{coalesce}, taking the disjunction of their
 preconditions.  Thus, the semantics of the combined program also includes
 \begin{math}
   (r<0\lor r\geq0\mid\DW{y}{1})
@@ -1060,10 +1068,11 @@ then both $\aPS^1$ and $\aPS^2$ are completed, and further, the termination even
 \subsection{Conditional, Register Assignment, and Skip}
 Conditional execution is defined using parallel composition and
 \emph{filtering}: $(\aForm \guard \aPSS)$ selects the subset of pomsets in
-$\aPSS$ whose preconditions all imply $\aForm$.  Register assignment is defined using
-substitution: $(\aPSS\aSub)$ performs the substitution $\aSub$ on every
-formula in $\aPSS$.  The semantics of $\SKIP$ is defined using singleton
-pomsets with label $\DSTOP$.
+$\aPSS$ whose preconditions all imply $\aForm$.  Register assignment is
+defined using substitution: $(\aPSS\aSub)$ performs the substitution $\aSub$
+on every \emph{formula} in $\aPSS$---\emph{actions} are not subject to
+substitution.  The semantics of $\SKIP$ is defined using singleton pomsets
+with label $\DSTOP$.
 \begin{definition}
     Let $\aPS\in(\aForm \guard \aPSS)$ when $\aPS\in\aPSS$ and 
     $\labelingForm(\aEv)$ implies $\aForm$.
@@ -1099,8 +1108,8 @@ Substitution applies to formulae, not actions.  For example,
 $(x{=}1\mid\DW{x}{2})[0/x]=(0{=}1\mid\DW{x}{2})$. % and $(r{=}1\mid\DW{x}{2})[x/r]=(x{=}1\mid\DW{x}{2})$.
 
 As an example of the conditional, consider the following fragments:
-\begin{align*}
-  %\label{ex:cond}
+\begin{align}
+  \label{ex:cond}
   \begin{gathered}
     \IF{s}\THEN x\GETS 1 \SEMI x\GETS 2\FI
     \\
@@ -1124,7 +1133,7 @@ As an example of the conditional, consider the following fragments:
         \sync{b}{c}
       \end{tikzinline}}
   \end{gathered}
-\end{align*}
+\end{align}
 Putting these together, we can coalesce the $(\DW{x}{1})$ events:
 \begin{gather*}
   \aCmd_{\mathsf{cond}} = \IF{s}\THEN x\GETS 1 \SEMI x\GETS 2 \ELSE x\GETS 1 \SEMI x\GETS 3 \FI
@@ -1160,9 +1169,9 @@ Let us focus on the left pomset above.  It is derived from the composition:
       \end{tikzinline}}    
 \end{gather*}
 The existence of the singleton $(\lnot s \mathbin{\mid}\DW{x}{1})$ is
-guaranteed by downset closure on the right pomset above.  Consistency
-prevents any pomset in $\sem{\aCmd_{\mathsf{cond}}}$ from containing both
-$(\DW{x}{2})$ and $(\DW{x}{3})$.
+guaranteed by downset closure on the right pomset in \eqref{ex:cond}.
+Consistency prevents any pomset in $\sem{\aCmd_{\mathsf{cond}}}$ from
+containing both $(\DW{x}{2})$ and $(\DW{x}{3})$.
 
 Note that the definitions of consistency, downset, and composition prevent
 the coalescing of $(\DW{y}{3})$ in
@@ -1222,10 +1231,9 @@ violates consistency.
 \subsection{Prefixing} % for Trivial Expressions.}
 \label{sec:pop}
 
-Prefixing adds a new read or write event to the beginning of a pomset.  As
-for composition, we allow coalescing.  The candidate definition given here
-fails to validate some compiler optimizations.  We give the final definition
-in \textsection\ref{sec:refine}.
+Prefixing adds a new read or write event to the beginning of a pomset.  The
+candidate definition given here fails to validate some compiler
+optimizations.  We give the final definition in \textsection\ref{sec:refine}.
 
 Maintaining downset closure complicates the definition in uninteresting ways;
 therefore, we perform this closure explicitly.  Let
@@ -1421,11 +1429,12 @@ there is $\aPS\in\aPSS$ such that
 \end{candidate}
 
 The main work happens in the definition of prefixing ($\prefix$).  \ref{1}
-introduces a new event, which may coalesce with an existing event in
-$\Event$.  \ref{2} ensures that no order is removed from old events.  \ref{3}
-specifies the actions labelling the events.  \ref{4} specifies the
-preconditions (along with \ref{5a}).  \ref{5} specifies the preserved program
-order.
+introduces a ``new'' event.  Coalescing is allowed, as it was for composition
+(\textsection\ref{sec:par}): the new event $\bEv$ may coalesce with an
+``old'' one in $\Event$.  \ref{2} ensures that no order is removed from old
+events.  \ref{3} specifies the actions labelling the events.  \ref{4}
+specifies the preconditions (along with \ref{5a}).  \ref{5} specifies the
+preserved program order.
 
 The semantics of read and write introduce a separate pomset for each possible
 value read or written.  The value is fixed in each pomset.  For writes, the
@@ -1615,7 +1624,7 @@ For \ref{OOTA3}, $\sem{x\GETS r\SEMI z\GETS r}$ contains:
       \event{wz}{r{=}1\mid\DW{z}{1}}{right=of wx}
     \end{tikzinline}}  
 \end{align*}
-It is only possible to satisfy the precondition of $(r{=}1\mid\DW{x}{1})$
+It is only possible to satisfy the precondition $(r{=}1)$
 using \ref{4c} when prefixing $(\DR{y}{1})$. This forces a dependency from
 read to write via \ref{5a}.  \ref{cyc} is similar.
 
@@ -1671,7 +1680,7 @@ Coalescing is possible when writing $2$, as on the right above, but it is not
 possible when writing $1$, as on the left, since $(\DW{x}{1})$ and
 $(\DW{x}{2})$ are different actions.
 When writing $1$, this is no different than \ref{OOTA3}, and thus \ref{5a}
-forces a dependency from the read of $y$ to the write of $x$.
+forces a dependency from the read of $y$ to the writes.
 % In an execution that reads $b{=}1$, \ref{5a} again forces a dependency
 % from the read of $y$ to the write of $x$.
 %However, there is no pomset that contains $(r{=}1\lor r{=}0\mid\DW{x}{1})$.
@@ -1686,19 +1695,23 @@ For \ref{OOTA4}, %the semantics of
 contains:
 \begin{align*}
   \hbox{\begin{tikzinline}[node distance=1em]
-      \event{wx}{(r{=}1\lor b{=}0)\land (r{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
-      \event{wz}{(r{=}1\lor b{=}0)\land (r{=}1\lor 1{=}0)\mid\DW{z}{1}}{right=of wx}
+      \event{wx}{\smash{\bigl((r{=}1\land b{\neq}0)\lor b{=}0\bigr)\land \bigl((r{=}1\land 1{\neq}0)\lor 1{=}0\bigr)}\mid\DW{x}{1}}{}
+      \event{wz}{(r{=}1\land b{\neq}0)\land (r{=}1\land 1{\neq}0)\mid\DW{z}{1}}{right=of wx}
       \event{rb}{\DR{b}{1}}{left=of wx}
     \end{tikzinline}}  
 \end{align*}
 In an execution that reads $b{=}1$, \ref{5a} again forces a dependency
-from the read of $y$ to the write of $x$.
+from the read of $y$ to the writes.
 
 \subsection{Fulfillment, Local Declarations, and Top-Level Pomsets}
 \label{sec:fulfillment}
-At the point that $\aLoc$ is bound, we require that every read of $\aLoc$
-be \emph{fulfilled}.  Fulfillment plays the role that \emph{reads-from} and
-\emph{coherence} play in other relaxed memory models, yet it is not the same.
+As in our previous work \cite{2019-sp}, at the point that $\aLoc$ is bound,
+we require that every read of $\aLoc$ be \emph{fulfilled}.  Fulfillment plays
+the role that \emph{reads-from} ($\rrf$) and \emph{coherence} ($\rco$) play
+in other relaxed memory models.  Unlike the acyclicity requirements involving
+$\rrf$ and $\rco$ in other models, however, fulfillment is defined
+\emph{compositionally}---see example \ref{blocker}, below.
+% , yet it is not the same.
 
 \begin{definition}
    \label{def:rf}
@@ -1781,9 +1794,9 @@ necessarily ordered with respect to each other, even if they come from the
 same thread, as do the reads here.  Irrelevant writes also float relative to
 each other, as do $(\DW{x}{3})$ and $(\DW{x}{4})$.  But irrelevant writes
 must be ordered with respect to relevant writes and reads.  The resulting
-order is somewhat weaker than traditional extended coherence, which requires
-a total order on the writes, regardless of whether they are relevant.  We
-discuss coherence further in \textsection\ref{sec:litmus}.
+order is somewhat weaker than traditional extended coherence ($\reco$), which
+requires a total order on writes, regardless of whether they are relevant.
+We discuss coherence further in \textsection\ref{sec:litmus}.
 
 % The restriction of pomset order to conflicting events is called the
 % \emph{extended coherence order} ($\reco$).  This relation can always be
@@ -1800,6 +1813,7 @@ $\forall\aVal.\;\aForm \vDash \aForm[\aVal/\aLoc] \vDash \aForm$.
 
 
 \begin{definition}
+  \label{def:top}
   A pomset is \emph{$\aLoc$-closed} if every \external read on $\aLoc$ is fulfilled,
   and every formula is independent of $\aLoc$.
     Let $\aPS\in(\nu\aLoc\!\DOT\!\aPSS)$ when $\aPS\in\aPSS$
