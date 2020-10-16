@@ -322,11 +322,14 @@
       \sem[\aThrd]{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
       \sem[\aThrd]{\aCmd}\alert<3>{[\aExp/\aReg]}
       \\ 
-      \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
-      \alert<4>{(\DR[\uncover<8>{\alert<8>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd} \alert<3>{[\aLoc/\aReg]}
+      \sem{\aReg\GETS\aLoc^{\uncover<8->{\alert<8>{\amode}}}\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
+      \alert<4>{(\DR[\uncover<8->{\alert<8>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd} \alert<3>{[\aLoc/\aReg]}
       \\
-      \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
-      \textstyle\bigcup_\aVal\; \alert<4>{(\aExp=\aVal \mid \DW[\uncover<8>{\alert<8>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd}\alert<3>{[\aExp/\aLoc]}
+      \sem{\aLoc^{\uncover<8->{\alert<8>{\amode}}}\GETS\aExp\SEMI \aCmd} & \eqdef
+      \textstyle\bigcup_\aVal\; \alert<4>{(\aExp=\aVal \mid \DW[\uncover<8->{\alert<8>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd}\alert<3>{[\aExp/\aLoc]}
+      \\
+      \sem{\FENCE^{\uncover<8->{\alert<8>{\fmode}}}\SEMI \aCmd} & \eqdef
+      (\DFS{\uncover<8->{\alert<8>{\fmode}}}) \prefix \sem{\aCmd}
       \\
       \sem[\aThrd]{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
       \bigl(\alert<5>{\aExp \guard} \sem[\aThrd]{\aCmd}\bigr) \alert<6>{\parallel} \bigl(\alert<5>{\lnot\aExp \guard} \sem[\aThrd]{\bCmd}\bigr) 
@@ -338,11 +341,11 @@
       \alert<7>{\nu \aLoc \DOT} \sem[\aThrd]{\aCmd}  
     \end{aligned}
   \end{gather*}
-  \uncover<8>{
+  \uncover<8->{
     \begin{align*}
-      \alert<8>{\amode} \BNFDEF& \modeRLX &&\text{{(Relaxed)}}
-      \\ \BNFSEP& \modeRA &&\text{{(Release/Acquire)}}
-      \\ \BNFSEP& \modeSC &&\text{{(Sequentially Consistent)}}
+       \alert<8>{\amode} \BNFDEF& \modeRLX &&\text{{(Relaxed)}}   &\alert<8>{\fmode} \BNFDEF&\modeREL  &&\text{(Release)}
+      \\ \BNFSEP& \modeRA &&\text{{(Release/Acquire)}}            &       \BNFSEP&\modeACQ   &&\text{(Acquire)}
+      \\ \BNFSEP& \modeSC &&\text{{(Sequentially Consistent)}}    &       \BNFSEP&\modeSC  &&\text{(SC)}
     \end{align*}}
 \end{frame}
 
@@ -1282,7 +1285,7 @@
           \node(iy)[left=of wy0]{};
           \bgoval[yellow!50]{(ix)(iy)}{P}
           \bgoval[pink!50]{(wx0)(wy0)}{P'\setminus P}
-          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P'''\setminus P'}
+          \bgoval[green!10]{(ry1)(wx1)(rx)(wy1)}{P''\setminus P'}
           \pox{wx0}{wy0}
           \pox{wy0}{wx1}
           \pox{wy0}[below]{ry1}

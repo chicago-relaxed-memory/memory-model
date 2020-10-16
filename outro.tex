@@ -252,7 +252,7 @@ the right.  This write to $x$ cannot be eliminated using $\relfilt[]{\aLoc}$
 however, the read of $x$ must be fulfilled by \emph{some} write---assuming
 that these writes can coalesce, the optimization can be validated.
 
-We have not attempted validate all program transformations that involve
+We have not attempted to validate all program transformations that involve
 synchronization, fences or \RMWs{}
 \cite{DBLP:conf/popl/VafeiadisBCMN15,DBLP:phd/hal/Morisset17}.  Nonetheless,
 our semantics validates roach motel (\ref{AcqW}, \ref{RelW}), redundant load
