@@ -457,8 +457,8 @@ implications for Java's final field semantics.  Consider:
     \end{tikzinline}}
   \end{gathered}
 \end{gather*}
-If we changed $x^\modeRA$ to $x^\modeRLX$, then there would be no order from
-$(\DR{x}{1})$ to $(\DR{\REF{1}}{0})$, and the execution would be allowed.  In
+If we changed the read of $x^\modeRA$ to $x^\modeRLX$, then there would be no order from
+$(\DR[\modeRLX]{x}{1})$ to $(\DR{\REF{1}}{0})$, and the execution would be allowed.  In
 order to allow this relaxation in certain cases without invalidating the
 publication of the ``field initializer'' $(\DW{\REF{1}}{1})$, it may be
 desirable to distinguish address dependencies from other dependencies---doing
