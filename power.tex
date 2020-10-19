@@ -2,21 +2,21 @@ For non-MCA:
 \begin{itemize}
 \item ${\le}$ is causal order
 \item \hl{${\leloc}$} is per-location order
-\item also need program order or \hl{thread ids}
+%\item also need program order or \hl{thread ids}
 \end{itemize}
 
-In data model:
-\begin{itemize}
-\item \hl{a set of \emph{thread ids} $\Thrd$, ranged over by $\aThrd$ and
-  $\bThrd$}
-\end{itemize}
-There are partial functions $\rreads$ and
-$\rwrites: \Act \fun (\Thrd \times \Loc \times \Val)$, and there are subsets
-of $\Act$: $\Acq$, $\Rel$, $\SC$, and $\Term$.  We derive the partial
-functions $\fthrd: \Act \fun \Thrd$ and $\floc: \Act \fun \Loc$ from
-$\rreads$ and $\rwrites$.  For example, define $\floc(\aAct)= \aLoc$ if
-$\rreads(\aAct) = (\dontcare,\aLoc,\dontcare)$ or
-$\rwrites(\aAct) = (\dontcare,\aLoc,\dontcare)$.
+% In data model:
+% \begin{itemize}
+% \item \hl{a set of \emph{thread ids} $\Thrd$, ranged over by $\aThrd$ and
+%   $\bThrd$}
+% \end{itemize}
+% There are partial functions $\rreads$ and
+% $\rwrites: \Act \fun (\Thrd \times \Loc \times \Val)$, and there are subsets
+% of $\Act$: $\Acq$, $\Rel$, $\SC$, and $\Term$.  We derive the partial
+% functions $\fthrd: \Act \fun \Thrd$ and $\floc: \Act \fun \Loc$ from
+% $\rreads$ and $\rwrites$.  For example, define $\floc(\aAct)= \aLoc$ if
+% $\rreads(\aAct) = (\dontcare,\aLoc,\dontcare)$ or
+% $\rwrites(\aAct) = (\dontcare,\aLoc,\dontcare)$.
 
 \begin{definition}[\ref{def:mmpomset}]
   A \emph{pomset with preconditions} is a tuple
@@ -31,7 +31,7 @@ $\rwrites(\aAct) = (\dontcare,\aLoc,\dontcare)$.
     \emph{(consistency)},
   \item if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
     $\labelingForm(\bEv)$ \emph{(causal strengthening)}, and
-  \item \hl{if $\floc(\labelingAct(\bEv))=\floc(\labelingAct(\aEv))$ and
+  \item \hl{if $\labelingAct(\bEv)$ and $\labelingAct(\aEv)$ conflict and %$\floc(\labelingAct(\bEv))=\floc(\labelingAct(\aEv))$ and
     $\bEv\le\aEv$ then $\bEv\leloc\aEv$ \emph{(observation)}}.
   \end{itemize}
   % A pomset is \emph{completed} if $\exists\aEv.\;\labelingAct(\aEv)=\DSTOP$. % and $\forall\bEv.\;\bEv\le\aEv$.
@@ -90,10 +90,9 @@ there is $\aPS\in\aPSS$ such that
   \labeltextsc[F2]{(F2)}{rf2} $\aEv$ \externally reads $\aVal$ from $\aLoc$,
   \labeltextsc[F3]{(F3)}{rf3} $\bEv \lt \aEv$, and
   \labeltextsc[F4]{(F4)}{rf4} for every conflicting write $\cEv$, either
-  \hl{$\cEv \leloc \bEv$ or $\aEv \leloc \cEv$ or
-    $\fthrd(\aEv)=\fthrd(\cEv)$}.
+  \hl{$\cEv \leloc \bEv$ or $\aEv \leloc \cEv$}.
 \end{definition}
-Last case in fulfillment motivated by this example (\textsection\ref{sec:arm}):
+Motivating example (\textsection\ref{sec:arm}):
 \begin{gather*}
   %\taglabel{flowing/pop}
   \begin{gathered}
@@ -102,17 +101,29 @@ Last case in fulfillment motivated by this example (\textsection\ref{sec:arm}):
   y\GETS x 
   \PAR
   x\GETS y 
-  \\[-1.2ex]
+  \\
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DR{x}{1}}{}
       \event{b}{d:\DW{x}{1}}{right=of a}
-      \wk{a}{b}
       \event{c}{\DR{x}{1}}{right=3em of b}
       \event{d}{\DW{y}{1}}{right=of c}
       \po{c}{d}
       \event{e}{\DR{y}{1}}{right=3em of d}
       \event{f}{e:\DW{x}{1}}{right=of e}
       \po{e}{f}
+      \rf{b}{c}
+      \rf{d}{e}
+      \rf[out=172,in=8]{f}{a}
+    \end{tikzinline}}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+      \event{a}{\DR{x}{1}}{}
+      \event{b}{d:\DW{x}{1}}{right=of a}
+      \wk{a}{b}
+      \event{c}{\DR{x}{1}}{right=3em of b}
+      \event{d}{\DW{y}{1}}{right=of c}
+      \event{e}{\DR{y}{1}}{right=3em of d}
+      \event{f}{e:\DW{x}{1}}{right=of e}
       \rf{b}{c}
       \rf{d}{e}
       \rf[out=172,in=8]{f}{a}
