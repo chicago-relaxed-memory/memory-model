@@ -1860,9 +1860,9 @@ $(\DR{x}{1}\xwk\DW{x}{2})$.  This prevents $(\DW{x}{2})$ from blocking the
 read after parallel composition.  For example, 
 if \ref{blocker} were placed in the context
 \begin{math}
-  b\GETS a
+  z_1\GETS y_1
   \PAR
-  d\GETS c
+  z_2\GETS y_2
   \PAR
   \hole{},
 \end{math}

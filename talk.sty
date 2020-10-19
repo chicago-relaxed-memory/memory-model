@@ -1,12 +1,23 @@
+% get ams to ignore tag in spacing
+\renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{(\ignorespaces#1\unskip\@@italiccorr)}}}
+
+\usepackage[normalem]{ulem}
+
+%https://tex.stackexchange.com/questions/3915/image-on-full-slide-in-beamer-package
+\usepackage{textpos}
+\newcommand<>{\fullsizegraphic}[1]{
+  \begin{textblock*}{0cm}(-1cm,-3.78cm)
+  \includegraphics[width=\paperwidth]{#1}
+  \end{textblock*}
+}
 % \let\textmdorig\textmd
 % \let\textscorig\textsc
 % \let\textttorig\texttt
 % \renewcommand<>{\textsc}[1]{\only#2{\textscorig{#1}}}
-\newcommand{\imagepage}[3][width=\paperwidth]{{\setbeamertemplate{navigation
-      symbols}{#3}\usebackgroundtemplate{\includegraphics[#1]{#2}}\begin{frame} \end{frame}}}
+\newcommand{\imagepage}[2]{{\setbeamertemplate{navigation
+      symbols}{#2}\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}\begin{frame}\end{frame}}}
 
-\newenvironment{imageframe}[3][width=\paperwidth]{\setbeamertemplate{navigation
-      symbols}{#3}\usebackgroundtemplate{\includegraphics[#1]{#2}}\begin{frame}}{\end{frame}}
+\newenvironment{imageframe}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}\begin{frame}}{\end{frame}}
 
 \usepackage[normalem]{ulem}
 \newcommand{\redxout}{\bgroup\markoverwith
@@ -20,12 +31,12 @@
 \newcommand{\bad}{{\raisebox{-1pt}{\textcolor{black}{\Sadey[1.2][red]}}}}
 
 \usepackage{pifont}
-\newcommand{\qmark}{\makebox[0pt]{\color{blue!80!black}\text{?}}}
-\newcommand{\cmark}{\makebox[0pt]{\color{green!80!black}\text{\ding{51}}}}
-\newcommand{\xmark}{\makebox[0pt]{\color{red!80!black}\text{\ding{55}}}}
-\newcommand{\QMARK}{\makebox[0pt]{\color{blue!80!black}\text{?}}}
-\newcommand{\CMARK}{\makebox[0pt]{\color{green!80!black}\Smiley[1]{}}}
-\newcommand{\XMARK}{\makebox[0pt]{\color{red!80!black}\Sadey[1]{}}}
+\newcommand{\qmark}{{\color{blue!80!black}\text{?}}}
+\newcommand{\cmark}{{\color{green!80!black}\text{\ding{51}}}}
+\newcommand{\xmark}{{\color{red!80!black}\text{\ding{55}}}}
+\newcommand{\QMARK}{{\color{blue!80!black}\text{?}}}
+\newcommand{\CMARK}{{\color{green!80!black}\Smiley[1]{}}}
+\newcommand{\XMARK}{{\color{red!80!black}\Sadey[1]{}}}
 
 \newcommand{\textgreen}[1]{{\color{green!80!black}#1}}
 \newcommand{\textred}[1]{{\color{red!80!black}#1}}
