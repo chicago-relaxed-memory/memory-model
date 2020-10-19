@@ -546,6 +546,8 @@
 
 \tikzstyle{oval} = [ellipse, inner xsep=#1]
 \newcommand{\bgoval}[3][gray!10]{\begin{pgfonlayer}{background}\node[oval= 4pt, fill=#1, fit=#2, label=$#3$]{};\end{pgfonlayer}}
+\newcommand{\bgellipse}[3][gray!10]{\begin{pgfonlayer}{background}\node[ellipse= 4pt, minimum width=8cm, fill=#1, fit=#2, label=$#3$]{};\end{pgfonlayer}}
+\newcommand{\bgellipsesmaller}[3][gray!10]{\begin{pgfonlayer}{background}\node[ellipse= 4pt, minimum width=7cm, fill=#1, fit=#2, label=$#3$]{};\end{pgfonlayer}}
 \newcommand{\bgovalright}[3][gray!10]{\begin{pgfonlayer}{background}\node[oval= 4pt, fill=#1, fit=#2, label={right:$#3$}]{};\end{pgfonlayer}}
 
 
