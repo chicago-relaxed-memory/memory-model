@@ -1,30 +1,26 @@
-\renewcommand{\once}{\Diamond\mkern-10.1mu\text{--}\mkern4mu}
-\renewcommand{\always}{\Box\mkern-11.6mu\text{--}\mkern3mu}
+%https://tex.stackexchange.com/questions/3915/image-on-full-slide-in-beamer-package
+% \usepackage{textpos}
+% \newcommand<>{\fullsizegraphic}[1]{
+%   \begin{textblock*}{0cm}(-1cm,-3.78cm)
+%   \includegraphics[width=\paperwidth]{#1}
+%   \end{textblock*}
+% }
+
+\usepackage[normalem]{ulem}
+\newcommand{\redxout}{\bgroup\markoverwith{\textcolor{black!50!black}{\rule[.5ex]{2pt}{1pt}}}\ULon}
 
 % get ams to ignore tag in spacing
 \renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{(\ignorespaces#1\unskip\@@italiccorr)}}}
+\newcommand{\spacetag}[2][3em]{\makebox[#1]{}\tag{#2}}
 
-\usepackage[normalem]{ulem}
 
-%https://tex.stackexchange.com/questions/3915/image-on-full-slide-in-beamer-package
-\usepackage{textpos}
-\newcommand<>{\fullsizegraphic}[1]{
-  \begin{textblock*}{0cm}(-1cm,-3.78cm)
-  \includegraphics[width=\paperwidth]{#1}
-  \end{textblock*}
-}
-% \let\textmdorig\textmd
-% \let\textscorig\textsc
-% \let\textttorig\texttt
-% \renewcommand<>{\textsc}[1]{\only#2{\textscorig{#1}}}
+
+\renewcommand{\once}{\Diamond\mkern-10.1mu\text{--}\mkern4mu}
+\renewcommand{\always}{\Box\mkern-11.6mu\text{--}\mkern3mu}
+
 \newcommand{\imagepage}[2]{{\setbeamertemplate{navigation
       symbols}{#2}\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}\begin{frame}\end{frame}}}
-
 \newenvironment{imageframe}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}\begin{frame}}{\end{frame}}
-
-\usepackage[normalem]{ulem}
-\newcommand{\redxout}{\bgroup\markoverwith
-      {\textcolor{red!50!black}{\rule[.5ex]{2pt}{1pt}}}\ULon}
 
 \newcommand{\semitransp}[2][35]{\textcolor{fg!#1}{#2}}
 \newcommand{\wink}{{\raisebox{-1pt}{\textcolor{black}{\Winkey[1.2][green]}}}}
