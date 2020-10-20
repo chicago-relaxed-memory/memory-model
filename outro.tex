@@ -429,7 +429,11 @@ it disallows \ref{MCA2}.\footnote{Following \cite{DBLP:journals/dc/Lamport86},
   per-location; a sufficient condition is (4) if $d\gtNsp e$ and $e\gtNsp d$
   then $d$ and $e$ do not touch the same location.  Although \ref{MCA1} is
   allowed, its two-thread variant is not, due to the combination of
-  \emph{semi\hyp{}transitivity (3)} and \emph{partial coherence (4)}.}
+  \emph{semi\hyp{}transitivity (3)} and \emph{partial coherence (4)}.
+  %
+  It is plausible, perhaps, to require only that $\gtNsp$ is a partial
+  order and that $\bEv\gtNsp\aEv$ when $\labelingAct(\bEv)$ and
+  $\labelingAct(\aEv)$ conflict and $\bEv\le\aEv$.}
 
 
 
