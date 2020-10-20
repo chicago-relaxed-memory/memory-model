@@ -235,15 +235,15 @@ valid.  For example, the model does \emph{not} validate redundant write after
 read elimination as a peephole optimization.  Consider this example from
 \cite[\textsection 5.3.1]{SevcikThesis}:
 \begin{displaymath}
-  \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+  \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \bReg} \THEN y \GETS 1 \FI}
   \not\supseteq
-  \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+  \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \bReg} \THEN y \GETS 1 \FI}
 \end{displaymath}
 In the JMM, these are distinguished by the context
 \begin{math}
-  x\GETS1 \SEMI a^\modeRA\GETS 1
-  \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
-  \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
+  x\GETS1 \SEMI z_1^\modeRA\GETS 1
+  \PAR x\GETS2 \SEMI z_2^\modeRA\GETS 1
+  \PAR \IF{z_1^\modeRA \land z_2^\modeRA} \THEN \hole{}\FI.
 \end{math}
 That is not case here, however, due to local \drfsc{}.  Nonetheless,
 completed pomsets from the left include a write to $x$, which is not found on
