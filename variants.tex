@@ -364,10 +364,10 @@ relates the two events of a successful \RMW.  Additionally, we require that:
 % ${\xrmw'}={\xrmw}\restrict{\Event'}$, and
 % ${\labeling'}={\labeling}\restrict{\Event'}$.  
 
-Other than these additions, nothing else changes.  In particular, \RMW{}s
-require no special treatment in Definition~\ref{def:par}: the constituent
-events of an \RMW{} may coalesce with other events as a result of parallel
-composition.  We elide the obvious and tedious semantic rules that generate $\rrmw$.
+The constituent events of an \RMW{} may coalesce with other events and other
+\RMW{}s, but we prevent coalescing of separate \RMW{}s in the semantics of
+$\!\PAR\!$ and prefixing.  We elide the obvious and tedious semantic rules that
+generate $\rrmw$.
 
 % \begin{scope}
 % \renewcommand{\aEv}{r}
