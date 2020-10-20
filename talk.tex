@@ -111,7 +111,8 @@
 \title{Pomsets with Preconditions}
 \subtitle{A Simple Model of Relaxed Memory}
 \author{Radha Jagadeesan$^\dagger$ \and Alan Jeffrey$^*$ \and \alert{James Riely}$^\dagger$}
-\date{\href{https://www.cs.kent.ac.uk/research/groups/plas/seminarcalendar.html?view_by=month\&date=20201019\&category=\&tag=plas}{PLaS seminar, University of Kent}\\19 October 2020}
+%\date{\href{https://www.cs.kent.ac.uk/research/groups/plas/seminarcalendar.html?view_by=month\&date=20201019\&category=\&tag=plas}{PLaS seminar, University of Kent}\\19 October 2020}
+\date{OOPSLA\\November 2020}
 \institute{$^\dagger$DePaul University \and $^*$Mozilla Research and the Servo Project}
 
 
@@ -212,8 +213,8 @@
             \\\quad after $(\DR{x}{v})$
           \end{itemize}
         }{
-        \item<2-> Sequential: 4
-        \item<2-> Concurrent: 2\visible<2>{, 1}
+        \item<1-> Concurrent: 1\alt<1>{\qmark}{\alt<3->{\xmark}{\cmark}} 2\alt<1>{\qmark}{\cmark{}}
+        \item<1-> Sequential: 3\alt<1>{\qmark}{\xmark{}} 4\alt<1>{\qmark}{\cmark{}} 5\alt<1>{\qmark}{\xmark{}}
         }
       \end{itemize}
     \end{column}
@@ -531,23 +532,24 @@
 
 \begin{frame}[label=oota4b]
   \frametitle{Can this program write 1 to z?}  
+  \setbeamercovered{transparent=35}
   \vspace{-1\baselineskip}
   \begin{align*}
-    \uncover<1->{y\GETS x
+    \uncover<1-9>{y\GETS x
       \PAR&
       r\GETS y\SEMI
       \IF{r}\THEN
       x\GETS r\SEMI z\GETS r
       \ELSE x\GETS 1 \FI
-      \only<1->{\tag{$\star$}\label{star}}}
+      \only<1->{\spacetag{$\star$}\label{star}}}
     \\
-    \uncover<1->{y\GETS x
+    \uncover<1-9>{y\GETS x
       \PAR&
       r\GETS y\SEMI
       \IF{r}\THEN
       x\GETS r\SEMI z\GETS r
       \ELSE x\GETS \alert{2} \FI
-      \only<1->{\tag{OOTA3}}}
+      \only<1->{\spacetag{OOTA3}}}
     \\
     y\GETS x
     \PAR&
@@ -555,55 +557,59 @@
     \IF{\alert{b}}\THEN
     x\GETS r\SEMI z\GETS r
     \ELSE x\GETS1 \FI
-    \mkern60mu
+    \only<4->{\mkern60mu}
     \PAR b\GETS1
-    \tag{OOTA4}
+    \only<-3>{\mkern60mu}
+    \spacetag{OOTA4}
     \\
-    \visible<4->{\uncover<4->{
+    \visible<4->{\uncover<4-9>{
         y\GETS x
         \PAR&
-        \aReg\GETS y \SEMI \IF{b} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
+        \aReg\GETS y \SEMI \IF{\alert{b}} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
         \PAR 
         b \GETS 1
-        \only<4->{\tag{OOTA5}}
+        \only<4->{\spacetag{OOTA5}}
       }}
   \end{align*}
   \vspace{-5mm}
   \begin{itemize}    
     \only<-3>{
-    \item<2-> Existential justification: ARM\cmark{} ($\star$)\cmark{} (OOTA3)\cmark{} (OOTA4)\xmark{}
+    \visible<2->{\item Existential justification: ARM\cmark{} ($\star$)\cmark{} OOTA1-3\cmark{} OOTA4\xmark{}
       \begin{itemize}
       \item{} Commitment (JMM - Java Memory Model) [Manson, Pugh, Adve, 2005]
       \item{} Speculation [Jagadeesan, Pitcher, Riely, 2010]
       \item{} Promising  [Kang, Hur, Lahav, Vafeiadis, Dreyer 2017]
-      \end{itemize}
-    \item<3-> Universal justification: ARM\xmark{} ($\star$)\cmark{} (OOTA3)\cmark{} (OOTA4)\cmark{}
+      \end{itemize}}
+    \visible<3->{\item Universal justification: ARM\xmark{} ($\star$)\cmark{} OOTA1-3\cmark{} OOTA4\cmark{}
       \begin{itemize}
       \item{} Event Structures [Jeffrey, Riely, 2016]
-      \end{itemize}
+      \end{itemize}}
     }
     \only<4-9>{
     \item In the JMM, OOTA5 \emph{``is type correct if it declares
         $x$, $y$ and $r$ of type $\classD$. However, it has a legal execution
         where they reference a $\classC$ object.''} [Lochbihler 2013]
       \begin{itemize}
-      \item<5-> To prove safety, Lochbihler partitions memory by type
+      \visible<5->{\item To prove safety, Lochbihler partitions memory by type}
+      \visible<6->{
         \begin{itemize}
-        \item<6-> \redxout{Realistic memory allocation}
-        \item<6-> \redxout{Java Security Architecture (security-sensitive
+          \item \redxout{Realistic memory allocation}
+          \item \redxout{Java Security Architecture (security-sensitive
             constants)}
-        \end{itemize}
+        \end{itemize}}
       \end{itemize}
-    \item<7-> OOTA is a \emph{queasy feeling} \only<8->{--- Compositionality is a \emph{verifiable property}}
+    \visible<7->{\item OOTA is a \emph{queasy feeling}} \visible<8->{--- Compositionality is a \emph{verifiable property}}
+    \visible<9->{
       \begin{itemize}
-      \item<9-> Predicate logic rules out OOTA1-OOTA3
-      \item<9-> Temporal logic rules out OOTA4
-      \end{itemize}
+      \item Predicate logic rules out OOTA1-3
+      \item Temporal logic rules out OOTA4
+      \end{itemize}}      
     }
     \only<10->{
     \item In OOTA4, every thread satisfies:
       \begin{itemize}
       \item $\DW{y}{1}$ must be preceded by $\DR{x}{1}$        
+      %\item $\DW{z}{1}$ must be preceded by $\DR{y}{1}$        
       \item if $\DW{z}{1}$, then $\DW{x}{1}$ must be preceded by
         $\DR{y}{1}$
       \item
@@ -614,12 +620,13 @@
           [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
         \end{math}
       \end{itemize}
-    \item<11-> By compositionality, whole program should satisfy this
-      \begin{itemize}
-      \item[\xmark{}] Existential justification 
-      \item[\cmark{}] Universal justification 
-      \end{itemize}
-    }
+      \visible<11->{
+      \item By compositionality, whole program should satisfy this
+        \begin{itemize}
+        \item[\xmark{}] Existential justification 
+        \item[\cmark{}] Universal justification 
+        \end{itemize}}
+      }
   \end{itemize}  
 \end{frame}
 
@@ -686,7 +693,7 @@
   \frametitle{Comparing attempted executions}
   \vspace{-1\baselineskip}
   \begin{gather*}
-    \tag{*}
+    \tag{$\star$}
     y\GETS x
     \PAR
     r\GETS y\SEMI \IF{\alert{r}}\THEN 
@@ -761,6 +768,7 @@
     \vspace{-3mm}
     \onslide<4->
     \begin{gather*}
+      \begin{gathered}
       % x\GETS0\SEMI
       x\GETS 1
       \PAR
@@ -793,7 +801,9 @@
             \wk{rx0}{wx1}
             \wk{ry0}{wy1}
           \end{tikzinline}}}
-    \end{gather*}
+    \end{gathered}
+    \spacetag{IRIW}
+  \end{gather*}
   \end{itemize}
 \end{frame}
 
@@ -1155,14 +1165,14 @@
           \event{ry}{\DR{y}{1}}{left=of wx}
           \po[out=-15,in=-165]{ry}{wz}
         \end{tikzinline}}}
-    \only<8-9>{\hbox{\begin{tikzinline}[node distance=2em]
+    \only<8>{\hbox{\begin{tikzinline}[node distance=2em]
           \event{wx}{(\alert{0}{=}1\lor \alert{0}{=}0)\land(1{=}1\lor 1{=}0)\mid\DW{x}{1}}{}
           \event{wz}{(1{=}1) \land (\alert{1}{=}1)\mid\DW{z}{1}}{right=of wx}
           \event{ry}{\DR{y}{1}}{left=of wx}
           \event{wy}{0{=}0\mid\DW{y}{0}}{left=of ry}
           \po[out=-15,in=-165]{ry}{wz}
         \end{tikzinline}}}
-    \only<10>{\hbox{\begin{tikzinline}[node distance=2em]
+    \only<9>{\hbox{\begin{tikzinline}[node distance=2em]
           \event{wx}{\DW{x}{1}}{}
           \event{wz}{\DW{z}{1}}{right=of wx}
           \event{ry}{\DR{y}{1}}{left=of wx}
@@ -1178,8 +1188,9 @@
     \only<6>{Order may be introduced}
     \only<7>{Order enables substitution $[v/y]$}
     \only<8>{Prepending $y\GETS 0$ substitutes $[0/y]$}
-    \only<9>{[\alert{1}/y] from $\DR{y}{1}$ requires order, [\alert{0}/y] from $\DW{y}{0}$ does not}
-    \only<10>{Simplifying tautologies}
+    \only<8>{\\{}Order imposed by sub? Write\xmark{} Read\cmark{} }
+      %\alert{1}/y] from $\DR{y}{1}$ requires order, [\alert{0}/y] from $\DW{y}{0}$ does not}
+    \only<9>{Simplifying tautologies}
   \end{center}
 \end{imageframe}
 
