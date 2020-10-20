@@ -571,13 +571,13 @@
   \vspace{-5mm}
   \begin{itemize}    
     \only<-3>{
-    \item<2-> Existential justification: ARM\cmark ($\star$)\cmark (OOTA3)\cmark (OOTA4)\xmark
+    \item<2-> Existential justification: ARM\cmark{} ($\star$)\cmark{} (OOTA3)\cmark{} (OOTA4)\xmark{}
       \begin{itemize}
       \item{} Commitment (JMM - Java Memory Model) [Manson, Pugh, Adve, 2005]
       \item{} Speculation [Jagadeesan, Pitcher, Riely, 2010]
       \item{} Promising  [Kang, Hur, Lahav, Vafeiadis, Dreyer 2017]
       \end{itemize}
-    \item<3-> Universal justification: ARM\xmark ($\star$)\cmark (OOTA3)\cmark (OOTA4)\cmark
+    \item<3-> Universal justification: ARM\xmark{} ($\star$)\cmark{} (OOTA3)\cmark{} (OOTA4)\cmark{}
       \begin{itemize}
       \item{} Event Structures [Jeffrey, Riely, 2016]
       \end{itemize}
@@ -616,8 +616,8 @@
       \end{itemize}
     \item<11-> By compositionality, whole program should satisfy this
       \begin{itemize}
-      \item[\xmark] Existential justification 
-      \item[\cmark] Universal justification 
+      \item[\xmark{}] Existential justification 
+      \item[\cmark{}] Universal justification 
       \end{itemize}
     }
   \end{itemize}  
@@ -800,12 +800,12 @@
 \begin{frame}[label=before]
   \frametitle{We've been trying for 20 years...}
   \begin{itemize}
-  \item<1-> Operational with alternate executions: ARM\cmark OOTA\xmark
+  \item<1-> Operational with alternate executions: ARM\cmark{} OOTA\xmark{}
     \begin{itemize}
     \item Java 1.1 fails CSE [Pugh 1999]
     \item Commitment/Speculation/Promises [2005, \alert{2010}, 2017]      
     \end{itemize}
-  \item<2-> Strong models: ARM\xmark OOTA\cmark
+  \item<2-> Strong models: ARM\xmark{} OOTA\cmark{}
     \begin{itemize}
     \item SC [Singh, Narayanasamy, Marino,  Millstein,  Musuvathi 2012]
     \item RC11 [Lahav, Vafeiadis 2016]
@@ -2067,23 +2067,23 @@
 \begin{frame}[label=z]
   \frametitle{Other Transformations}
   \begin{itemize}
-  \item Valid$\cmark$ Proof$\xmark$
+  \item Valid$\cmark{}$ Proof$\xmark{}$
     \begin{itemize}
     \item Redundant write after read elimination
     \end{itemize}
-  \item Sound observationally$\cmark$ Valid$\xmark$
+  \item Sound observationally$\cmark{}$ Valid$\xmark{}$
     \begin{itemize}      
     \item Access mode strengthening $(\modeRLX\rightarrow\modeRA \rightarrow\modeSC)$
     \item Commuting/Eliminating some synchronizations
     \item Implementing synchronizations using fences
     \item Implementing locks using synchronizations
     \end{itemize}
-  \item Sound observationally$\qmark$ Valid$\xmark$
+  \item Sound observationally$\qmark{}$ Valid$\xmark{}$
     \begin{itemize}      
     \item Access mode weakening, eg $(\modeSC\rightarrow \modeRA\rightarrow\modeRLX)$
     \item Lock elision
     \end{itemize}
-  \item Sound observationally$\xmark$
+  \item Sound observationally$\xmark{}$
     \begin{itemize}
     \item Thread inlining
     \item Relevant read introduction
@@ -2105,7 +2105,7 @@
     \end{itemize}
   \item Limitations
     \begin{itemize}
-    \item MCA: ARM$\cmark$ Power$\xmark$
+    \item MCA: ARM$\cmark{}$ Power$\xmark{}$
     \item Limited optimizations
     \item Limited logic for OOTA
     \item No loops or functions 
