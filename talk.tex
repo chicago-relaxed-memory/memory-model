@@ -2,7 +2,7 @@
 \usepackage{macros}
 \usepackage{talk}
 
-%\includeonlyframes{oota4b}  
+%\includeonlyframes{rmw,ps2}  
 \usepackage{pdfcomment}
 % \setbeameroption{show notes on second screen}
 \newcommand<>{\pdfnote}[1]{%
@@ -111,7 +111,7 @@
 \title{Pomsets with Preconditions}
 \subtitle{A Simple Model of Relaxed Memory}
 \author{Radha Jagadeesan$^\dagger$ \and Alan Jeffrey$^*$ \and \alert{James Riely}$^\dagger$}
-%\date{\href{https://www.cs.kent.ac.uk/research/groups/plas/seminarcalendar.html?view_by=month\&date=20201019\&category=\&tag=plas}{PLaS seminar, University of Kent}\\19 October 2020}
+% \date{\href{https://www.cs.kent.ac.uk/research/groups/plas/seminarcalendar.html?view_by=month\&date=20201019\&category=\&tag=plas}{PLaS seminar, University of Kent}\\19 October 2020}
 \date{OOPSLA\\November 2020}
 \institute{$^\dagger$DePaul University \and $^*$Mozilla Research and the Servo Project}
 
@@ -251,27 +251,27 @@
     \end{gathered}
     &&
     \visible<2->{
-    \begin{gathered}
-      r\GETS x\SEMI y\GETS r
-      \\[1ex]
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{a}{1{=}1\mid\DR{x}{1}}{}
-          \event{b}{\DW{y}{1}}{right=of a}
-          \po{a}{b}
-        \end{tikzinline}}
-    \end{gathered}
+      \begin{gathered}
+        r\GETS x\SEMI y\GETS r
+        \\[1ex]
+        \hbox{\begin{tikzinline}[node distance=1.5em]
+            \event{a}{1{=}1\mid\DR{x}{1}}{}
+            \event{b}{\DW{y}{1}}{right=of a}
+            \po{a}{b}
+          \end{tikzinline}}
+      \end{gathered}
     }
     &&
     \visible<3->{
-    \begin{gathered}
-      y\GETS x
-      \\[1ex]
-      \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{a}{\DR{x}{1}}{}
-          \event{b}{\DW{y}{1}}{right=of a}
-          \po{a}{b}
-        \end{tikzinline}}
-    \end{gathered}
+      \begin{gathered}
+        y\GETS x
+        \\[1ex]
+        \hbox{\begin{tikzinline}[node distance=1.5em]
+            \event{a}{\DR{x}{1}}{}
+            \event{b}{\DW{y}{1}}{right=of a}
+            \po{a}{b}
+          \end{tikzinline}}
+      \end{gathered}
     }
   \end{align*}
   \vspace{-0mm}
@@ -297,18 +297,18 @@
     r\GETS y \SEMI x\GETS 1 \SEMI z\GETS r
     \\[1ex]
     \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
-        \event{a}{\DR{x}{1}}{}
-        \event{b}{\only<-3>{\alt<1>{s}{\alert<2>{1}}{=}1\mid}\DW{y}{1}}{right=of a}
-        \event{c}{\DR{y}{1}}{right=5em of b}
-        \event{d}{\only<-3>{\TRUE\mid}\DW{x}{1}}{right=of c}
-        \event{e}{\only<-3>{\alt<1-2>{r}{\alert<3>{1}}{=}1\mid}\DW{z}{1}}{right=of d}
-        \visible<2->{
-          \po{a}{b}
-        }
-        \visible<3->{
-          \po[out=-25,in=-155]{c}{e}
-        }
-      \end{tikzinline}}}
+          \event{a}{\DR{x}{1}}{}
+          \event{b}{\only<-3>{\alt<1>{s}{\alert<2>{1}}{=}1\mid}\DW{y}{1}}{right=of a}
+          \event{c}{\DR{y}{1}}{right=5em of b}
+          \event{d}{\only<-3>{\TRUE\mid}\DW{x}{1}}{right=of c}
+          \event{e}{\only<-3>{\alt<1-2>{r}{\alert<3>{1}}{=}1\mid}\DW{z}{1}}{right=of d}
+          \visible<2->{
+            \po{a}{b}
+          }
+          \visible<3->{
+            \po[out=-25,in=-155]{c}{e}
+          }
+        \end{tikzinline}}}
   \end{gather*}
   \only<4>{\vspace{1.2mm}}
   \begin{columns}
@@ -326,9 +326,9 @@
 \end{frame}
 
 
-\begin{frame}[label=oota]
+\begin{frame}<2->[label=oota]
   \frametitle{Out of \only<3->{\redxout}{order} \only<3->{thin air (OOTA)}}
-  What value can be written to $z$? 
+  What value can be written to $z$?
   \begin{gather*}
     \alt<5->{      
       \only<5->{\tag{OOTA2}\label{OOTA2}}
@@ -382,7 +382,7 @@
       \only<1->{\begin{itemize}\itemsep=0pt\parskip=0pt
         \item \only<3->{\redxout}{May reorder $r\GETS y$ and $x\GETS1$}
           \begin{itemize}
-          %\item \only<3->{\redxout}{no dependency}
+            % \item \only<3->{\redxout}{no dependency}
           \item \only<3->{\redxout}{in compiler}
           \item \only<3->{\redxout}{on ARM}
           \end{itemize}
@@ -434,9 +434,9 @@
     y\GETS x
     \PAR
     r\GETS y\SEMI
-    \visible<2->{\IF{\alert<3>{r}}\THEN}
+    \visible<2->{\alert<2>{\IF{\alert<3>{r}}\THEN}}
     x\GETS \alert<3>{r}\SEMI z\GETS \alert<3>{r}
-    \visible<2->{\ELSE x\GETS\alt<7>{\alert{2}}{1} \FI}
+    \visible<2->{\alert<2>{\ELSE x\GETS\alt<7>{\alert{2}}{1} \FI}}
     \only<1>{\tag{OOTA1}}
     \only<2-6>{\tag{$\star$}}
     \only<7>{\tag{OOTA3}}
@@ -535,7 +535,7 @@
   \setbeamercovered{transparent=35}
   \vspace{-1\baselineskip}
   \begin{align*}
-    \uncover<1-9>{y\GETS x
+    \uncover<1-8>{y\GETS x
       \PAR&
       r\GETS y\SEMI
       \IF{r}\THEN
@@ -543,7 +543,7 @@
       \ELSE x\GETS 1 \FI
       \only<1->{\spacetag{$\star$}\label{star}}}
     \\
-    \uncover<1-9>{y\GETS x
+    \uncover<1-8>{y\GETS x
       \PAR&
       r\GETS y\SEMI
       \IF{r}\THEN
@@ -562,7 +562,7 @@
     \only<-3>{\mkern60mu}
     \spacetag{OOTA4}
     \\
-    \visible<4->{\uncover<4-9>{
+    \visible<4->{\uncover<4-8>{
         y\GETS x
         \PAR&
         \aReg\GETS y \SEMI \IF{\alert{b}} \THEN \aReg \GETS \NEW \classD \ELSE \bReg \GETS \NEW \classC \FI  \SEMI x \GETS \aReg 
@@ -574,42 +574,38 @@
   \vspace{-5mm}
   \begin{itemize}    
     \only<-3>{
-    \visible<2->{\item Existential justification: ARM\cmark{} ($\star$)\cmark{} OOTA1-3\cmark{} OOTA4\xmark{}
-      \begin{itemize}
-      \item{} Commitment (JMM - Java Memory Model) [Manson, Pugh, Adve, 2005]
-      \item{} Speculation [Jagadeesan, Pitcher, Riely, 2010]
-      \item{} Promising  [Kang, Hur, Lahav, Vafeiadis, Dreyer 2017]
-      \end{itemize}}
-    \visible<3->{\item Universal justification: ARM\xmark{} ($\star$)\cmark{} OOTA1-3\cmark{} OOTA4\cmark{}
-      \begin{itemize}
-      \item{} Event Structures [Jeffrey, Riely, 2016]
-      \end{itemize}}
+      \visible<2->{\item Existential justification: ARM\cmark{} ($\star$)\cmark{} OOTA1-3\cmark{} OOTA4\xmark{}
+        \begin{itemize}
+        \item{} Commitment (JMM - Java Memory Model) [Manson, Pugh, Adve, 2005]
+        \item{} Speculation [Jagadeesan, Pitcher, Riely, 2010]
+        \item{} Promising  [Kang, Hur, Lahav, Vafeiadis, Dreyer 2017]
+        \end{itemize}}
+      \visible<3->{\item Universal justification: ARM\xmark{} ($\star$)\cmark{} OOTA1-3\cmark{} OOTA4\cmark{}
+        \begin{itemize}
+        \item{} Event Structures [Jeffrey, Riely, 2016]
+        \end{itemize}}
     }
-    \only<4-9>{
+    \only<4-8>{
     \item In the JMM, OOTA5 \emph{``is type correct if it declares
         $x$, $y$ and $r$ of type $\classD$. However, it has a legal execution
         where they reference a $\classC$ object.''} [Lochbihler 2013]
       \begin{itemize}
-      \visible<5->{\item To prove safety, Lochbihler partitions memory by type}
-      \visible<6->{
-        \begin{itemize}
+        \visible<5->{\item To prove safety, Lochbihler partitions memory by type}
+        \visible<6->{
+          \begin{itemize}
           \item \redxout{Realistic memory allocation}
           \item \redxout{Java Security Architecture (security-sensitive
-            constants)}
-        \end{itemize}}
+              constants)}
+          \end{itemize}}
       \end{itemize}
-    \visible<7->{\item OOTA is a \emph{queasy feeling}} \visible<8->{--- Compositionality is a \emph{verifiable property}}
-    \visible<9->{
-      \begin{itemize}
-      \item Predicate logic rules out OOTA1-3
-      \item Temporal logic rules out OOTA4
-      \end{itemize}}      
+      \visible<7->{\item \emph{OOTA} is a \emph{queasy feeling}}
+      \visible<8->{\\ \emph{Compositionality} of proof rules is a \emph{verifiable property}}
     }
-    \only<10->{
+    \only<9->{
     \item In OOTA4, every thread satisfies:
       \begin{itemize}
       \item $\DW{y}{1}$ must be preceded by $\DR{x}{1}$        
-      %\item $\DW{z}{1}$ must be preceded by $\DR{y}{1}$        
+        % \item $\DW{z}{1}$ must be preceded by $\DR{y}{1}$        
       \item if $\DW{z}{1}$, then $\DW{x}{1}$ must be preceded by
         $\DR{y}{1}$
       \item
@@ -620,13 +616,13 @@
           [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
         \end{math}
       \end{itemize}
-      \visible<11->{
-      \item By compositionality, whole program should satisfy this
+      \visible<10->{
+      \item Compositionality: every thread satisfies $\Longrightarrow$ program satisfies
         \begin{itemize}
-        \item[\xmark{}] Existential justification 
-        \item[\cmark{}] Universal justification 
+        \item $\exists$ justification: compositional for predicate logic OOTA1-3
+        \item $\forall$ justification: compositional for temporal logic OOTA4-5
         \end{itemize}}
-      }
+    }
   \end{itemize}  
 \end{frame}
 
@@ -756,58 +752,45 @@
     \end{itemize}
   \item<2-> Implementer desiderata
     \begin{itemize}
-    \item Single-threaded compiler optimizations
-    \item No hardware synchronization for relaxed access
-      \visible<3->{\alert{on MCA architectures}}
+    \item Efficient on \only<3->{\redxout}{hardware} \only<3->{\alert{MCA} hardware}
+    \item Compiler optimizations
     \end{itemize}
   \item<3-> Multi-copy atomicity (MCA)
     \begin{itemize}
     \item When write published to one processor, published to all
-    \item ARMv8, x86-64, RISC-V, but not POWER
+    \item ARM\cmark{} x86-64\cmark{} RISC-V\cmark{} POWER\xmark{} %, e.g. \texttt{IRIW+dmb.ld}\xmark{}
+    \item Prevents anomalies:
     \end{itemize}
     \vspace{-3mm}
-    \onslide<4->
+    \onslide<3->
     \begin{gather*}
       \begin{gathered}
-      % x\GETS0\SEMI
-      x\GETS 1
-      \PAR
-      % y\GETS0\SEMI
-      y\GETS 1
-      \PAR
-      r\GETS x^\modeRA\SEMI s\GETS y
-      \PAR
-      s\GETS y^\modeRA \SEMI r\GETS x
-      \\
-      \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
-            % \event{wx0}{\DW{x}{0}}{}
-            % \event{wx1}{\DW{x}{1}}{right=of wx0}
-            % \event{wy0}{\DW{y}{0}}{below=4ex of wx0}
-            % \event{wy1}{\DW{y}{1}}{right=of wy0}
-            \event{wx1}{\DW{x}{1}}{}
-            \event{wy1}{\DW{y}{1}}{below=4ex of wx1}
-            \event{ry1}{\DR[\modeRA]{y}{1}}{right=2.5em of wy1}
-            \event{rx0}{\DR{x}{0}}{right=of ry1}
-            \event{rx1}{\DR[\modeRA]{x}{1}}{right=2.5 em of wx1}
-            \event{ry0}{\DR{y}{0}}{right=of rx1}
-            % \wk{wx0}{wx1}
-            % \wk{wy0}{wy1}
-            % \rf[bend left]{wy0}{ry0}
-            % \rf[bend right]{wx0}{rx0}
-            \sync{rx1}{ry0}
-            \sync{ry1}{rx0}
-            \rf{wx1}{rx1}
-            \rf{wy1}{ry1}
-            \wk{rx0}{wx1}
-            \wk{ry0}{wy1}
-          \end{tikzinline}}}
-    \end{gathered}
-    \spacetag{IRIW}
-  \end{gather*}
+        r\GETS x\SEMI x\GETS 1
+        \PAR
+        y\GETS x 
+        \PAR
+        x\GETS y 
+        \\[-1.2ex]
+        \hbox{\begin{tikzinline}[node distance=1.5em]
+            \event{a}{\DR{x}{\alert{1}}}{}
+            \event{b}{d:\DW{x}{1}}{right=of a}
+            \wk{a}{b}
+            \event{c}{\DR{x}{1}}{right=3em of b}
+            \event{d}{\DW{y}{1}}{right=of c}
+            \po{c}{d}
+            \event{e}{\DR{y}{1}}{right=3em of d}
+            \event{f}{e:\DW{x}{1}}{right=of e}
+            \po{e}{f}
+            \rf{b}{c}
+            \rf{d}{e}
+            \rf[out=172,in=8]{f}{a}
+          \end{tikzinline}}
+      \end{gathered}
+    \end{gather*}
   \end{itemize}
 \end{frame}
 
-\begin{frame}[label=before]
+\begin{frame}<2,5>[label=before]
   \frametitle{We've been trying for 20 years...}
   \begin{itemize}
   \item<1-> Operational with alternate executions: ARM\cmark{} OOTA\xmark{}
@@ -872,7 +855,7 @@
       \end{itemize}
     \item<+-> $\bigwedge_{\aEv}\labelingForm(\aEv)$ is satisfiable
       \emph{(consistency)}
-    \item<+-> if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
+    \item<2-> if $\bEv\le\aEv$ then $\labelingForm(\aEv)$ implies
       $\labelingForm(\bEv)$ \emph{(causal strengthening)}
     \end{itemize}
   \item<+->
@@ -887,14 +870,14 @@
       % \item[{\labeltextsc[F2]{(F2)}{rf2}}] $\labelingAct(\aEv)=\DR{x}{v}$,
     \item%[{\labeltextsc[F3]{(F3)}{rf3}}]
       $\bEv \lt \aEv$
-    \item<+->%[{\labeltextsc[F4]{(F4)}{rf4}}]
+    \item%[{\labeltextsc[F4]{(F4)}{rf4}}]
       if $\labelingAct(\cEv)=(\DW{x}{..})$ then either $\cEv \le \bEv$ or $\aEv \le \cEv$
     \end{itemize}
   \item<+->
     A pomset is \emph{$\aLoc$-closed} if
     \begin{itemize}
     \item every $\labelingAct(\aEv)=(\DR{\aLoc}{..})$ is fulfilled
-    \item<+-> every $\labelingForm(\aEv)$ is independent of $x$: $\bigl(\forall v.\;\labelingForm(\aEv) \vDash \labelingForm(\aEv)[\aVal/\aLoc] \vDash
+    \item every $\labelingForm(\aEv)$ is independent of $x$: $\bigl(\forall v.\;\labelingForm(\aEv) \vDash \labelingForm(\aEv)[\aVal/\aLoc] \vDash
       \labelingForm(\aEv)\bigr)$
     \end{itemize}
   \end{itemize}
@@ -1016,14 +999,14 @@
       \sem[\aThrd]{\aReg\GETS\aExp\SEMI \aCmd} & \eqdef
       \sem[\aThrd]{\aCmd}\alert<3>{[\aExp/\aReg]}
       \\ 
-      \sem{\aReg\GETS\aLoc^{\visible<8->{\alert<8>{\amode}}}\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
-      \alert<4>{(\DR[\visible<8->{\alert<8>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd} \alert<3>{[\aLoc/\aReg]}
+      \sem{\aReg\GETS\aLoc^{\visible<1->{\alert<1>{\amode}}}\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
+      \alert<4>{(\DR[\visible<1->{\alert<1>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd} \alert<3>{[\aLoc/\aReg]}
       \\
-      \sem{\aLoc^{\visible<8->{\alert<8>{\amode}}}\GETS\aExp\SEMI \aCmd} & \eqdef
-      \textstyle\bigcup_\aVal\; \alert<4>{(\aExp=\aVal \mid \DW[\visible<8->{\alert<8>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd}\alert<3>{[\aExp/\aLoc]}
+      \sem{\aLoc^{\visible<1->{\alert<1>{\amode}}}\GETS\aExp\SEMI \aCmd} & \eqdef
+      \textstyle\bigcup_\aVal\; \alert<4>{(\aExp=\aVal \mid \DW[\visible<1->{\alert<1>{\amode}}]\aLoc\aVal)\prefix} \sem{\aCmd}\alert<3>{[\aExp/\aLoc]}
       \\
-      \sem{\FENCE^{\visible<8->{\alert<8>{\fmode}}}\SEMI \aCmd} & \eqdef
-      (\DFS{\visible<8->{\alert<8>{\fmode}}}) \prefix \sem{\aCmd}
+      \sem{\FENCE^{\visible<1->{\alert<1>{\fmode}}}\SEMI \aCmd} & \eqdef
+      \alert<4>{(\DFS{\visible<1->{\alert<1>{\fmode}}}) \prefix} \sem{\aCmd}
       \\
       \sem[\aThrd]{\IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI} & \eqdef
       \bigl(\alert<5>{\aExp \guard} \sem[\aThrd]{\aCmd}\bigr) \alert<6>{\parallel} \bigl(\alert<5>{\lnot\aExp \guard} \sem[\aThrd]{\bCmd}\bigr) 
@@ -1035,11 +1018,11 @@
       \alert<7>{\nu \aLoc \DOT} \sem[\aThrd]{\aCmd}  
     \end{aligned}
   \end{gather*}
-  \visible<8->{
+  \visible<1->{
     \begin{align*}
-      \alert<8>{\amode} \BNFDEF& \modeRLX &&\text{{(Relaxed)}}   &\alert<8>{\fmode} \BNFDEF&\modeREL  &&\text{(Release)}
-      \\ \BNFSEP& \modeRA &&\text{{(Release/Acquire)}}            &       \BNFSEP&\modeACQ   &&\text{(Acquire)}
-      \\ \BNFSEP& \modeSC &&\text{{(Sequentially Consistent)}}    &       \BNFSEP&\modeSC  &&\text{(SC)}
+      \alert<1>{\amode} \BNFDEF& \modeRLX &&\text{{(Relaxed)}} &\alert<1>{\fmode} \BNFDEF&\modeREL  &&\text{(Release)} &\hbox{$\;\mkern60mu\;$}&
+      \\ \BNFSEP& \modeRA &&\text{{(Release/Acquire)}}            & \BNFSEP&\modeACQ   &&\text{(Acquire)} 
+      \\ \BNFSEP& \modeSC &&\text{{(Sequentially Consistent)}}    &      \BNFSEP&\modeSC  &&\text{(SC)} 
     \end{align*}}
 \end{frame}
 
@@ -1189,7 +1172,7 @@
     \only<7>{Order enables substitution $[v/y]$}
     \only<8>{Prepending $y\GETS 0$ substitutes $[0/y]$}
     \only<8>{\\{}Order imposed by sub? Write\xmark{} Read\cmark{} }
-      %\alert{1}/y] from $\DR{y}{1}$ requires order, [\alert{0}/y] from $\DW{y}{0}$ does not}
+    % \alert{1}/y] from $\DR{y}{1}$ requires order, [\alert{0}/y] from $\DW{y}{0}$ does not}
     \only<9>{Simplifying tautologies}
   \end{center}
 \end{imageframe}
@@ -1263,7 +1246,7 @@
     }
   \end{center}
 \end{imageframe}
-\begin{imageframe}{images/keynote-images/keynote-images.016.jpeg}<4->
+\begin{imageframe}{images/keynote-images/keynote-images.024.jpeg}<4-> %or 16
   \frametitle{Concurrent Semantics: Fulfillment}
   \vspace{-1\baselineskip}
   \begin{gather*}
@@ -1336,7 +1319,86 @@
 \end{imageframe}
 
 
-
+\begin{frame}
+  \frametitle{Buffering}
+  \vspace{-1\baselineskip}
+  \begin{gather*}
+    \begin{gathered}
+      x\GETS0\SEMI
+      y\GETS0\SEMI
+      (
+      x\GETS1\SEMI\aReg\GETS y
+      \PAR
+      y\GETS1\SEMI \aReg\GETS x)
+      \\[-1.5ex]
+      \hbox{\begin{tikzinline}[node distance=.9em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wy0}{\DW{y}{0}}{right=of wx0}
+          \event{wx}{\DW{x}{1}}{right=3em of wy0}
+          \event{ry}{\DR{y}{0}}{right=of wx}
+          \event{wy}{\DW{y}{1}}{right=3em of ry}
+          \event{rx}{\DR{x}{0}}{right=of wy}
+          % \wk[out=15,in=165]{wx0}{wx}
+          % \wk[out=15,in=165]{wy0}{wy}
+          \rf[out=15,in=165]{wy0}{ry}
+          \rf[out=10,in=170]{wx0}{rx}
+          \wk{ry}{wy}
+          \wk[out=-165,in=-15]{rx}{wx}
+          % \po{rx}{wy}
+          % \pox{wy}[below]{rx}
+          % \pox{wx}{ry}
+        \end{tikzinline}}
+      % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+      %   \event{wx0}{\DW{x}{0}}{}
+      %   \event{wy0}{\DW{y}{0}}{below=of wx0}
+      %   \event{wx}{\DW{x}{1}}{right=of wx0}
+      %   \event{wy}{\DW{y}{1}}{right=of wy0}
+      %   \event{ry}{\DR{y}{0}}{right=of wx}
+      %   \event{rx}{\DR{x}{0}}{right=of wy}
+      %   \wk{wx0}{wx}
+      %   \wk{wy0}{wy}
+      %   \rf{wy0}{ry}
+      %   \rf{wx0}{rx}
+      %   \wk[out=-150,in=15]{ry}{wy}
+      %   \wk[out=150,in=-15]{rx}{wx}
+      %     %   \po{rx}{wy}
+      %     %   \pox{wy}[below]{rx}
+      %     %   \pox{wx}{ry}
+      % \end{tikzinline}}
+    \end{gathered}
+    \spacetag{SB}
+    \\[5ex]
+    \begin{gathered}
+      \aReg\GETS y\SEMI x\GETS1
+      \PAR
+      \aReg\GETS x\SEMI y\GETS1
+      \\
+      \hbox{\begin{tikzinline}[node distance=.9em]
+          \event{ry}{\DR{y}{1}}{}
+          \event{wx}{\DW{x}{1}}{right=of ry}
+          \event{rx}{\DR{x}{1}}{right=3em of wx}
+          \event{wy}{\DW{y}{1}}{right=of rx}
+          \rf{wx}{rx}
+          \rf[out=-165,in=-15]{wy}{ry}
+          % \pox{rx}[below]{wy}
+          % \pox{ry}{wx}
+          % \po{rx}{wy}
+        \end{tikzinline}}
+      % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+      %   \event{ry}{\DR{y}{1}}{}
+      %   \event{rx}{\DR{x}{1}}{below=of ry}
+      %   \event{wx}{\DW{x}{1}}{right=of ry}
+      %   \event{wy}{\DW{y}{1}}{right=of rx}
+      %   \rf{wy}{ry}
+      %   \rf{wx}{rx}
+      %     %   \pox{rx}[below]{wy}
+      %     %   \pox{ry}{wx}
+      %     %   \po{rx}{wy}
+      % \end{tikzinline}}
+    \end{gathered}
+    \spacetag{LB}
+  \end{gather*}
+\end{frame}
 
 
 \begin{frame}<2->
@@ -1432,87 +1494,6 @@
     \end{gathered}
     \spacetag{PUB2}
   \end{gather}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Buffering}
-  \vspace{-1\baselineskip}
-  \begin{gather*}
-    \begin{gathered}
-      x\GETS0\SEMI
-      y\GETS0\SEMI
-      (
-      x\GETS1\SEMI\aReg\GETS y
-      \PAR
-      y\GETS1\SEMI \aReg\GETS x)
-      \\[-1.5ex]
-      \hbox{\begin{tikzinline}[node distance=.9em]
-          \event{wx0}{\DW{x}{0}}{}
-          \event{wy0}{\DW{y}{0}}{right=of wx0}
-          \event{wx}{\DW{x}{1}}{right=3em of wy0}
-          \event{ry}{\DR{y}{0}}{right=of wx}
-          \event{wy}{\DW{y}{1}}{right=3em of ry}
-          \event{rx}{\DR{x}{0}}{right=of wy}
-          % \wk[out=15,in=165]{wx0}{wx}
-          % \wk[out=15,in=165]{wy0}{wy}
-          \rf[out=15,in=165]{wy0}{ry}
-          \rf[out=10,in=170]{wx0}{rx}
-          \wk{ry}{wy}
-          \wk[out=-165,in=-15]{rx}{wx}
-          % \po{rx}{wy}
-          % \pox{wy}[below]{rx}
-          % \pox{wx}{ry}
-        \end{tikzinline}}
-      % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
-      %   \event{wx0}{\DW{x}{0}}{}
-      %   \event{wy0}{\DW{y}{0}}{below=of wx0}
-      %   \event{wx}{\DW{x}{1}}{right=of wx0}
-      %   \event{wy}{\DW{y}{1}}{right=of wy0}
-      %   \event{ry}{\DR{y}{0}}{right=of wx}
-      %   \event{rx}{\DR{x}{0}}{right=of wy}
-      %   \wk{wx0}{wx}
-      %   \wk{wy0}{wy}
-      %   \rf{wy0}{ry}
-      %   \rf{wx0}{rx}
-      %   \wk[out=-150,in=15]{ry}{wy}
-      %   \wk[out=150,in=-15]{rx}{wx}
-      %     %   \po{rx}{wy}
-      %     %   \pox{wy}[below]{rx}
-      %     %   \pox{wx}{ry}
-      % \end{tikzinline}}
-    \end{gathered}
-    \spacetag{SB}
-    \\[5ex]
-    \begin{gathered}
-      \aReg\GETS y\SEMI x\GETS1
-      \PAR
-      \aReg\GETS x\SEMI y\GETS1
-      \\
-      \hbox{\begin{tikzinline}[node distance=.9em]
-          \event{ry}{\DR{y}{1}}{}
-          \event{wx}{\DW{x}{1}}{right=of ry}
-          \event{rx}{\DR{x}{1}}{right=3em of wx}
-          \event{wy}{\DW{y}{1}}{right=of rx}
-          \rf{wx}{rx}
-          \rf[out=-165,in=-15]{wy}{ry}
-          % \pox{rx}[below]{wy}
-          % \pox{ry}{wx}
-          % \po{rx}{wy}
-        \end{tikzinline}}
-      % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
-      %   \event{ry}{\DR{y}{1}}{}
-      %   \event{rx}{\DR{x}{1}}{below=of ry}
-      %   \event{wx}{\DW{x}{1}}{right=of ry}
-      %   \event{wy}{\DW{y}{1}}{right=of rx}
-      %   \rf{wy}{ry}
-      %   \rf{wx}{rx}
-      %     %   \pox{rx}[below]{wy}
-      %     %   \pox{ry}{wx}
-      %     %   \po{rx}{wy}
-      % \end{tikzinline}}
-    \end{gathered}
-    \spacetag{LB}
-  \end{gather*}
 \end{frame}
 
 \begin{frame}
@@ -1636,86 +1617,86 @@
   \frametitle{Coherence}
   \vspace{-1\baselineskip}
   \begin{gather*}
-  \begin{gathered}
-  x\GETS 1
-  \PAR
-  x\GETS2
-  \PAR
-  x\GETS 3
-  \PAR
-  x\GETS 4
-  \PAR
-  x\GETS 5
-  \PAR
-  r\GETS x\SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x
-  \\
-  \hbox{\begin{tikzinline}[node distance=.7em and 2em]
-  \event{wx1}{\DW{x}{1}}{}
-  \event{rx1a}{\DR{x}{1}}{above right=of wx1}
-  \event{rx1b}{\DR{x}{1}}{above=of rx1a}
-  \event{wx2}{\DW{x}{2}}{below right=of rx1a}
-  \event{rx2a}{\DR{x}{2}}{above right=of wx2}
-  \event{rx2b}{\DR{x}{2}}{above=of rx2a}
-  \event{wx3}{\DW{x}{3}}{above right=of rx2a}            
-  \event{wx4}{\DW{x}{4}}{right=of rx2a}
-  \event{wx5}{\DW{x}{5}}{below right=of wx4}
-  \event{rx5}{\DR{x}{5}}{above right=of wx5}
-  \rf{wx1}{rx1a}
-  \rf{wx1}{rx1b}
-  \rf{wx2}{rx2a}
-  \rf{wx2}{rx2b}
-  \wk{rx1a}{wx2}
-  \wk{rx1b}{wx2}
-  \wk{rx2a}{wx3}
-  \wk{rx2a}{wx4}
-  \wk{rx2b}{wx3}
-  \wk{rx2b}{wx4}
-  \wk{wx3}{wx5}
-  \wk{wx4}{wx5}
-  \rf{wx5}{rx5}
-    \end{tikzinline}}
-\end{gathered}
-  \spacetag{CO1}
-\\[2ex]
-  \begin{gathered}
-  x\GETS1\SEMI x\GETS 2
-  \PAR
-  y\GETS x \SEMI z\GETS x
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a}{\DW{x}{1}}{}
-      \event{b}{\DW{x}{2}}{right=of a}
-      \wk{a}{b}
-      \event{c}{\DR{x}{2}}{right=3em of b}
-      \event{d}{\DW{y}{2}}{right=of c}
-      \po{c}{d}
-      \event{e}{\DR{x}{1}}{right=of d}
-      \event{f}{\DW{z}{1}}{right=of e}
-      \po{e}{f}
-      \rf{b}{c}
-      \rf[out=10,in=170]{a}{e}
-    \end{tikzinline}}
-\end{gathered}
-  \spacetag{CO2}
-\\[2ex]
-  \begin{gathered}
-  r\GETS x\SEMI x\GETS 1
-  \PAR
-  s\GETS x\SEMI x\GETS 2
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a1}{\DR{x}{2}}{}
-      \event{a2}{\DW{x}{1}}{right=of a1}
-      \wk{a1}{a2}
-      \event{b1}{\DR{x}{1}}{right=3em of a2}
-      \event{b2}{\DW{x}{2}}{right=of b1}
-      \wk{b1}{b2}
-      \rf{a2}{b1}
-      \rf[out=-165,in=-15]{b2}{a1}
-    \end{tikzinline}}
-\end{gathered}
-  \spacetag{TC16}
-\end{gather*}
+    \begin{gathered}
+      x\GETS 1
+      \PAR
+      x\GETS2
+      \PAR
+      x\GETS 3
+      \PAR
+      x\GETS 4
+      \PAR
+      x\GETS 5
+      \PAR
+      r\GETS x\SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x \SEMI r\GETS x
+      \\
+      \hbox{\begin{tikzinline}[node distance=.7em and 2em]
+          \event{wx1}{\DW{x}{1}}{}
+          \event{rx1a}{\DR{x}{1}}{above right=of wx1}
+          \event{rx1b}{\DR{x}{1}}{above=of rx1a}
+          \event{wx2}{\DW{x}{2}}{below right=of rx1a}
+          \event{rx2a}{\DR{x}{2}}{above right=of wx2}
+          \event{rx2b}{\DR{x}{2}}{above=of rx2a}
+          \event{wx3}{\DW{x}{3}}{above right=of rx2a}            
+          \event{wx4}{\DW{x}{4}}{right=of rx2a}
+          \event{wx5}{\DW{x}{5}}{below right=of wx4}
+          \event{rx5}{\DR{x}{5}}{above right=of wx5}
+          \rf{wx1}{rx1a}
+          \rf{wx1}{rx1b}
+          \rf{wx2}{rx2a}
+          \rf{wx2}{rx2b}
+          \wk{rx1a}{wx2}
+          \wk{rx1b}{wx2}
+          \wk{rx2a}{wx3}
+          \wk{rx2a}{wx4}
+          \wk{rx2b}{wx3}
+          \wk{rx2b}{wx4}
+          \wk{wx3}{wx5}
+          \wk{wx4}{wx5}
+          \rf{wx5}{rx5}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{CO1}
+    \\[2ex]
+    \begin{gathered}
+      x\GETS1\SEMI x\GETS 2
+      \PAR
+      y\GETS x \SEMI z\GETS x
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{\DW{x}{1}}{}
+          \event{b}{\DW{x}{2}}{right=of a}
+          \wk{a}{b}
+          \event{c}{\DR{x}{2}}{right=3em of b}
+          \event{d}{\DW{y}{2}}{right=of c}
+          \po{c}{d}
+          \event{e}{\DR{x}{1}}{right=of d}
+          \event{f}{\DW{z}{1}}{right=of e}
+          \po{e}{f}
+          \rf{b}{c}
+          \rf[out=10,in=170]{a}{e}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{CO2}
+    \\[2ex]
+    \begin{gathered}
+      r\GETS x\SEMI x\GETS 1
+      \PAR
+      s\GETS x\SEMI x\GETS 2
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{x}{2}}{}
+          \event{a2}{\DW{x}{1}}{right=of a1}
+          \wk{a1}{a2}
+          \event{b1}{\DR{x}{1}}{right=3em of a2}
+          \event{b2}{\DW{x}{2}}{right=of b1}
+          \wk{b1}{b2}
+          \rf{a2}{b1}
+          \rf[out=-165,in=-15]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{TC16}
+  \end{gather*}
 \end{frame}
 
 \begin{frame}
@@ -1925,52 +1906,52 @@
     %   r\GETS x
     %   \\[-1ex]
     %   \hbox{\begin{tikzinline}[node distance=1.5em]
-    %       \event{a1}{\DW{x}{1}}{}
-    %       \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
-    %       \sync{a1}{a2}
-    %       \event{b1}{\DW{x}{2}}{right=3em of a2}
-    %       \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
-    %       \sync{b1}{b2}
-    %       \event{c1}{\DR[\modeRA]{\,z}{1}}{right=3em of b2}
-    %       \event{c2}{\DR[\modeRA]{y}{1}}{right=of c1}
-    %       \event{c3}{\DR{x}{2}}{right=of c2}
-    %       \event{c4}{\DR{x}{1}}{right=of c3}
-    %       \sync{c1}{c2}
-    %       \sync{c2}{c3}
-    %       \sync[out=20,in=160]{c2}{c4}
-    %       \rf[out=8,in=172]{a2}{c2}
-    %       \rf{b2}{c1}
-    %       \wk[out=19,in=161]{a1}{b1}
-    %       \wk[out=-172,in=-8]{c4}{b1}
-    %     \end{tikzinline}}
+    %     \event{a1}{\DW{x}{1}}{}
+    %     \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+    %     \sync{a1}{a2}
+    %     \event{b1}{\DW{x}{2}}{right=3em of a2}
+    %     \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+    %     \sync{b1}{b2}
+    %     \event{c1}{\DR[\modeRA]{\,z}{1}}{right=3em of b2}
+    %     \event{c2}{\DR[\modeRA]{y}{1}}{right=of c1}
+    %     \event{c3}{\DR{x}{2}}{right=of c2}
+    %     \event{c4}{\DR{x}{1}}{right=of c3}
+    %     \sync{c1}{c2}
+    %     \sync{c2}{c3}
+    %     \sync[out=20,in=160]{c2}{c4}
+    %     \rf[out=8,in=172]{a2}{c2}
+    %     \rf{b2}{c1}
+    %     \wk[out=19,in=161]{a1}{b1}
+    %     \wk[out=-172,in=-8]{c4}{b1}
+    %   \end{tikzinline}}
     % \end{gathered}
-\end{gather*}
+  \end{gather*}
 \end{frame}
 
 \begin{frame}[label=x]
   \frametitle{Valid Transformations} %{\color{gray}\normalsize($^\star$ see paper)}}
   \vspace{-1\baselineskip}
   \begin{align*}
-    %\taglabel{RR}
+    % \taglabel{RR}
     \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
     \\
-    %\taglabel{WW}
+    % \taglabel{WW}
     \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
     \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
     \\
-    %\taglabel{RW}
+    % \taglabel{RW}
     \sem{\aLoc \GETS \aExp  \SEMI \bReg  \GETS \bLoc \SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
     \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
-    %\tag{\textsc{roach1}}\label{AcqW}
+    % \tag{\textsc{roach1}}\label{AcqW}
     \sem{x^\amode \GETS \aExp \SEMI\bReg \GETS y \SEMI\aCmd} &\supseteq
     \sem{\bReg \GETS y  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
     \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
-    %\tag{\textsc{roach2}}\label{RelW}
+    % \tag{\textsc{roach2}}\label{RelW}
     \sem{x \GETS \aExp \SEMI\bReg \GETS y^\amode \SEMI\aCmd} &\supseteq
     \sem{\bReg \GETS y^\amode  \SEMI x\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
@@ -1986,12 +1967,12 @@
     \\
     % \tag{CSE}
     \sem{r_1\GETS \aLoc \SEMI
-    s\GETS \bLoc \SEMI  
-    r_2\GETS \aLoc\SEMI\aCmd}
+      s\GETS \bLoc \SEMI  
+      r_2\GETS \aLoc\SEMI\aCmd}
     &\supseteq
     \sem{r_1\GETS \aLoc \SEMI     
-    r_2\GETS r_1\SEMI
-    s\GETS \bLoc \SEMI\aCmd}
+      r_2\GETS r_1\SEMI
+      s\GETS \bLoc \SEMI\aCmd}
     &&\textif \aReg_2\neq\bReg
   \end{align*}  
   \vspace{-1\baselineskip}  
@@ -2071,7 +2052,7 @@
   \item Irrelevant read elimination
   \item Store forwarding
   \item Dead store elimination
-  %\item Irrelevant read introduction
+    % \item Irrelevant read introduction
   \end{itemize}
 \end{comment}
 
@@ -2114,15 +2095,18 @@
     \item Efficient ARM implementation
     \item Local data race freedom
     \end{itemize}
-  \item Limitations
+  \item<2-> Limitations
     \begin{itemize}
-    \item MCA: ARM$\cmark{}$ Power$\xmark{}$
-    \item Limited optimizations
-    \item Limited logic for OOTA
-    \item No loops or functions 
-    \item No sequential composition
-    \item No mixed size access
-    \item No separate address dependencies
+    \item No: loops or functions, sequential composition
+    \item No: mixed size access, separate address dependencies
+    \item Limited: optimizations, logic for OOTA
+    \item<3-> MCA: ARM\cmark{} x86-64\cmark{} RISC-V\cmark{} POWER\xmark{}
+      \only<4->{\begin{itemize}
+        \item Add per-location partial order: $\leloc$ 
+        \item Require \emph{observation:} if $\bEv$/$\aEv$ conflict and $\bEv\le\aEv$ then $\bEv\leloc\aEv$
+        \item Prefixing (p5b): if $\aEv$ conflicts then $\bEv\leloc'\aEv$
+        \item Fulfillment (f4): if $\cEv$ conflicts then $\cEv \leloc \bEv$ or $\aEv \leloc \cEv$        
+        \end{itemize}}
     \end{itemize}
   \end{itemize}    
 \end{frame}
@@ -2138,9 +2122,72 @@
 
 \imagepage{images/keynote-images/keynote-images.017.jpeg}{\href{https://www.publicdomainpictures.net/en/view-image.php?image=365530}{Image in the Public domain}}
 
+\begin{frame}[label=nonmca]
+  \frametitle{Non-MCA Architectures?}
+  \begin{itemize}
+  \item Two partial orders:
+    \begin{itemize}
+    \item[${\le}$] causal order, as before
+    \item[${\leloc}$] per-location order
+    \end{itemize}
+  \item Require: $\bEv\leloc\aEv$ when $\bEv\le\aEv$ and they conflict
+    (same location)
+  \item 
+    When prefixing $\bEv$:
+    \begin{description}
+    \item[{\labeltextsc[P5b]{(P5b)}{5b}}] if $\bEv$ and $\aEv$ conflict then
+      \hl{$\bEv\leloc'\aEv$},
+    \end{description}
+  \item 
+    When $\bEv$ \emph{fulfills $\aEv$} (on $\aLoc$):
+    \begin{description}
+    \item[{\labeltextsc[F4]{(F4)}{rf4}}] for every conflicting write $\cEv$,
+      either \hl{$\cEv \leloc \bEv$ or $\aEv \leloc \cEv$}.
+    \end{description}
+  \item Example:
+    \vspace{-1.7\baselineskip}
+    \begin{gather*}
+      r\GETS x\SEMI x\GETS 1
+      \PAR
+      y\GETS x 
+      \PAR
+      x\GETS y 
+      \\
+      \hbox{\begin{tikzinlinesmall}[node distance=1.5em]
+          \event{a}{\DR{x}{1}}{}
+          \event{b}{d:\DW{x}{1}}{right=of a}
+          \event{c}{\DR{x}{1}}{right=3em of b}
+          \event{d}{\DW{y}{1}}{right=of c}
+          \po{c}{d}
+          \event{e}{\DR{y}{1}}{right=3em of d}
+          \event{f}{e:\DW{x}{1}}{right=of e}
+          \po{e}{f}
+          \rf{b}{c}
+          \rf{d}{e}
+          \rf[out=172,in=8]{f}{a}
+        \end{tikzinlinesmall}}
+      \tag{$\le$}
+      \\
+      \hbox{\begin{tikzinlinesmall}[node distance=1.5em]
+          \event{a}{\DR{x}{1}}{}
+          \event{b}{d:\DW{x}{1}}{right=of a}
+          \wk{a}{b}
+          \event{c}{\DR{x}{1}}{right=3em of b}
+          \event{d}{\DW{y}{1}}{right=of c}
+          \event{e}{\DR{y}{1}}{right=3em of d}
+          \event{f}{e:\DW{x}{1}}{right=of e}
+          \rf{b}{c}
+          \rf{d}{e}
+          \rf[out=172,in=8]{f}{a}
+        \end{tikzinlinesmall}}
+      \tag{$\leloc$}
+    \end{gather*}  
+  \end{itemize}
+\end{frame}
 
 \begin{frame}
-  \frametitle{LDRF Stale}
+  \frametitle{LDRF: Reads from the Past}
+  \vspace{-1\baselineskip}
   \begin{gather*}
     x\GETS 0 \SEMI y\GETS 0 \SEMI  (x \GETS 1  \SEMI y \GETS 1
     \PAR
@@ -2194,7 +2241,8 @@
   \end{gather*}
 \end{frame}
 \begin{frame}
-  \frametitle{LDRF Future}
+  \frametitle{LDRF: Reads from the Future}
+  \vspace{-1\baselineskip}
   \begin{gather*}
     x\GETS 0 \SEMI y\GETS 0 \SEMI (\aReg \GETS x  \SEMI y \GETS 1
     \PAR
@@ -2253,198 +2301,285 @@
 
 \begin{frame}
   \frametitle{More OOTA}
-  \begin{gather*}
-    \begin{gathered}
-    ( y\GETS x+1
-    \PAR
-    x\GETS y )
-  \\[1ex]
-    \hbox{\begin{tikzinline}[node distance=1.5em]
-        \event{rx}{\DR{x}{1}}{}
-        \event{wy}{\DW{y}{2}}{right=of rx}
-        \po{rx}{wy}
-        \event{ry}{\DR{y}{1}}{right=3em of wy}
-        \event{wx}{\DW{x}{1}}{right=of ry}
-        \po{ry}{wx}
-        % \rf{wy}{ry}
-        \rf[out=170,in=10]{wx}{rx}
-      \end{tikzinline}}
-  \end{gathered}
-    \spacetag{OOTA6}
-  \\[2ex]
-  \begin{gathered}
-  x\GETS 2\SEMI
-  \IF{x\NOTEQ2}\THEN y\GETS 1 \FI
-  \PAR
-  x\GETS 1\SEMI
-  r\GETS x\SEMI
-  \IF{y}\THEN x\GETS 3 \FI
-  \\\nonumber
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx2}{\DW{x}{2}}{}
-  \event{rx3}{\DR{x}{3}}{right=of wx2}
-  \event{wy1}{\DW{y}{1}}{right=of rx3}
-  \po{rx3}{wy1}
-  \event{wx1}{\DW{x}{1}}{right=2em of wy1}
-  \event{rx2}{\DR{x}{2}}{right=of wx1}
-  \wk{wx1}{rx2}
-  \event{ry1}{\DR{y}{1}}{right=of rx2}
-  \event{wx3}{\DW{x}{3}}{right=of ry1}
-  \po{ry1}{wx3}
-  \wk[in=165,out=15]{rx2}{wx3}
-  \rf[in=-170,out=-10]{wy1}{ry1}
-  \rf[in=170,out=10]{wx2}{rx2}
-  \rf[out=-170,in=-10]{wx3}{rx3}
-  \wk[out=-170,in=-10]{wx1}{wx2}
-  \wk{wx2}{rx3}
-    \end{tikzinline}}
-\end{gathered}
-    \spacetag{OOTA7}
-\end{gather*}
-\end{frame}
-
-\begin{frame}
-  \frametitle{RMWs}
   \vspace{-1\baselineskip}
   \begin{gather*}
-  \begin{gathered}
-  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
-  \PAR
-  x\GETS 2\SEMI s\GETS x
-  \\
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a2}{\DR{x}{0}}{}
-  \event{a1}{\DW{x}{0}}{left=of a2}
-  \rf{a1}{a2}
-  \event{a3}{\DW{x}{2}}{right=of a2}
-  \wk{a2}{a3}
-  \event{b2}{\DW{x}{1}}{right=of a3}
-  \event{b3}{\DR{x}{1}}{right=of b2}
-  \rmw[out=-15,in=-165]{a2}[below]{b2}
-  \wk{a3}{b2}
-  \rf{b2}{b3}
-    \end{tikzinline}}
-\end{gathered}
-  \spacetag{RMW1}
-\\[2ex]
-  \begin{gathered}
-  r \GETS y\SEMI
-  z \GETS r
-  \PAR
-  r\GETS z\SEMI
-  x\GETS 0\SEMI
-  s\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI
-  y\GETS s{+}1
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a1}{\DR{y}{1}}{}
-  \event{a2}{\DW{z}{1}}{right=of a1}
-  \po{a1}{a2}
-  \event{b1}{\DR{z}{1}}{right=3em of a2}
-  \rf{a2}{b1}
-  \event{b2}{\DW{x}{0}}{right=of b1}
-  \event{b3}{\DR{x}{0}}{right=of b2}
-  \rf{b2}{b3}
-  \event{b4}{\DWRel{x}{1}}{right=2em of b3}
-  \rmw{b3}{b4}
-  \event{b5}{\DW{y}{1}}{right=of b4}
-  \sync[out=-15,in=-165]{b1}{b4}
-  \po[out=-20,in=-160]{b3}{b5}
-  \rf[out=170,in=10]{b5}{a1}
-    \end{tikzinline}}
-\end{gathered}
-  \spacetag{RMW2}
+    \begin{gathered}
+      ( y\GETS x+1
+      \PAR
+      x\GETS y )
+      \\[1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{rx}{\DR{x}{1}}{}
+          \event{wy}{\DW{y}{2}}{right=of rx}
+          \po{rx}{wy}
+          \event{ry}{\DR{y}{1}}{right=3em of wy}
+          \event{wx}{\DW{x}{1}}{right=of ry}
+          \po{ry}{wx}
+          % \rf{wy}{ry}
+          \rf[out=170,in=10]{wx}{rx}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{OOTA6}
+    \\[2ex]
+    \begin{gathered}
+      x\GETS 2\SEMI
+      \IF{x\NOTEQ2}\THEN y\GETS 1 \FI
+      \PAR
+      x\GETS 1\SEMI
+      r\GETS x\SEMI
+      \IF{y}\THEN x\GETS 3 \FI
+      \\\nonumber
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx2}{\DW{x}{2}}{}
+          \event{rx3}{\DR{x}{3}}{right=of wx2}
+          \event{wy1}{\DW{y}{1}}{right=of rx3}
+          \po{rx3}{wy1}
+          \event{wx1}{\DW{x}{1}}{right=2em of wy1}
+          \event{rx2}{\DR{x}{2}}{right=of wx1}
+          \wk{wx1}{rx2}
+          \event{ry1}{\DR{y}{1}}{right=of rx2}
+          \event{wx3}{\DW{x}{3}}{right=of ry1}
+          \po{ry1}{wx3}
+          \wk[in=165,out=15]{rx2}{wx3}
+          \rf[in=-170,out=-10]{wy1}{ry1}
+          \rf[in=170,out=10]{wx2}{rx2}
+          \rf[out=-170,in=-10]{wx3}{rx3}
+          \wk[out=-170,in=-10]{wx1}{wx2}
+          \wk{wx2}{rx3}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{OOTA7}
   \end{gather*}
 \end{frame}
-
 
 \begin{frame}[label=b]
   \frametitle{Blockers}
   \vspace{-1\baselineskip}
   \begin{gather*}
-    %\tag{blocker}
-  \begin{gathered}
-  \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
-  \PAR
-  \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
-  \PAR
-  r\GETS z_2^\modeRA\SEMI s\GETS x)
-  \\[-.5ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a}{\DW{x}{1}}{}
-  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
-  \event{c}{\DR{z_1}{1}}{right=1.8em of b}
-  \event{d}{\DW{x}{2}}{right=of c}
-  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
-  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
-  \event{g}{\DR{x}{1}}{right=of f}
-  \sync{a}{b}
-  \po{c}{d}
-  \sync{d}{e}
-  \sync{f}{g}
-  \rf[out=8,in=172]{a}{g}
-    \end{tikzinline}}
-\end{gathered}
-\end{gather*}
-Context \begin{math}
-  z_1\GETS y_1
-  \PAR
-  z_2\GETS y_2
-  \PAR
-  \hole{}
-\end{math}
-\begin{gather*}
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a}{\DW{x}{1}}{}
-  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
-  \event{w}{\DR{y_1}{1}}{below=1.8em of b}
-  \event{x}{\DW{z_1}{1}}{right=of w}
-  \event{c}{\DR{z_1}{1}}{above=1.8em of x}
-  \event{d}{\DW{x}{2}}{right=of c}
-  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
-  \event{y}{\DR{y_2}{1}}{below=1.8em of e}
-  \event{z}{\DW{z_2}{1}}{right=of y}
-  \event{f}{\DR[\modeRA]{z_2}{1}}{above=1.8em of z}
-  \event{g}{\DR{x}{1}}{right=of f}
-  \sync{a}{b}
-  \po{c}{d}
-  \sync{d}{e}
-  \sync{f}{g}
-  \po{w}{x}
-  \rf{b}{w}
-  \rf{x}{c}
-  \po{y}{z}
-  \rf{e}{y}
-  \rf{z}{f}
-    \end{tikzinline}}
-\end{gather*}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{Address Dependencies}
+    % \tag{blocker}
+    \begin{gathered}
+      \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
+      \PAR
+      \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
+      \PAR
+      r\GETS z_2^\modeRA\SEMI s\GETS x)
+      \\[-.5ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{\DW{x}{1}}{}
+          \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+          \event{c}{\DR{z_1}{1}}{right=1.8em of b}
+          \event{d}{\DW{x}{2}}{right=of c}
+          \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+          \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
+          \event{g}{\DR{x}{1}}{right=of f}
+          \sync{a}{b}
+          \po{c}{d}
+          \sync{d}{e}
+          \sync{f}{g}
+          \rf[out=8,in=172]{a}{g}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}
+  Context \begin{math}
+    z_1\GETS y_1
+    \PAR
+    z_2\GETS y_2
+    \PAR
+    \hole{}
+  \end{math}
   \begin{gather*}
-  \begin{gathered}
-  (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
-  \PAR
-  (r\GETS x^\modeRA \SEMI s \GETS \REF{r})
-  \\[1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a1}{\DW{\REF{1}}{0}}{}
-      \event{a2}{\DW{\REF{1}}{1}}{right=of a1}
-      \wk{a1}{a2}
-      \event{a4}{\DWRel{x}{1}}{right=of a2}
-      \sync{a2}{a4}
-      \event{b1}{\DR[\modeRA]{x}{1}}{right=3em of a4}
-      \event{b2}{\DR{\REF{1}}{0}}{right=of b1}
-      \sync{b1}{b2}
-      \rf{a4}{b1}
-      \wk[out=170,in=10]{b2}{a2}
-    \end{tikzinline}}
-  \end{gathered}
-  \spacetag{ADDR2}
-\end{gather*}
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW{x}{1}}{}
+        \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+        \event{w}{\DR{y_1}{1}}{below=1.8em of b}
+        \event{x}{\DW{z_1}{1}}{right=of w}
+        \event{c}{\DR{z_1}{1}}{above=1.8em of x}
+        \event{d}{\DW{x}{2}}{right=of c}
+        \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+        \event{y}{\DR{y_2}{1}}{below=1.8em of e}
+        \event{z}{\DW{z_2}{1}}{right=of y}
+        \event{f}{\DR[\modeRA]{z_2}{1}}{above=1.8em of z}
+        \event{g}{\DR{x}{1}}{right=of f}
+        \sync{a}{b}
+        \po{c}{d}
+        \sync{d}{e}
+        \sync{f}{g}
+        \po{w}{x}
+        \rf{b}{w}
+        \rf{x}{c}
+        \po{y}{z}
+        \rf{e}{y}
+        \rf{z}{f}
+      \end{tikzinline}}
+  \end{gather*}
 \end{frame}
+
+
+\begin{frame}[label=rmw]
+  \frametitle{RMWs}
+  \begin{itemize}
+  \item[] ${\xrmw}\subseteq{\le}$:
+    \renewcommand{\bEv}{(\DR{x}{2})}
+    \renewcommand{\aEv}{(\DW{x}{3})}
+    \renewcommand{\cEv}{\alert{(\DW{x}{1})}}
+    \renewcommand{\dEv}{\alert{(\DW{x}{3})}}
+    \begin{itemize}
+    \item If $\bEv \xrmw \aEv$ and $\cEv\gtN \aEv$ then  $\cEv\gtN \bEv$
+    \item If $\bEv \xrmw \aEv$ and $\bEv\gtN \dEv$ then  $\aEv\gtN \dEv$
+    \item ${\xrmw}$ does not coalesce in $\!\PAR\!$ or prefixing
+    \end{itemize}
+  \end{itemize}
+  \vspace{-.5\baselineskip}
+  \begin{gather*}
+    \begin{gathered}
+      x\GETS 0 \bigl(\FADD^{\modeRLX,\modeRLX}(x,1) \PAR \FADD^{\modeRLX,\modeRLX}(x,1)\bigr)
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a0}{\DW{x}{0}}{}
+          \event{a1}{\DR{x}{0}}{right=3em of a0}
+          \event{a2}{\DW{x}{1}}{right=of a1}
+          \event{b1}{\DR{x}{0}}{right=3em of a2}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          \rmw{a1}{a2}
+          \rf{a0}{a1}
+          \rf[out=-15,in=-165]{a0}{b1}
+          \wk[out=-15,in=-165]{a1}{b2}
+          \wk{b1}{a2}
+          \graywk[bend left]{a2}{b1}
+          \rmw{b1}{b2}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{RMW0}
+    \\[1ex]
+    \begin{gathered}
+      \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc,1)
+      \PAR
+      x\GETS 2\SEMI s\GETS x
+      \\
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a2}{\DR{x}{0}}{}
+          \event{a1}{\DW{x}{0}}{left=of a2}
+          \rf{a1}{a2}
+          \event{a3}{\DW{x}{2}}{right=of a2}
+          \wk{a2}{a3}
+          \event{b2}{\DW{x}{1}}{right=of a3}
+          \event{b3}{\DR{x}{1}}{right=of b2}
+          \rmw[out=-15,in=-165]{a2}[below]{b2}
+          \wk{a3}{b2}
+          \rf{b2}{b3}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{RMW1}
+    \\[1ex]
+    \begin{gathered}
+      r \GETS y\SEMI
+      z \GETS r
+      \PAR
+      r\GETS z\SEMI
+      x\GETS 0\SEMI
+      s\GETS \FADD^{\modeRLX,\modeRA}(x,1) \SEMI
+      y\GETS s{+}1
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{y}{1}}{}
+          \event{a2}{\DW{z}{1}}{right=of a1}
+          \po{a1}{a2}
+          \event{b1}{\DR{z}{1}}{right=3em of a2}
+          \rf{a2}{b1}
+          \event{b2}{\DW{x}{0}}{right=of b1}
+          \event{b3}{\DR{x}{0}}{right=of b2}
+          \rf{b2}{b3}
+          \event{b4}{\DWRel{x}{1}}{right=2em of b3}
+          \rmw{b3}{b4}
+          \event{b5}{\DW{y}{1}}{right=of b4}
+          \sync[out=-15,in=-165]{b1}{b4}
+          \po[out=-20,in=-160]{b3}{b5}
+          \rf[out=170,in=10]{b5}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{RMW2}
+  \end{gather*}
+\end{frame}
+
+\begin{frame}[label=ps2]
+  \frametitle{PS2.0 Examples}
+  \vspace{-1\baselineskip}
+  \begin{gather*}
+    \begin{gathered}
+      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN y\GETS 1 \FI
+      \PAR
+      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN \IF{y}\THEN x\GETS 0 \FI \FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a1}{\DR[\modeRA]{x}{0}}{}
+          \event{a1b}{\DW[\modeRA]{x}{1}}{below=1em of a1}
+          \event{a2}{\DW{y}{1}}{right=of a1}
+          \event{b0}{\DR[\modeRA]{x}{0}}{right=3em of a2}
+          \event{b0b}{\DW[\modeRA]{x}{1}}{below=1em of b0}
+          \event{b1}{\DR{y}{1}}{right=of b0}
+          \event{b2}{\DW{x}{0}}{right=of b1}
+          \rmw{a1}{a1b}
+          \rmw{b0}{b0b}
+          \rf[out=-13,in=-163]{a2}{b1}
+          \po{a1}{a2}
+          \sync{b0}{b1}
+          \po{b1}{b2}
+          \rf[out=-165,in=-12]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{CDRF}
+    \\
+    \begin{gathered}
+      x\GETS0 \SEMI
+      \bigl(
+        r\GETS \CAS^{\modeRLX,\modeRLX}(x,0,1)\SEMI \IF{r{<}10}\THEN y\GETS 1 \FI
+        \PAR
+        x\GETS{42}\SEMI x\GETS y
+      \bigr)
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a0}{\DW{x}{0}}{}
+          \event{a1}{\DR{x}{1}}{right=3em of a0}
+          \event{a2}{0{<}10\mid\DW{y}{1}}{right=of a1}
+          \event{b0}{\DW{x}{42}}{right=3em of a2}
+          \event{b1}{\DR{y}{1}}{right=of b0}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          %\rmw{a1}{a2}
+          \rf[out=-15,in=-160]{a2}{b1}
+          \po{b1}{b2}
+          \rf[out=-165,in=-15]{b2}{a1}
+          \wk[out=10,in=170]{a0}{b0}
+          \wk[out=15,in=165]{b0}{b2}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{GA+E}
+    \\
+    \begin{gathered}
+      r\GETS x\SEMI
+      s\GETS \FADD^{\modeRLX,\modeRLX}(z,r)\SEMI y\GETS s{+}1
+      \PAR
+      x\GETS y
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a0}{\DR{x}{1}}{}
+          \event{a1}{\DR{z}{0}}{right=of a0}
+          \event{a1b}{\DW{z}{1}}{right=of a1}
+          \event{a2}{\DW{y}{1}}{right=of a1b}
+          \event{b0}{\DR{y}{1}}{right=3em of a2}
+          \event{b1}{\DW{x}{1}}{right=of b0}
+          \rmw{a1}{a1b}
+          \po[out=20,in=160]{a0}{a1b}
+          \po[out=20,in=160]{a1}{a2}
+          \po{b0}{b1}
+          \rf{a2}{b0}
+          \rf[out=-165,in=-15]{b1}{a0}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{RP}
+  \end{gather*}
+\end{frame}
+
+
 
 
 

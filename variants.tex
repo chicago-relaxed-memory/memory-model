@@ -387,7 +387,7 @@ This definition ensures atomicity, disallowing executions such as
 \begin{gather*}
   \taglabel{RMW1}
   \begin{gathered}
-  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
+  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc,1)
   \PAR
   x\GETS 2\SEMI s\GETS x
   \\
@@ -417,7 +417,7 @@ following, which is allowed by \armeight{}
   \PAR
   r\GETS z\SEMI
   x\GETS 0\SEMI
-  s\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI
+  s\GETS \FADD^{\modeRLX,\modeRA}(x,1) \SEMI
   y\GETS s{+}1
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]

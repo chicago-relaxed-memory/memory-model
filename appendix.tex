@@ -1,21 +1,186 @@
-\section{Proof of compilation for ARMv8}
+\section{Additional RMW Examples}
+
+
+\begin{comment}
+Status of IRIW is unclear in our model, since we allow everything allowed by
+power...
+\begin{gather*}
+  \begin{gathered}
+    % x\GETS0\SEMI
+    x\GETS 1
+    \PAR
+    % y\GETS0\SEMI
+    y\GETS 1
+    \PAR
+    r\GETS x^\modeRA\SEMI s\GETS y
+    \PAR
+    s\GETS y^\modeRA \SEMI r\GETS x
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          % \event{wx0}{\DW{x}{0}}{}
+          % \event{wx1}{\DW{x}{1}}{right=of wx0}
+          % \event{wy0}{\DW{y}{0}}{below=4ex of wx0}
+          % \event{wy1}{\DW{y}{1}}{right=of wy0}
+          \event{wx1}{\DW{x}{1}}{}
+          \event{wy1}{\DW{y}{1}}{below=4ex of wx1}
+          \event{ry1}{\DR[\modeRA]{y}{1}}{right=2.5em of wy1}
+          \event{rx0}{\DR{x}{0}}{right=of ry1}
+          \event{rx1}{\DR[\modeRA]{x}{1}}{right=2.5 em of wx1}
+          \event{ry0}{\DR{y}{0}}{right=of rx1}
+          % \wk{wx0}{wx1}
+          % \wk{wy0}{wy1}
+          % \rf[bend left]{wy0}{ry0}
+          % \rf[bend right]{wx0}{rx0}
+          \sync{rx1}{ry0}
+          \sync{ry1}{rx0}
+          \rf{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \wk{rx0}{wx1}
+          \wk{ry0}{wy1}
+        \end{tikzinline}}}
+  \end{gathered}
+\end{gather*}
+\end{comment}
+
+It is not possible for two \RMW{}s to see the same write.
+\begin{gather*}
+  \begin{gathered}
+    x\GETS 0 \SEMI \bigl(\FADD^{\modeRLX,\modeRLX}(x,1) \PAR \FADD^{\modeRLX,\modeRLX}(x,1)\bigr)
+    \\
+    \hbox{\begin{tikzinline}[node distance=2em]
+        \event{a0}{\DW{x}{0}}{}
+        \event{a1}{\DR{x}{0}}{right=3em of a0}
+        \event{a2}{\DW{x}{1}}{right=of a1}
+        \event{b1}{\DR{x}{0}}{right=3em of a2}
+        \event{b2}{\DW{x}{1}}{right=of b1}
+        \rmw{a1}{a2}
+        \rf{a0}{a1}
+        \rf[out=-15,in=-165]{a0}{b1}
+        \wk[out=-15,in=-165]{a1}{b2}
+        \wk{b1}{a2}
+        \graywk[bend left]{a2}{b1}
+        \rmw{b1}{b2}
+      \end{tikzinline}}
+  \end{gathered}
+  \taglabel{rmw0}
+\end{gather*}
+The gray arrow is required the \RMW{} atomicity axioms.
+
+\citet{DBLP:conf/pldi/LeeCPCHLV20} introduce \ps2.0 to refine the treatment of
+\RMW{}s in the promising semantics (\ps).  Their examples have the expected
+results here, with far less work.  First they recall that \ps{} requires
+quantification over multiple futures in order to disallow executions such as
+\ref{CDRF}:
+\begin{gather*}
+  \taglabel{CDRF}
+    \begin{gathered}
+      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN y\GETS 1 \FI
+      \PAR
+      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN \IF{y}\THEN x\GETS 0 \FI \FI
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a1}{\DR[\modeRA]{x}{0}}{}
+          \event{a1b}{\DW[\modeRA]{x}{1}}{below=1em of a1}
+          \event{a2}{\DW{y}{1}}{right=of a1}
+          \event{b0}{\DR[\modeRA]{x}{0}}{right=3em of a2}
+          \event{b0b}{\DW[\modeRA]{x}{1}}{below=1em of b0}
+          \event{b1}{\DR{y}{1}}{right=of b0}
+          \event{b2}{\DW{x}{0}}{right=of b1}
+          \rmw{a1}{a1b}
+          \rmw{b0}{b0b}
+          \rf[out=-13,in=-163]{a2}{b1}
+          \po{a1}{a2}
+          \sync{b0}{b1}
+          \po{b1}{b2}
+          \rf[out=-165,in=-12]{b2}{a1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}
+This execution is clearly impossible, due to the cycle above.  In this
+diagram, we have not drawn order adjacent to the writes of the \RMW{}s, since
+this is not necessary to produce the cycle.
+  
+\ps{} does not support global value range analysis, as modeled by \ref{GA+E} below.  Our
+semantics permits \ref{GA+E}:
+\begin{gather*}
+  \taglabel{GA+E}
+    \begin{gathered}
+      x\GETS0 \SEMI
+      \bigl(
+        r\GETS \CAS^{\modeRLX,\modeRLX}(x,0,1)\SEMI \IF{r{<}10}\THEN y\GETS 1 \FI
+        \PAR
+        x\GETS{42}\SEMI x\GETS y
+      \bigr)
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a0}{\DW{x}{0}}{}
+          \event{a1}{\DR{x}{1}}{right=3em of a0}
+          \event{a2}{0{<}10\mid\DW{y}{1}}{right=of a1}
+          \event{b0}{\DW{x}{42}}{right=3em of a2}
+          \event{b1}{\DR{y}{1}}{right=of b0}
+          \event{b2}{\DW{x}{1}}{right=of b1}
+          %\rmw{a1}{a2}
+          \rf[out=-15,in=-160]{a2}{b1}
+          \po{b1}{b2}
+          \rf[out=-165,in=-15]{b2}{a1}
+          \wk[out=10,in=170]{a0}{b0}
+          \wk[out=15,in=165]{b0}{b2}
+        \end{tikzinline}}
+    \end{gathered}
+\end{gather*}
+\ps{} also does not support register promotion, as modeled by \ref{RP} below.    Our
+semantics permits \ref{RP}:
+\begin{gather*}
+  \taglabel{RP}
+    \begin{gathered}
+      r\GETS x\SEMI
+      s\GETS \FADD^{\modeRLX,\modeRLX}(z,r)\SEMI y\GETS s{+}1
+      \PAR
+      x\GETS y
+      \\
+      \hbox{\begin{tikzinline}[node distance=2em]
+          \event{a0}{\DR{x}{1}}{}
+          \event{a1}{\DR{z}{0}}{right=of a0}
+          \event{a1b}{\DW{z}{1}}{right=of a1}
+          \event{a2}{\DW{y}{1}}{right=of a1b}
+          \event{b0}{\DR{y}{1}}{right=3em of a2}
+          \event{b1}{\DW{x}{1}}{right=of b0}
+          \rmw{a1}{a1b}
+          \po[out=20,in=160]{a0}{a1b}
+          \po[out=20,in=160]{a1}{a2}
+          \po{b0}{b1}
+          \rf{a2}{b0}
+          \rf[out=-165,in=-15]{b1}{a0}
+        \end{tikzinline}}
+    \end{gathered}
+\end{gather*}
+  
+\section{Proof of Efficient Implementation on ARM8}
 \label{sec:arm:proof}
 
 In this section, we develop the proof of correctness of compilation to \armeight.  
 
-Our language can be translated to ARM following
-  \citet{DBLP:journals/pacmpl/PodkopaevLV19}, thus using \texttt{ldr} for relaxed read, \texttt{ldar} for $\modeRA$/$\modeSC$ reads are acquires, \texttt{str} for relaxed write, and \texttt{stlr} for $\modeRA$/$\modeSC$ writes.    $\FENCE$ instruction can be
-  translated to \texttt{dmb.sy}, since it has release-acquire semantics.
-  Acquire fences map to \texttt{dmb.ld}, and release fences to
-  \texttt{dmb.sy} --- \texttt{dmb.st} does not provide order to prior
-  reads.
+Our language can be translated to \armeight{} following
+\citet{DBLP:journals/pacmpl/PodkopaevLV19}, thus using \texttt{ldr} for
+relaxed read, \texttt{ldar} for $\modeRA$/$\modeSC$ reads are acquires,
+\texttt{str} for relaxed write, and \texttt{stlr} for $\modeRA$/$\modeSC$
+writes.  $\FENCE$ instruction can be translated to \texttt{dmb.sy}, since it
+has release-acquire semantics.  Acquire fences map to \texttt{dmb.ld}, and
+release fences to \texttt{dmb.sy} --- \texttt{dmb.st} does not provide order
+to prior reads.
 
-Relative to the ARM specification, we have removed loops, and read-modify-write (RMW) operations.  The implementation of RMW operations follows \citet{DBLP:journals/pacmpl/PodkopaevLV19}.    We only omit it because a systematic treatment includes a loop to account for the possible failure of the RMW operation.  
+Relative to the \armeight{} specification, we have removed loops, and
+read-modify-write (RMW) operations.  The implementation of RMW operations
+follows \citet{DBLP:journals/pacmpl/PodkopaevLV19}.  We only omit it because
+a systematic treatment includes a loop to account for the possible failure of
+the RMW operation.
 
-Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes transitive closure and $R^*$ denotes reflexive and transitive closure.  Given relations $R$ and $S$, $R;S$ denotes composition.
+Given a relation $R$, $R^?$ denotes reflexive closure, $R^+$ denotes
+transitive closure and $R^*$ denotes reflexive and transitive closure.  Given
+relations $R$ and $S$, $R;S$ denotes composition.
 
 
-The ARMv8 model is described using the following relations.
+The \armeight{} model is described using the following relations.
 \begin{itemize}
 \item $\IDR$, $\IDW$, $\IDAcq$, $\IDRel$: identity on reads, writes, acquires
   and releases.
@@ -39,7 +204,7 @@ ${\rrfe}\eqdef{\rrfx}\setminus{\rpox}$ and ${\rrfi}\eqdef{\rrfx}\cap{\rpox}$.
 The subrelation restriction attention to actions on the same location is
 given by appending $\mathsf{loc}$.  For example, ${\rpoloc}\eqdef{\rpox}\cap{\IDLoc}$.
 
-The ARMv8 model defines the following relations.
+The \armeight{} model defines the following relations.
 In our presentation, we have elided rules concerning fences and RMW operations.
 \begin{align*}
   \tag{Extended coherence}
@@ -69,7 +234,7 @@ In our presentation, we have elided rules concerning fences and RMW operations.
   }
 \end{align*}
 \begin{definition}
-  An RMW-free and fence-free execution is \emph{ARM-consistent} if
+  An RMW-free and fence-free execution is \emph{\armeight{}-consistent} if
   \begin{align*}&
     \tag{\textsc{$\rrfx$-completeness}}\label{rf-comp}
     \fcodom(\rrfx)=\fdom(\rreads)

@@ -50,6 +50,7 @@
 \newcommand{\cmdC}{\aCmd_{\mathsf{C}}}
 \newcommand{\cmdR}{\aCmd_{\mathsf{R}}}
 \newcommand{\cmdW}{\aCmd_{\mathsf{W}}}
+\newcommand{\ps}{\textsc{ps}}
 \newcommand{\pc}{\textsc{pc}}
 \newcommand{\pcs}{\textsc{pc}s}
 
@@ -601,11 +602,11 @@
 \newcommand{\lrace}[1]{\xarrowtikzmath{race}{\;\text{\textcolor{black}{\emph{#1}}}\;}}
 
 \tikzstyle{graypo} = [-latex,color=gray,]
-\tikzstyle{graywk} = [-latex,dashed,color=gray]
-% \newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
-% \newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
-\newcommand{\graypo}[3][]{}
-\newcommand{\graywk}[3][]{}
+\tikzstyle{graywk} = [->,dashed,thick,color=gray]
+\newcommand{\graypo}[3][]{\draw[graypo,#1](#2)to(#3);}
+\newcommand{\graywk}[3][]{\draw[graywk,#1](#2)to(#3);}
+% \newcommand{\graypo}[3][]{}
+% \newcommand{\graywk}[3][]{}
 
 \tikzstyle{po} = [-latex,color=blue,]
 \newcommand{\po}[3][]{\draw[po,#1](#2)to(#3);}
