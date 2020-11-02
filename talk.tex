@@ -2432,7 +2432,7 @@
   \vspace{-.5\baselineskip}
   \begin{gather*}
     \begin{gathered}
-      x\GETS 0 \bigl(\FADD^{\modeRLX,\modeRLX}(x,1) \PAR \FADD^{\modeRLX,\modeRLX}(x,1)\bigr)
+      x\GETS 0 \SEMI \bigl(\FADD^{\modeRLX,\modeRLX}(x,1) \PAR \FADD^{\modeRLX,\modeRLX}(x,1)\bigr)
       \\
       \hbox{\begin{tikzinline}[node distance=2em]
           \event{a0}{\DW{x}{0}}{}
@@ -2579,6 +2579,147 @@
   \end{gather*}
 \end{frame}
 
+\begin{frame}[label=mca]
+  \frametitle{MCA Examples}
+  \vspace{-1\baselineskip}
+  \begin{gather*}
+    \begin{gathered}
+      \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
+      {\PAR}
+      \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+      {\PAR}
+      \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{z}{1}}{}
+          \event{a2}{\DW{x}{0}}{right=of a1}
+          \po{a1}{a2}
+          \event{a3}{\DW{x}{1}}{right=of a2}
+          \wk{a2}{a3}
+          \event{b1}{\DR{x}{1}}{right=3em of a3}
+          \event{b2}{\DW{y}{0}}{right=of b1}
+          \po{b1}{b2}
+          \event{b3}{\DW{y}{1}}{right=of b2}
+          \wk{b2}{b3}
+          \event{c1}{\DR{y}{1}}{right=3em of b3}
+          \event{c2}{\DW{z}{0}}{right=of c1}
+          \po{c1}{c2}
+          \event{c3}{\DW{z}{1}}{right=of c2}
+          \wk{c2}{c3}
+          \rf{a3}{b1}
+          \rf{b3}{c1}
+          \rf[out=173,in=7]{c3}{a1}  
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{MCA1}
+    \\[1ex]
+    \begin{gathered}
+      x\GETS0\SEMI x\GETS 1
+      \PAR
+      y\GETS x
+      \PAR
+      r\GETS y\ACQ \SEMI s\GETS x
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wx1}{\DW{x}{1}}{right=of wx0}
+          \wk{wx0}{wx1}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx1}
+          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \po{rx1}{wy1}
+          \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
+          \event{rx0}{\DR{x}{0}}{right=of ry1}
+          \rf{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \sync{ry1}{rx0}
+          \wk[out=170,in=10]{rx0}{wx1}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{MCA2}
+    \\[1ex]
+    \begin{gathered}
+      r\GETS x\SEMI x\GETS 1
+      \PAR
+      y\GETS x 
+      \PAR
+      x\GETS y 
+      \\[-1.2ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{\DR{x}{1}}{}
+          \event{b}{d:\DW{x}{1}}{right=of a}
+          \wk{a}{b}
+          \event{c}{\DR{x}{1}}{right=3em of b}
+          \event{d}{\DW{y}{1}}{right=of c}
+          \po{c}{d}
+          \event{e}{\DR{y}{1}}{right=3em of d}
+          \event{f}{e:\DW{x}{1}}{right=of e}
+          \po{e}{f}
+          \rf{b}{c}
+          \rf{d}{e}
+          \rf[out=172,in=8]{f}{a}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{MCA3}
+  \end{gather*}  
+\end{frame}
+
+\begin{frame}[label=addr]
+  \frametitle{Address Calculation Examples}
+  \vspace{-1\baselineskip}
+  \begin{gather*}
+    \begin{gathered}
+      \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
+      \PAR
+      \aReg\GETS x\SEMI \bReg\GETS \REF{\aReg}\SEMI y\GETS \bReg
+      % x\GETS\REF{y} \PAR y\GETS\REF{x}
+      \\
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{y}{2}}{}
+          \event{a2}{\DR{\REF{2}}{1}}{right=of a1}
+          \event{a3}{\DW{x}{1}}{right=of a2}
+          \po{a2}{a3}
+          \po[out=10,in=170]{a1}{a3}
+          \event{b1}{\DR{x}{1}}{right=3em of a3}
+          \event{b2}{\DR{\REF{1}}{2}}{right=of b1}
+          \event{b3}{\DW{y}{2}}{right=of b2}
+          \po{b2}{b3}
+          \po[out=10,in=170]{b1}{b3}
+          \rf[out=-170,in=-10]{b3}{a1}
+          \rf{a3}{b1}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{ADDR1}
+    \\[1ex]
+    \begin{gathered}
+      (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
+      \PAR
+      (r\GETS x^\modeRA \SEMI s \GETS \REF{r})
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DW{\REF{1}}{0}}{}
+          \event{a2}{\DW{\REF{1}}{1}}{right=of a1}
+          \wk{a1}{a2}
+          \event{a4}{\DWRel{x}{1}}{right=of a2}
+          \sync{a2}{a4}
+          \event{b1}{\DR[\modeRA]{x}{1}}{right=3em of a4}
+          \event{b2}{\DR{\REF{1}}{0}}{right=of b1}
+          \sync{b1}{b2}
+          \rf{a4}{b1}
+          \wk[out=170,in=10]{b2}{a2}
+        \end{tikzinline}}
+    \end{gathered}
+    \spacetag{ADDR2}
+  \end{gather*}  
+\end{frame}
+
+% \begin{frame}[label=addr]
+%   \frametitle{Address Calculation Examples}
+%   \vspace{-1\baselineskip}
+%   \begin{gather*}
+%     \spacetag{}
+%     \\[1ex]
+%   \end{gather*}  
+% \end{frame}
 
 
 
@@ -2701,3 +2842,4 @@
 % mode: latex
 % TeX-master: t
 % End:
+        
