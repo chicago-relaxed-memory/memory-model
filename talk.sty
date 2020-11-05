@@ -24,19 +24,24 @@
 \newenvironment{imageframe}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}\begin{frame}}{\end{frame}}
 
 \newcommand{\semitransp}[2][35]{\textcolor{fg!#1}{#2}}
-\newcommand{\wink}{{\raisebox{-1pt}{\textcolor{black}{\Winkey[1.2][green]}}}}
-\newcommand{\verygood}{{\raisebox{-1pt}{\textcolor{black}{\Cooley[1.2][green]}}}}
-\newcommand{\good}{{\raisebox{-1pt}{\textcolor{black}{\Smiley[1.2][green]}}}} %Smiley
-\newcommand{\hmmm}{{\raisebox{-1pt}{\textcolor{black}{\Neutrey[1.2][yellow]}}}}
-\newcommand{\bad}{{\raisebox{-1pt}{\textcolor{black}{\Sadey[1.2][red]}}}}
+
+%\usepackage{tikzsymbols}
+% \newcommand{\wink}{{\raisebox{-1pt}{\textcolor{black}{\Winkey[1.2][green]}}}}
+% \newcommand{\verygood}{{\raisebox{-1pt}{\textcolor{black}{\Cooley[1.2][green]}}}}
+% \newcommand{\good}{{\raisebox{-1pt}{\textcolor{black}{\Smiley[1.2][green]}}}} %Smiley
+% \newcommand{\hmmm}{{\raisebox{-1pt}{\textcolor{black}{\Neutrey[1.2][yellow]}}}}
+% \newcommand{\bad}{{\raisebox{-1pt}{\textcolor{black}{\Sadey[1.2][red]}}}}
+% \newcommand{\QMARK}{\makebox[0pt][l]{\color{blue!80!black}\text{?}}}
+% \newcommand{\CMARK}{\makebox[0pt][l]{\color{green!80!black}\Smiley[1]{}}}
+% \newcommand{\XMARK}{\makebox[0pt][l]{\color{red!80!black}\Sadey[1]{}}}
 
 \usepackage{pifont}
 \newcommand{\qmark}{{\color{blue!80!black}\text{?}}}
 \newcommand{\cmark}{{\color{green!80!black}\text{\ding{51}}}}
 \newcommand{\xmark}{{\color{red!80!black}\text{\ding{55}}}}
-\newcommand{\QMARK}{{\color{blue!80!black}\text{?}}}
-\newcommand{\CMARK}{{\color{green!80!black}\Smiley[1]{}}}
-\newcommand{\XMARK}{{\color{red!80!black}\Sadey[1]{}}}
+\newcommand{\QMARK}{\makebox[0pt][l]{\;\;\;\;\qmark}}
+\newcommand{\CMARK}{\makebox[0pt][l]{\;\;\;\;\cmark}}
+\newcommand{\XMARK}{\makebox[0pt][l]{\;\;\;\;\xmark}}
 
 \newcommand{\textgreen}[1]{{\color{green!80!black}#1}}
 \newcommand{\textred}[1]{{\color{red!80!black}#1}}

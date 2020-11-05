@@ -2,7 +2,7 @@
 \usepackage{macros}
 \usepackage{talk}
 
-%\includeonlyframes{rmw,ps2}  
+%\includeonlyframes{oota-pomsets}  
 \usepackage{pdfcomment}
 % \setbeameroption{show notes on second screen}
 \newcommand<>{\pdfnote}[1]{%
@@ -331,12 +331,13 @@
   What value can be written to $z$?
   \begin{gather*}
     \alt<5->{      
-      \only<5->{\tag{OOTA2}\label{OOTA2}}
+      \only<5->{\tag{OOTA2\XMARK}}
       \IF{x}\THEN y\GETS 1\FI
       \PAR
       r\GETS y \SEMI \IF{\alert{r}}\THEN x\GETS1 \SEMI z\GETS r\FI
     }{
-      \only<3->{\tag{OOTA1}\label{OOTA1}}
+      \only<-2>{\tag{$\star$\CMARK}}
+      \only<3->{\tag{OOTA1\XMARK}}
       y\GETS x
       \PAR
       r\GETS y \SEMI x\GETS \alt<3->{\alert{r}}{1} \SEMI z\GETS r
@@ -541,7 +542,7 @@
       \IF{r}\THEN
       x\GETS r\SEMI z\GETS r
       \ELSE x\GETS 1 \FI
-      \only<1->{\spacetag{$\star$}\label{star}}}
+      \only<1->{\spacetag{$\star$}}}
     \\
     \uncover<1-8>{y\GETS x
       \PAR&
@@ -689,7 +690,7 @@
   \frametitle{Comparing attempted executions}
   \vspace{-1\baselineskip}
   \begin{gather*}
-    \tag{$\star$}
+    \tag{$\star$\CMARK}
     y\GETS x
     \PAR
     r\GETS y\SEMI \IF{\alert{r}}\THEN 
@@ -712,7 +713,7 @@
         \po[out=20,in=160]{ry1}{wa1}
       \end{tikzinline}}
     \\[1ex]
-    \tag{OOTA4}\label{OOTA4}
+    \tag{OOTA4\XMARK}
     y\GETS x
     \PAR
     r\GETS y \SEMI \IF{\alert{b}}\THEN  x\GETS r \SEMI z\GETS r \ELSE x\GETS1 \FI
@@ -764,6 +765,7 @@
     \vspace{-3mm}
     \onslide<3->
     \begin{gather*}
+      \tag{MCA3\XMARK}
       \begin{gathered}
         r\GETS x\SEMI x\GETS 1
         \PAR
@@ -1250,8 +1252,8 @@
   \frametitle{Concurrent Semantics: Fulfillment}
   \vspace{-1\baselineskip}
   \begin{gather*}
-    \only<3-8>{\tag{$\star$}}
-    \only<9->{\tag{OOTA3}}
+    \only<3-8>{\tag{$\star$\CMARK}}
+    \only<9->{\tag{OOTA3\XMARK}}
     \only<2->{x\GETS 0\SEMI}
     y\GETS 0\SEMI
     \only<3->{(y\GETS x \PAR}
@@ -1366,7 +1368,7 @@
       %     %   \pox{wx}{ry}
       % \end{tikzinline}}
     \end{gathered}
-    \spacetag{SB}
+    \spacetag{SB\CMARK}
     \\[5ex]
     \begin{gathered}
       \aReg\GETS y\SEMI x\GETS1
@@ -1396,7 +1398,7 @@
       %     %   \po{rx}{wy}
       % \end{tikzinline}}
     \end{gathered}
-    \spacetag{LB}
+    \spacetag{LB\CMARK}
   \end{gather*}
 \end{frame}
 
@@ -1452,7 +1454,7 @@
     \begin{gathered}
       x\GETS0\SEMI %y\GETS0\SEMI
       x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
-      \\[-.4ex]
+      \\
       \nonumber
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{wx0}{\DW{x}{0}}{}
@@ -1467,14 +1469,14 @@
           \wk{wx0}{wx1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{PUB1}
+    \spacetag{PUB1\XMARK}
     \\[5ex]
     \begin{gathered}
       x\GETS0\SEMI %y\GETS0\SEMI
       x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
       \PAR
       r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
-      \\[-1ex]
+      \\
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{wx0}{\DW{x}{0}}{}
           \event{wx1}{\DW{x}{1}}{right=of wx0}
@@ -1488,11 +1490,11 @@
           \sync{ry1}{fa}
           \sync{fa}{rx0}
           \rf{wy1}{ry1}
-          \rf[out=10,in=170]{wx0}{rx0}
+          %\rf[out=10,in=170]{wx0}{rx0}
           \wk{wx0}{wx1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{PUB2}
+    \spacetag{PUB2\XMARK}
   \end{gather}
 \end{frame}
 
@@ -1523,7 +1525,7 @@
           \wk[in=165,out=15]{b}{d}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{SC1}
+    \spacetag{SC1\CMARK}
     \\[2ex]
     \begin{gathered}
       x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
@@ -1546,7 +1548,7 @@
           \wk{e}{f}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{SC2}
+    \spacetag{SC2\CMARK}
     \\[2ex]
     \begin{gathered}
       x\GETS1
@@ -1576,7 +1578,7 @@
           \wk[out=-170,in=-10]{c3}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{SC3}
+    \spacetag{SC3\XMARK}
     \\[2ex]
     \begin{gathered}
       x\GETS1\SEMI   
@@ -1609,7 +1611,7 @@
           \wk[out=-170,in=-10]{c3}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{SC4}
+    \spacetag{SC4\XMARK}
   \end{gather*}  
 \end{frame}
 
@@ -1656,7 +1658,7 @@
           \rf{wx5}{rx5}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{CO1}
+    \spacetag{CO1\CMARK}
     \\[2ex]
     \begin{gathered}
       x\GETS1\SEMI x\GETS 2
@@ -1677,7 +1679,7 @@
           \rf[out=10,in=170]{a}{e}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{CO2}
+    \spacetag{CO2\CMARK}
     \\[2ex]
     \begin{gathered}
       r\GETS x\SEMI x\GETS 1
@@ -1695,7 +1697,7 @@
           \rf[out=-165,in=-15]{b2}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{TC16}
+    \spacetag{TC16\XMARK}
   \end{gather*}
 \end{frame}
 
@@ -1722,7 +1724,7 @@
           \wk{wx0}{rx1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{TC1}
+    \spacetag{TC1\CMARK}
     \\[3ex]
     \begin{gathered}
       x\GETS 0 \SEMI
@@ -1747,7 +1749,7 @@
           \wk{wx1}{wx2}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{TC9}
+    \spacetag{TC9\CMARK}
     \\[3ex]
     \begin{gathered}
       r\GETS x\SEMI
@@ -1771,7 +1773,7 @@
           \rf[out=169,in=11]{b2}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{TC2}
+    \spacetag{TC2\CMARK}
   \end{gather*}  
 \end{frame}
 
@@ -1807,7 +1809,7 @@
           \sync[out=-18,in=-162]{a6}{a8}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{IN1}
+    \spacetag{IN1\XMARK}
     \\[5ex]
     \begin{gathered}
       \aReg\GETS x\SEMI
@@ -1835,7 +1837,7 @@
           \rf[out=170,in=10]{b2}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{IN2}
+    \spacetag{IN2\CMARK}
   \end{gather*}
 \end{frame}
 
@@ -1869,7 +1871,7 @@
           \bgellipse[yellow!50]{(wy1)(f)}{}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{past}
+    \spacetag{past\XMARK}
     \\[2ex]
     \begin{gathered}
       (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\modeRA\GETS r)
@@ -1892,7 +1894,7 @@
           \bgoval[green!30]{(b1)(b2)}{}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{future}
+    \spacetag{future\XMARK}
     % \\[2ex]
     % \spacetag{CO3}
     % \begin{gathered}
@@ -1932,26 +1934,26 @@
   \frametitle{Valid Transformations} %{\color{gray}\normalsize($^\star$ see paper)}}
   \vspace{-1\baselineskip}
   \begin{align*}
-    % \taglabel{RR}
+    % \tag{RR}
     \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
     \\
-    % \taglabel{WW}
+    % \tag{WW}
     \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
     \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
     \\
-    % \taglabel{RW}
+    % \tag{RW}
     \sem{\aLoc \GETS \aExp  \SEMI \bReg  \GETS \bLoc \SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
     \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
-    % \tag{\textsc{roach1}}\label{AcqW}
+    % \tag{roach1}
     \sem{x^\amode \GETS \aExp \SEMI\bReg \GETS y \SEMI\aCmd} &\supseteq
     \sem{\bReg \GETS y  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
     \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
-    % \tag{\textsc{roach2}}\label{RelW}
+    % \tag{roach2}
     \sem{x \GETS \aExp \SEMI\bReg \GETS y^\amode \SEMI\aCmd} &\supseteq
     \sem{\bReg \GETS y^\amode  \SEMI x\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
@@ -2319,7 +2321,7 @@
           \rf[out=170,in=10]{wx}{rx}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{OOTA6}
+    \spacetag{OOTA6\XMARK}
     \\[2ex]
     \begin{gathered}
       x\GETS 2\SEMI
@@ -2348,7 +2350,7 @@
           \wk{wx2}{rx3}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{OOTA7}
+    \spacetag{OOTA7\XMARK}
   \end{gather*}
 \end{frame}
 
@@ -2449,7 +2451,7 @@
           \rmw{b1}{b2}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{RMW0}
+    \spacetag{RMW0\XMARK}
     \\[1ex]
     \begin{gathered}
       \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc,1)
@@ -2469,7 +2471,7 @@
           \rf{b2}{b3}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{RMW1}
+    \spacetag{RMW1\XMARK}
     \\[1ex]
     \begin{gathered}
       r \GETS y\SEMI
@@ -2497,7 +2499,7 @@
           \rf[out=170,in=10]{b5}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{RMW2}
+    \spacetag{RMW2\CMARK}
   \end{gather*}
 \end{frame}
 
@@ -2527,7 +2529,7 @@
           \rf[out=-165,in=-12]{b2}{a1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{CDRF}
+    \spacetag{CDRF\XMARK}
     \\
     \begin{gathered}
       x\GETS0 \SEMI
@@ -2552,7 +2554,7 @@
           \wk[out=15,in=165]{b0}{b2}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{GA+E}
+    \spacetag{GA+E\CMARK}
     \\
     \begin{gathered}
       r\GETS x\SEMI
@@ -2575,7 +2577,7 @@
           \rf[out=-165,in=-15]{b1}{a0}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{RP}
+    \spacetag{RP\CMARK}
   \end{gather*}
 \end{frame}
 
@@ -2611,7 +2613,7 @@
           \rf[out=173,in=7]{c3}{a1}  
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{MCA1}
+    \spacetag{MCA1\XMARK}
     \\[1ex]
     \begin{gathered}
       x\GETS0\SEMI x\GETS 1
@@ -2635,7 +2637,7 @@
           \wk[out=170,in=10]{rx0}{wx1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{MCA2}
+    \spacetag{MCA2\XMARK}
     \\[1ex]
     \begin{gathered}
       r\GETS x\SEMI x\GETS 1
@@ -2659,7 +2661,7 @@
           \rf[out=172,in=8]{f}{a}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{MCA3}
+    \spacetag{MCA3\XMARK}
   \end{gather*}  
 \end{frame}
 
@@ -2688,7 +2690,7 @@
           \rf{a3}{b1}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{ADDR1}
+    \spacetag{ADDR1\XMARK}
     \\[1ex]
     \begin{gathered}
       (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
@@ -2708,7 +2710,7 @@
           \wk[out=170,in=10]{b2}{a2}
         \end{tikzinline}}
     \end{gathered}
-    \spacetag{ADDR2}
+    \spacetag{ADDR2\XMARK}
   \end{gather*}  
 \end{frame}
 
