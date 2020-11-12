@@ -35,20 +35,20 @@
 \acmMonth{11}
 \startPage{1}
 
-\begin{makeatletter}
-  \gdef\@copyrightpermission{%
-    This paper is published under the Creative Commons Attribution~4.0
-    International (CC-BY~4.0) license.
-  }
-\end{makeatletter}
+% \begin{makeatletter}
+%   \gdef\@copyrightpermission{%
+%     This paper is published under the Creative Commons Attribution~4.0
+%     International (CC-BY~4.0) license.
+%   }
+% \end{makeatletter}
 % \acmYear{2020}
 % \acmDOI{XX.XXXX/XXXXXXX.XXXXXXX}
 
 \usepackage{macros}
 \begin{document}
 
-\title{Pomsets with Preconditions}
-\subtitle{A Simple Model of Relaxed Memory}
+\title{Pomsets with Preconditions:
+A Simple Model of Relaxed Memory}
 \author{Radha Jagadeesan}
 \orcid{0000-0002-4525-1589}
 \affiliation{
@@ -80,13 +80,13 @@
 
 
 \titlenote{
-  This paper has been greatly improved by the comments of the anonymous reviewers.
-  % Jagadeesan and Riely were supported by the National Science Foundation under
-  % grant No.~CCR-1617175.}
-  It is based upon work supported by the National Science Foundation under
-  Grant No. CCR-1617175. Any opinions, findings, and conclusions or
-  recommendations expressed in this material are those of the author and do
-  not necessarily reflect the views of the NSF.}
+%  This paper has been greatly improved by the comments of the anonymous reviewers.
+  Jagadeesan and Riely were supported by the National Science Foundation under
+  grant No.~CCR-1617175.}
+  % It is based upon work supported by the National Science Foundation under
+  % Grant No. CCR-1617175. Any opinions, findings, and conclusions or
+  % recommendations expressed in this material are those of the author and do
+  % not necessarily reflect the views of the NSF.}
 \begin{abstract}
 \input{abstract}
 \end{abstract}
@@ -112,7 +112,7 @@
 \end{CCSXML}
 \ccsdesc[500]{Theory of computation~Parallel computing models}
 \ccsdesc[300]{Theory of computation~Preconditions}
-\ccsdesc[300]{Theory of computation~Denotational semantics}
+%\ccsdesc[300]{Theory of computation~Denotational semantics}
 
 \keywords{Concurrency, Relaxed Memory Models, Multi-Copy Atomicity, ARMv8, Pomsets, Preconditions, 
   Temporal Safety Properties, Thin-Air Reads, Compiler Optimizations} %% \keywords is optional
@@ -128,8 +128,8 @@
 \clearpage
 \begin{small}
 \bibliography{bib}
-\appendix
-\input{appendix}
+% \appendix
+% \input{appendix}
 \end{small}
 \end{document}
 \end{document}

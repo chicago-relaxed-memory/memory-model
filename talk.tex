@@ -2356,16 +2356,16 @@
 
 \begin{frame}[label=b]
   \frametitle{Blockers}
+  \notagparens{}
   \vspace{-1\baselineskip}
   \begin{gather*}
-    % \tag{blocker}
-    \begin{gathered}
       \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
       \PAR
       \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
       \PAR
       r\GETS z_2^\modeRA\SEMI s\GETS x)
       \\[-.5ex]
+      \tag{\XMARK}
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{a}{\DW{x}{1}}{}
           \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
@@ -2380,7 +2380,6 @@
           \sync{f}{g}
           \rf[out=8,in=172]{a}{g}
         \end{tikzinline}}
-    \end{gathered}
   \end{gather*}
   Context \begin{math}
     z_1\GETS y_1
@@ -2390,6 +2389,7 @@
     \hole{}
   \end{math}
   \begin{gather*}
+    \tag{\XMARK}
     \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{\DW{x}{1}}{}
         \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
