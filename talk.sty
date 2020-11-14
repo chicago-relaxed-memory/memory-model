@@ -13,7 +13,7 @@
 % get ams to ignore tag in spacing
 \renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{(\ignorespaces#1\unskip\@@italiccorr)}}}
 \newcommand{\spacetag}[2][3em]{\makebox[#1]{}\tag{#2}}
-\newenvironment{notagparens}{\renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{\ignorespaces##1\unskip\@@italiccorr}}}}{}
+\newcommand{\notagparens}{\renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{\ignorespaces##1\unskip\@@italiccorr}}}}
 
 
 \renewcommand{\once}{\Diamond\mkern-10.1mu\text{--}\mkern4mu}
