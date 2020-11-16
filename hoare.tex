@@ -40,7 +40,7 @@
 \section{Relation to Hoare Logic}
 In this section, we consider commands without synchronization, concurrency and local registers, i.e.:
 \begin{align*}
-  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  % \amode \BNFDEF& \mRLX \BNFSEP \mRA \BNFSEP \mSC
   % \\
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
@@ -49,7 +49,7 @@ In this section, we consider commands without synchronization, concurrency and l
 \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
-where $\amode$ is only $\modeRLX$.  So, in the rest of the section, we elide all access modifiers.  
+where $\amode$ is only $\mRLX$.  So, in the rest of the section, we elide all access modifiers.  
 For the purposes of this section, we assume that registers are single assignment.   
 
 For such commands, we consider the evident sequential operational semantics relating configurations with a memory and a store; we use $\aConfigV, \bConfigV$ to range over configurations.  The transition relation is of the form
@@ -179,7 +179,7 @@ $\readc(\aPSS')\supseteq \readc(\aPSS)$.
 % execution---then $\aCmd$ can be refined to $\bCmd$.
 
 A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
-\emph{synchronization-free} if lacks fences and $\modeRA/\modeSC$ access.  We
+\emph{synchronization-free} if lacks fences and $\mRA/\mSC$ access.  We
 argue that our model is fully flexible with respect to optimization of such
 programs, as long as the optimizations do not introduce new writes or
 ``relevant'' reads.  To do so, we first formalize a
@@ -263,7 +263,7 @@ are saturated with irrelevant reads.
 $\exists\aPS\in\aPSS$ and  $\exists D$ such that $\Event'= \Event'\uplus D$,
 ${\le'} \supseteq{\le}$, $\labeling'(\aEv) = \labeling(\aEv)$, and for every
 $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
-$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+$\labelingAct'(\bEv)=(\DR[\mRLX]{\aLoc}{\aVal})$.
 
 \todo{Let xs=ws, ys=vs be such that xi=wi not in ys vs. Then:
    {ys=vs} C {xs=ws}  <==>  [ys=vs | xs=ws] cap read(C) not= emptyset}

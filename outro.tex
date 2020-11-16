@@ -101,14 +101,14 @@ But there is more to weak memory than transformations.''
 %   % In the following program $r,s$ are registers, and $x,y,z,u,v,w$
 %   % are shared variables.
 %   % \begin{align*}
-%   %   & (u \GETS 0 \SEMI y \GETS 1 \SEMI v\REL  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3) \\[-.5ex]
-%   %   \PAR & (y \GETS 2 \SEMI  \IF{v\ACQ} \THEN w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2)
+%   %   & (u \GETS 0 \SEMI y \GETS 1 \SEMI v^\mRA  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3) \\[-.5ex]
+%   %   \PAR & (y \GETS 2 \SEMI  \IF{v^\mRA} \THEN w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2)
 %   % \end{align*}
 % \begin{displaymatharrayrl}
-%   &x\GETS1\SEMI y\GETS1\SEMI v\REL\GETS1\SEMI z\GETS1\SEMI
+%   &x\GETS1\SEMI y\GETS1\SEMI v^\mRA\GETS1\SEMI z\GETS1\SEMI
 %   \IF{w}\THEN x\GETS2\FI
 %   \\\PAR
-%   &y\GETS2\SEMI \aReg{}\GETS v\ACQ\SEMI z\GETS2\,\SEMI
+%   &y\GETS2\SEMI \aReg{}\GETS v^\mRA\SEMI z\GETS2\,\SEMI
 %   \IF{\aReg{}}\THEN w\GETS{y-y+x}\FI
 % \end{displaymatharrayrl}
 % \begin{displaymath}
@@ -241,9 +241,9 @@ read elimination as a peephole optimization.  Consider this example from
 \end{displaymath}
 In the JMM, these are distinguished by the context
 \begin{math}
-  x\GETS1 \SEMI z_1^\modeRA\GETS 1
-  \PAR x\GETS2 \SEMI z_2^\modeRA\GETS 1
-  \PAR \IF{z_1^\modeRA \land z_2^\modeRA} \THEN \hole{}\FI.
+  x\GETS1 \SEMI z_1^\mRA\GETS 1
+  \PAR x\GETS2 \SEMI z_2^\mRA\GETS 1
+  \PAR \IF{z_1^\mRA \land z_2^\mRA} \THEN \hole{}\FI.
 \end{math}
 That is not case here, however, due to local \drfsc{}.  Nonetheless,
 completed pomsets from the left include a write to $x$, which is not found on
@@ -260,8 +260,8 @@ our semantics validates roach motel (\ref{AcqW}, \ref{RelW}), redundant load
 expect that dead store elimination (\ref{DS}) generalizes to non-relaxed
 access by generalizing $\relfilt[]{\aLoc}$.  Some transformations are not
 sound in the model, but we expect them to be provable as metaproperties.  For
-example, access-mode strengthening (such as replacing $\modeRLX$ by
-$\modeRA$) is valid up to an equivalence that ignores access modes on
+example, access-mode strengthening (such as replacing $\mRLX$ by
+$\mRA$) is valid up to an equivalence that ignores access modes on
 actions.  Other transformations worth studying include commuting adjacent
 acquires, commuting adjacent releases, and implementing non-relaxed access
 using relaxed access and fences.
@@ -443,9 +443,9 @@ implications for Java's final field semantics.  Consider:
 \begin{gather*}
   \taglabel{addr2}
   \begin{gathered}
-  (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
+  (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\mRA\GETS r)
   \PAR
-  (r\GETS x^\modeRA \SEMI s \GETS \REF{r})
+  (r\GETS x^\mRA \SEMI s \GETS \REF{r})
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DW{\REF{1}}{0}}{}
@@ -453,7 +453,7 @@ implications for Java's final field semantics.  Consider:
       \wk{a1}{a2}
       \event{a4}{\DWRel{x}{1}}{right=of a2}
       \sync{a2}{a4}
-      \event{b1}{\DR[\modeRA]{x}{1}}{right=3em of a4}
+      \event{b1}{\DR[\mRA]{x}{1}}{right=3em of a4}
       \event{b2}{\DR{\REF{1}}{0}}{right=of b1}
       \sync{b1}{b2}
       \rf{a4}{b1}
@@ -461,8 +461,8 @@ implications for Java's final field semantics.  Consider:
     \end{tikzinline}}
   \end{gathered}
 \end{gather*}
-If we changed the read of $x^\modeRA$ to $x^\modeRLX$, then there would be no order from
-$(\DR[\modeRLX]{x}{1})$ to $(\DR{\REF{1}}{0})$, and the execution would be allowed.  In
+If we changed the read of $x^\mRA$ to $x^\mRLX$, then there would be no order from
+$(\DR[\mRLX]{x}{1})$ to $(\DR{\REF{1}}{0})$, and the execution would be allowed.  In
 order to allow this relaxation in certain cases without invalidating the
 publication of the ``field initializer'' $(\DW{\REF{1}}{1})$, it may be
 desirable to distinguish address dependencies from other dependencies---doing

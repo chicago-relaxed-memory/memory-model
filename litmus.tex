@@ -121,7 +121,7 @@ prohibiting stale reads:
   \taglabel{Pub1}
   \begin{gathered}
   x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
+  x\GETS 1\SEMI y^\mRA\GETS1 \PAR r\GETS y^\mRA\SEMI s\GETS x
   \\[-.4ex]
   \nonumber
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -211,24 +211,24 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 \begin{gather*}
   \taglabel{Co3}
   \begin{gathered}
-  x\GETS1\SEMI y^\modeRA\GETS 1
+  x\GETS1\SEMI y^\mRA\GETS 1
   \PAR
-  x\GETS2\SEMI z^\modeRA\GETS 1
+  x\GETS2\SEMI z^\mRA\GETS 1
   \PAR
-  r\GETS z^\modeRA \SEMI 
-  r\GETS y^\modeRA \SEMI 
+  r\GETS z^\mRA \SEMI 
+  r\GETS y^\mRA \SEMI 
   r\GETS x \SEMI 
   r\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DW{x}{1}}{}
-      \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+      \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
       \sync{a1}{a2}
       \event{b1}{\DW{x}{2}}{right=3em of a2}
-      \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+      \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
       \sync{b1}{b2}
-      \event{c1}{\DR[\modeRA]{\,z}{1}}{right=3em of b2}
-      \event{c2}{\DR[\modeRA]{y}{1}}{right=of c1}
+      \event{c1}{\DR[\mRA]{\,z}{1}}{right=3em of b2}
+      \event{c2}{\DR[\mRA]{y}{1}}{right=of c1}
       \event{c3}{\DR{x}{2}}{right=of c2}
       \event{c4}{\DR{x}{1}}{right=of c3}
       \sync{c1}{c2}
@@ -244,24 +244,24 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 % \begin{gather*}
 %   \taglabel{Co3}
 %   \begin{gathered}
-%   x\GETS1\SEMI y^\modeRA\GETS 1
+%   x\GETS1\SEMI y^\mRA\GETS 1
 %   \PAR
-%   x\GETS2\SEMI z^\modeRA\GETS 1
+%   x\GETS2\SEMI z^\mRA\GETS 1
 %   \PAR
-%   r\GETS y^\modeRA \SEMI 
-%   r\GETS z^\modeRA \SEMI 
+%   r\GETS y^\mRA \SEMI 
+%   r\GETS z^\mRA \SEMI 
 %   r\GETS x \SEMI 
 %   r\GETS x
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a1}{\DW{x}{1}}{}
-%       \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+%       \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
 %       \sync{a1}{a2}
 %       \event{b1}{\DW{x}{2}}{below=of a1}
-%       \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+%       \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
 %       \sync{b1}{b2}
-%       \event{c1}{\DR[\modeRA]{y}{1}}{right=2em of a2}
-%       \event{c2}{\DR[\modeRA]{\,z}{1}}{right=2em of b2}
+%       \event{c1}{\DR[\mRA]{y}{1}}{right=2em of a2}
+%       \event{c2}{\DR[\mRA]{\,z}{1}}{right=2em of b2}
 %       \event{c3}{\DR{x}{2}}{right=of c1}
 %       \event{c4}{\DR{x}{1}}{right=of c2}
 %       \sync{c1}{c3}
@@ -282,19 +282,19 @@ a full synchronization; this would invalidate local reasoning about data
 races (\textsection\ref{sec:sc}).
 
 % \begin{gather*}
-%   x\GETS1\SEMI y^\modeRA\GETS 1
+%   x\GETS1\SEMI y^\mRA\GETS 1
 %   \PAR
 %   x\GETS 2\SEMI
-%   r\GETS y^\modeSC \SEMI 
+%   r\GETS y^\mSC \SEMI 
 %   r\GETS x \SEMI 
 %   r\GETS x
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a}{\DW{x}{1}}{}
-%       \event{b}{\DW[\modeRA]{y}{1}}{right=of a}
+%       \event{b}{\DW[\mRA]{y}{1}}{right=of a}
 %       \sync{a}{b}
 %       \event{c}{\DW{x}{2}}{below=of a}
-%       \event{d}{\DR[\modeSC]{y}{1}}{right=of c}
+%       \event{d}{\DR[\mSC]{y}{1}}{right=of c}
 %       \po{c}{d}
 %       \event{e}{\DR{x}{2}}{right=of d}
 %       \po{d}{e}
@@ -358,13 +358,13 @@ architectures.
   % \begin{array}{ccccc}
   %   &x\GETS0\SEMI x\GETS 1
   %   &\PAR&
-  %   r\GETS x\ACQ \SEMI s\GETS y
+  %   r\GETS x^\mRA \SEMI s\GETS y
   %   %\IF{x}\THEN r\GETS y \FI
   %   \\
   %   \PAR
   %   &y\GETS0\SEMI y\GETS 1
   %   &\PAR&
-  %   r\GETS y\ACQ \SEMI s\GETS x
+  %   r\GETS y^\mRA \SEMI s\GETS x
   %   %\IF{y}\THEN s\GETS x \FI
   % \end{array}
   % \quad
@@ -425,7 +425,7 @@ architectures.
   \PAR
   y\GETS x
   \PAR
-  r\GETS y\ACQ \SEMI s\GETS x
+  r\GETS y^\mRA \SEMI s\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
@@ -475,8 +475,8 @@ architectures if the reads within each thread are ordered.
 % \end{math}
 % It is also impossible for all threads to read $1$ in the following, due to
 % \emph{control dependencies}, \emph{coherence}, and \emph{fulfillment}.
-If $y\ACQ$ is changed to $y\RLX$ in \ref{MCA2}, then there would be no order
-from $(\DR[\modeRLX]{y}{1})$ to $(\DR{x}{0})$, and the execution would be
+If $y^\mRA$ is changed to $y^\mRLX$ in \ref{MCA2}, then there would be no order
+from $(\DR[\mRLX]{y}{1})$ to $(\DR{x}{0})$, and the execution would be
 allowed.  Since read-read dependencies do not appear in pomset order, the
 execution would still be allowed if a control or address dependency were to
 be introduced between the reads. See example \ref{addr2}
@@ -526,7 +526,7 @@ be introduced between the reads. See example \ref{addr2}
 %     \textstyle\bigcup_K\; \parallel_{k\in K}(\aForm_k \mid \DRmode\aLoc{\aVal_k}) \prefix \aPS_k
 %     \\[-.5ex] & \mkern2mu\cup
 %     %(\iDRmode{\aLoc}{}) \prefix
-%     \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+%     \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
 %     \sem{\aCmd}[\aLoc/\aReg]
 %     %\text{ else $\emptyset$}
 %     \\
@@ -534,7 +534,7 @@ be introduced between the reads. See example \ref{addr2}
 %     \parallel_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
 %     \\[-.5ex] & \mkern2mu\cup
 %     %(\iDWmode{\aLoc}{}) \prefix
-%     \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+%     \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
 %     (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
 %     %\text{ else $\emptyset$}
 % \end{align*}
@@ -685,10 +685,10 @@ ignoring concurrent blocking writes.
   \taglabel{Internal1}
   \begin{gathered}
   x\GETS1 \SEMI
-  a\REL\GETS1 \SEMI
-  \IF{z\ACQ}\THEN  y\GETS x \FI
+  a^\mRA\GETS1 \SEMI
+  \IF{z^\mRA}\THEN  y\GETS x \FI
   \PAR
-  \IF{a\ACQ}\THEN  x\GETS 2\SEMI z\REL\GETS1 \FI
+  \IF{a^\mRA}\THEN  x\GETS 2\SEMI z^\mRA\GETS1 \FI
   \\
   \hbox{\begin{tikzinline}[node distance=1.2em]
   \event{a1}{\DW{x}{1}}{}
@@ -725,7 +725,7 @@ Internal reads are notoriously difficult to get right.  Consider \cite[Ex 3.6]{D
   \taglabel{Internal2}
   \begin{gathered}
   \aReg\GETS x\SEMI
-  y\REL\GETS 1\SEMI
+  y^\mRA\GETS 1\SEMI
   \bReg\GETS y\SEMI
   z\GETS \bReg
   %z\GETS y
@@ -777,7 +777,7 @@ proof of correctness for implementing our semantics on \armeight{}
 % \begin{gather}
 %   \label{inlining}
 %   % \aReg\GETS x\SEMI
-%   % y\REL\GETS 1\SEMI
+%   % y^\mRA\GETS 1\SEMI
 %   % z\GETS y
 %   % \PAR
 %   % x\GETS z
@@ -803,37 +803,37 @@ proof of correctness for implementing our semantics on \armeight{}
 
 
 \myparagraph{SC access}
-%This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
+%This example is also disallowed if we use $\mSC$ rather than $\mRA$.
 \ref{5d} ensures that program order between SC operations is always
 preserved.  Combined with \ref{rf3}--\ref{rf4}, this is
 sufficient to establish that programs with only SC access have only SC
 executions; for example, the executions of \ref{SB/LB} are banned when the
-all actions are $\modeSC$.  It is also immediate that SC
+all actions are $\mSC$.  It is also immediate that SC
 actions can be totally ordered, using any linearization of pomset order.
 Just as SC access in \armeight{} is simplified by \mca, it is simplified here
 by the global pomset order.
 
 SC access is not as strict as volatile access in Java.  For example, our
 model allows the following, since there is no order from
-$(\DW[\modeSC]{x}{2})$ to $(\DW{y}{1})$---recall that SC writes are \emph{releases}.
+$(\DW[\mSC]{x}{2})$ to $(\DW{y}{1})$---recall that SC writes are \emph{releases}.
 \begin{gather*}
   \taglabel{SC1}
   \begin{gathered}
-  r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
+  r\GETS y\SEMI x^\mSC\GETS1\SEMI s\GETS x
   \PAR
   % y\GETS0\SEMI
-  x^\modeSC\GETS2 \SEMI y\GETS1
+  x^\mSC\GETS2 \SEMI y\GETS1
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DR{y}{1}}{}
-      \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
+      \event{b}{\DW[\mSC]{x}{1}}{right=of a}
       \sync{a}{b}
       \event{bb}{\DR{x}{2}}{right=of b}
       \wk{b}{bb}
       % \event{c}{\DW{y}{0}}{right=2em of bb}
-      % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
+      % \event{d}{\DW[\mSC]{x}{2}}{right=of c}
       % \po{c}{d}
-      \event{d}{\DW[\modeSC]{x}{2}}{right=3em of bb}
+      \event{d}{\DW[\mSC]{x}{2}}{right=3em of bb}
       \event{e}{\DW{y}{1}}{right=of d}
       %\rf[out=170,in=10]{d}{bb}
       \rf{d}{bb}
@@ -854,17 +854,17 @@ difficulty in Javascript \cite[\textsection27]{ecma2019}:
 \begin{gather*}
   \taglabel{SC2}
   \begin{gathered}
-  x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
+  x^\mSC\GETS1 \SEMI r\GETS y^\mSC
   \PAR
-  y^\modeSC\GETS1 \SEMI y^\modeSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\modeSC
+  y^\mSC\GETS1 \SEMI y^\mSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\mSC
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a}{\DW[\modeSC]{x}{1}}{}
-      \event{b}{\DR[\modeSC]{y}{1}}{right=of a}
-      \event{c}{\DW[\modeSC]{y}{1}}{right=3em of b}
-      \event{d}{\DW[\modeSC]{y}{2}}{right=of c}
+      \event{a}{\DW[\mSC]{x}{1}}{}
+      \event{b}{\DR[\mSC]{y}{1}}{right=of a}
+      \event{c}{\DW[\mSC]{y}{1}}{right=3em of b}
+      \event{d}{\DW[\mSC]{y}{2}}{right=of c}
       \event{e}{\DW{x}{2}}{right=of d}
-      \event{f}{\DR[\modeSC]{x}{1}}{right=of e}
+      \event{f}{\DR[\mSC]{x}{1}}{right=of e}
       \sync{a}{b}
       \sync{c}{d}
       \sync[out=15,in=165]{d}{f}
@@ -1079,35 +1079,35 @@ example, on read/write pairs:
 %   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
 %   % \\
 %   \taglabel{A}
-%   \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
-%   \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
+%   \sem{\aCmd \SEMI \bReg \GETS \aLoc^\mRA} &\supseteq
+%   \sem{\bReg \GETS \aLoc^\mRA\SEMI  \aCmd}
 %   \\
 %   \taglabel{R}
-%   \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
-%   \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
+%   \sem{\aLoc^\mRA \GETS \aExp \SEMI \aCmd } &\supseteq
+%   \sem{\aCmd \SEMI \aLoc^\mRA \GETS \aExp }
 % \end{align*}
 % Roach-motel reorderings that increase the scope of synchronization are valid.
 % \begin{lemma}%[Reorderings]
 %   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
 %   \begin{align*}
 %     \tag{R-Acq}
-%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
-%     \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA \SEMI \aCmd} &\supseteq
+%     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
 % &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
 %     \\
 %     \tag{W-Acq} 
-%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
-%     \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA \SEMI\aCmd} &\supseteq
+%     \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
 %     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
 %     \\
 % \tag{Rel-R} 
-% \sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
-%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
+% \sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
+%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp \SEMI \aCmd}
 %    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
 %     \\
 %     \tag{Rel-W}
-%     \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
-%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
+%     \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp \SEMI \aCmd}
 %   \end{align*}
 % \begin{proof}
 % The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
@@ -1220,29 +1220,29 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %reorderings hold.
  % \begin{align*}
 %    \tag{R-Acq}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ 
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA 
 %\SEMI \aCmd} &\supseteq
- %   \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} 
+ %   \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd}
 % &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
  %   \\
  %   \tag{W-Acq} 
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ 
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 
 %\SEMI\aCmd} &\supseteq
-%    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp 
+%    \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp 
 %\SEMI \aCmd} 
 %    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
  %   \\
 % \tag{Rel-R} 
-%\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
+%\sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd} &\supseteq
- %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp 
+ %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp 
 %\SEMI \aCmd}
 %   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
  %   \\
  %   \tag{Rel-W}
- %   \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp 
+ %   \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp 
 %\SEMI \aCmd}
 %  \end{align*}
 %\begin{proof}
@@ -1349,7 +1349,7 @@ fails to validate \emph{thread inlining}.  The given execution is impossible
 if the first thread is split, as in
 \begin{math}
   \sem{\aReg\GETS x\SEMI
-  y\REL\GETS 1\PAR
+  y^\mRA\GETS 1\PAR
   \bReg\GETS y\SEMI
   z\GETS \bReg
   \PAR
@@ -1409,23 +1409,23 @@ These are distinguished by the context:
 % \end{displaymath}
 % These are distinguished by the context %
 % \begin{math}
-%   x\GETS1 \SEMI a^\modeRA\GETS 1
-%   \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
-%   \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
+%   x\GETS1 \SEMI a^\mRA\GETS 1
+%   \PAR x\GETS2 \SEMI z^\mRA\GETS 1
+%   \PAR \IF{a^\mRA \land z^\mRA} \THEN \hole{}\FI.
 % \end{math}
 
 
 
 % General write elimination is invalid, even for non-racy programs:
 % \begin{displaymath}
-%   \sem{\aLoc\GETS 0 \SEMI\aLoc\GETS 1 \SEMI\bLoc^\modeRA\GETS 1} 
+%   \sem{\aLoc\GETS 0 \SEMI\aLoc\GETS 1 \SEMI\bLoc^\mRA\GETS 1} 
 %   \not\supseteq
-%   \sem{\aLoc\GETS 0 \SEMI\bLoc^\modeRA\GETS 1}
+%   \sem{\aLoc\GETS 0 \SEMI\bLoc^\mRA\GETS 1}
 % \end{displaymath}
 % These are distinguished by the context:
 % \begin{math}
 %   \hole{} \PAR
-%   \IF{\bLoc^\modeRA}\THEN \aReg \GETS \aLoc \FI
+%   \IF{\bLoc^\mRA}\THEN \aReg \GETS \aLoc \FI
 % \end{math}
 
 

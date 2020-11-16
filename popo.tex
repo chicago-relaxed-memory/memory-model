@@ -105,21 +105,21 @@ strong order, and separate colors for each variable in weak order.
 Here is fencing behavior mixing with release/acquire:
 \begin{gather*}  
   x\GETS1\SEMI
-  %\FENCE^{\modeREL}\SEMI
-  y\REL\GETS1
+  %\FENCE^{\mREL}\SEMI
+  y^\mRA\GETS1
   \PAR
-  r\GETS y\ACQ\SEMI
-  %\FENCE^{\modeACQ}\SEMI
+  r\GETS y^\mRA\SEMI
+  %\FENCE^{\mACQ}\SEMI
   s\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a1}{\DW{x}{1}}{}
-      % \event{a2}{\DFS{\modeREL}}{right=of a1}
+      % \event{a2}{\DFS{\mREL}}{right=of a1}
       % \sync{a1}{a2}
       \event{a3}{\DWRel{y}{1}}{right=of a1}
       \sync{a1}{a3}
       \event{b1}{\DRAcq{y}{1}}{right=3em of a3}
-      % \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      % \event{b2}{\DFS{\mACQ}}{right=of b1}
       % \sync{b1}{b2}
       \event{b3}{\DR{x}{0}}{right=of b1}
       \sync{b1}{b3}
@@ -129,21 +129,21 @@ Here is fencing behavior mixing with release/acquire:
 \end{gather*}
 \begin{gather*}  
   x\GETS1\SEMI
-  \FENCE^{\modeREL}\SEMI
+  \FENCE^{\mREL}\SEMI
   y\GETS1
   \PAR
-  r\GETS y\ACQ\SEMI
-  %\FENCE^{\modeACQ}\SEMI
+  r\GETS y^\mRA\SEMI
+  %\FENCE^{\mACQ}\SEMI
   s\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a1}{\DW{x}{1}}{}
-      \event{a2}{\DFS{\modeREL}}{right=of a1}
+      \event{a2}{\DFS{\mREL}}{right=of a1}
       \sync{a1}{a2}
       \event{a3}{\DW{y}{1}}{right=of a2}
       \sync{a2}{a3}
       \event{b1}{\DR{y}{1}}{right=3em of a3}
-      % \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      % \event{b2}{\DFS{\mACQ}}{right=of b1}
       % \sync{b1}{b2}
       \event{b3}{\DR{x}{0}}{right=of b1}
       \sync{b1}{b3}
@@ -153,20 +153,20 @@ Here is fencing behavior mixing with release/acquire:
 \end{gather*}
 \begin{gather*}  
   x\GETS1\SEMI
-  y\REL\GETS1
+  y^\mRA\GETS1
   \PAR
   r\GETS y\SEMI
-  \FENCE^{\modeACQ}\SEMI
+  \FENCE^{\mACQ}\SEMI
   s\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a1}{\DW{x}{1}}{}
-      % \event{a2}{\DFS{\modeREL}}{right=of a1}
+      % \event{a2}{\DFS{\mREL}}{right=of a1}
       % \sync{a1}{a2}
       \event{a3}{\DWRel{y}{1}}{right=of a1}
       \sync{a1}{a3}
       \event{b1}{\DR{y}{1}}{right=3em of a3}
-      \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      \event{b2}{\DFS{\mACQ}}{right=of b1}
       \sync{b1}{b2}
       \event{b3}{\DR{x}{0}}{right=of b2}
       \sync{b2}{b3}
@@ -176,21 +176,21 @@ Here is fencing behavior mixing with release/acquire:
 \end{gather*}
 \begin{gather*}  
   x\GETS1\SEMI
-  \FENCE^{\modeREL}\SEMI
+  \FENCE^{\mREL}\SEMI
   y\GETS1
   \PAR
   r\GETS y\SEMI
-  \FENCE^{\modeACQ}\SEMI
+  \FENCE^{\mACQ}\SEMI
   s\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a1}{\DW{x}{1}}{}
-      \event{a2}{\DFS{\modeREL}}{right=of a1}
+      \event{a2}{\DFS{\mREL}}{right=of a1}
       \sync{a1}{a2}
       \event{a3}{\DW{y}{1}}{right=of a2}
       \sync{a2}{a3}
       \event{b1}{\DR{y}{1}}{right=3em of a3}
-      \event{b2}{\DFS{\modeACQ}}{right=of b1}
+      \event{b2}{\DFS{\mACQ}}{right=of b1}
       \sync{b1}{b2}
       \event{b3}{\DR{x}{0}}{right=of b2}
       \sync{b2}{b3}
@@ -223,24 +223,24 @@ Coherence C does not allow:
 Coherence Java allows:
 \begin{gather*}
   \hbox{\small$
-  x\GETS1\SEMI y^\modeRA\GETS 1
+  x\GETS1\SEMI y^\mRA\GETS 1
   \PAR
-  x\GETS2\SEMI z^\modeRA\GETS 1
+  x\GETS2\SEMI z^\mRA\GETS 1
   \PAR
-  r\GETS y^\modeSC \SEMI 
-  r\GETS z^\modeSC \SEMI 
+  r\GETS y^\mSC \SEMI 
+  r\GETS z^\mSC \SEMI 
   r\GETS x \SEMI 
   r\GETS x$}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a1}{\DW{x}{1}}{}
-      \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+      \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
       \sync{a1}{a2}
       \event{b1}{\DW{x}{2}}{below=of a1}
-      \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+      \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
       \sync{b1}{b2}
-      \event{c1}{\DR[\modeRA]{y}{1}}{right=2em of a2}
-      \event{c2}{\DR[\modeRA]{\,z}{1}}{right=2em of b2}
+      \event{c1}{\DR[\mRA]{y}{1}}{right=2em of a2}
+      \event{c2}{\DR[\mRA]{\,z}{1}}{right=2em of b2}
       \event{c3}{\DR{x}{2}}{right=of c1}
       \event{c4}{\DR{x}{1}}{right=of c2}
       \sync{c1}{c3}
@@ -258,9 +258,9 @@ Store buffering
   x\GETS0\SEMI
   y\GETS0\SEMI
   (
-  x\REL\GETS1\SEMI\aReg\GETS y
+  x^\mRA\GETS1\SEMI\aReg\GETS y
   \PAR
-  y\REL\GETS1\SEMI \aReg\GETS x)
+  y^\mRA\GETS1\SEMI \aReg\GETS x)
   \\
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{wx0}{\DW{x}{0}}{}
@@ -287,13 +287,13 @@ IRIW
   \begin{array}{ccccc}
     &x\GETS0\SEMI x\GETS 1
     &\PAR&
-    r\GETS x\ACQ \SEMI s\GETS y
+    r\GETS x^\mRA \SEMI s\GETS y
     %\IF{x}\THEN r\GETS y \FI
     \\
     \PAR
     &y\GETS0\SEMI y\GETS 1
     &\PAR&
-    r\GETS y\ACQ \SEMI s\GETS x
+    r\GETS y^\mRA \SEMI s\GETS x
     %\IF{y}\THEN s\GETS x \FI
   \end{array}
   \\
@@ -377,22 +377,22 @@ Two variable \mca\ example Allowed.
     x\GETS1
     \PAR
     r\GETS x\SEMI   
-    \FENCE^{\modeSC}\SEMI
+    \FENCE^{\mSC}\SEMI
     r\GETS y  
     \PAR
     y\GETS 1 \SEMI
-    \FENCE^{\modeSC}\SEMI
+    \FENCE^{\mSC}\SEMI
     r\GETS x  
     \\[-.1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{a1}{\DW{x}{1}}{}
   \event{b1}{\DR{x}{1}}{right=3em of a1}
-  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \event{b2}{\DFS{\mSC}}{right=of b1}
   \sync{b1}{b2}
   \event{b3}{\DR{y}{0}}{right=of b2}
   \sync{b2}{b3}
   \event{c1}{\DW{y}{1}}{right=3em of b3}
-  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \event{c2}{\DFS{\mSC}}{right=of c1}
   \sync{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
   \sync{c2}{c3}
@@ -406,14 +406,14 @@ Two variable \mca\ example Allowed.
 \cite[Fig.~6]{DBLP:conf/pldi/LahavVKHD17}
 \begin{gather*}
 x\GETS1\SEMI   
-    z\REL\GETS1\SEMI   
+    z^\mRA\GETS1\SEMI   
     \PAR
-    r\ACQ\GETS z\SEMI   
-    \FENCE^{\modeSC}\SEMI
+    r^\mRA\GETS z\SEMI   
+    \FENCE^{\mSC}\SEMI
     r\GETS y  
     \PAR
     y\GETS 1 \SEMI
-    \FENCE^{\modeSC}\SEMI
+    \FENCE^{\mSC}\SEMI
     r\GETS x  
     \\[-.1ex]
   \hbox{\begin{tikzinline}[node distance=.7em]
@@ -421,12 +421,12 @@ x\GETS1\SEMI
   \event{a2}{\DWRel{z}{1}}{right=of a1}
   \sync{a1}{a2}
   \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
-  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \event{b2}{\DFS{\mSC}}{right=of b1}
   \sync{b1}{b2}
   \event{b3}{\DR{y}{0}}{right=of b2}
   \sync{b2}{b3}
   \event{c1}{\DW{y}{1}}{right=2em of b3}
-  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \event{c2}{\DFS{\mSC}}{right=of c1}
   \sync{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
   \sync{c2}{c3}
@@ -441,23 +441,23 @@ PSC is part of AR
 \cite[Ex.~3.9]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
   r\GETS y\SEMI
-  \FENCE^{\modeSC}\SEMI
+  \FENCE^{\mSC}\SEMI
   r\GETS z
   \PAR
   z\GETS 1\SEMI
-  \FENCE^{\modeSC}\SEMI
+  \FENCE^{\mSC}\SEMI
   r\GETS x
   \PAR
   \IF{x{\neq}0}\THEN y\GETS1 \FI
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
       \event{a1}{\DR{y}{1}}{}
-      \event{a2}{\DFS{\modeSC}}{right=of a1}
+      \event{a2}{\DFS{\mSC}}{right=of a1}
       \event{a3}{\DR{z}{0}}{right=of a2}
       \sync{a1}{a2}
       \sync{a2}{a3}
       \event{b1}{\DW{z}{1}}{right=2em of a3}
-      \event{b2}{\DFS{\modeSC}}{right=of b1}
+      \event{b2}{\DFS{\mSC}}{right=of b1}
       \event{b3}{\DR{x}{1}}{right=of b2}
       \sync{b1}{b2}
       \sync{b2}{b3}
@@ -471,7 +471,7 @@ PSC is part of AR
 \end{gather*}
 \cite[Ex.~3.2]{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{gather*}
-  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc)
+  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\mRLX,\mRLX}(\aLoc)
   \PAR
   x\GETS 2\SEMI s\GETS x
   \\
@@ -496,7 +496,7 @@ PSC is part of AR
   \PAR
   r\GETS z\SEMI
   x\GETS 0\SEMI
-  s\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI
+  s\GETS \FADD^{\mRLX,\mRA}(x) \SEMI
   y\GETS s{+}1
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
@@ -556,11 +556,11 @@ is acyclic (so it is Strong-POWER-consistent). Note that, using promises, the
 promising semantics allows this behavior.
 \begin{gather*}  
   r\GETS z\SEMI
-  \FENCE^{\modeSC}\SEMI
+  \FENCE^{\mSC}\SEMI
   x\GETS1
   \PAR
   x\GETS 2\SEMI
-  \FENCE^{\modeSC}\SEMI
+  \FENCE^{\mSC}\SEMI
   y\GETS 1
   \PAR
   r\GETS y\SEMI
@@ -568,12 +568,12 @@ promising semantics allows this behavior.
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
       \event{a1}{\DR{z}{1}}{}
-      \event{a2}{\DFS{\modeSC}}{right=of a1}
+      \event{a2}{\DFS{\mSC}}{right=of a1}
       \sync{a1}{a2}
       \event{a3}{\DW{x}{1}}{right=of a2}
       \sync{a2}{a3}
       \event{b1}{\DW{x}{2}}{right=3em of a3}
-      \event{b2}{\DFS{\modeSC}}{right=of b1}
+      \event{b2}{\DFS{\mSC}}{right=of b1}
       \sync{b1}{b2}
       \event{b3}{\DW{y}{1}}{right=of b2}
       \sync{b2}{b3}
@@ -696,12 +696,12 @@ by relaxed operations.  In RC11 [Lahav et al. 2017], as well as in C/C++11
 is actually unsound.
 \begin{gather*}
   y\GETS 1\SEMI
-  x\REL\GETS 1
+  x^\mRA\GETS 1
   \PAR
-  r\GETS \FADD^{\modeRA,\modeRA}(x) \SEMI  %1
+  r\GETS \FADD^{\mRA,\mRA}(x) \SEMI  %1
   x\GETS 3
   \PAR
-  r\GETS x\ACQ \SEMI %3
+  r\GETS x^\mRA \SEMI %3
   s\GETS y %0
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
@@ -730,20 +730,20 @@ this problem by strengthening sw in a way that ensures a synchronization edge fo
 program as well
 \begin{gather*}
   y\GETS 1\SEMI
-  x\REL\GETS 1
+  x^\mRA\GETS 1
   \PAR
-  \FENCE^{\modeREL}\SEMI
-  r\GETS \FADD^{\modeRA,\modeRLX}(x) \SEMI  %1
+  \FENCE^{\mREL}\SEMI
+  r\GETS \FADD^{\mRA,\mRLX}(x) \SEMI  %1
   x\GETS 3
   \PAR
-  r\GETS x\ACQ \SEMI %3
+  r\GETS x^\mRA \SEMI %3
   s\GETS y %0
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
       \event{a1}{\DW{y}{1}}{}
       \event{a2}{\DWRel{x}{1}}{right=of a1}
       \sync{a1}{a2}
-      \event{b0}{\DFS{\modeREL}}{right=2em of a2}
+      \event{b0}{\DFS{\mREL}}{right=2em of a2}
       \event{b1}{\DRAcq{x}{1}}{right=of b0}
       \event{b2}{\DW{x}{2}}{right=1.5em of b1}
       \rmw{b1}{b2}
@@ -767,12 +767,12 @@ In the case of a relaxed read in the RMW, the outcome is allowed in both
 cases:
 \begin{gather*}
   y\GETS 1\SEMI
-  x\REL\GETS 1
+  x^\mRA\GETS 1
   \PAR
-  r\GETS \FADD^{\modeRLX,\modeRA}(x) \SEMI  %1
+  r\GETS \FADD^{\mRLX,\mRA}(x) \SEMI  %1
   x\GETS 3
   \PAR
-  r\GETS x\ACQ \SEMI %3
+  r\GETS x^\mRA \SEMI %3
   s\GETS y %0
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
@@ -796,20 +796,20 @@ cases:
 \end{gather*}
 \begin{gather*}
   y\GETS 1\SEMI
-  x\REL\GETS 1
+  x^\mRA\GETS 1
   \PAR
-  \FENCE^{\modeREL}\SEMI
-  r\GETS \FADD^{\modeRLX,\modeRLX}(x) \SEMI  %1
+  \FENCE^{\mREL}\SEMI
+  r\GETS \FADD^{\mRLX,\mRLX}(x) \SEMI  %1
   x\GETS 3
   \PAR
-  r\GETS x\ACQ \SEMI %3
+  r\GETS x^\mRA \SEMI %3
   s\GETS y %0
   \\
   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
       \event{a1}{\DW{y}{1}}{}
       \event{a2}{\DWRel{x}{1}}{right=of a1}
       \sync{a1}{a2}
-      \event{b0}{\DFS{\modeREL}}{right=2em of a2}
+      \event{b0}{\DFS{\mREL}}{right=2em of a2}
       \event{b1}{\DR{x}{1}}{right=of b0}
       \event{b2}{\DW{x}{2}}{right=1.5em of b1}
       \rmw{b1}{b2}
@@ -1242,8 +1242,8 @@ Irrelevant Read Introduction (can I read 1 for both y and z?)
 \section{More optimizations}
 
 \begin{itemize}
-\item Sound to strengthen the annotation on an action from $\modeRLX$ to
-  $\modeRA$, and from $\modeRA$ to $\modeSC$.
+\item Sound to strengthen the annotation on an action from $\mRLX$ to
+  $\mRA$, and from $\mRA$ to $\mSC$.
 \end{itemize}
 
 From \cite{Manson:2005:JMM:1047659.1040336}:
@@ -1644,15 +1644,15 @@ Contrary to submission, reverse subsumption not okay.
 RA example.  This is impossible, since $\DR{x}{1}$ unfulfilled.
 \begin{gather*}
   x\GETS1 \SEMI
-  a\REL\GETS1 \SEMI
-  %y \GETS b\ACQ + x
-  r \GETS b\ACQ\SEMI
+  a^\mRA\GETS1 \SEMI
+  %y \GETS b^\mRA + x
+  r \GETS b^\mRA\SEMI
   s \GETS x\SEMI
   y \GETS r+s
   \PAR
-  r\GETS a\ACQ\SEMI
+  r\GETS a^\mRA\SEMI
   x\GETS 2\SEMI
-  b\REL\GETS10
+  b^\mRA\GETS10
   \\
   \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}
@@ -1677,15 +1677,15 @@ If you swap the release and acquire, then it is impossible for the second
 thread to get in the middle.
 \begin{gather*}
   x\GETS1 \SEMI
-  %y \GETS b\ACQ + x
-  r \GETS b\ACQ\SEMI
-  a\REL\GETS1 \SEMI
+  %y \GETS b^\mRA + x
+  r \GETS b^\mRA\SEMI
+  a^\mRA\GETS1 \SEMI
   % s \GETS x\SEMI
   % y \GETS r+s
   \PAR
-  r\GETS a\ACQ\SEMI
+  r\GETS a^\mRA\SEMI
   x\GETS 2\SEMI
-  b\REL\GETS10
+  b^\mRA\GETS10
   \\
   \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}
@@ -1710,15 +1710,15 @@ thread to get in the middle.
 In this case, the following execution is possible:
 \begin{gather*}
   x\GETS1 \SEMI
-  r \GETS b\ACQ\SEMI
-  a\REL\GETS1 \SEMI
-  %y \GETS b\ACQ + x
+  r \GETS b^\mRA\SEMI
+  a^\mRA\GETS1 \SEMI
+  %y \GETS b^\mRA + x
   s \GETS x\SEMI
   y \GETS r+s
   \PAR
-  r\GETS a\ACQ\SEMI
+  r\GETS a^\mRA\SEMI
   x\GETS 2\SEMI
-  b\REL\GETS10
+  b^\mRA\GETS10
   \\
   \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}
@@ -1743,15 +1743,15 @@ In this case, the following execution is possible:
 But not:
 \begin{gather*}
   x\GETS1 \SEMI
-  r \GETS b\ACQ\SEMI
-  a\REL\GETS1 \SEMI
-  %y \GETS b\ACQ + x
+  r \GETS b^\mRA\SEMI
+  a^\mRA\GETS1 \SEMI
+  %y \GETS b^\mRA + x
   s \GETS x\SEMI
   y \GETS r+s
   \PAR
-  r\GETS a\ACQ\SEMI
+  r\GETS a^\mRA\SEMI
   x\GETS 2\SEMI
-  b\REL\GETS10
+  b^\mRA\GETS10
   \\
   \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}

@@ -195,15 +195,15 @@ Our example language include actions of the form
 $(\DR[\amode]{\aLoc}{\aVal})$, which \emph{reads} value $\aVal$ from location
 $\aLoc$ and $(\DW[\amode]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
 $\aLoc$.
-% The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
-% \emph{release-acquire} ($\modeRA$) or \emph{sequentially-consistent} ($\modeSC$).
-The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \modeRLX \!\BNFSEP\! \modeRA \!\BNFSEP\! \modeSC)$ is
+% The \emph{mode} $\amode$ is either \emph{relaxed} ($\mRLX$),
+% \emph{release-acquire} ($\mRA$) or \emph{sequentially-consistent} ($\mSC$).
+The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \mRLX \!\BNFSEP\! \mRA \!\BNFSEP\! \mSC)$ is
 either \emph{relaxed}, \emph{release-acquire}, or
 \emph{sequentially-consistent}.
-$\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are releases.
+$\mRA$/$\mSC$ reads are acquires, and $\mRA$/$\mSC$ writes are releases.
 
-We elide the $\modeRLX$-mode annotation in examples.
-% We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
+We elide the $\mRLX$-mode annotation in examples.
+% We write $\mREL$ and $\mACQ$ as synonyms for $\mRA$.
 \begin{comment}
 \footnote{We only consider executions where register state is empty in
   forked threads.  Given item~\ref{pre-acquire} of
@@ -225,16 +225,16 @@ We elide the $\modeRLX$-mode annotation in examples.
 % \BNFDEF& \SKIP \tag{No Operation}
 % \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
 % \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \REF{\cExp}^\mRA\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
 % \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}^\mRA\SEMI \aCmd
 % \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 % \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
 % \end{align*}
 %The syntax of statements is as follows.
 \begin{align*}
-  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  % \amode \BNFDEF& \mRLX \BNFSEP \mRA \BNFSEP \mSC
   % \\
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
@@ -266,8 +266,8 @@ $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 % and
 % $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
 % $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
+% We write $^\mRA\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $^\mRA\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
 \paragraph{The semantic domain.}
 Our model is based on \emph{partially ordered multisets} (\emph{pomsets})~\cite{GISCHER1988199}.
@@ -1128,7 +1128,7 @@ Item 5c ensures access ensure correct publication.  For
 example, the following candidate execution is disallowed.
 \begin{gather*}
     x\GETS0\SEMI %y\GETS0\SEMI
-    x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ; s\GETS x
+    x\GETS 1\SEMI y^\mRA\GETS1 \PAR r\GETS y^\mRA; s\GETS x
     \\[-1ex]
     \hbox{\begin{tikzinline}[node distance=1em]
         \event{wx0}{\DW{x}{0}}{}
@@ -1146,12 +1146,12 @@ example, the following candidate execution is disallowed.
 Since $(\DW x0) \gtN (\DW x1) \lt (\DR x0)$, this pomset does not satisfy the
 requirements to fulfill the read.
 
-%This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
+%This example is also disallowed if we use $\mSC$ rather than $\mRA$.
 Items 5d ensures that program order between SC operations is always
 preserved.  Combined with the requirements for fulfillment, this is
 sufficient to establish that programs with only SC access have only SC
 executions; for example, execution \eqref{SB} is banned when all accesses are
-$\modeSC$.  It is also immediate that SC actions can be totally ordered.
+$\mSC$.  It is also immediate that SC actions can be totally ordered.
 Just as SC access is simplified by \mca\ in \armeight, it is simplified by
 the use of a single partial order in our model.
 % \begin{gather*}
@@ -1322,7 +1322,7 @@ are fulfilled locally.  Consider Example 3.6 from
   %\tag{$\dagger$}
   %\label{exlocal3.6}
   \aReg\GETS x\SEMI
-  y\REL\GETS 1\SEMI
+  y^\mRA\GETS 1\SEMI
   \bReg\GETS y\SEMI
   z\GETS \bReg
   %z\GETS y
@@ -1352,7 +1352,7 @@ thus far, due to the evident cycle.
 To allow this outcome, we remove the requirement for an explicit read action
 when a read is matched by a local write---and, symmetrically, for an explicit
 write action when a write is only used to match local reads.  We treat
-relaxed access in this section, extending to $\modeRA$/$\modeSC$-access after
+relaxed access in this section, extending to $\mRA$/$\mSC$-access after
 introducing fences in \textsection\ref{sec:variants}.
 We first give the semantics of read.
 \begin{definition}
@@ -1364,7 +1364,7 @@ We first give the semantics of read.
     % \mkern2mu\cup
     \;\mathhl{\cup\;
       % (\iDRmode{\aLoc}{}) \prefix
-      \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+      \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
       \sem{\aCmd}[\aLoc/\aReg]
       % \text{ else $\emptyset$}
     }
@@ -1384,7 +1384,7 @@ By removing the read event, the outcome is
 allowed by our semantics, enabling efficient compilation to \armeight:
 \begin{gather*}
   % \aReg\GETS x\SEMI
-  % y\REL\GETS 1\SEMI
+  % y^\mRA\GETS 1\SEMI
   % z\GETS y
   % \PAR
   % x\GETS z
@@ -1412,7 +1412,7 @@ Local reads invalidate \emph{thread inlining}, which is invalid in most relaxed 
 To see this, consider that the execution above is impossible for 
 \begin{math}
   \aReg\GETS x\SEMI
-  y\REL\GETS 1\PAR
+  y^\mRA\GETS 1\PAR
   \bReg\GETS y\SEMI
   z\GETS \bReg
   \PAR
@@ -1424,7 +1424,7 @@ To see this, consider that the execution above is impossible for
   Let $(\relfilt{\aLoc} \aPSS)$ be the subset of $\aPSS$ such that
   $\aPS\in\aPSS$
   when for every release $\aEv$ that does not write $\aLoc$, there is some $\bEv\le\aEv$
-  such that $\bEv$ \externally  writes $\aLoc$.  % For $\amode\neq\modeRLX$, let
+  such that $\bEv$ \externally  writes $\aLoc$.  % For $\amode\neq\mRLX$, let
   % $(\relfilt {\aLoc} \aPSS)$ be the empty set.
   \begin{align*}
     \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
@@ -1433,7 +1433,7 @@ To see this, consider that the execution above is impossible for
     %\mkern2mu\cup
     \;\mathhl{\cup\;
       % (\iDWmode{\aLoc}{}) \prefix
-      \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+      \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
       (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
       % \text{ else $\emptyset$}
     }
@@ -1446,9 +1446,9 @@ executions such as:
 \begin{gather*}
   x\GETS 1\SEMI
   x\GETS 2\SEMI
-  y\REL\GETS 1
+  y^\mRA\GETS 1
   \PAR
-  \aReg\GETS y\ACQ \SEMI \bReg\GETS x
+  \aReg\GETS y^\mRA \SEMI \bReg\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{a1}{\DW{x}{1}}{}
@@ -1469,10 +1469,10 @@ local writes when there is an intervening acquire.  This prevents bad
 executions such as:
 \begin{gather*}
   x\GETS1 \SEMI
-  a\REL\GETS1 \SEMI
-  \IF{b\ACQ}\THEN  y\GETS x \FI
+  a^\mRA\GETS1 \SEMI
+  \IF{b^\mRA}\THEN  y\GETS x \FI
   \PAR
-  \IF{a\ACQ}\THEN  x\GETS 2\SEMI b\REL\GETS1 \FI
+  \IF{a^\mRA}\THEN  x\GETS 2\SEMI b^\mRA\GETS1 \FI
   \\
   \hbox{\begin{tikzinline}[node distance=.8em and 1em]
   \event{a1}{\DW{x}{1}}{}
@@ -1527,7 +1527,7 @@ executions such as:
 %     \textstyle\bigcup_K\; \PAR_{k\in K}(\aForm_k \mid \DRmode\aLoc{\aVal_k}) \prefix \aPS_k
 %     \\[-.5ex] & \mkern2mu\cup
 %     %(\iDRmode{\aLoc}{}) \prefix
-%     \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+%     \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
 %     \sem{\aCmd}[\aLoc/\aReg]
 %     %\text{ else $\emptyset$}
 %     \\
@@ -1535,7 +1535,7 @@ executions such as:
 %     \PAR_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
 %     \\[-.5ex] & \mkern2mu\cup
 %     %(\iDWmode{\aLoc}{}) \prefix
-%     \text{if $\amode\mathbin\neq\modeRLX$ then }\text{$\emptyset$ else }
+%     \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
 %     (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
 %     %\text{ else $\emptyset$}
 % \end{align*}

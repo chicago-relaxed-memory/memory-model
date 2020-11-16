@@ -58,14 +58,14 @@ reordering of loads with following stores.
   % In the following program $r,s$ are registers, and $x,y,z,u,v,w$
   % are shared variables.
   % \begin{align*}
-  %   & (u \GETS 0 \SEMI y \GETS 1 \SEMI v\REL  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3) \\[-.5ex]
-  %   \PAR & (y \GETS 2 \SEMI  \IF{v\ACQ} \THEN w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2)
+  %   & (u \GETS 0 \SEMI y \GETS 1 \SEMI v^\mRA  \GETS 1 \SEMI z \GETS 2 \SEMI r \GETS u \SEMI y \GETS 3) \\[-.5ex]
+  %   \PAR & (y \GETS 2 \SEMI  \IF{v^\mRA} \THEN w \GETS 1 + y -y \SEMI u \GETS 1 \SEMI x \GETS 1  \FI \SEMI s \GETS u \SEMI  y \GETS 2)
   % \end{align*}
 \begin{displaymatharrayrl}
-  &x\GETS1\SEMI y\GETS1\SEMI v\REL\GETS1\SEMI z\GETS1\SEMI
+  &x\GETS1\SEMI y\GETS1\SEMI v^\mRA\GETS1\SEMI z\GETS1\SEMI
   \IF{w}\THEN x\GETS2\FI
   \\\PAR
-  &y\GETS2\SEMI \aReg{}\GETS v\ACQ\SEMI z\GETS2\,\SEMI
+  &y\GETS2\SEMI \aReg{}\GETS v^\mRA\SEMI z\GETS2\,\SEMI
   \IF{\aReg{}}\THEN w\GETS{y-y+x}\FI
 \end{displaymatharrayrl}
 \begin{displaymath}

@@ -131,10 +131,10 @@
     % \visible<3->{y\GETS0 \SEMI}
     % (
     x\GETS 1 \SEMI x\GETS 2 
-    \visible<3->{\SEMI y^\modeRA\GETS1 }
+    \visible<3->{\SEMI y^\mRA\GETS1 }
     \PAR
     x\GETS 3 \SEMI x\GETS 4\SEMI
-    \visible<3->{r\GETS y^\modeRA\SEMI}
+    \visible<3->{r\GETS y^\mRA\SEMI}
     \alert{s\GETS x} \SEMI x\GETS 5
     % )
     \alt<4->{\\[1ex]}{\\[.5ex]}
@@ -143,10 +143,10 @@
         % \visible<3->{\event{wy0}{\DW{y}{0}}{right=of wx0}}
         \alt<3->{\nonevent}{\event}{wx1}{\DW{x}{1}}{}%above right=of wy0}
         \event{wx2}{\DW{x}{2}}{right=of wx1}
-        \visible<3->{\event{wy1}{\DW[\modeRA]{y}{1}}{right=of wx2}}
+        \visible<3->{\event{wy1}{\DW[\mRA]{y}{1}}{right=of wx2}}
         \alt<2->{\nonevent}{\event}{wx3}{\DW{x}{3}}{below=of wx1}%below right=of wy0}
         \event{wx4}{\DW{x}{4}}{right=of wx3}
-        \visible<3->{\event{ry}{\DR[\modeRA]{y}{1}}{right=of wx4}}
+        \visible<3->{\event{ry}{\DR[\mRA]{y}{1}}{right=of wx4}}
         \event{rx}{\DR{x}{\alert{\only<-4>{?}\only<5>{2}\only<6>{4}\only<7-8>{1}}}}{right=of ry}
         \alt<2->{\nonevent}{\event}{wx5}{\DW{x}{5}}{right=of rx}
         \alt<4->{
@@ -197,8 +197,8 @@
         \item $r$--$s$: registers
         \item $\rpox$: program order
         \item<3-> $\rrfx$: reads-from
-        \item<3-> $\DW[\modeRA]{}{}$: release
-        \item<3-> $\DR[\modeRA]{}{}$: acquire
+        \item<3-> $\DW[\mRA]{}{}$: release
+        \item<3-> $\DR[\mRA]{}{}$: acquire
         }
       \end{itemize}
     \end{column}
@@ -1022,9 +1022,9 @@
   \end{gather*}
   \visible<1->{
     \begin{align*}
-      \alert<1>{\amode} \BNFDEF& \modeRLX &&\text{{(Relaxed)}} &\alert<1>{\fmode} \BNFDEF&\modeREL  &&\text{(Release)} &\hbox{$\;\mkern60mu\;$}&
-      \\ \BNFSEP& \modeRA &&\text{{(Release/Acquire)}}            & \BNFSEP&\modeACQ   &&\text{(Acquire)} 
-      \\ \BNFSEP& \modeSC &&\text{{(Sequentially Consistent)}}    &      \BNFSEP&\modeSC  &&\text{(SC)} 
+      \alert<1>{\amode} \BNFDEF& \mRLX &&\text{{(Relaxed)}} &\alert<1>{\fmode} \BNFDEF&\mREL  &&\text{(Release)} &\hbox{$\;\mkern60mu\;$}&
+      \\ \BNFSEP& \mRA &&\text{{(Release/Acquire)}}            & \BNFSEP&\mACQ   &&\text{(Acquire)} 
+      \\ \BNFSEP& \mSC &&\text{{(Sequentially Consistent)}}    &      \BNFSEP&\mSC  &&\text{(SC)} 
     \end{align*}}
 \end{frame}
 
@@ -1453,7 +1453,7 @@
   \begin{gather}
     \begin{gathered}
       x\GETS0\SEMI %y\GETS0\SEMI
-      x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ\SEMI s\GETS x
+      x\GETS 1\SEMI y^\mRA\GETS1 \PAR r\GETS y^\mRA\SEMI s\GETS x
       \\
       \nonumber
       \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -1473,17 +1473,17 @@
     \\[5ex]
     \begin{gathered}
       x\GETS0\SEMI %y\GETS0\SEMI
-      x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+      x\GETS 1\SEMI \FENCE^\mREL\SEMI y \GETS1
       \PAR
-      r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+      r\GETS y \SEMI \FENCE^\mACQ\SEMI s\GETS x
       \\
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{wx0}{\DW{x}{0}}{}
           \event{wx1}{\DW{x}{1}}{right=of wx0}
-          \event{fr}{\DFS{\modeREL}}{right=of wx1}
+          \event{fr}{\DFS{\mREL}}{right=of wx1}
           \event{wy1}{\DW{y}{1}}{right=of fr}
           \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-          \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+          \event{fa}{\DFS{\mACQ}}{right=of ry1}
           \event{rx0}{\DR{x}{0}}{right=of fa}
           \sync{wx1}{fr}
           \sync{fr}{wy1}
@@ -1503,21 +1503,21 @@
   \vspace{-1\baselineskip}
   \begin{gather*}
     \begin{gathered}
-      r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
+      r\GETS y\SEMI x^\mSC\GETS1\SEMI s\GETS x
       \PAR
       % y\GETS0\SEMI
-      x^\modeSC\GETS2 \SEMI y\GETS1
+      x^\mSC\GETS2 \SEMI y\GETS1
       \\[-1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{a}{\DR{y}{1}}{}
-          \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
+          \event{b}{\DW[\mSC]{x}{1}}{right=of a}
           \sync{a}{b}
           \event{bb}{\DR{x}{2}}{right=of b}
           \wk{b}{bb}
           % \event{c}{\DW{y}{0}}{right=2em of bb}
-          % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
+          % \event{d}{\DW[\mSC]{x}{2}}{right=of c}
           % \po{c}{d}
-          \event{d}{\DW[\modeSC]{x}{2}}{right=3em of bb}
+          \event{d}{\DW[\mSC]{x}{2}}{right=3em of bb}
           \event{e}{\DW{y}{1}}{right=of d}
           % \rf[out=170,in=10]{d}{bb}
           \rf{d}{bb}
@@ -1528,17 +1528,17 @@
     \spacetag{SC1\CMARK}
     \\[2ex]
     \begin{gathered}
-      x^\modeSC\GETS1 \SEMI r\GETS y^\modeSC
+      x^\mSC\GETS1 \SEMI r\GETS y^\mSC
       \PAR
-      y^\modeSC\GETS1 \SEMI y^\modeSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\modeSC
+      y^\mSC\GETS1 \SEMI y^\mSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\mSC
       \\[-1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
-          \event{a}{\DW[\modeSC]{x}{1}}{}
-          \event{b}{\DR[\modeSC]{y}{1}}{right=of a}
-          \event{c}{\DW[\modeSC]{y}{1}}{right=3em of b}
-          \event{d}{\DW[\modeSC]{y}{2}}{right=of c}
+          \event{a}{\DW[\mSC]{x}{1}}{}
+          \event{b}{\DR[\mSC]{y}{1}}{right=of a}
+          \event{c}{\DW[\mSC]{y}{1}}{right=3em of b}
+          \event{d}{\DW[\mSC]{y}{2}}{right=of c}
           \event{e}{\DW{x}{2}}{right=of d}
-          \event{f}{\DR[\modeSC]{x}{1}}{right=of e}
+          \event{f}{\DR[\mSC]{x}{1}}{right=of e}
           \sync{a}{b}
           \sync{c}{d}
           \sync[out=15,in=165]{d}{f}
@@ -1554,22 +1554,22 @@
       x\GETS1
       \PAR
       r\GETS x\SEMI   
-      \FENCE^{\modeSC}\SEMI
+      \FENCE^{\mSC}\SEMI
       r\GETS y  
       \PAR
       y\GETS 1 \SEMI
-      \FENCE^{\modeSC}\SEMI
+      \FENCE^{\mSC}\SEMI
       r\GETS x  
       \\[-.1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{a1}{\DW{x}{1}}{}
           \event{b1}{\DR{x}{1}}{right=3em of a1}
-          \event{b2}{\DFS{\modeSC}}{right=of b1}
+          \event{b2}{\DFS{\mSC}}{right=of b1}
           \sync{b1}{b2}
           \event{b3}{\DR{y}{0}}{right=of b2}
           \sync{b2}{b3}
           \event{c1}{\DW{y}{1}}{right=3em of b3}
-          \event{c2}{\DFS{\modeSC}}{right=of c1}
+          \event{c2}{\DFS{\mSC}}{right=of c1}
           \sync{c1}{c2}
           \event{c3}{\DR{x}{0}}{right=of c2}
           \sync{c2}{c3}
@@ -1582,14 +1582,14 @@
     \\[2ex]
     \begin{gathered}
       x\GETS1\SEMI   
-      z\REL\GETS1\SEMI   
+      z^\mRA\GETS1\SEMI   
       \PAR
-      r\ACQ\GETS z\SEMI   
-      \FENCE^{\modeSC}\SEMI
+      r^\mRA\GETS z\SEMI   
+      \FENCE^{\mSC}\SEMI
       r\GETS y  
       \PAR
       y\GETS 1 \SEMI
-      \FENCE^{\modeSC}\SEMI
+      \FENCE^{\mSC}\SEMI
       r\GETS x  
       \\[-.1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -1597,12 +1597,12 @@
           \event{a2}{\DWRel{z}{1}}{right=of a1}
           \sync{a1}{a2}
           \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
-          \event{b2}{\DFS{\modeSC}}{right=of b1}
+          \event{b2}{\DFS{\mSC}}{right=of b1}
           \sync{b1}{b2}
           \event{b3}{\DR{y}{0}}{right=of b2}
           \sync{b2}{b3}
           \event{c1}{\DW{y}{1}}{right=2em of b3}
-          \event{c2}{\DFS{\modeSC}}{right=of c1}
+          \event{c2}{\DFS{\mSC}}{right=of c1}
           \sync{c1}{c2}
           \event{c3}{\DR{x}{0}}{right=of c2}
           \sync{c2}{c3}
@@ -1783,10 +1783,10 @@
   \begin{gather*}
     \begin{gathered}
       x\GETS1 \SEMI
-      a\REL\GETS1 \SEMI
-      \IF{z\ACQ}\THEN  y\GETS x \FI
+      a^\mRA\GETS1 \SEMI
+      \IF{z^\mRA}\THEN  y\GETS x \FI
       \PAR
-      \IF{a\ACQ}\THEN  x\GETS 2\SEMI z\REL\GETS1 \FI
+      \IF{a^\mRA}\THEN  x\GETS 2\SEMI z^\mRA\GETS1 \FI
       \\
       \hbox{\begin{tikzinline}[node distance=1.2em]
           \event{a1}{\DW{x}{1}}{}
@@ -1813,7 +1813,7 @@
     \\[5ex]
     \begin{gathered}
       \aReg\GETS x\SEMI
-      y\REL\GETS 1\SEMI
+      y^\mRA\GETS 1\SEMI
       \bReg\GETS y\SEMI
       z\GETS \bReg
       % z\GETS y
@@ -1848,18 +1848,18 @@
   \vspace{-1\baselineskip}
   \begin{gather*}
     \begin{gathered}
-      (x\GETS 1 \SEMI   y\REL \GETS 1)
+      (x\GETS 1 \SEMI   y^\mRA \GETS 1)
       \PAR
-      (x\GETS 2 \SEMI \FENCE^\modeSC \SEMI \IF{y^\modeRA}\THEN r\GETS x \SEMI s\GETS x\FI)
+      (x\GETS 2 \SEMI \FENCE^\mSC \SEMI \IF{y^\mRA}\THEN r\GETS x \SEMI s\GETS x\FI)
       \\
       \hbox{\begin{tikzinline}[node distance=1.2em]
           \event{wx1}{\DW{x}{1}}{}
           \event{wy1}{\DWRel{y}{1}}{right=of wx0}
           \sync{wx1}{wy1}
           \event{wx2}{\DW{x}{2}}{right=3em of wy1}
-          \event{f}{\DFS{\modeSC}}{right=of wx2}
+          \event{f}{\DFS{\mSC}}{right=of wx2}
           \sync{wx2}{f}
-          \event{ry1}{\DR[\modeRA]{y}{1}}{right=of f}
+          \event{ry1}{\DR[\mRA]{y}{1}}{right=of f}
           \sync{f}{ry1}
           \event{rx1}{\DR{x}{1}}{right=3em of ry1}
           \event{rx2}{\DR{x}{2}}{right=of rx1}
@@ -1874,7 +1874,7 @@
     \spacetag{past\XMARK}
     \\[2ex]
     \begin{gathered}
-      (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\modeRA\GETS r)
+      (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\mRA\GETS r)
       \PAR
       (r\GETS x \SEMI \REF{r}\GETS 7)
       \\[-1ex]
@@ -1882,7 +1882,7 @@
           \event{a1}{\DW{\REF{1}}{42}}{}
           \event{a2}{\DR{\REF{1}}{7}}{right=of a1}
           \wk{a1}{a2}
-          % \event{a3}{\DFS{\modeREL}}{right=of a2}
+          % \event{a3}{\DFS{\mREL}}{right=of a2}
           % \sync{a2}{a3}
           \event{a4}{\DWRel{x}{1}}{right=of a2}
           \sync{a2}{a4}
@@ -1898,24 +1898,24 @@
     % \\[2ex]
     % \spacetag{CO3}
     % \begin{gathered}
-    %   x\GETS1\SEMI y^\modeRA\GETS 1
+    %   x\GETS1\SEMI y^\mRA\GETS 1
     %   \PAR
-    %   x\GETS2\SEMI z^\modeRA\GETS 1
+    %   x\GETS2\SEMI z^\mRA\GETS 1
     %   \PAR
-    %   r\GETS z^\modeRA \SEMI 
-    %   r\GETS y^\modeRA \SEMI 
+    %   r\GETS z^\mRA \SEMI 
+    %   r\GETS y^\mRA \SEMI 
     %   r\GETS x \SEMI 
     %   r\GETS x
     %   \\[-1ex]
     %   \hbox{\begin{tikzinline}[node distance=1.5em]
     %     \event{a1}{\DW{x}{1}}{}
-    %     \event{a2}{\DW[\modeRA]{y}{1}}{right=of a1}
+    %     \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
     %     \sync{a1}{a2}
     %     \event{b1}{\DW{x}{2}}{right=3em of a2}
-    %     \event{b2}{\DW[\modeRA]{\,z}{1}}{right=of b1}
+    %     \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
     %     \sync{b1}{b2}
-    %     \event{c1}{\DR[\modeRA]{\,z}{1}}{right=3em of b2}
-    %     \event{c2}{\DR[\modeRA]{y}{1}}{right=of c1}
+    %     \event{c1}{\DR[\mRA]{\,z}{1}}{right=3em of b2}
+    %     \event{c2}{\DR[\mRA]{y}{1}}{right=of c1}
     %     \event{c3}{\DR{x}{2}}{right=of c2}
     %     \event{c4}{\DR{x}{1}}{right=of c3}
     %     \sync{c1}{c2}
@@ -2067,14 +2067,14 @@
     \end{itemize}
   \item Sound observationally$\cmark{}$ Valid$\xmark{}$
     \begin{itemize}      
-    \item Access mode strengthening $(\modeRLX\rightarrow\modeRA \rightarrow\modeSC)$
+    \item Access mode strengthening $(\mRLX\rightarrow\mRA \rightarrow\mSC)$
     \item Commuting/Eliminating some synchronizations
     \item Implementing synchronizations using fences
     \item Implementing locks using synchronizations
     \end{itemize}
   \item Sound observationally$\qmark{}$ Valid$\xmark{}$
     \begin{itemize}      
-    \item Access mode weakening, eg $(\modeSC\rightarrow \modeRA\rightarrow\modeRLX)$
+    \item Access mode weakening, eg $(\mSC\rightarrow \mRA\rightarrow\mRLX)$
     \item Lock elision
     \end{itemize}
   \item Sound observationally$\xmark{}$
@@ -2359,20 +2359,20 @@
   \notagparens{}
   \vspace{-1\baselineskip}
   \begin{gather*}
-      \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
+      \VAR x\SEMI (x\GETS 1 \SEMI y_1^\mRA\GETS1
       \PAR
-      \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
+      \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\mRA\GETS1
       \PAR
-      r\GETS z_2^\modeRA\SEMI s\GETS x)
+      r\GETS z_2^\mRA\SEMI s\GETS x)
       \\[-.5ex]
       \tag{\XMARK}
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{a}{\DW{x}{1}}{}
-          \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+          \event{b}{\DW[\mRA]{y_1}{1}}{right=of a}
           \event{c}{\DR{z_1}{1}}{right=1.8em of b}
           \event{d}{\DW{x}{2}}{right=of c}
-          \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
-          \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
+          \event{e}{\DW[\mRA]{y_2}{1}}{right=of d}
+          \event{f}{\DR[\mRA]{z_2}{1}}{right=1.8em of e}
           \event{g}{\DR{x}{1}}{right=of f}
           \sync{a}{b}
           \po{c}{d}
@@ -2392,15 +2392,15 @@
     \tag{\XMARK}
     \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{a}{\DW{x}{1}}{}
-        \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+        \event{b}{\DW[\mRA]{y_1}{1}}{right=of a}
         \event{w}{\DR{y_1}{1}}{below=1.8em of b}
         \event{x}{\DW{z_1}{1}}{right=of w}
         \event{c}{\DR{z_1}{1}}{above=1.8em of x}
         \event{d}{\DW{x}{2}}{right=of c}
-        \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+        \event{e}{\DW[\mRA]{y_2}{1}}{right=of d}
         \event{y}{\DR{y_2}{1}}{below=1.8em of e}
         \event{z}{\DW{z_2}{1}}{right=of y}
-        \event{f}{\DR[\modeRA]{z_2}{1}}{above=1.8em of z}
+        \event{f}{\DR[\mRA]{z_2}{1}}{above=1.8em of z}
         \event{g}{\DR{x}{1}}{right=of f}
         \sync{a}{b}
         \po{c}{d}
@@ -2434,7 +2434,7 @@
   \vspace{-.5\baselineskip}
   \begin{gather*}
     \begin{gathered}
-      x\GETS 0 \SEMI \bigl(\FADD^{\modeRLX,\modeRLX}(x,1) \PAR \FADD^{\modeRLX,\modeRLX}(x,1)\bigr)
+      x\GETS 0 \SEMI \bigl(\FADD^{\mRLX,\mRLX}(x,1) \PAR \FADD^{\mRLX,\mRLX}(x,1)\bigr)
       \\
       \hbox{\begin{tikzinline}[node distance=2em]
           \event{a0}{\DW{x}{0}}{}
@@ -2454,7 +2454,7 @@
     \spacetag{RMW0\XMARK}
     \\[1ex]
     \begin{gathered}
-      \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc,1)
+      \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\mRLX,\mRLX}(\aLoc,1)
       \PAR
       x\GETS 2\SEMI s\GETS x
       \\
@@ -2479,7 +2479,7 @@
       \PAR
       r\GETS z\SEMI
       x\GETS 0\SEMI
-      s\GETS \FADD^{\modeRLX,\modeRA}(x,1) \SEMI
+      s\GETS \FADD^{\mRLX,\mRA}(x,1) \SEMI
       y\GETS s{+}1
       \\[-1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -2508,16 +2508,16 @@
   \vspace{-1\baselineskip}
   \begin{gather*}
     \begin{gathered}
-      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN y\GETS 1 \FI
+      r\GETS \FADD^{\mRA,\mRA}(x,1)\SEMI \IF{r{=}0}\THEN y\GETS 1 \FI
       \PAR
-      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN \IF{y}\THEN x\GETS 0 \FI \FI
+      r\GETS \FADD^{\mRA,\mRA}(x,1)\SEMI \IF{r{=}0}\THEN \IF{y}\THEN x\GETS 0 \FI \FI
       \\
       \hbox{\begin{tikzinline}[node distance=2em]
-          \event{a1}{\DR[\modeRA]{x}{0}}{}
-          \event{a1b}{\DW[\modeRA]{x}{1}}{below=1em of a1}
+          \event{a1}{\DR[\mRA]{x}{0}}{}
+          \event{a1b}{\DW[\mRA]{x}{1}}{below=1em of a1}
           \event{a2}{\DW{y}{1}}{right=of a1}
-          \event{b0}{\DR[\modeRA]{x}{0}}{right=3em of a2}
-          \event{b0b}{\DW[\modeRA]{x}{1}}{below=1em of b0}
+          \event{b0}{\DR[\mRA]{x}{0}}{right=3em of a2}
+          \event{b0b}{\DW[\mRA]{x}{1}}{below=1em of b0}
           \event{b1}{\DR{y}{1}}{right=of b0}
           \event{b2}{\DW{x}{0}}{right=of b1}
           \rmw{a1}{a1b}
@@ -2534,7 +2534,7 @@
     \begin{gathered}
       x\GETS0 \SEMI
       \bigl(
-        r\GETS \CAS^{\modeRLX,\modeRLX}(x,0,1)\SEMI \IF{r{<}10}\THEN y\GETS 1 \FI
+        r\GETS \CAS^{\mRLX,\mRLX}(x,0,1)\SEMI \IF{r{<}10}\THEN y\GETS 1 \FI
         \PAR
         x\GETS{42}\SEMI x\GETS y
       \bigr)
@@ -2558,7 +2558,7 @@
     \\
     \begin{gathered}
       r\GETS x\SEMI
-      s\GETS \FADD^{\modeRLX,\modeRLX}(z,r)\SEMI y\GETS s{+}1
+      s\GETS \FADD^{\mRLX,\mRLX}(z,r)\SEMI y\GETS s{+}1
       \PAR
       x\GETS y
       \\
@@ -2620,7 +2620,7 @@
       \PAR
       y\GETS x
       \PAR
-      r\GETS y\ACQ \SEMI s\GETS x
+      r\GETS y^\mRA \SEMI s\GETS x
       \\[-1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{wx0}{\DW{x}{0}}{}
@@ -2693,9 +2693,9 @@
     \spacetag{ADDR1\XMARK}
     \\[1ex]
     \begin{gathered}
-      (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\modeRA\GETS r)
+      (r\GETS 1 \SEMI \REF{r}\GETS 0 \SEMI \REF{r}\GETS 1\SEMI  x^\mRA\GETS r)
       \PAR
-      (r\GETS x^\modeRA \SEMI s \GETS \REF{r})
+      (r\GETS x^\mRA \SEMI s \GETS \REF{r})
       \\[-1ex]
       \hbox{\begin{tikzinline}[node distance=1.5em]
           \event{a1}{\DW{\REF{1}}{0}}{}
@@ -2703,7 +2703,7 @@
           \wk{a1}{a2}
           \event{a4}{\DWRel{x}{1}}{right=of a2}
           \sync{a2}{a4}
-          \event{b1}{\DR[\modeRA]{x}{1}}{right=3em of a4}
+          \event{b1}{\DR[\mRA]{x}{1}}{right=3em of a4}
           \event{b2}{\DR{\REF{1}}{0}}{right=of b1}
           \sync{b1}{b2}
           \rf{a4}{b1}

@@ -1,7 +1,4 @@
-\section{Additional RMW Examples}
-
-
-\begin{comment}
+\section{Non-MCA Ideas}
 Status of IRIW is unclear in our model, since we allow everything allowed by
 power...
 \begin{gather*}
@@ -12,9 +9,9 @@ power...
     % y\GETS0\SEMI
     y\GETS 1
     \PAR
-    r\GETS x^\modeRA\SEMI s\GETS y
+    r\GETS x^\mRA\SEMI s\GETS y
     \PAR
-    s\GETS y^\modeRA \SEMI r\GETS x
+    s\GETS y^\mRA \SEMI r\GETS x
     \\
     \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
           % \event{wx0}{\DW{x}{0}}{}
@@ -23,9 +20,9 @@ power...
           % \event{wy1}{\DW{y}{1}}{right=of wy0}
           \event{wx1}{\DW{x}{1}}{}
           \event{wy1}{\DW{y}{1}}{below=4ex of wx1}
-          \event{ry1}{\DR[\modeRA]{y}{1}}{right=2.5em of wy1}
+          \event{ry1}{\DR[\mRA]{y}{1}}{right=2.5em of wy1}
           \event{rx0}{\DR{x}{0}}{right=of ry1}
-          \event{rx1}{\DR[\modeRA]{x}{1}}{right=2.5 em of wx1}
+          \event{rx1}{\DR[\mRA]{x}{1}}{right=2.5 em of wx1}
           \event{ry0}{\DR{y}{0}}{right=of rx1}
           % \wk{wx0}{wx1}
           % \wk{wy0}{wy1}
@@ -40,12 +37,16 @@ power...
         \end{tikzinline}}}
   \end{gathered}
 \end{gather*}
-\end{comment}
+
+
+
+
+\section{Additional RMW Examples}
 
 It is not possible for two \RMW{}s to see the same write.
 \begin{gather*}
   \begin{gathered}
-    x\GETS 0 \SEMI \bigl(\FADD^{\modeRLX,\modeRLX}(x,1) \PAR \FADD^{\modeRLX,\modeRLX}(x,1)\bigr)
+    x\GETS 0 \SEMI \bigl(\FADD^{\mRLX,\mRLX}(x,1) \PAR \FADD^{\mRLX,\mRLX}(x,1)\bigr)
     \\
     \hbox{\begin{tikzinline}[node distance=2em]
         \event{a0}{\DW{x}{0}}{}
@@ -74,16 +75,16 @@ quantification over multiple futures in order to disallow executions such as
 \begin{gather*}
   \taglabel{CDRF}
     \begin{gathered}
-      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN y\GETS 1 \FI
+      r\GETS \FADD^{\mRA,\mRA}(x,1)\SEMI \IF{r{=}0}\THEN y\GETS 1 \FI
       \PAR
-      r\GETS \FADD^{\modeRA,\modeRA}(x,1)\SEMI \IF{r{=}0}\THEN \IF{y}\THEN x\GETS 0 \FI \FI
+      r\GETS \FADD^{\mRA,\mRA}(x,1)\SEMI \IF{r{=}0}\THEN \IF{y}\THEN x\GETS 0 \FI \FI
       \\
       \hbox{\begin{tikzinline}[node distance=2em]
-          \event{a1}{\DR[\modeRA]{x}{0}}{}
-          \event{a1b}{\DW[\modeRA]{x}{1}}{below=1em of a1}
+          \event{a1}{\DR[\mRA]{x}{0}}{}
+          \event{a1b}{\DW[\mRA]{x}{1}}{below=1em of a1}
           \event{a2}{\DW{y}{1}}{right=of a1}
-          \event{b0}{\DR[\modeRA]{x}{0}}{right=3em of a2}
-          \event{b0b}{\DW[\modeRA]{x}{1}}{below=1em of b0}
+          \event{b0}{\DR[\mRA]{x}{0}}{right=3em of a2}
+          \event{b0b}{\DW[\mRA]{x}{1}}{below=1em of b0}
           \event{b1}{\DR{y}{1}}{right=of b0}
           \event{b2}{\DW{x}{0}}{right=of b1}
           \rmw{a1}{a1b}
@@ -107,7 +108,7 @@ semantics permits \ref{GA+E}:
     \begin{gathered}
       x\GETS0 \SEMI
       \bigl(
-        r\GETS \CAS^{\modeRLX,\modeRLX}(x,0,1)\SEMI \IF{r{<}10}\THEN y\GETS 1 \FI
+        r\GETS \CAS^{\mRLX,\mRLX}(x,0,1)\SEMI \IF{r{<}10}\THEN y\GETS 1 \FI
         \PAR
         x\GETS{42}\SEMI x\GETS y
       \bigr)
@@ -134,7 +135,7 @@ semantics permits \ref{RP}:
   \taglabel{RP}
     \begin{gathered}
       r\GETS x\SEMI
-      s\GETS \FADD^{\modeRLX,\modeRLX}(z,r)\SEMI y\GETS s{+}1
+      s\GETS \FADD^{\mRLX,\mRLX}(z,r)\SEMI y\GETS s{+}1
       \PAR
       x\GETS y
       \\
@@ -162,8 +163,8 @@ In this section, we develop the proof of correctness of compilation to \armeight
 
 Our language can be translated to \armeight{} following
 \citet{DBLP:journals/pacmpl/PodkopaevLV19}, thus using \texttt{ldr} for
-relaxed read, \texttt{ldar} for $\modeRA$/$\modeSC$ reads are acquires,
-\texttt{str} for relaxed write, and \texttt{stlr} for $\modeRA$/$\modeSC$
+relaxed read, \texttt{ldar} for $\mRA$/$\mSC$ reads are acquires,
+\texttt{str} for relaxed write, and \texttt{stlr} for $\mRA$/$\mSC$
 writes.  $\FENCE$ instruction can be translated to \texttt{dmb.sy}, since it
 has release-acquire semantics.  Acquire fences map to \texttt{dmb.ld}, and
 release fences to \texttt{dmb.sy} --- \texttt{dmb.st} does not provide order

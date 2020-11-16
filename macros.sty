@@ -43,7 +43,7 @@
 \newcommand{\noparagraph}[1]{\stepcounter{mypara}\belowpdfbookmark{#1}{mypara\arabic{mypara}}}
 
 
-\newcommand{\modeRLXquiet}{{}}
+\newcommand{\mRLXquiet}{{}}
 \newcommand{\Rdis}[2]{\mathsf{weaken}_{\mathsf{R}#1#2}}
 \newcommand{\Wdis}[2]{\mathsf{weaken}_{\mathsf{W}#1#2}}
 
@@ -156,15 +156,15 @@
 
 \newcommand{\amode}{\mu}
 \newcommand{\fmode}{\nu}
-\newcommand{\REL}{^{\mathsf{ra}}}
-\newcommand{\ACQ}{^{\mathsf{ra}}}
-\newcommand{\RLX}{^{\mathsf{rlx}}}
-\newcommand{\mSC}{^{\mathsf{sc}}}
-\newcommand{\modeRA}{{\mathsf{ra}}}
-\newcommand{\modeRLX}{{\mathsf{rlx}}}
-\newcommand{\modeREL}{{\mathsf{rel}}}
-\newcommand{\modeACQ}{{\mathsf{acq}}}
-\newcommand{\modeSC}{{\mathsf{sc}}}
+% \newcommand{\REL}{^{\mathsf{ra}}}
+% \newcommand{\ACQ}{^{\mathsf{ra}}}
+% \newcommand{\RLX}{^{\mathsf{rlx}}}
+%\newcommand{\mSC}{^{\mathsf{sc}}}
+\newcommand{\mRA}{{\mathsf{ra}}}
+\newcommand{\mRLX}{{\mathsf{rlx}}}
+\newcommand{\mREL}{{\mathsf{rel}}}
+\newcommand{\mACQ}{{\mathsf{acq}}}
+\newcommand{\mSC}{{\mathsf{sc}}}
 
 %\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
 
@@ -371,8 +371,8 @@
 %\newcommand{\dAct}{d}
 \newcommand{\DRSC}[2]{\smash{\mathsf{R^{sc}}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}}
 \newcommand{\DWSC}[2]{\smash{\mathsf{W^{sc}}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}}
-\newcommand{\DRAcq}[2]{\smash{\mathsf{R\ACQ}}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
-\newcommand{\DWRel}[2]{\smash{\mathsf{W\REL}}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\newcommand{\DRAcq}[2]{\smash{\mathsf{R^{\mRA}}}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\newcommand{\DWRel}[2]{\smash{\mathsf{W^{\mRA}}}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DRreg}[4][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}}

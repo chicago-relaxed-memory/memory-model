@@ -3343,14 +3343,14 @@ The semantics of programs with releasing write and acquiring read are similar
 to regular write and read, with $\DWRel\aLoc\aVal$ replacing
 $\DW\aLoc\aVal$ and $\DRAcq\aLoc\aVal$ replacing $\DR\aLoc\aVal$:
 \begin{eqnarray*}
-  \sem{\aLoc\REL\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
-  \sem{\aReg\GETS\aLoc\ACQ\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
+  \sem{\aLoc^\mRA\GETS\aExp\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; \bigl((\aExp=\aVal) \guard (\DWRel\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]\bigr) \\
+  \sem{\aReg\GETS\aLoc^\mRA\SEMI \aCmd} & = & \textstyle\bigcup_\aVal\; (\DRAcq\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]
 \end{eqnarray*}
 
 To see the need for the first constraint on prefixing, consider the program:
 \[
   \VAR x\GETS0\SEMI \VAR f\GETS0\SEMI
-  (x\GETS 1\SEMI f\REL\GETS1 \PAR r\GETS f\ACQ \SEMI s\GETS x)
+  (x\GETS 1\SEMI f^\mRA\GETS1 \PAR r\GETS f^\mRA \SEMI s\GETS x)
 \]
 This has an execution:
 \begin{tikzdisplay}[node distance=1em]
@@ -3471,15 +3471,15 @@ with a plain read, then the outcome $(\DR f1)$ and $(\DR x0)$ is possible.
 %% \begin{displaymath}
 %%   (
 %%   x\GETS1\SEMI
-%%   \REL f\GETS 1\SEMI
-%%   \ACQ r\GETS f\SEMI
+%%^\mRA f\GETS 1\SEMI
+%%^\mRA r\GETS f\SEMI
 %%   y\GETS x
 %%   )
 %%   \PAR
 %%   (
-%%   \ACQ s\GETS f\SEMI
+%%^\mRA s\GETS f\SEMI
 %%   x\GETS2\SEMI
-%%   \REL f\GETS 2\SEMI
+%%^\mRA f\GETS 2\SEMI
 %%   )
 %% \end{displaymath}
 %% whose semantics includes execution:

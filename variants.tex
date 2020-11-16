@@ -9,34 +9,34 @@ extend to include these features.
 
 Syntactic fences
 ``$\FENCE^{\fmode} \SEMI \aCmd$'' have corresponding  actions: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
-$(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
+$(\fmode \!\!\BNFDEF\!\! \mREL \!\BNFSEP\! \mACQ \!\BNFSEP\! \mSC)$
 is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
 
-$(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
-$(\DFS{\modeSC})$ is both a release and an acquire.
+$(\DFS{\mREL})$ is a release. $(\DFS{\mACQ})$ is an acquire.
+$(\DFS{\mSC})$ is both a release and an acquire.
 \begin{align*}
   \sem{\FENCE^{\fmode}\SEMI \aCmd} & \eqdef
   (\DFS{\fmode}) \prefix \sem{\aCmd}
 \end{align*}
 With no further changes, syntactic fences would impose exactly the same order
-as synchronization actions.  This is sufficient to simulate $\modeSC$
-accesses, since $\modeSC$ fences are very strong.  However, it is
-insufficient to simulate $\modeRA$ accesses.
+as synchronization actions.  This is sufficient to simulate $\mSC$
+accesses, since $\mSC$ fences are very strong.  However, it is
+insufficient to simulate $\mRA$ accesses.
 % Consider a variant of \ref{Pub1}:
 % \begin{gather*}
 %   \label{Pub2}\tag{Pub2}
 %   x\GETS0\SEMI %y\GETS0\SEMI
-%   x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+%   x\GETS 1\SEMI \FENCE^\mREL\SEMI y \GETS1
 %   \PAR
-%   r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+%   r\GETS y \SEMI \FENCE^\mACQ\SEMI s\GETS x
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{wx0}{\DW{x}{0}}{}
 %       \event{wx1}{\DW{x}{1}}{right=of wx0}
-%       \event{fr}{\DFS{\modeREL}}{right=of wx1}
+%       \event{fr}{\DFS{\mREL}}{right=of wx1}
 %       \event{wy1}{\DW{y}{1}}{right=of fr}
 %       \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-%       \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+%       \event{fa}{\DFS{\mACQ}}{right=of ry1}
 %       \event{rx0}{\DR{x}{0}}{right=of fa}
 %       \sync{wx1}{fr}
 %       %\sync{fr}{wy1}
@@ -49,7 +49,7 @@ insufficient to simulate $\modeRA$ accesses.
 % \end{gather*}
 % The semantics of syntactic fences
 % is subtly different from the fencing behavior of
-% $\modeRA$/$\modeSC$-accesses in C11. 
+% $\mRA$/$\mSC$-accesses in C11. 
 %To ensure the order that invalidates this execution candidate,
 Thus we add the following requirements to Definition \ref{def:prefix}:%  of
 % \emph{prefixing}:
@@ -64,17 +64,17 @@ Consider the following variant of \ref{Pub1}:
   \taglabel{Pub2}
   \begin{gathered}
   x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+  x\GETS 1\SEMI \FENCE^\mREL\SEMI y \GETS1
   \PAR
-  r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+  r\GETS y \SEMI \FENCE^\mACQ\SEMI s\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{wx0}{\DW{x}{0}}{}
       \event{wx1}{\DW{x}{1}}{right=of wx0}
-      \event{fr}{\DFS{\modeREL}}{right=of wx1}
+      \event{fr}{\DFS{\mREL}}{right=of wx1}
       \event{wy1}{\DW{y}{1}}{right=of fr}
       \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-      \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+      \event{fa}{\DFS{\mACQ}}{right=of ry1}
       \event{rx0}{\DR{x}{0}}{right=of fa}
       \sync{wx1}{fr}
       \sync{fr}{wy1}
@@ -86,29 +86,29 @@ Consider the following variant of \ref{Pub1}:
     \end{tikzinline}}
 \end{gathered}
 \end{gather*}
-\ref{5f} requires that $(\DFS{\modeREL})\le(\DW{y}{1})$.  \ref{5e} requires
-that $(\DR{y}{1})\le(\DFS{\modeACQ})$.  The other order involving fences is
+\ref{5f} requires that $(\DFS{\mREL})\le(\DW{y}{1})$.  \ref{5e} requires
+that $(\DR{y}{1})\le(\DFS{\mACQ})$.  The other order involving fences is
 required by \ref{5c}.  The attempted execution is
 \emph{invalid}: the stale read $(\DR{x}{0})$ violates \ref{rf4}.
 
 % Fences can simulate release/acquire access:
 % \begin{gather*}  
 %   x\GETS1\SEMI
-%   \FENCE^{\modeREL}\SEMI
+%   \FENCE^{\mREL}\SEMI
 %   y\GETS1
 %   \PAR
 %   r\GETS y\SEMI
-%   \FENCE^{\modeACQ}\SEMI
+%   \FENCE^{\mACQ}\SEMI
 %   s\GETS x
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a1}{\DW{x}{1}}{}
-%       \event{a2}{\DFS{\modeREL}}{right=of a1}
+%       \event{a2}{\DFS{\mREL}}{right=of a1}
 %       \po{a1}{a2}
 %       \event{a3}{\DW{y}{1}}{right=of a2}
 %       \po{a2}{a3}
 %       \event{b1}{\DR{y}{1}}{right=3em of a3}
-%       \event{b2}{\DFS{\modeACQ}}{right=of b1}
+%       \event{b2}{\DFS{\mACQ}}{right=of b1}
 %       \po{b1}{b2}
 %       \event{b3}{\DR{x}{0}}{right=of b2}
 %       \po{b2}{b3}
@@ -135,22 +135,22 @@ $0$\hyp{}initialization in these examples:
     x\GETS1
     \PAR
     r\GETS x\SEMI   
-    \FENCE^{\modeSC}\SEMI
+    \FENCE^{\mSC}\SEMI
     r\GETS y  
     \PAR
     y\GETS 1 \SEMI
-    \FENCE^{\modeSC}\SEMI
+    \FENCE^{\mSC}\SEMI
     r\GETS x  
     \\[-.1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DW{x}{1}}{}
   \event{b1}{\DR{x}{1}}{right=3em of a1}
-  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \event{b2}{\DFS{\mSC}}{right=of b1}
   \sync{b1}{b2}
   \event{b3}{\DR{y}{0}}{right=of b2}
   \sync{b2}{b3}
   \event{c1}{\DW{y}{1}}{right=3em of b3}
-  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \event{c2}{\DFS{\mSC}}{right=of c1}
   \sync{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
   \sync{c2}{c3}
@@ -163,14 +163,14 @@ $0$\hyp{}initialization in these examples:
   \taglabel{SC4}
   \begin{gathered}
     x\GETS1\SEMI   
-    z\REL\GETS1\SEMI   
+    z^\mRA\GETS1\SEMI   
     \PAR
-    r\ACQ\GETS z\SEMI   
-    \FENCE^{\modeSC}\SEMI
+    r^\mRA\GETS z\SEMI   
+    \FENCE^{\mSC}\SEMI
     r\GETS y  
     \PAR
     y\GETS 1 \SEMI
-    \FENCE^{\modeSC}\SEMI
+    \FENCE^{\mSC}\SEMI
     r\GETS x  
     \\[-.1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -178,12 +178,12 @@ $0$\hyp{}initialization in these examples:
   \event{a2}{\DWRel{z}{1}}{right=of a1}
   \sync{a1}{a2}
   \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
-  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \event{b2}{\DFS{\mSC}}{right=of b1}
   \sync{b1}{b2}
   \event{b3}{\DR{y}{0}}{right=of b2}
   \sync{b2}{b3}
   \event{c1}{\DW{y}{1}}{right=2em of b3}
-  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \event{c2}{\DFS{\mSC}}{right=of c1}
   \sync{c1}{c2}
   \event{c3}{\DR{x}{0}}{right=of c2}
   \sync{c2}{c3}
@@ -214,10 +214,10 @@ but immediate in the various models of C11.
 
 % To model the fencing behavior of local reads and writes, our example language
 % includes silent actions for \emph{read fences} $(\DFR{\amode})$ and
-% \emph{write fences} $(\DFW[\aLoc]{\amode})$.  For modes $\modeRA$ and
-% $\modeSC$, read fences are acquires and write fences are releases.  As with
+% \emph{write fences} $(\DFW[\aLoc]{\amode})$.  For modes $\mRA$ and
+% $\mSC$, read fences are acquires and write fences are releases.  As with
 % all actions, fences are ordered with respect to preceding acquired and
-% following releases.  For mode $\modeRLX$, the fences do nothing.  We
+% following releases.  For mode $\mRLX$, the fences do nothing.  We
 % emphasize that \emph{write fences} are silent, and thus do not interfere with
 % \emph{write actions} when fulfilling a read.
 
@@ -245,19 +245,19 @@ but immediate in the various models of C11.
 % We also include syntactic fences of the form
 % ``$\FENCE^{\fmode} \SEMI \aCmd$.''  The semantics of syntactic fences
 % is subtly different from the fencing behavior of
-% $\modeRA$/$\modeSC$-accesses in C11.  Thus we include separate actions for syntactic
+% $\mRA$/$\mSC$-accesses in C11.  Thus we include separate actions for syntactic
 % fences: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
-% $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
+% $(\fmode \!\!\BNFDEF\!\! \mREL \!\BNFSEP\! \mACQ \!\BNFSEP\! \mSC)$
 % is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
-% $(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
-% $(\DFS{\modeSC})$ is both a release and an acquire.
+% $(\DFS{\mREL})$ is a release. $(\DFS{\mACQ})$ is an acquire.
+% $(\DFS{\mSC})$ is both a release and an acquire.
 
 % The additional order of syntactic fences is captured by adding the following
 % to Definition \ref{def:prefix} of \emph{prefixing}:
 % \begin{enumerate}
-% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
+% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\mACQ})$, then
 %   $\aEv \lt' \bEv$, and
-% \item[5f.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
+% \item[5f.] if $\labelingAct(\bEv)=(\DFS{\mREL})$ and $\aEv$ writes, then
 %   $\bEv \lt' \aEv$.
 % \end{enumerate}
 % The semantic rules are:
@@ -286,22 +286,22 @@ but immediate in the various models of C11.
 %     x\GETS1
 %     \PAR
 %     r\GETS x\SEMI   
-%     \FENCE^{\modeSC}\SEMI
+%     \FENCE^{\mSC}\SEMI
 %     r\GETS y  
 %     \PAR
 %     y\GETS 1 \SEMI
-%     \FENCE^{\modeSC}\SEMI
+%     \FENCE^{\mSC}\SEMI
 %     r\GETS x  
 %     \\[-.1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %   \event{a1}{\DW{x}{1}}{}
 %   \event{b1}{\DR{x}{1}}{right=3em of a1}
-%   \event{b2}{\DFS{\modeSC}}{right=of b1}
+%   \event{b2}{\DFS{\mSC}}{right=of b1}
 %   \po{b1}{b2}
 %   \event{b3}{\DR{y}{0}}{right=of b2}
 %   \po{b2}{b3}
 %   \event{c1}{\DW{y}{1}}{right=3em of b3}
-%   \event{c2}{\DFS{\modeSC}}{right=of c1}
+%   \event{c2}{\DFS{\mSC}}{right=of c1}
 %   \po{c1}{c2}
 %   \event{c3}{\DR{x}{0}}{right=of c2}
 %   \po{c2}{c3}
@@ -311,14 +311,14 @@ but immediate in the various models of C11.
 %     \end{tikzinline}}
 %   \\
 %     x\GETS1\SEMI   
-%     z\REL\GETS1\SEMI   
+%     z^\mRA\GETS1\SEMI   
 %     \PAR
-%     r\ACQ\GETS z\SEMI   
-%     \FENCE^{\modeSC}\SEMI
+%     r^\mRA\GETS z\SEMI   
+%     \FENCE^{\mSC}\SEMI
 %     r\GETS y  
 %     \PAR
 %     y\GETS 1 \SEMI
-%     \FENCE^{\modeSC}\SEMI
+%     \FENCE^{\mSC}\SEMI
 %     r\GETS x  
 %     \\[-.1ex]
 %   \hbox{\begin{tikzinline}[node distance=.7em]
@@ -326,12 +326,12 @@ but immediate in the various models of C11.
 %   \event{a2}{\DWRel{z}{1}}{right=of a1}
 %   \po{a1}{a2}
 %   \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
-%   \event{b2}{\DFS{\modeSC}}{right=of b1}
+%   \event{b2}{\DFS{\mSC}}{right=of b1}
 %   \po{b1}{b2}
 %   \event{b3}{\DR{y}{0}}{right=of b2}
 %   \po{b2}{b3}
 %   \event{c1}{\DW{y}{1}}{right=2em of b3}
-%   \event{c2}{\DFS{\modeSC}}{right=of c1}
+%   \event{c2}{\DFS{\mSC}}{right=of c1}
 %   \po{c1}{c2}
 %   \event{c3}{\DR{x}{0}}{right=of c2}
 %   \po{c2}{c3}
@@ -387,7 +387,7 @@ This definition ensures atomicity, disallowing executions such as
 \begin{gather*}
   \taglabel{RMW1}
   \begin{gathered}
-  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc,1)
+  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\mRLX,\mRLX}(\aLoc,1)
   \PAR
   x\GETS 2\SEMI s\GETS x
   \\
@@ -417,7 +417,7 @@ following, which is allowed by \armeight{}
   \PAR
   r\GETS z\SEMI
   x\GETS 0\SEMI
-  s\GETS \FADD^{\modeRLX,\modeRA}(x,1) \SEMI
+  s\GETS \FADD^{\mRLX,\mRA}(x,1) \SEMI
   y\GETS s{+}1
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -491,18 +491,18 @@ semantics simply by expanding this encoding.  Applying this technique to Candida
   $\cExp=\cVal$, for some $\cVal$), the resulting definition produces exactly
   the same executions as before.
 %   \begin{align*}
-%     \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
+%     \sem{\aReg\GETS\aLoc^\mRLXquiet\SEMI \aCmd} &\eqdef
 %     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
 %     \sem{\aCmd}[\REF{\cVal}]/\aReg]
 %     \cup
 %     \textstyle\bigcup_\aVal\;
-%     (\DR[\modeRLXquiet]\REF{\cVal}]\aVal) \prefix \Rdis{\REF{\cVal}]}{\aVal}\sem{\aCmd} [\REF{\cVal}]/\aReg]
+%     (\DR[\mRLXquiet]\REF{\cVal}]\aVal) \prefix \Rdis{\REF{\cVal}]}{\aVal}\sem{\aCmd} [\REF{\cVal}]/\aReg]
 %     \bigr)
 %     \\
-%     \sem{\REF{\cVal}]^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
+%     \sem{\REF{\cVal}]^\mRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
 %     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
 %     \begin{aligned}[t]
-%       \bigl(\textstyle\bigcup_\aVal\;& (\aExp=\aVal \mid \DW[\modeRLXquiet]\REF{\cVal}]\aVal) \prefix \Wdis{\REF{\cVal}]}{\aExp}\sem{\aCmd}[\aExp/\REF{\cVal}]]
+%       \bigl(\textstyle\bigcup_\aVal\;& (\aExp=\aVal \mid \DW[\mRLXquiet]\REF{\cVal}]\aVal) \prefix \Wdis{\REF{\cVal}]}{\aExp}\sem{\aCmd}[\aExp/\REF{\cVal}]]
 %       \\[-.5ex]
 %       \cup\;\;\;\; &\relfilt[]{\REF{\cVal}]} \sem{\aCmd}[\aExp/\REF{\cVal}]]
 %       \bigr)

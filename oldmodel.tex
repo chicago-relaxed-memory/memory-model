@@ -401,14 +401,14 @@ The restriction of $\geN$ to conflicting events on a single location is called t
 % ``unexecuted'' conditional code on executed code, as found in Spectre.
 
 %\begin{displaymath}
- % r\GETS x\ACQ \SEMI %\FENCE\SEMI
+ % r\GETS x^\mRA \SEMI %\FENCE\SEMI
  % s\GETS x
 %  \PAR
 %  x\GETS 1
  % \PAR
  % x\GETS2
  % \PAR
- % r\GETS x\ACQ \SEMI %\FENCE\SEMI
+ % r\GETS x^\mRA \SEMI %\FENCE\SEMI
  % s\GETS x
 %\end{displaymath}
 %\begin{tikzdisplay}[node distance=1em]
@@ -437,7 +437,7 @@ acquire.  This is a strong order which is visualized as a solid arrow, like
 order derived from dependency.  As an example, consider the program:
 \begin{displaymath}
   x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI y \REL\GETS1 \PAR r\GETS y\ACQ; s\GETS x
+  x\GETS 1\SEMI y^\mRA\GETS1 \PAR r\GETS y^\mRA; s\GETS x
 \end{displaymath}
 \text{which allows:}  \hfill
 \begin{tikzinline}[node distance=1em]
@@ -502,7 +502,7 @@ The ability to remove of the program order from a write to a read of the same th
 \cite{DBLP:journals/pacmpl/PodkopaevLV19}:
 \begin{displaymath}
   \aReg\GETS x\SEMI
-  y\REL\GETS 1\SEMI
+  y^\mRA\GETS 1\SEMI
   z\GETS y
   \PAR
   x\GETS z
@@ -550,7 +550,7 @@ The dependency calculation for $(\DW{z}{1})$ in this execution proceeds as
 follows.  Desugaring, the thread is
 \begin{math}
   (\aReg\GETS x\SEMI
-  y\REL\GETS 1\SEMI
+  y^\mRA\GETS 1\SEMI
   \bReg\GETS y\SEMI
   z\GETS \bReg).
 \end{math}
@@ -570,9 +570,9 @@ For example, the following execution is consider data-race free.
 \begin{displaymath}
   x\GETS1\SEMI
   \aReg\GETS x \SEMI
-  y\REL\GETS 1 \SEMI
+  y^\mRA\GETS 1 \SEMI
   \PAR
-  \bReg\GETS y\ACQ \SEMI
+  \bReg\GETS y^\mRA \SEMI
   x\GETS 2
 \end{displaymath}
 \begin{tikzdisplay}[node distance=1em]
@@ -593,10 +593,10 @@ program has a data race.
 %   x\GETS0\SEMI
 %   x\GETS1\SEMI
 %   \aReg\GETS x \SEMI
-%   y\REL\GETS 1 \SEMI
+%   y^\mRA\GETS 1 \SEMI
 %   z\GETS\aReg
 %   \PAR
-%   \bReg\GETS z\ACQ \SEMI
+%   \bReg\GETS z^\mRA \SEMI
 %   \cReg\GETS x
 % \end{displaymath}
 % \begin{tikzdisplay}[node distance=1em]
@@ -623,7 +623,7 @@ The behavior in execution~\eqref{thread} is not possible if we split the first
 thread in two:
 \begin{math}
   \aReg\GETS x\SEMI
-  y\REL\GETS 1\PAR
+  y^\mRA\GETS 1\PAR
   z\GETS y.
 \end{math}
 since that would make the read explicit, thus imposing the order
@@ -640,9 +640,9 @@ a read.  Consider the program:
 \begin{displaymath}
   x\GETS 1\SEMI
   x\GETS 2\SEMI
-  y\REL\GETS 1
+  y^\mRA\GETS 1
   \PAR
-  \IF{y\ACQ}\THEN \aReg\GETS x \FI
+  \IF{y^\mRA}\THEN \aReg\GETS x \FI
 \end{displaymath}
 Both of the following executions violate the definition of fulfillment:
 \begin{displaymathsmall}
@@ -690,10 +690,10 @@ thread can read $2$ for $x$.
 %We also use a fence (not drawn) rather than an acquire or release:
 %\begin{displaymath}
  % y \GETS0 \SEMI %\FENCE\SEMI
- % x\REL\GETS1\SEMI a\GETS y
+ % x^\mRA\GETS1\SEMI a\GETS y
  % \PAR
  %% x \GETS0 \SEMI %\FENCE\SEMI
- % y\REL\GETS1\SEMI b\GETS x
+ % y^\mRA\GETS1\SEMI b\GETS x
 %\end{displaymath}
 %\begin{tikzdisplay}[node distance=1em]
  % \event{a1}{\DW{y}{0}}{}
@@ -775,12 +775,12 @@ this execution is acyclic and is allowed.  If the first read in each thread is a
 \begin{displaymatharray}{rl}
   &x\GETS0\SEMI x\GETS 1
   \PAR
-  \IF{x\ACQ}\THEN r\GETS y \FI
+  \IF{x^\mRA}\THEN r\GETS y \FI
  \\{}
   \PAR&
   y\GETS0\SEMI y\GETS 1
   \PAR
-  \IF{y\ACQ}\THEN s\GETS x \FI
+  \IF{y^\mRA}\THEN s\GETS x \FI
 \end{displaymatharray}
 The resulting execution is disallowed due to the  cycle.
 \begin{tikzdisplay}[node distance=1em]
@@ -788,9 +788,9 @@ The resulting execution is disallowed due to the  cycle.
   \event{wx1}{\DW{x}{1}}{right=of wx0}
   \event{wy0}{\DW{y}{0}}{below=4ex of wx0}
   \event{wy1}{\DW{y}{1}}{right=of wy0}
-  \event{ry1}{\DR{y\ACQ}{1}}{right=2.5em of wy1}
+  \event{ry1}{\DR{y^\mRA}{1}}{right=2.5em of wy1}
   \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \event{rx1}{\DR{x\ACQ}{1}}{right=2.5 em of wx1}
+  \event{rx1}{\DR{x^\mRA}{1}}{right=2.5 em of wx1}
   \event{ry0}{\DR{y}{0}}{right=of rx1}
   \wk{wx0}{wx1}
   \wk{wy0}{wy1}
@@ -886,7 +886,7 @@ threads.  This order can be achieved by replacing the second thread
 \end{math}
 with 
 \begin{math}
-  (\bReg\GETS y\ACQ\SEMI x\GETS1)
+  (\bReg\GETS y^\mRA\SEMI x\GETS1)
 \end{math}
 or
 \begin{math}
@@ -1049,17 +1049,17 @@ ${\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}$ is different from the semantics of
 ${(\VAR\aLoc\SEMI\aCmd)\PAR\bCmd}$, even if $\bCmd$ does not mention~$\aLoc$.
 To see this, consider the program:
 \begin{gather*}
-  \aReg\GETS a\ACQ\SEMI
+  \aReg\GETS a^\mRA\SEMI
   x\GETS1 \SEMI
-  b\GETS\REL 1
+  b\GETS^\mRA 1
   \PAR
-  \aReg\GETS c\ACQ\SEMI
+  \aReg\GETS c^\mRA\SEMI
   x\GETS2 \SEMI
-  d\GETS\REL 1
+  d\GETS^\mRA 1
   \PAR
-  \aReg\GETS e\ACQ\SEMI
+  \aReg\GETS e^\mRA\SEMI
   \bReg\GETS x \SEMI
-  f\GETS\REL 1
+  f\GETS^\mRA 1
   \\
   \begin{minipage}{1.0\linewidth}
     \begin{tikzdisplay}[node distance=1em]
@@ -1924,10 +1924,10 @@ Item~\ref{pre-acquire} filters the executions of $\aPSS$, ensuring that
 thread-local reads do not cross acquire actions.  This prevents bad executions like the following, which violate \drfsc. 
 \begin{displaymath}
   x\GETS1 \SEMI
-  a\REL\GETS1 \SEMI
-  \IF{b\ACQ}\THEN  \aReg\GETS x\SEMI y\GETS\aReg \FI
+  a^\mRA\GETS1 \SEMI
+  \IF{b^\mRA}\THEN  \aReg\GETS x\SEMI y\GETS\aReg \FI
   \PAR
-  \IF{a\ACQ}\THEN  x\GETS 2\SEMI b\REL\GETS1 \FI
+  \IF{a^\mRA}\THEN  x\GETS 2\SEMI b^\mRA\GETS1 \FI
 \end{displaymath}
 \begin{tikzdisplay}[node distance=1em]
   \event{a1}{\DW{x}{1}}{}
@@ -1995,9 +1995,9 @@ The following lemma is immediate from the definitions.
 % \BNFDEF& \SKIP \tag{No Operation}
 % \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
 % \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \REF{\cExp}^\mRA\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
 % \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}^\mRA\SEMI \aCmd
 % \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 % \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
@@ -2007,7 +2007,7 @@ The following lemma is immediate from the definitions.
 We consider a simple shared-memory concurrent language, with statements
 defined as follows.
 \begin{align*}
-  \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  \amode \BNFDEF& \mRLX \BNFSEP \mRA \BNFSEP \mSC
   \\
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
@@ -2021,9 +2021,9 @@ defined as follows.
 \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCmd
 \end{align*}
 
-We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
+We write $\mREL$ and $\mACQ$ as synonyms for $\mRA$.
 
-We elide the $\modeRLX$-mode annotation in examples.
+We elide the $\mRLX$-mode annotation in examples.
 
 We use common syntax sugar, such as \emph{extended expressions}, which include
 memory locations.  For example, if the extended expression $\aEExp$ includes
@@ -2035,8 +2035,8 @@ $\IF{\aExp} \THEN \aCmd^1 \ELSE \aCmd^2 \FI \SEMI \bCmd$ as shorthand for
 $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$ and
 $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
 $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
+% We write $^\mRA\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $^\mRA\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
 % In Figure~\ref{fig:programs}, we give the semantics as sets of pomsets.  
 % \begin{figure*}1
@@ -2069,7 +2069,7 @@ The semantics of programs is as follows: % \footnote{Fork parallelism is easily 
   % \\
   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
   (\iDWmode{\aLoc}{}) \prefix \relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
-  \textif \amode=\modeRLX
+  \textif \amode=\mRLX
   \\ & \mkern2mu\cup
   \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
 \end{align*}

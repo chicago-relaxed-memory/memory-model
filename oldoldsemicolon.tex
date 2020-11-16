@@ -306,11 +306,11 @@ ensure the required properties.
 
 There is also a challenge dealing with redundant write elimination:
 \begin{math}
-  \sem{x\GETS 1\SEMI x^\modeREL\GETS 2} 
+  \sem{x\GETS 1\SEMI x^\mREL\GETS 2} 
 \end{math}
 should contain a pomset that includes only
 \begin{math}
-  (\DW[\modeRA]{x}{2}).
+  (\DW[\mRA]{x}{2}).
 \end{math}
 We achieve this using the same strategy: closing after the construction.
 
@@ -394,9 +394,9 @@ closure, we include $\aPSS^1$ before applying $\DISJUNCT$.
 %   $\bEv \lt' \aEv$,
 % \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
 %   $\bEv \lt' \aEv$, 
-% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
+% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\mACQ}$, then
 %   $\aEv \lt' \bEv$,
-% \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
+% \item[5f.] if $\labelingAct(\bEv)=\DFS{\mREL}$ and $\aEv$ writes, then
 %   $\bEv \lt' \aEv$, and
 % \item[6.] if $\bEv$ is a release, $\aEv_1$ is an acquire, $\aEv_1\le\aEv_2$, then $\labelingForm(\aEv_2)$
 %   is location independent.
@@ -497,9 +497,9 @@ closure, we include $\aPSS^1$ before applying $\DISJUNCT$.
 % %   $\bEv \ORDER \aEv$,
 % % \item[5d.] if $\bEv$ is an SC write and $\aEv$ is an SC read, then
 % %   $\bEv \ORDER \aEv$, 
-% % \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\modeACQ}$, then
+% % \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=\DFS{\mACQ}$, then
 % %   $\aEv \ORDER \bEv$,
-% % \item[5f.] if $\labelingAct(\bEv)=\DFS{\modeREL}$ and $\aEv$ writes, then
+% % \item[5f.] if $\labelingAct(\bEv)=\DFS{\mREL}$ and $\aEv$ writes, then
 % %   $\bEv \ORDER \aEv$, 
 % \item[6a.] if $\bEv$ is a release, $\dEv\in\Event'$ is an acquire,
 %   $\bEv\le'\dEv\le'\aEv$, then $\labelingForm(\aEv)$ is location independent, and

@@ -384,15 +384,15 @@ $\Term\subseteq\Rel$.
   \emph{reads} $\aVal$ from $\aLoc$ and
   $(\DW[\amode][\aThrd]{\aLoc}{\aVal})$, which \emph{writes} $\aVal$ to
   $\aLoc$.
-% The \emph{mode} $\amode$ is either \emph{relaxed} ($\modeRLX$),
-% \emph{release-acquire} ($\modeRA$) or \emph{sequentially-consistent} ($\modeSC$).
-The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \modeRLX \!\BNFSEP\! \modeRA \!\BNFSEP\! \modeSC)$ is
+% The \emph{mode} $\amode$ is either \emph{relaxed} ($\mRLX$),
+% \emph{release-acquire} ($\mRA$) or \emph{sequentially-consistent} ($\mSC$).
+The \emph{access mode} $(\amode \!\!\BNFDEF\!\! \mRLX \!\BNFSEP\! \mRA \!\BNFSEP\! \mSC)$ is
 either \emph{relaxed}, \emph{release-acquire}, or
 \emph{sequentially-consistent}.
-$\modeRA$/$\modeSC$ reads are acquires, and $\modeRA$/$\modeSC$ writes are releases.
+$\mRA$/$\mSC$ reads are acquires, and $\mRA$/$\mSC$ writes are releases.
 %We elide thread identifiers when possible.
-We systematically elide the $\modeRLX$-mode annotation, writing $(\DR{\aLoc}{\aVal})$
-as shorthand for $(\DR[\modeRLX]{\aLoc}{\aVal})$.
+We systematically elide the $\mRLX$-mode annotation, writing $(\DR{\aLoc}{\aVal})$
+as shorthand for $(\DR[\mRLX]{\aLoc}{\aVal})$.
 
 We do not explicitly include C11-style \emph{plain} access.  If \oota{}
 executions are disallowed for C11 relaxed access, then C11 plain access
@@ -401,7 +401,7 @@ plain access result in undefined behavior \cite{undefined}.
 \begin{comment}
   Thin air example from referee: if (x) y := 1 || if (y) x := 1 .
 \end{comment}
-% We write $\modeREL$ and $\modeACQ$ as synonyms for $\modeRA$.
+% We write $\mREL$ and $\mACQ$ as synonyms for $\mRA$.
 
   % $\disjoint{\Term}{(\Acq\cup\Rel\cup\SC\cup\fdom(\rreads)\cup\fdom(\rwrites))}$.
 
@@ -511,7 +511,7 @@ the semantics of
   \PAR
   y\GETS x
   \SEMI
-  z^\modeRA\GETS 1
+  z^\mRA\GETS 1
   )
   %\aReg\GETS x\SEMI y\GETS \aReg)
 \end{math}
@@ -750,9 +750,9 @@ it is relevant to the discussion.
 % \BNFDEF& \SKIP \tag{No Operation}
 % \\[-1ex]\BNFSEP& \FENCE\SEMI \aCmd \tag{Full fence}
 % \\[-1ex]\BNFSEP& \REF{\cExp}\GETS\aExp\SEMI \aCmd \tag{Relaxed write to memory}
-% \\[-1ex]\BNFSEP& \REF{\cExp}\REL\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
+% \\[-1ex]\BNFSEP& \REF{\cExp}^\mRA\GETS\aExp\SEMI \aCmd \tag{Releasing write to memory}
 % \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\SEMI \aCmd \tag{Relaxed read from memory}
-% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}\ACQ\SEMI \aCmd
+% \\[-1ex]\BNFSEP& \aReg\GETS\REF{\cExp}^\mRA\SEMI \aCmd
 % \\[-1ex]\BNFSEP& \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 % \\[-1ex]\BNFSEP& \aCmd \PAR \bCmd
 % \\[-1ex]\BNFSEP& \VAR\aLoc\SEMI \aCmd
@@ -764,7 +764,7 @@ We define the language by prefixing individual reads and writes.  % In
 % \textsection\ref{sec:semicolon} we provide an equivalent semantics that supports
 % full sequential composition of the form $(\aCmd\SEMI\bCmd)$.
 \begin{align*}
-  % \amode \BNFDEF& \modeRLX \BNFSEP \modeRA \BNFSEP \modeSC
+  % \amode \BNFDEF& \mRLX \BNFSEP \mRA \BNFSEP \mSC
   % \\
 \aCmd,\,\bCmd
 \BNFDEF& \SKIP
@@ -795,8 +795,8 @@ $\IF{\aExp} \THEN \aCmd^1 \SEMI \bCmd\ELSE \aCmd^2 \SEMI \bCmd\FI$.
 % and
 % $\VAR\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for
 % $\VAR\aLoc\SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\REL\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
-% We write $\ACQ\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
+% We write $^\mRA\aLoc\GETS\aExp\SEMI \aCmd$ as shorthand for $\FENCE_{\FR} \SEMI\aLoc\GETS\aExp\SEMI \aCmd$.
+% We write $^\mRA\aReg\GETS\aLoc\SEMI \aCmd$ as shorthand for $\aReg\GETS\aLoc\SEMI \FENCE_{\FA}\SEMI \aCmd$.
 
 The semantic function $\sem[\aThrd]{-}$ takes a command and
 yields a set of pomsets.
@@ -1832,19 +1832,19 @@ Together with \ref{rf4}, the definition of $x$-closed disallows the following ex
 \begin{gather}
   \taglabel{blocker}
   \begin{gathered}
-  \VAR x\SEMI (x\GETS 1 \SEMI y_1^\modeRA\GETS1
+  \VAR x\SEMI (x\GETS 1 \SEMI y_1^\mRA\GETS1
   \PAR
-  \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\modeRA\GETS1
+  \IF{z_1}\THEN x\GETS2\FI\SEMI y_2^\mRA\GETS1
   \PAR
-  r\GETS z_2^\modeRA\SEMI s\GETS x)
+  r\GETS z_2^\mRA\SEMI s\GETS x)
   \\[-.5ex]
   \hbox{\begin{tikzinline}[node distance=1em]
   \event{a}{\DW{x}{1}}{}
-  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+  \event{b}{\DW[\mRA]{y_1}{1}}{right=of a}
   \event{c}{\DR{z_1}{1}}{right=1.8em of b}
   \event{d}{\DW{x}{2}}{right=of c}
-  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
-  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of e}
+  \event{e}{\DW[\mRA]{y_2}{1}}{right=of d}
+  \event{f}{\DR[\mRA]{z_2}{1}}{right=1.8em of e}
   \event{g}{\DR{x}{1}}{right=of f}
   \sync{a}{b}
   \po{c}{d}
@@ -1870,15 +1870,15 @@ we would have:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=.8em]
   \event{a}{\DW{x}{1}}{}
-  \event{b}{\DW[\modeRA]{y_1}{1}}{right=of a}
+  \event{b}{\DW[\mRA]{y_1}{1}}{right=of a}
   \event{w}{\DR{y_1}{1}}{right=1.8em of b}
   \event{x}{\DW{z_1}{1}}{right=of w}
   \event{c}{\DR{z_1}{1}}{right=1.8em of x}
   \event{d}{\DW{x}{2}}{right=of c}
-  \event{e}{\DW[\modeRA]{y_2}{1}}{right=of d}
+  \event{e}{\DW[\mRA]{y_2}{1}}{right=of d}
   \event{y}{\DR{y_2}{1}}{right=1.8em of e}
   \event{z}{\DW{z_2}{1}}{right=of y}
-  \event{f}{\DR[\modeRA]{z_2}{1}}{right=1.8em of z}
+  \event{f}{\DR[\mRA]{z_2}{1}}{right=1.8em of z}
   \event{g}{\DR{x}{1}}{right=of f}
   \sync{a}{b}
   \po{c}{d}
@@ -2243,9 +2243,9 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 % % %\ref{5b}
 % % conflict (aka, coherence), 
 % % %\ref{5c}
-% % $\modeRA$-fences, and 
+% % $\mRA$-fences, and 
 % % %\ref{5d}
-% % $\modeSC$-fences.
+% % $\mSC$-fences.
 
 % % and our last failed candidate semantics.
 % \begin{candidate}
@@ -2307,12 +2307,12 @@ combine pomsets for different read values, rather than $\parallel_\aVal$.
 %   releases.}.  %(We explain item 6 in the next subsection.)
 
 
-%This example is also disallowed if we use $\modeSC$ rather than $\modeRA$.
+%This example is also disallowed if we use $\mSC$ rather than $\mRA$.
 % Item \ref{5d} ensures that program order between SC operations is always
 % preserved.  Combined with the requirements for fulfillment, this is
 % sufficient to establish that programs with only SC access have only SC
 % executions; for example, execution candidate \ref{SB} is banned when the
-% actions of the two threads are all $\modeSC$ (but allowed with less order
+% actions of the two threads are all $\mSC$ (but allowed with less order
 % otherwise, as discussed below).  It is also immediate that SC actions can be
 % totally ordered, using any linearization of pomset order.  Just as SC access in
 % \armeight{} is simplified by \mca, it is simplified here by the

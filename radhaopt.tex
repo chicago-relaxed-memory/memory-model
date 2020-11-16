@@ -4,7 +4,7 @@
 
 
 A program is \emph{sequential} if it lacks $\!\!\PAR\!\!$, and
-\emph{synchronization-free} if lacks fences and $\modeRA/\modeSC$ access.
+\emph{synchronization-free} if lacks fences and $\mRA/\mSC$ access.
 
 We consider an extension of Hoare logic with read sets.  The format of triples we will consider is:
 \[ \hoare{\aLin\SEMI\aForm}{\aCmd}{\bLin\SEMI\bForm} \]
@@ -217,7 +217,7 @@ a completed pomset $\aPS\in\aPSS$ and some set $D$ such that
 $\Event'= \Event'\uplus D$, ${\le'} \supseteq{\le}$,
 $\labeling'(\aEv) = \labeling(\aEv)$, and for every $\bEv\in D$ there are
 $\aLoc$ and $\aVal$ such that
-$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+$\labelingAct'(\bEv)=(\DR[\mRLX]{\aLoc}{\aVal})$.
 
 \begin{theorem}
   \label{thm:hoare}
@@ -531,12 +531,12 @@ synchronization-free, with disjoint ids as before:
   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
   % \\
   \taglabel{A}
-  \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
-  \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
+  \sem{\aCmd \SEMI \bReg \GETS \aLoc^\mRA} &\supseteq
+  \sem{\bReg \GETS \aLoc^\mRA\SEMI  \aCmd}
   \\
   \taglabel{R}
-  \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
-  \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
+  \sem{\aLoc^\mRA \GETS \aExp \SEMI \aCmd } &\supseteq
+  \sem{\aCmd \SEMI \aLoc^\mRA \GETS \aExp }
 \end{align*}
 % Again, we suppose that $\aCmd$ is an assignment sequence and disjoint
 % identifiers.
@@ -619,29 +619,29 @@ dead code elimination \eqref{DC}.
 %reorderings hold.
  % \begin{align*}
 %    \tag{R-Acq}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ 
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA 
 %\SEMI \aCmd} &\supseteq
- %   \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} 
+ %   \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd}
 % &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
  %   \\
  %   \tag{W-Acq} 
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ 
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 
 %\SEMI\aCmd} &\supseteq
-%    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp 
+%    \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp 
 %\SEMI \aCmd} 
 %    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
  %   \\
 % \tag{Rel-R} 
-%\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
+%\sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd} &\supseteq
- %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp 
+ %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp 
 %\SEMI \aCmd}
 %   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
  %   \\
  %   \tag{Rel-W}
- %   \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp 
+ %   \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp 
 %\SEMI \aCmd}
 %  \end{align*}
 %\begin{proof}

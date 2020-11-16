@@ -115,21 +115,21 @@ This type of ``big detour'' \cite{alglave} is outlawed by
 % following, using an atomic (SC atomic) location x and a nonatomic (relaxed)
 % location y
 % \begin{gather*}
-%   r\GETS y\SEMI x^\modeSC\GETS1\SEMI s\GETS x
+%   r\GETS y\SEMI x^\mSC\GETS1\SEMI s\GETS x
 %   \PAR
 %   % y\GETS0\SEMI
-%   x^\modeSC\GETS2 \SEMI y\GETS1
+%   x^\mSC\GETS2 \SEMI y\GETS1
 %   \\
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a}{\DR{y}{1}}{}
-%       \event{b}{\DW[\modeSC]{x}{1}}{right=of a}
+%       \event{b}{\DW[\mSC]{x}{1}}{right=of a}
 %       \po{a}{b}
 %       \event{bb}{\DR{x}{2}}{right=of b}
 %       \po{b}{bb}
 %       % \event{c}{\DW{y}{0}}{right=2em of bb}
-%       % \event{d}{\DW[\modeSC]{x}{2}}{right=of c}
+%       % \event{d}{\DW[\mSC]{x}{2}}{right=of c}
 %       % \po{c}{d}
-%       \event{d}{\DW[\modeSC]{x}{2}}{right=2em of bb}
+%       \event{d}{\DW[\mSC]{x}{2}}{right=2em of bb}
 %       \event{e}{\DW{y}{1}}{right=of d}
 %       \po{d}{e}
 %       %\rf[out=170,in=10]{d}{bb}
@@ -197,7 +197,7 @@ $\lnot(\bEv\xpox\aEv)$.
 
 Let ${\rhb}=({\rpox}\cup{\rsw})^+$ be the \emph{happens-before} relation.  In
 \ref{Pub1}, for example, $(\DW{x}{1})$ happens-before $(\DR{x}{0})$, but this
-fails if either $\modeRA$ access is relaxed.
+fails if either $\mRA$ access is relaxed.
 
 Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
   $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they \emph{conflict}
@@ -503,14 +503,14 @@ includes a race involving $\aEv$.
 %     \begin{gather*}
 %       (y\GETS 0 \SEMI   x \GETS 1  \SEMI \aReg \GETS y)
 %       \PAR
-%       (x\GETS 0 \SEMI  y \GETS 1  \SEMI \FENCE^{\modeSC} \SEMI  \bReg \GETS x)
+%       (x\GETS 0 \SEMI  y \GETS 1  \SEMI \FENCE^{\mSC} \SEMI  \bReg \GETS x)
 %       \\
 %       \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
 %           \event{wx0}{\DW{x}{0}}{}
 %           \event{wx1}{\DW{x}{1}}{right=3em of wx0}
 %           \event{wy0}{\DW{y}{0}}{below=of wx0}
 %           \event{wy1}{\DW{y}{1}}{right=3em of wy0}
-%           \event{f}{\DFS{\modeSC}}{right=of wy1}
+%           \event{f}{\DFS{\mSC}}{right=of wy1}
 %           \event{rx0}{\DR{x}{0}}{right=of f}
 %           \event{ry0}{\DR{y}{0}}{above=of rx0}
 %           \sync{wy1}{f}
@@ -534,7 +534,7 @@ includes a race involving $\aEv$.
 %           \event{wx1}{\DW{x}{1}}{right=3em of wx0}
 %           \event{wy0}{\DW{y}{0}}{below=of wx0}
 %           \event{wy1}{\DW{y}{1}}{right=3em of wy0}
-%           \event{f}{\DFS{\modeSC}}{right=of wy1}
+%           \event{f}{\DFS{\mSC}}{right=of wy1}
 %           \event{rx0}{\DR{x}{0}}{right=of f}
 %           \event{ry0}{\DR{y}{1}}{above=of rx0}
 %           \pox{wx1}{ry0}
@@ -758,9 +758,9 @@ The premises of the theorem allow us to avoid the complications caused by ``mixe
 an extension of $\aPS'$, since $\aPS'$ is not a downset of $\aPS''$.  
 When considering this pomset, we must perform the decomposition on the right.
 \begin{gather*}
-  (x\GETS 0 \SEMI   x\REL \GETS 1)
+  (x\GETS 0 \SEMI   x^\mRA \GETS 1)
   \PAR
-  (\aReg\GETS x\ACQ)
+  (\aReg\GETS x^\mRA)
   \\[-2ex]
   \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
       \event{wx0}{\DW{x}{0}}{}
@@ -804,18 +804,18 @@ include an SC fence here to mimic the behavior of volatiles in the JMM.
 \begin{gather*}
   \taglabel{past}
   \begin{gathered}
-  (x\GETS 1 \SEMI   y\REL \GETS 1)
+  (x\GETS 1 \SEMI   y^\mRA \GETS 1)
   \PAR
-  (x\GETS 2 \SEMI \FENCE^\modeSC \SEMI \IF{y^\modeRA}\THEN r\GETS x \SEMI s\GETS x\FI)
+  (x\GETS 2 \SEMI \FENCE^\mSC \SEMI \IF{y^\mRA}\THEN r\GETS x \SEMI s\GETS x\FI)
   \\[-2ex]
       \hbox{\begin{tikzinline}[node distance=1.2em]
           \event{wx1}{\DW{x}{1}}{}
           \event{wy1}{\DWRel{y}{1}}{right=of wx0}
           \sync{wx1}{wy1}
           \event{wx2}{\DW{x}{2}}{right=3em of wy1}
-          \event{f}{\DFS{\modeSC}}{right=of wx2}
+          \event{f}{\DFS{\mSC}}{right=of wx2}
           \sync{wx2}{f}
-          \event{ry1}{\DR[\modeRA]{y}{1}}{right=of f}
+          \event{ry1}{\DR[\mRA]{y}{1}}{right=of f}
           \sync{f}{ry1}
           \event{rx1}{\DR{x}{1}}{right=3em of ry1}
           \event{rx2}{\DR{x}{2}}{right=of rx1}
@@ -831,9 +831,9 @@ include an SC fence here to mimic the behavior of volatiles in the JMM.
   %     \event{wy1}{\DWRel{y}{1}}{right=of wx0}
   %     \sync{wx1}{wy1}
   %     \event{wx2}{\DW{x}{2}}{right=3em of wy1}
-  %     \event{f}{\DFS{\modeSC}}{right=of wx2}
+  %     \event{f}{\DFS{\mSC}}{right=of wx2}
   %     \sync{wx2}{f}
-  %     \event{ry1}{\DR[\modeRA]{y}{1}}{right=of f}
+  %     \event{ry1}{\DR[\mRA]{y}{1}}{right=of f}
   %     \sync{f}{ry1}
   %     \event{rx1}{\DR{x}{1}}{right=5em of ry1}
   %     \event{rx2}{\DR{x}{2}}{right=of rx1}
@@ -858,7 +858,7 @@ The notion of ``future'' is also richer here.  Consider \cite[Ex.~3]{Dolan:2018:
 \begin{gather*}
   \taglabel{future}
   \begin{gathered}
-  (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\modeRA\GETS r)
+  (r\GETS 1 \SEMI \REF{r}\GETS 42\SEMI s\GETS \REF{r}\SEMI  x^\mRA\GETS r)
   \PAR
   (r\GETS x \SEMI \REF{r}\GETS 7)
   \\[-1ex]
@@ -866,7 +866,7 @@ The notion of ``future'' is also richer here.  Consider \cite[Ex.~3]{Dolan:2018:
       \event{a1}{\DW{\REF{1}}{42}}{}
       \event{a2}{\DR{\REF{1}}{7}}{right=of a1}
       \wk{a1}{a2}
-      % \event{a3}{\DFS{\modeREL}}{right=of a2}
+      % \event{a3}{\DFS{\mREL}}{right=of a2}
       % \sync{a2}{a3}
       \event{a4}{\DWRel{x}{1}}{right=of a2}
       \sync{a2}{a4}
@@ -879,19 +879,19 @@ The notion of ``future'' is also richer here.  Consider \cite[Ex.~3]{Dolan:2018:
   \end{gathered}
 \end{gather*}
 There is no interesting stable point here.  The execution is disallowed
-because of a read from the causal future.  If we changed $x^\modeRA$ to
-$x^\modeRLX$, then there would be no order from $(\DR{\REF{1}}{7})$ to
-$(\DW[\modeRLX]{x}{1})$, and the execution would be allowed.  The distinction
+because of a read from the causal future.  If we changed $x^\mRA$ to
+$x^\mRLX$, then there would be no order from $(\DR{\REF{1}}{7})$ to
+$(\DW[\mRLX]{x}{1})$, and the execution would be allowed.  The distinction
 between ``causal future'' and ``temporal future'' is not expressible in
 \citeauthor{Dolan:2018:BDR:3192366.3192421}'s operational semantics.
 % $L$-stability allows the theorem to encompass histories that are not entirely
 % $L$-sequential:
 % \begin{gather*}
-%   (\aReg\GETS y\SEMI x\REL\GETS1
+%   (\aReg\GETS y\SEMI x^\mRA\GETS1
 %   \PAR
-%   \aReg\GETS x\SEMI y\REL\GETS1)
+%   \aReg\GETS x\SEMI y^\mRA\GETS1)
 %   \PAR
-%   \big(\aReg\GETS x\ACQ \SEMI \aReg\GETS y\ACQ \SEMI
+%   \big(\aReg\GETS x^\mRA \SEMI \aReg\GETS y^\mRA \SEMI
 %   (\aReg\GETS y\SEMI x\GETS2
 %   \PAR
 %   \aReg\GETS x\SEMI y\GETS2)\big)

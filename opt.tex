@@ -139,13 +139,13 @@ is imposed.  Item \ref{item:5} also validates roach-motel reorderings.  For
 example, the rules for relaxed writes are as follows:
   \begin{align*}
     \taglabel{AcqW} 
-    \sem{x \GETS \aExp \SEMI\aReg \GETS y\ACQ \SEMI\aCmd} &\supseteq
-    \sem{\aReg \GETS y\ACQ  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    \sem{x \GETS \aExp \SEMI\aReg \GETS y^\mRA \SEMI\aCmd} &\supseteq
+    \sem{\aReg \GETS y^\mRA  \SEMI x\GETS \aExp \SEMI \aCmd} 
     &&\textif x\neq y&&\hbox{}
     \\
     \taglabel{RelW}
-    \sem{y\REL \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
-    \sem{x \GETS \aExp \SEMI y\REL \GETS \bExp \SEMI \aCmd}
+    \sem{y^\mRA \GETS \bExp \SEMI x \GETS \aExp \SEMI \aCmd} &\supseteq
+    \sem{x \GETS \aExp \SEMI y^\mRA \GETS \bExp \SEMI \aCmd}
     &&\textif x\neq y&&\hbox{}
   \end{align*}
 
@@ -204,35 +204,35 @@ example, the rules for relaxed writes are as follows:
 %   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
 %   % \\
 %   \taglabel{A}
-%   \sem{\aCmd \SEMI \bReg \GETS \aLoc \ACQ} &\supseteq
-%   \sem{\bReg \GETS \aLoc \ACQ\SEMI  \aCmd}
+%   \sem{\aCmd \SEMI \bReg \GETS \aLoc^\mRA} &\supseteq
+%   \sem{\bReg \GETS \aLoc^\mRA\SEMI  \aCmd}
 %   \\
 %   \taglabel{R}
-%   \sem{\aLoc \REL \GETS \aExp \SEMI \aCmd } &\supseteq
-%   \sem{\aCmd \SEMI \aLoc \REL \GETS \aExp }
+%   \sem{\aLoc^\mRA \GETS \aExp \SEMI \aCmd } &\supseteq
+%   \sem{\aCmd \SEMI \aLoc^\mRA \GETS \aExp }
 % \end{align*}
 % Roach-motel reorderings that increase the scope of synchronization are valid.
 % \begin{lemma}%[Reorderings]
 %   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following reorderings hold.
 %   \begin{align*}
 %     \tag{R-Acq}
-%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ \SEMI \aCmd} &\supseteq
-%     \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA \SEMI \aCmd} &\supseteq
+%     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
 % &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
 %     \\
 %     \tag{W-Acq} 
-%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ \SEMI\aCmd} &\supseteq
-%     \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA \SEMI\aCmd} &\supseteq
+%     \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
 %     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
 %     \\
 % \tag{Rel-R} 
-% \sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
-%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp \SEMI \aCmd}
+% \sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
+%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp \SEMI \aCmd}
 %    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
 %     \\
 %     \tag{Rel-W}
-%     \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
-%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp \SEMI \aCmd}
+%     \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp \SEMI \aCmd}
 %   \end{align*}
 % \begin{proof}
 % The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
@@ -302,29 +302,29 @@ and case analysis \eqref{CA}, which follows from disjunction closure
 %reorderings hold.
  % \begin{align*}
 %    \tag{R-Acq}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}\ACQ 
+ %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA 
 %\SEMI \aCmd} &\supseteq
- %   \sem{\bReg \GETS \REF{\dExp}\ACQ\SEMI \aReg \GETS \REF{\cExp} 
+ %   \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd}
 % &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
  %   \\
  %   \tag{W-Acq} 
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}\ACQ 
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 
 %\SEMI\aCmd} &\supseteq
-%    \sem{\aReg \GETS \REF{\cExp}\ACQ  \SEMI \REF{\dExp}\GETS \bExp 
+%    \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp 
 %\SEMI \aCmd} 
 %    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
  %   \\
 % \tag{Rel-R} 
-%\sem{\REF{\dExp}\REL \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
+%\sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd} &\supseteq
- %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}\REL \GETS \bExp 
+ %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp 
 %\SEMI \aCmd}
 %   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
  %   \\
  %   \tag{Rel-W}
- %   \sem{\REF{\cExp}\REL \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}\REL \GETS \aExp 
+ %   \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
+ %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp 
 %\SEMI \aCmd}
 %  \end{align*}
 %\begin{proof}
@@ -412,7 +412,7 @@ order to characterize these, we define \emph{read saturation} as follows:
 % $\Event'= \Event\uplus D$, ${\le'} \supseteq{\le}$,
 % ${\labeling'} \supseteq{\labeling}$, and for every $\bEv\in D$ there are
 % $\aLoc$ and $\aVal$ such that
-% $\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+% $\labelingAct'(\bEv)=(\DR[\mRLX]{\aLoc}{\aVal})$.
 %
 \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
 $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
@@ -420,7 +420,7 @@ $\Event''\subset\Event$ and $D$ such that $\Event'= \Event''\uplus D$,
 ${\le'}\supseteq{\le\restrict{\Event''}}$,
 ${\labeling'} \supseteq{\labeling\restrict{\Event''}}$, and for every
 $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
-$\labelingAct'(\bEv)=(\DR[\modeRLX]{\aLoc}{\aVal})$.
+$\labelingAct'(\bEv)=(\DR[\mRLX]{\aLoc}{\aVal})$.
 %
 % and
 % %$\aPS[\aVal/\aLoc]$ is consistent.

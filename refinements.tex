@@ -8,13 +8,13 @@ of the complications and ugliness.
 We consider the following optimizations on relaxed access: case analysis
 \eqref{CA}, dead store elimination \eqref{DS}, store forwarding \eqref{SF},
 read elimination \eqref{RE}, and irrelevant read introduction \eqref{RI}.  We
-do not attempt to validate rewrites that eliminate $\modeRA$/$\modeSC$
+do not attempt to validate rewrites that eliminate $\mRA$/$\mSC$
 accesses, beyond those already given.
 % The following definition validates \ref{CA}, \ref{DS}, \ref{SF} and
 % \ref{RE}. 
 % We limit attention to relaxed access---Candidate \ref{cand:ord} provides our
-% final definition of prefixing for $\modeRA$/$\modeSC$ access.  In particular,
-% we do not attempt to validate rewrites that eliminate $\modeRA$/$\modeSC$
+% final definition of prefixing for $\mRA$/$\mSC$ access.  In particular,
+% we do not attempt to validate rewrites that eliminate $\mRA$/$\mSC$
 % accesses, beyond those already given.  
 
 % For relaxed access, the following definition enriches Candidate
@@ -25,7 +25,7 @@ accesses, beyond those already given.
 % semantics that validates irrelevant read introduction \eqref{RI}.
 
 % In this section, we elide
-% $\modeRLX$-mode annotations in definitions.
+% $\mRLX$-mode annotations in definitions.
 \begin{definition}
   \label{def:cover}
   Extend the definition of prefixing (Cand.~\ref{def:prefix}) to require:
@@ -47,7 +47,7 @@ accesses, beyond those already given.
   % and either
   % $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
   % $\le$-minimal,
-  % $\labelingAct(\aEv)=\DW[\modeRLXquiet]{\aLoc}{\aVal}$, and
+  % $\labelingAct(\aEv)=\DW[\mRLXquiet]{\aLoc}{\aVal}$, and
   % $\labelingForm'(\aEv)$ implies $(\aExp=\aVal\lor\labelingForm(\aEv))$
   
   Let $\aPS\in(\relfilt[]{\aLoc} \aPSS)$
@@ -61,23 +61,23 @@ accesses, beyond those already given.
   $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$ or $\aEv$ is
   $\le$-minimal\footnote{$\aEv$ is \emph{$\le$-minimal} if there is no $\bEv$
     such that $\bEv\le\aEv$.} and
-  $\labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal}$.
+  $\labelingAct(\aEv)=\DR[\mRLXquiet]{\aLoc}{\aVal}$.
   \begin{align*}
-    \sem{\aReg\GETS\aLoc^\modeRLX\SEMI \aCmd} &\eqdef\;\mathhl{
+    \sem{\aReg\GETS\aLoc^\mRLX\SEMI \aCmd} &\eqdef\;\mathhl{
       % \Rdis{\aLoc}{}
       \sem{\aCmd}[\aLoc/\aReg]}\;
     \cup
     \textstyle\bigcup_\aVal\;
-    (\DR[\modeRLX]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,
+    (\DR[\mRLX]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,
     \sem{\aCmd} [\aLoc/\aReg]
     \\
-    \sem{\aLoc^\modeRLX\GETS\aExp\SEMI \aCmd} & \eqdef
+    \sem{\aLoc^\mRLX\GETS\aExp\SEMI \aCmd} & \eqdef
     \;\mathhl{%\Wdis{\aLoc}{\aExp}\bigl(
       \relfilt[]{\aLoc} \sem{\aCmd}[\aExp/\aLoc]
       % \bigr)
     }\;
     \cup
-    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\modeRLX]\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+    \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DW[\mRLX]\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
     \\
     \begin{aligned}
       \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd}
@@ -88,12 +88,12 @@ accesses, beyond those already given.
     \begin{aligned}
       &\eqdef \textstyle\bigcup_\aVal\;
       (\DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
-      &&\textif \amode\neq\modeRLX
+      &&\textif \amode\neq\mRLX
       \\
       &\eqdef
       \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)
       \prefix \sem{\aCmd}[\aExp/\aLoc]
-      &&\textif \amode\neq\modeRLX      
+      &&\textif \amode\neq\mRLX      
     \end{aligned}
   \end{align*}
 \end{definition}
@@ -151,7 +151,7 @@ read elimination \eqref{RE} and store forwarding \eqref{SF}.
   \sem{\aLoc^\amode \GETS \aExp \SEMI \aReg  \GETS \aExp\SEMI\aCmd}  
 \end{align*}
 These optimizations are validated by Definition \ref{def:cover}, since
-$\sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd}\supseteq
+$\sem{\aReg\GETS\aLoc^\mRLXquiet\SEMI \aCmd}\supseteq
 \sem{\aCmd}[\aLoc/\aReg]$.  The proof of \ref{SF} also appeals to the
 definition of write and the definition of register assignment.
 
@@ -166,7 +166,7 @@ same.  On a more troubling note, the read action $(\DR{x}{1})$ can be also
 elided in \ref{Internal1}, potentially converting this non-execution into a
 valid execution, violating \drfsc{}.  The addition of  \ref{6} to
 the definition of prefixing prevents this outcome.  When computing
-$\sem{x\GETS1 \SEMI a\REL\GETS1 \SEMI \IF{b\ACQ}\THEN y\GETS x \FI}$,
+$\sem{x\GETS1 \SEMI a^\mRA\GETS1 \SEMI \IF{b^\mRA}\THEN y\GETS x \FI}$,
  \ref{6} prevents prefixing $(\DWRel{a}{1})$ in front of:
 \begin{gather*}
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -210,9 +210,9 @@ such as:
   %\taglabel{Cover}
   x\GETS 1\SEMI
   x\GETS 2\SEMI
-  y\REL\GETS 1
+  y^\mRA\GETS 1
   \PAR
-  \aReg\GETS y\ACQ \SEMI \bReg\GETS x
+  \aReg\GETS y^\mRA \SEMI \bReg\GETS x
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DW{x}{1}}{}
@@ -243,9 +243,9 @@ need to be many following writes, one for each subsequent release.
 % The read of $x$
 % These are distinguished by the context %
 % \begin{math}
-%   x\GETS1 \SEMI a^\modeRA\GETS 1
-%   \PAR x\GETS2 \SEMI z^\modeRA\GETS 1
-%   \PAR \IF{a^\modeRA \land z^\modeRA} \THEN \hole{}\FI.
+%   x\GETS1 \SEMI a^\mRA\GETS 1
+%   \PAR x\GETS2 \SEMI z^\mRA\GETS 1
+%   \PAR \IF{a^\mRA \land z^\mRA} \THEN \hole{}\FI.
 % \end{math}
 
 %
@@ -279,7 +279,7 @@ need to be many following writes, one for each subsequent release.
 %   %\tag{$\dagger$}
 %   \label{Internal2}
 %   \aReg\GETS x\SEMI
-%   y\REL\GETS 1\SEMI
+%   y^\mRA\GETS 1\SEMI
 %   \bReg\GETS y\SEMI
 %   z\GETS \bReg
 %   %z\GETS y
@@ -309,7 +309,7 @@ need to be many following writes, one for each subsequent release.
 % To allow this outcome, we remove the requirement for an explicit read action
 % when a read is matched by a local write---and, symmetrically, for an explicit
 % write action when a write is only used to match local reads.  We treat
-% only relaxed local access in this section, extending to $\modeRA$/$\modeSC$
+% only relaxed local access in this section, extending to $\mRA$/$\mSC$
 % local access after
 % introducing fences in \textsection\ref{sec:variants}.
 % % We first give the semantics of read.
@@ -322,7 +322,7 @@ need to be many following writes, one for each subsequent release.
 % %     % % \mkern2mu\cup
 % %     % \;\mathhl{\cup\;
 % %     %   % (\iDRmode{\aLoc}{}) \prefix
-% %     %   \text{if $\amode\mathbin\neq\modeRLXquiet$ then }\text{$\emptyset$ else }
+% %     %   \text{if $\amode\mathbin\neq\mRLXquiet$ then }\text{$\emptyset$ else }
 % %     %   \sem{\aCmd}[\aLoc/\aReg]
 % %     %   % \text{ else $\emptyset$}
 % %     % }
@@ -450,7 +450,7 @@ Candidate \ref{cand:ord} is not disjunction closed.
 % solution is to weaken the preconditions on writes to the same location when
 % eliminating a write.  We do this using the function $\Wdis{\aLoc}{\aExp}$,
 % which weakens the precondition of any $<$-minimal
-% $(\DW[\modeRLXquiet]{\aLoc}{\aVal})$ to $(\aExp=\aVal \lor \aForm)$, where
+% $(\DW[\mRLXquiet]{\aLoc}{\aVal})$ to $(\aExp=\aVal \lor \aForm)$, where
 % $\aForm$ is formula before prefixing.  When eliminating $(\DW{x}{1})$ in
 % front of $(r\mid\DW{x}{1})$ in the example above, we arrive at the tautology
 % $(1=1\lor r)$ for the ``old'' write.
@@ -484,7 +484,7 @@ Candidate \ref{cand:ord} is not disjunction closed.
 % % \end{gather*}
 % % Our solution is to weaken preconditions on identical reads when prefixing.
 % % We do this using the function $\Rdis{\aLoc}{\aVal}$, which weakens the
-% % precondition of any $<$-minimal $\DR[\modeRLXquiet]{\aLoc}{\aVal}$ to
+% % precondition of any $<$-minimal $\DR[\mRLXquiet]{\aLoc}{\aVal}$ to
 % % $\TRUE$.
 % %
 %
@@ -582,7 +582,7 @@ safe languages, like Java.
 % The key property required to prove \ref{CA} is \emph{disjunction closure}.
 % The example shows that disjunction closure fails for Candidate
 % \ref{cand:ord}, due to the lack of read-read coherence.  Note that this is
-% not a problem for pairs of $\modeRA$ or $\modeSC$ reads, since these are
+% not a problem for pairs of $\mRA$ or $\mSC$ reads, since these are
 % ordered by \ref{5c}.
 
 % To validate \ref{CA} for this command, the semantics must also include the
@@ -596,7 +596,7 @@ safe languages, like Java.
 % \begin{gather*}
 %   \labelingForm'(\aEv) \text{ implies }
 %   \begin{cases}
-%     \TRUE & \text{if } \labelingAct(\aEv)=\DR[\modeRLXquiet]{\aLoc}{\aVal} \textand
+%     \TRUE & \text{if } \labelingAct(\aEv)=\DR[\mRLXquiet]{\aLoc}{\aVal} \textand
 %     \text{there is no } \bEv \text{ such that } 
 %     % \not\exists\bEv\in\Event.\;
 %     \bEv<\aEv
@@ -606,8 +606,8 @@ safe languages, like Java.
 % \end{gather*}
 % The definition of read prefixing for relaxed access is then:
 % \begin{align*}
-%   \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} & = \textstyle\bigcup_\aVal\;
-%   (\DR[\modeRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
+%   \sem{\aReg\GETS\aLoc^\mRLXquiet\SEMI \aCmd} & = \textstyle\bigcup_\aVal\;
+%   (\DR[\mRLXquiet]\aLoc\aVal) \prefix \;\mathhl{\Rdis{\aLoc}{\aVal}}\;\,\sem{\aCmd} [\aLoc/\aReg]
 % \end{align*}
 % We give the final definition of prefixing after considering access elimination.
 % Case analysis \eqref{CA} follows from disjunction closure
@@ -820,14 +820,14 @@ ${\le'}\supseteq{\le}$,
 ${\labeling'} \supseteq{\labeling}$, and
 $\forall \bEv\in D.\;\exists\aLoc.\;\exists\aVal$.
 %for every $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
-$\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
+$\labelingAct'(\bEv)=(\DR[\mRLXquiet]{\aLoc}{\aVal})$.
 % \labeltext{Let}{page:readsat} $\readc(\aPSS)$ be the set $\aPSS'$ where
 % $\aPS'\in\aPSS'$ when $\exists\aPS\in\aPSS$ and there exist
 % $\Event''\subset\Event$ and $D$ such that $\Event'= \Event''\uplus D$,
 % ${\le'}\supseteq{\le\restrict{\Event''}}$,
 % ${\labeling'} \supseteq{\labeling\restrict{\Event''}}$, and for every
 % $\bEv\in D$ there are $\aLoc$ and $\aVal$ such that
-% $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
+% $\labelingAct'(\bEv)=(\DR[\mRLXquiet]{\aLoc}{\aVal})$.
 %
 % and
 % %$\aPS[\aVal/\aLoc]$ is consistent.
@@ -871,5 +871,5 @@ actions, which we do not model.
 % $\Event'= \Event\uplus D$, ${\le'} \supseteq{\le}$,
 % ${\labeling'} \supseteq{\labeling}$, and for every $\bEv\in D$ there are
 % $\aLoc$ and $\aVal$ such that
-% $\labelingAct'(\bEv)=(\DR[\modeRLXquiet]{\aLoc}{\aVal})$.
+% $\labelingAct'(\bEv)=(\DR[\mRLXquiet]{\aLoc}{\aVal})$.
 %
