@@ -1,3 +1,109 @@
+\section{Completed Pomsets}
+
+This must not be allowed:
+\begin{gather*}
+  \begin{gathered}
+    r\GETS 1\SEMI
+    x\GETS r\SEMI
+    y\GETS 2\SEMI
+    y\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{\DW{x}{1}}{}
+          \event{b}{\DW{y}{2}}{right=of a}
+          \event{d}{\DSTOP}{right=of b}
+          \sync{b}{d}
+          \sync[out=-20,in=-160]{a}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+\end{gather*}
+While computing this, we have the following.
+\begin{gather*}
+  \begin{gathered}
+    y\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{b}{r{=}2\mid\DW{y}{2}}{}
+          \event{d}{r{=}2\mid\DSTOP}{right=of b}
+          \sync{b}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+\end{gather*}
+The precondition on $\DSTOP$ is required by causal strengthening.
+
+We can pun when prefixing, giving us
+\begin{gather*}
+  \begin{gathered}
+    y\GETS 2\SEMI
+    y\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{b}{\DW{y}{2}}{}
+          \event{d}{r{=}2\mid\DSTOP}{right=of b}
+          \sync{b}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+\end{gather*}
+Prefixing the write to $x$:
+\begin{gather*}
+  \begin{gathered}
+    x\GETS r\SEMI
+    y\GETS 2\SEMI
+    y\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a}{r{=}1\mid\DW{x}{1}}{}
+          \event{b}{\DW{y}{2}}{right=of a}
+          \event{d}{r{=}1 \land r{=}2\mid\DSTOP}{right=of b}
+          \sync{b}{d}
+          \sync[out=-20,in=-160]{a}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+\end{gather*}
+
+There is a bug in the definition of parallel composition.  For the
+conditional, it is correct as written.  For concurrency, termination events
+should be combined with $\land$, not $\lor$.
+\begin{gather*}
+  \begin{gathered}
+    x\GETS 1\SEMI
+    x\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{b}{\DW{x}{1}}{}
+          \event{d}{r{=}1\mid\DSTOP}{right=of b}
+          \sync{b}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+  \qquad \qquad \qquad \qquad \qquad \qquad
+  \begin{gathered}
+    y\GETS 2\SEMI
+    y\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{b}{\DW{y}{2}}{}
+          \event{d}{r{=}2\mid\DSTOP}{right=of b}
+          \sync{b}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+  \\
+  \begin{gathered}
+    x\GETS 1\SEMI
+    x\GETS r
+    \PAR
+    y\GETS 2\SEMI
+    y\GETS r
+    \\
+    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{b}{\DW{x}{1}}{}
+          \event{c}{\DW{y}{2}}{right=of b}
+          \event{d}{r{=}1\lor r{=}2\mid\DSTOP}{right=of c}
+          \sync{c}{d}
+          \sync[out=-20,in=-160]{b}{d}
+        \end{tikzinline}}}
+  \end{gathered}
+\end{gather*}
+
 \section{Non-MCA Ideas}
 Status of IRIW is unclear in our model, since we allow everything allowed by
 power...
@@ -13,7 +119,8 @@ power...
     \PAR
     s\GETS y^\mRA \SEMI r\GETS x
     \\
-    \smash[b]{\hbox{\begin{tikzinline}[node distance=1.5em]
+    %\smash[b]{
+      \hbox{\begin{tikzinline}[node distance=1.5em]
           % \event{wx0}{\DW{x}{0}}{}
           % \event{wx1}{\DW{x}{1}}{right=of wx0}
           % \event{wy0}{\DW{y}{0}}{below=4ex of wx0}
@@ -34,7 +141,8 @@ power...
           \rf{wy1}{ry1}
           \wk{rx0}{wx1}
           \wk{ry0}{wy1}
-        \end{tikzinline}}}
+        \end{tikzinline}}
+    %}
   \end{gathered}
 \end{gather*}
 
