@@ -32,12 +32,12 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
 \begin{align*}
   \taglabel{SB/LB}
   \begin{gathered}
-  x\GETS0\SEMI
-  y\GETS0\SEMI
+  \PW{x}{0}\SEMI
+  \PW{y}{0}\SEMI
   (
-  x\GETS1\SEMI\aReg\GETS y
+  \PW{x}{1}\SEMI\PR{y}{\aReg}
   \PAR
-  y\GETS1\SEMI \aReg\GETS x)
+  \PW{y}{1}\SEMI \PR{x}{\aReg})
   \\[-1.5ex]
   \hbox{\begin{tikzinline}[node distance=.9em]
       \event{wx0}{\DW{x}{0}}{}
@@ -76,9 +76,9 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
 \end{gathered}
 &&
   \begin{gathered}
-  \aReg\GETS y\SEMI x\GETS1
+  \PR{y}{\aReg}\SEMI \PW{x}{1}
   \PAR
-  \aReg\GETS x\SEMI y\GETS1
+  \PR{x}{\aReg}\SEMI \PW{y}{1}
   \\
   \hbox{\begin{tikzinline}[node distance=.9em]
       \event{ry}{\DR{y}{1}}{}
@@ -120,8 +120,8 @@ prohibiting stale reads:
 \begin{gather}
   \taglabel{Pub1}
   \begin{gathered}
-  x\GETS0\SEMI %y\GETS0\SEMI
-  x\GETS 1\SEMI y^\mRA\GETS1 \PAR r\GETS y^\mRA\SEMI s\GETS x
+  \PW{x}{0}\SEMI %\PW{y}{0}\SEMI
+  \PW{x}{1}\SEMI \PW[\mRA]{y}{1} \PAR \PR[\mRA]{y}{r}\SEMI \PR{x}{s}
   \\[-.4ex]
   \nonumber
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -138,7 +138,7 @@ prohibiting stale reads:
     \end{tikzinline}}
 \end{gathered}
 \end{gather}
-This pomset is disallowed, since $(\DR x0)$ fails to satisfy $\ref{rf4}$:
+This pomset is disallowed, since $(\DR x0)$ fails to satisfy \ref{rf4}:
 $(\DW x0) \lt (\DW x1) \lt (\DR x0)$.  Attempting to satisfy this
 requirement, one might order $(\DR x0)$ before $(\DW x1)$, but this would
 create a cycle.
@@ -163,9 +163,9 @@ coherence between relaxed atomics in order to forbid this:
 \begin{gather*}
   \taglabel{Co2}
   \begin{gathered}
-  x\GETS1\SEMI x\GETS 2
+  \PW{x}{1}\SEMI \PW{x}{2}
   \PAR
-  y\GETS x \SEMI z\GETS x
+  \PW{y}{x} \SEMI \PW{z}{x}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DW{x}{1}}{}
@@ -191,9 +191,9 @@ However, our model is more coherent than Java, which permits the following:
 \begin{gather*}
   \taglabel{TC16}
   \begin{gathered}
-  r\GETS x\SEMI x\GETS 1
+  \PR{x}{r}\SEMI \PW{x}{1}
   \PAR
-  s\GETS x\SEMI x\GETS 2
+  \PR{x}{s}\SEMI \PW{x}{2}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DR{x}{2}}{}
@@ -211,14 +211,14 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 \begin{gather*}
   \taglabel{Co3}
   \begin{gathered}
-  x\GETS1\SEMI y^\mRA\GETS 1
+  \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
   \PAR
-  x\GETS2\SEMI z^\mRA\GETS 1
+  \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
   \PAR
-  r\GETS z^\mRA \SEMI 
-  r\GETS y^\mRA \SEMI 
-  r\GETS x \SEMI 
-  r\GETS x
+  \PR[\mRA]{z}{r} \SEMI 
+  \PR[\mRA]{y}{r} \SEMI 
+  \PR{x}{r} \SEMI 
+  \PR{x}{r}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a1}{\DW{x}{1}}{}
@@ -244,14 +244,14 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 % \begin{gather*}
 %   \taglabel{Co3}
 %   \begin{gathered}
-%   x\GETS1\SEMI y^\mRA\GETS 1
+%   \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
 %   \PAR
-%   x\GETS2\SEMI z^\mRA\GETS 1
+%   \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
 %   \PAR
-%   r\GETS y^\mRA \SEMI 
-%   r\GETS z^\mRA \SEMI 
-%   r\GETS x \SEMI 
-%   r\GETS x
+%   \PR[\mRA]{y}{r} \SEMI 
+%   \PR[\mRA]{z}{r} \SEMI 
+%   \PR{x}{r} \SEMI 
+%   \PR{x}{r}
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a1}{\DW{x}{1}}{}
@@ -282,12 +282,12 @@ a full synchronization; this would invalidate local reasoning about data
 races (\textsection\ref{sec:sc}).
 
 % \begin{gather*}
-%   x\GETS1\SEMI y^\mRA\GETS 1
+%   \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
 %   \PAR
-%   x\GETS 2\SEMI
-%   r\GETS y^\mSC \SEMI 
-%   r\GETS x \SEMI 
-%   r\GETS x
+%   \PW{x}{2}\SEMI
+%   \PR[\mSC]{y}{r} \SEMI 
+%   \PR{x}{r} \SEMI 
+%   \PR{x}{r}
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a}{\DW{x}{1}}{}
@@ -318,16 +318,16 @@ architectures.
 %   \renewcommand{\arraycolsep}{1pt}
 %   \hbox{\small
 %     $\begin{array}{ccccc}
-%     &x\GETS0\SEMI x\GETS 1
+%     &\PW{x}{0}\SEMI \PW{x}{1}
 %     &\PAR&
-%     r\GETS x \SEMI s\GETS y
-%     %\IF{x}\THEN r\GETS y \FI
+%     \PR{x}{r} \SEMI \PR{y}{s}
+%     %\IF{x}\THEN \PR{y}{r} \FI
 %     \\
 %     \PAR
-%     &y\GETS0\SEMI y\GETS 1
+%     &\PW{y}{0}\SEMI \PW{y}{1}
 %     &\PAR&
-%     r\GETS y \SEMI s\GETS x
-%     %\IF{y}\THEN s\GETS x \FI
+%     \PR{y}{r} \SEMI \PR{x}{s}
+%     %\IF{y}\THEN \PR{x}{s} \FI
 %   \end{array}$}
 %   \quad
 %   \hbox{\begin{tikzinlinesmall}[node distance=.5em and 1em]
@@ -356,16 +356,16 @@ architectures.
   % %\\[-2.5ex]
   % \renewcommand{\arraycolsep}{1pt}
   % \begin{array}{ccccc}
-  %   &x\GETS0\SEMI x\GETS 1
+  %   &\PW{x}{0}\SEMI \PW{x}{1}
   %   &\PAR&
-  %   r\GETS x^\mRA \SEMI s\GETS y
-  %   %\IF{x}\THEN r\GETS y \FI
+  %   \PR[\mRA]{x}{r} \SEMI \PR{y}{s}
+  %   %\IF{x}\THEN \PR{y}{r} \FI
   %   \\
   %   \PAR
-  %   &y\GETS0\SEMI y\GETS 1
+  %   &\PW{y}{0}\SEMI \PW{y}{1}
   %   &\PAR&
-  %   r\GETS y^\mRA \SEMI s\GETS x
-  %   %\IF{y}\THEN s\GETS x \FI
+  %   \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
+  %   %\IF{y}\THEN \PR{x}{s} \FI
   % \end{array}
   % \quad
   % \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
@@ -391,11 +391,11 @@ architectures.
   %\\[2ex]
   \taglabel{MCA1}
   \begin{gathered}
-  \IF{z}\THEN x\GETS0 \FI \SEMI x\GETS1
+  \IF{z}\THEN \PW{x}{0} \FI \SEMI \PW{x}{1}
   {\PAR}
-  \IF{x}\THEN y\GETS0 \FI \SEMI y\GETS1
+  \IF{x}\THEN \PW{y}{0} \FI \SEMI \PW{y}{1}
   {\PAR}
-  \IF{y}\THEN z\GETS0 \FI \SEMI z\GETS1
+  \IF{y}\THEN \PW{z}{0} \FI \SEMI \PW{z}{1}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{a1}{\DR{z}{1}}{}
@@ -421,11 +421,11 @@ architectures.
 \\[1ex]
   \taglabel{MCA2}
   \begin{gathered}
-  x\GETS0\SEMI x\GETS 1
+  \PW{x}{0}\SEMI \PW{x}{1}
   \PAR
-  y\GETS x
+  \PW{y}{x}
   \PAR
-  r\GETS y^\mRA \SEMI s\GETS x
+  \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
@@ -550,10 +550,10 @@ allowed, as it is in our model:
 \begin{gather*}
   \taglabel{TC1}
   \begin{gathered}
-  x\GETS 0 \SEMI
-  (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+  \PW{x}{0} \SEMI
+  (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
   \PAR
-  x\GETS y)
+  \PW{x}{y})
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
@@ -594,12 +594,12 @@ the introduction of concurrent writes, as in \ref{TC9}:
 \begin{gather*}
   \taglabel{TC9}
   \begin{gathered}
-  x\GETS 0 \SEMI
-  (r\GETS x\SEMI\IF{r\geq0}\THEN y\GETS1 \FI
+  \PW{x}{0} \SEMI
+  (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
   \PAR
-  x\GETS y
+  \PW{x}{y}
   \PAR
-  x\GETS {-2})
+  \PW{x}{-2})
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
   \event{wx0}{\DW{x}{0}}{}
@@ -645,11 +645,11 @@ satisfy the precondition:
 \begin{gather*}
   \taglabel{TC2}
   \begin{gathered}
-  r\GETS x\SEMI
-  s\GETS x\SEMI
-  \IF{r{=}s}\THEN y\GETS 1\FI
+  \PR{x}{r}\SEMI
+  \PR{x}{s}\SEMI
+  \IF{r{=}s}\THEN \PW{y}{1}\FI
   \PAR
-  x\GETS y
+  \PW{x}{y}
   \\[-1ex]
   \nonumber
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -669,8 +669,8 @@ satisfy the precondition:
 \end{gather*}
 Note that in 
 \begin{math}
-  \sem{s\GETS x\SEMI
-  \IF{r{=}s}\THEN y\GETS 1\FI},
+  \sem{\PR{x}{s}\SEMI
+  \IF{r{=}s}\THEN \PW{y}{1}\FI},
 \end{math}
 the precondition on $(\DW{y}{1})$ must imply $(r{=}x \land r{=}1)$.  The
 first is imposed by \ref{5a}, the second by \ref{4c}, ensuring that the two
@@ -684,11 +684,11 @@ ignoring concurrent blocking writes.
 \begin{gather*}
   \taglabel{Internal1}
   \begin{gathered}
-  x\GETS1 \SEMI
-  a^\mRA\GETS1 \SEMI
-  \IF{z^\mRA}\THEN  y\GETS x \FI
+  \PW{x}{1} \SEMI
+  \PW[\mRA]{a}{1} \SEMI
+  \IF{z^\mRA}\THEN  \PW{y}{x} \FI
   \PAR
-  \IF{a^\mRA}\THEN  x\GETS 2\SEMI z^\mRA\GETS1 \FI
+  \IF{a^\mRA}\THEN  \PW{x}{2}\SEMI \PW[\mRA]{z}{1} \FI
   \\
   \hbox{\begin{tikzinline}[node distance=1.2em]
   \event{a1}{\DW{x}{1}}{}
@@ -724,13 +724,13 @@ Internal reads are notoriously difficult to get right.  Consider \cite[Ex 3.6]{D
 \begin{gather*}
   \taglabel{Internal2}
   \begin{gathered}
-  \aReg\GETS x\SEMI
-  y^\mRA\GETS 1\SEMI
-  \bReg\GETS y\SEMI
-  z\GETS \bReg
-  %z\GETS y
+  \PR{x}{\aReg}\SEMI
+  \PW[\mRA]{y}{1}\SEMI
+  \PR{y}{\bReg}\SEMI
+  \PW{z}{\bReg}
+  %\PW{z}{y}
   \PAR
-  x\GETS z
+  \PW{x}{z}
   \\[-1ex]
   \nonumber
   \hbox{\begin{tikzinline}[node distance=1.5em]
@@ -752,10 +752,10 @@ Internal reads are notoriously difficult to get right.  Consider \cite[Ex 3.6]{D
 \end{gather*}
 This behavior is allowed in our model, as it is in \armeight.
 %Revisiting \eqref{Internal2}, %the example,
-Note that $\sem{z\GETS \bReg}$ includes $(\bReg{=}1\mid \DW{z}{1})$.
+Note that $\sem{\PW{z}{\bReg}}$ includes $(\bReg{=}1\mid \DW{z}{1})$.
 Prepending a read,
 % of Definition~\ref{def:rw:local},
-$\sem{\bReg\GETS y \SEMI z\GETS \bReg}$ may update the precondition to
+$\sem{\PR{y}{\bReg} \SEMI \PW{z}{\bReg}}$ may update the precondition to
 $(y{=}1\mid \DW{z}{1})$ without introducing order.
 %Crucially, there is no explicit read event.
 Further prepending
@@ -776,11 +776,11 @@ proof of correctness for implementing our semantics on \armeight{}
 % allowed by our semantics, enabling efficient compilation to \armeight:
 % \begin{gather}
 %   \label{inlining}
-%   % \aReg\GETS x\SEMI
-%   % y^\mRA\GETS 1\SEMI
-%   % z\GETS y
+%   % \PR{x}{\aReg}\SEMI
+%   % \PW[\mRA]{y}{1}\SEMI
+%   % \PW{z}{y}
 %   % \PAR
-%   % x\GETS z
+%   % \PW{x}{z}
 %   % \\
 %   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
 %   \event{a1}{\DR{x}{1}}{}
@@ -819,10 +819,10 @@ $(\DW[\mSC]{x}{2})$ to $(\DW{y}{1})$---recall that SC writes are \emph{releases}
 \begin{gather*}
   \taglabel{SC1}
   \begin{gathered}
-  r\GETS y\SEMI x^\mSC\GETS1\SEMI s\GETS x
+  \PR{y}{r}\SEMI \PW[\mSC]{x}{1}\SEMI \PR{x}{s}
   \PAR
-  % y\GETS0\SEMI
-  x^\mSC\GETS2 \SEMI y\GETS1
+  % \PW{y}{0}\SEMI
+  \PW[\mSC]{x}{2} \SEMI \PW{y}{1}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DR{y}{1}}{}
@@ -854,9 +854,9 @@ difficulty in Javascript \cite[\textsection27]{ecma2019}:
 \begin{gather*}
   \taglabel{SC2}
   \begin{gathered}
-  x^\mSC\GETS1 \SEMI r\GETS y^\mSC
+  \PW[\mSC]{x}{1} \SEMI \PR[\mSC]{y}{r}
   \PAR
-  y^\mSC\GETS1 \SEMI y^\mSC\GETS2 \SEMI x\GETS2 \SEMI s\GETS x^\mSC
+  \PW[\mSC]{y}{1} \SEMI \PW[\mSC]{y}{2} \SEMI \PW{x}{2} \SEMI \PR[\mSC]{x}{s}
   \\[-1ex]
   \hbox{\begin{tikzinline}[node distance=1.5em]
       \event{a}{\DW[\mSC]{x}{1}}{}
@@ -980,17 +980,17 @@ The semantics validates many peephole optimizations.  Most apply only to
 relaxed access.
 \begin{align*}
   \taglabel{RR}
-  \sem{\aReg \GETS \aLoc \SEMI \bReg  \GETS \bLoc\SEMI\aCmd} &=
-  \sem{\bReg  \GETS \bLoc\SEMI \aReg \GETS \aLoc\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
+  \sem{\PR{\aLoc}{\aReg} \SEMI \PR{\bLoc}{\bReg}\SEMI\aCmd} &=
+  \sem{\PR{\bLoc}{\bReg}\SEMI \PR{\aLoc}{\aReg}\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
   \\
   \taglabel{WW}
   \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
   \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
   \\
   \taglabel{RW}
-  \sem{\aLoc \GETS \aExp  \SEMI \bReg  \GETS \bLoc \SEMI\aCmd} &=
-  \sem{\bReg  \GETS \bLoc \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
-  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+  \sem{\aLoc \GETS \aExp  \SEMI \PR{\bLoc}{\bReg} \SEMI\aCmd} &=
+  \sem{\PR{\bLoc}{\bReg} \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
+  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
 \end{align*}
 % \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
 % have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
@@ -998,30 +998,30 @@ relaxed access.
 % \ref{RR} requires either $\aReg\neq\bReg$ or
 %   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
-% $\disjoint{{\free(\aReg \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$.
+% $\disjoint{{\free(\PR{\aLoc}{\aReg})}}{{\free(\bLoc \GETS \bExp)}}$.
 \ref{5} imposes no order between events in \ref{RR}--\ref{RW}.  %Note that \ref{RR} allows aliasing.
 Using augmentation closure, \ref{5} also validates roach-motel reorderings \cite{SevcikThesis}.  For
 example, on read/write pairs:
   \begin{align*}
     \tag{\textsc{roach1}}\label{AcqW}
-    \sem{x^\amode \GETS \aExp \SEMI\bReg \GETS y \SEMI\aCmd} &\supseteq
-    \sem{\bReg \GETS y  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
+    \sem{x^\amode \GETS \aExp \SEMI\PR{y}{\bReg} \SEMI\aCmd} &\supseteq
+    \sem{\PR{y}{\bReg}  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
     \\
     \tag{\textsc{roach2}}\label{RelW}
-    \sem{x \GETS \aExp \SEMI\bReg \GETS y^\amode \SEMI\aCmd} &\supseteq
-    \sem{\bReg \GETS y^\amode  \SEMI x\GETS \aExp \SEMI \aCmd} 
+    \sem{x \GETS \aExp \SEMI\PR[\amode]{y}{\bReg} \SEMI\aCmd} &\supseteq
+    \sem{\PR[\amode]{y}{\bReg}  \SEMI x\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
   \end{align*}
 
   Redundant load elimination \eqref{RL} follows
   from \ref{1}, taking $\bEv\in\Event$, regardless of the access mode:
 \begin{align*}
   \taglabel{RL}
-  \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aLoc^\amode\SEMI\aCmd} &\supseteq 
-  \sem{\aReg \GETS \aLoc^\amode \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+  \sem{\PR[\amode]{\aLoc}{\aReg} \SEMI \PR[\amode]{\aLoc}{\bReg}\SEMI\aCmd} &\supseteq 
+  \sem{\PR[\amode]{\aLoc}{\aReg} \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
 \end{align*}
 %\ref{RL} holds regardless of the access mode.
   % Reads on the same location are ordered in our model; thus, read optimizations
@@ -1138,14 +1138,14 @@ Code lifting also applies to program fragments inside a conditional.  For exampl
 \begin{align*}
   \sem{\IF{\aExp}\THEN x\GETS \bExp \SEMI\aCmd\ELSE x\GETS \bExp \SEMI\bCmd\FI} &\supseteq
   \sem{x\GETS \bExp \SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
-  % \sem{\IF{r{=}1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI}
+  % \sem{\IF{r{=}1}\THEN \PW{x}{r}\SEMI \PW{x}{1} \ELSE \PW{x}{1}\FI}
   % \supseteq
-  % \sem{x\GETS 1 \SEMI \IF{r{=}1}\THEN x\GETS r\FI}
+  % \sem{\PW{x}{1} \SEMI \IF{r{=}1}\THEN \PW{x}{r}\FI}
 \end{align*}
 We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 % \begin{align*}
 %   \begin{gathered}
-%     \IF{r=1}\THEN x\GETS r\SEMI x\GETS 1 \ELSE x\GETS 1\FI
+%     \IF{r=1}\THEN \PW{x}{r}\SEMI \PW{x}{1} \ELSE \PW{x}{1}\FI
 %     \\
 %     \hbox{\begin{tikzinline}[node distance=1.5em]
 %         \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
@@ -1348,12 +1348,12 @@ address calculation, which is required by realistic memory allocators.
 fails to validate \emph{thread inlining}.  The given execution is impossible
 if the first thread is split, as in
 \begin{math}
-  \sem{\aReg\GETS x\SEMI
-  y^\mRA\GETS 1\PAR
-  \bReg\GETS y\SEMI
-  z\GETS \bReg
+  \sem{\PR{x}{\aReg}\SEMI
+  \PW[\mRA]{y}{1}\PAR
+  \PR{y}{\bReg}\SEMI
+  \PW{z}{\bReg}
   \PAR
-  x\GETS z}.
+  \PW{x}{z}}.
 \end{math}
 The write in the first thread cannot discharge the precondition in the
 second, now separate.
@@ -1366,13 +1366,13 @@ Some rewrites are invalid in a concurrent setting, such as
 relevant read introduction:
 \begin{displaymath}
   %\tag{Read-Intro-Invalid}
-  \sem{\aReg \GETS \aLoc \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+  \sem{\PR{\aLoc}{\aReg} \SEMI \IF{\aReg {\neq} \aReg} \THEN \PW{y}{1} \FI}
   \not\supseteq
-  \sem{\aReg \GETS \aLoc \SEMI \bReg \GETS \aLoc  \SEMI \IF{\aReg {\neq}\bReg} \THEN y \GETS 1 \FI}
+  \sem{\PR{\aLoc}{\aReg} \SEMI \PR{\aLoc}{\bReg}  \SEMI \IF{\aReg {\neq}\bReg} \THEN \PW{y}{1} \FI}
 \end{displaymath}
 Observationally, these are distinguished by the context %
 \begin{math}
-  \hole{} \PAR x\GETS1\PAR x\GETS2.
+  \hole{} \PAR \PW{x}{1}\PAR \PW{x}{2}.
 \end{math}
 
 % But even \emph{irrelevant} read introduction is invalid.
@@ -1387,30 +1387,30 @@ Observationally, these are distinguished by the context %
 
 Write introduction is also invalid, even when duplicating an existing write:
 \begin{displaymath}
-  \sem{\aLoc \GETS 1} 
+  \sem{\PW{\aLoc}{1}} 
   \not\supseteq
-  \sem{\aLoc \GETS 1 \SEMI \aLoc \GETS 1}
+  \sem{\PW{\aLoc}{1} \SEMI \PW{\aLoc}{1}}
 \end{displaymath}
 These are distinguished by the context:
 \begin{math}
   \hole{} \PAR
-  r\GETS x \SEMI
-  x\GETS2 \SEMI
-  s\GETS x\SEMI
-  \IF{\aReg {=} \bReg} \THEN \cLoc \GETS 1 \FI.
+  \PR{x}{r} \SEMI
+  \PW{x}{2} \SEMI
+  \PR{x}{s}\SEMI
+  \IF{\aReg {=} \bReg} \THEN \PW{\cLoc}{1} \FI.
 \end{math}
 
 % Similarly, redundant write after read elimination is invalid \cite[\textsection
 % 5.3.1]{SevcikThesis}:
 % \begin{displaymath}
-%   \sem{r\GETS x\SEMI x\GETS r\SEMI s\GETS x \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+%   \sem{\PR{x}{r}\SEMI \PW{x}{r}\SEMI \PR{x}{s} \SEMI \IF{\aReg {\neq} \aReg} \THEN \PW{y}{1} \FI}
 %   \not\supseteq
-%   \sem{r\GETS x\SEMI s\GETS x  \SEMI \IF{\aReg {\neq} \aReg} \THEN y \GETS 1 \FI}
+%   \sem{\PR{x}{r}\SEMI \PR{x}{s}  \SEMI \IF{\aReg {\neq} \aReg} \THEN \PW{y}{1} \FI}
 % \end{displaymath}
 % These are distinguished by the context %
 % \begin{math}
-%   x\GETS1 \SEMI a^\mRA\GETS 1
-%   \PAR x\GETS2 \SEMI z^\mRA\GETS 1
+%   \PW{x}{1} \SEMI a^\mRA\GETS 1
+%   \PAR \PW{x}{2} \SEMI \PW[\mRA]{z}{1}
 %   \PAR \IF{a^\mRA \land z^\mRA} \THEN \hole{}\FI.
 % \end{math}
 
@@ -1418,9 +1418,9 @@ These are distinguished by the context:
 
 % General write elimination is invalid, even for non-racy programs:
 % \begin{displaymath}
-%   \sem{\aLoc\GETS 0 \SEMI\aLoc\GETS 1 \SEMI\bLoc^\mRA\GETS 1} 
+%   \sem{\PW{\aLoc}{0} \SEMI\PW{\aLoc}{1} \SEMI\bLoc^\mRA\GETS 1} 
 %   \not\supseteq
-%   \sem{\aLoc\GETS 0 \SEMI\bLoc^\mRA\GETS 1}
+%   \sem{\PW{\aLoc}{0} \SEMI\bLoc^\mRA\GETS 1}
 % \end{displaymath}
 % These are distinguished by the context:
 % \begin{math}
@@ -1430,7 +1430,7 @@ These are distinguished by the context:
 
 
 % But even \emph{irrelevant} read introduction is invalid:
-% $\sem{\SKIP}\not\supseteq\sem{r\GETS x}\not\supseteq\sem{r\GETS x\SEMI r\GETS x}$.  These inequations hold even though there is no context in our
+% $\sem{\SKIP}\not\supseteq\sem{\PR{x}{r}}\not\supseteq\sem{\PR{x}{r}\SEMI \PR{x}{r}}$.  These inequations hold even though there is no context in our
 % language that distinguishes these programs.
 % % With weaker notions of coherence
 % % \cite{Manson:2005:JMM:1047659.1040336}, these

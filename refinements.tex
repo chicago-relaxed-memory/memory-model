@@ -129,7 +129,7 @@ irrelevant read introduction.
 In our work on microarchitecture \citep{2019-sp}, read actions could be
 observed using cache effects.  Candidate \ref{cand:ord} maintains this
 perspective---for example, it distinguishes $\sem{r\GETS x}$ and
-$\supseteq\sem{\SKIP}$ % since
+$\sem{\SKIP}$ % since
 % $\sem{\SKIP}$ has a pomset with only the terminal action, and there is no
 % such pomset in $\sem{r\GETS x}$.
 % % $\not\supseteq\sem{r\GETS x\SEMI r\GETS{}x}$.
@@ -376,7 +376,7 @@ need to be many following writes, one for each subsequent release.
 Definition \ref{def:cover} satisfies \emph{disjunction closure}.
 \begin{definition}
   \label{def:dis}
-  We say that $\aPS$ is a \emph{disjunct of $\aPS'$ and downset $\aPS''$} when
+  We say that $\aPS$ is a \emph{disjunct of $\aPS'$ and its downset $\aPS''$} when
   $\Event=\Event' \supseteq\Event''$, % \supseteq \{ \bEv \in \Event' \mid \exists\aEv\in\Event''.\; \bEv\le\aEv\}$,
   ${\le}={\le'}\supseteq{\le''}$,
   $\labelingAct=\labelingAct' \supseteq\labelingAct''$, 
@@ -419,6 +419,13 @@ Disjunction closure is sufficient to establish case analysis
   \sem{\aCmd} &\supseteq
   \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} 
 \end{align*}
+The definition disjunction closure requires that
+$\aPS''$ is a downset of
+$\aPS'$, whereas the definition of disjunction makes no such requirement.
+This requirement is implied by causal strengthening: once you take an event
+that has been chosen from one side of the conditional---of the form
+$\aExp\land\ldots$---then all subsequent events must satisfy $\aExp$.
+
 Candidate \ref{cand:ord} is not disjunction closed.
 %
 % We start the discussion of case analysis with a version of Candidate

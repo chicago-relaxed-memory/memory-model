@@ -1,25 +1,139 @@
+\newcommand{\lubmode}{\sqcup}
+\newcommand{\ltmode}{\sqsubset}
+\newcommand{\lemode}{\sqsubseteq}
+\newcommand{\gemode}{\sqsupseteq}
+\newcommand{\compat}[2]{#1\Yleft#2}
+\newcommand{\Pom}{\mathsf{Pom}}
+\newcommand{\PomPre}{\mathsf{PomPre}}
+\newcommand{\PomTrans}{\mathsf{PomTrans}}
+\newcommand{\fid}{\mathsf{id}}
+\newcommand{\NEG}[1]{\texttt{-}#1}
+\newcommand{\bigstep}[3]{(#1,#2)\Downarrow#3}
+\newcommand{\aState}{\sigma}
+\newcommand{\bState}{\rho}
+
+\newcommand{\noSUB}[1]{}
+\newcommand{\noOR}[1]{}
+\newcommand{\reffig}[1]{Fig~\ref{#1}}
+\newcommand{\refdef}[1]{Def~\ref{#1}}
+\newcommand{\refex}[1]{Ex~\ref{#1}}
+\newcommand{\refexs}[2]{Ex~\ref{#1}/\ref{#2}}
+\newcommand{\suchthat}{\mid}
+\newcommand{\TICK}{\checkmark\!}
+% \newcommand{\QL}[2]{\mathsf{ql}_{#2}^{#1}}
+% \newcommand{\DL}[3]{#3\,\mathsf{dl}_{#2}^{#1}}
+% \newcommand{\QS}[2]{\mathsf{qs}_{#2}^{#1}}
+% \newcommand{\DS}[3]{#3\,\mathsf{ds}_{#2}^{#1}}
+% \newcommand{\DS}[3]{\mathsf{ds}_{#2}^{#1}#3}
+% \newcommand{\DSP}[3]{(#3)\mathsf{ds}_{#2}^{#1}}
+\newcommand{\QL}[2]{\smash{\mathsf{Q}_{#2}^{\mathsf{L}#1}}}
+\newcommand{\QS}[2]{\smash{\mathsf{Q}_{#2}^{\mathsf{S}#1}}}
+\newcommand{\QF}[2]{\smash{\mathsf{Q}_{#2}^{\mathsf{F}#1}}}
+\newcommand{\DS}[2]{{[}{#2}/\Dx{#1}{]}}
+\newcommand{\DL}[2]{\mathord{\downarrow^{#1}_{#2}}}
+\newcommand{\DLX}[3]{\mathord{\downarrow^{#1}_{#2,#3}}}
+
+\newcommand{\Qmode}[1]{\mathsf{Q}^{#1}}
+\newcommand{\Dmode}[1]{\Dx{#1}}
+\newcommand{\RW}{\mathsf{W}}
+\newcommand{\RO}{\lnot\mathsf{W}}
+\newcommand{\Q}[1]{\mathsf{Q}_{#1}}
+\newcommand{\D}{\Dx{\mathtt{*}}}
+\newcommand{\Dx}[1]{\mathord{\downarrow^{#1}}}
+\newcommand{\Qx}[1]{\mathsf{Q}_{\mathsf{rw}}^{#1}}
+\newcommand{\Qr}[1]{\mathsf{Q}_{\mathsf{ro}}^{#1}}
+\newcommand{\Qw}[1]{\mathsf{Q}_{\mathsf{wo}}^{#1}}
+\newcommand{\Qsc}{\mathsf{Q}_{\mathsf{sc}}}
+\newcommand{\Qra}{\mathsf{Q}_{\mathsf{acq}}}
+\newcommand{\Qrlx}{\mathsf{Q}^{*}}%_{\mathsf{rlx}}}
+\newcommand{\DxREF}[1]{\Dx{\REF{#1}}}
+\newcommand{\QxREF}[1]{\Qx{\REF{#1}}}
+\newcommand{\QwREF}[1]{\Qw{\REF{#1}}}
+\newcommand{\SB}[1]{}%_{#1}}
+\newcommand{\limplies}{\Rightarrow}
+% get ams to ignore tag in spacing
+% \renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{(\ignorespaces#1\unskip\@@italiccorr)}}}
+% \newcommand{\spacetag}[2][3em]{\makebox[#1]{}\tag{#2}}
+% \newcommand{\notagparens}{\renewcommand{\tagform@}[1]{\maketag@@@{\makebox[0pt][r]{\ignorespaces##1\unskip\@@italiccorr}}}}
+
+% \begin{wrapfigure}{r}{0mm}%
+%   \centering\rule{3cm}{7cm}
+% \end{wrapfigure}%
+%\wrapfigsafe{r}{0mm}{\centering\rule{1cm}{.5cm}}
+\usepackage{wrapfig}
+\setlength{\intextsep}{0.0pt plus 2.0pt minus 2.0pt}
+\newsavebox\curwrapfig
+\newcommand{\wrapfigsafe}[4][]{%
+  \sbox\curwrapfig{#4}%
+  %\par\penalty-100%
+  \begingroup % preserve \dimen@
+    \dimen@\pagegoal \advance\dimen@-\pagetotal % space left
+    \advance\dimen@-\baselineskip % allow an extra line
+    \ifdim \ht\curwrapfig>\dimen@ % not enough space left
+      \break%
+    \fi%
+  \endgroup%
+  \begin{wrapfigure}[#1]{#2}{#3}%
+    \usebox\curwrapfig%
+  \end{wrapfigure}%
+}
+\usepackage{subcaption}
+\usepackage{pifont}
+\newcommand{\qmark}{{\color{blue!80!black}\text{?}}}
+\newcommand{\cmark}{{\color{green!80!black}\text{\ding{51}}}}
+\newcommand{\xmark}{{\color{red!80!black}\text{\ding{55}}}}
+\newcommand{\QMARK}{\makebox[0pt][l]{\;\;\;\;\qmark}}
+\newcommand{\CMARK}{\makebox[0pt][l]{\;\;\;\;\cmark}}
+\newcommand{\XMARK}{\makebox[0pt][l]{\;\;\;\;\xmark}}
+
 % recommended by ACM
-\usepackage[T1]{fontenc}
+% \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
 \clubpenalty = 10000
 \widowpenalty = 10000
 \displaywidowpenalty = 10000
 
-\usepackage{anyfontsize}
+% % To get agda, use xelatex or luatex
+% % Translation of unicode to latex: 
+% \usepackage{ucs}
+% \usepackage[utf8x]{inputenc}
+% \usepackage{autofe}
+% % Targets of unicode translation:
+% \usepackage{amssymb}
+% \usepackage{bbm}
+% \usepackage[greek,english]{babel}
+% % Additional unicode
+% \DeclareUnicodeCharacter{8988}{\ensuremath{\ulcorner}}
+% \DeclareUnicodeCharacter{8989}{\ensuremath{\urcorner}}
+% \DeclareUnicodeCharacter{8803}{\ensuremath{\overline{\equiv}}}
+% % for code
+% \usepackage{fancyvrb}
+% \DefineVerbatimEnvironment{code}{Verbatim}{fontfamily=helvetica,fontsize=\small} % Add fancy options here if you like.
+
+%\usepackage{anyfontsize}
 \usepackage{mathtools}
+\usepackage{enumitem}
+\setlist[enumerate,1]{leftmargin = 1.6\parindent, topsep = 0.5\baselineskip}
+\setlist[itemize,1]{leftmargin = 1.6\parindent, topsep = 0.5\baselineskip}
 \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cleveref}
 \usepackage{hyphenat}
 \usepackage{xparse}
 \usepackage{verbatim}
 \usepackage{stmaryrd}
 \usepackage{soul}
 \newcommand{\hlfancy}[2]{\sethlcolor{#1}\hl{#2}}
-%\usepackage{alltt}
-%\usepackage{makecell}
+\usepackage{alltt}
+\usepackage{float}
+% \begin{multicols}{2}
+%   \columnbreak
+% \end{multicols}
+\usepackage{multicol}
+% \usepackage{makecell}
 % \usepackage[defblank]{paralist}
 % \usepackage[caption=false]{subfig}
-
 
 
 \newcommand{\floc}{\mathsf{loc}}
@@ -47,17 +161,66 @@
 \newcommand{\Rdis}[2]{\mathsf{weaken}_{\mathsf{R}#1#2}}
 \newcommand{\Wdis}[2]{\mathsf{weaken}_{\mathsf{W}#1#2}}
 
+\newcommand{\cmdI}{\aCmd_{\mathrm{I}}}
 \newcommand{\cmdC}{\aCmd_{\mathsf{C}}}
 \newcommand{\cmdR}{\aCmd_{\mathsf{R}}}
 \newcommand{\cmdW}{\aCmd_{\mathsf{W}}}
-\newcommand{\ps}{\textsc{ps}}
+\newcommand{\PS}[1]{\textsc{ps#1}}
 \newcommand{\pc}{\textsc{pc}}
 \newcommand{\pcs}{\textsc{pc}s}
 
+\newif\ifshowRA
+\showRAtrue
+\NewDocumentCommand\PRF{O{} m m O{} m}{\ifnotempty{#5}{{#5} \GETS}{#2.#3}^{#1}_{#4}}
+\NewDocumentCommand\PWF{O{} m m O{} m}{{#2.#3}^{#1}_{#4} \GETS #5}
+
+
 \newcommand{\sem}[2][]{\llbracket#2\rrbracket}
-\NewDocumentCommand\DR{O{} O{} m m}{\mathsf{R}^{#1}\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}
-\NewDocumentCommand\DW{O{} O{} m m}{\mathsf{W}^{#1}\ifnotempty{#3}{\mkern0mu#3\ifnotempty{#4}{\mkern1mu#4}}}
-\NewDocumentCommand \PAR {O{} O{}}{\,\mathbin{\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}}\,}
+\NewDocumentCommand\PF{O{} m}{\mathtt{F}^{#2}_{#1}}
+\NewDocumentCommand\DF{O{} m}{\mathsf{F}^{#2}_{#1}}
+\NewDocumentCommand\DFP{O{} m}{\PBR{\DF[#1]{#2}}}
+\NewDocumentCommand\DG{O{} m m}{\mathsf{F}^{#2}_{#1}\,#3}
+\NewDocumentCommand\DGP{O{} m m}{\PBR{\DG[#1]{#2}{#3}}}
+
+\NewDocumentCommand\PR{O{} m O{} m}{\ifnotempty{#4}{{#4} \GETS}{#2}^{#1}_{#3}}
+\NewDocumentCommand\DR{O{} m O{} m}{\mathsf{R}^{\ifshowRA#1\fi}_{#3}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#4}{\mkern1mu#4}}}
+\NewDocumentCommand\DRP{O{} m O{} m}{\PBR{\DR[#1]{#2}[#3]{#4}}}
+\NewDocumentCommand\PRP{O{} m O{} m}{\PBR{\PR[#1]{#2}[#3]{#4}}}
+
+\NewDocumentCommand\PW{O{} m O{} m}{{#2}^{#1}_{#3} \GETS #4}
+\NewDocumentCommand\DW{O{} m O{} m}{\mathsf{W}^{\ifshowRA#1\fi}_{#3}\ifnotempty{#2}{\mkern0mu#2\ifnotempty{#4}{\mkern1mu#4}}}
+\NewDocumentCommand\DWP{O{} m O{} m}{\PBR{\DW[#1]{#2}[#3]{#4}}}
+\NewDocumentCommand\PWP{O{} m O{} m}{\PBR{\PW[#1]{#2}[#3]{#4}}}
+
+\NewDocumentCommand\PRREF{O{} m O{} m}{\ifnotempty{#4}{{#4} \GETS}{\REF{#2}}^{#1}_{#3}}
+\NewDocumentCommand\DRREF{O{} m O{} m}{\mathsf{R}^{#1}_{#3}\ifnotempty{#2}{\mkern1mu\REF{#2}\ifnotempty{#4}{\mkern1mu#4}}}
+\NewDocumentCommand\DRREFP{O{} m O{} m}{\PBR{\DRREF[#1]{#2}[#3]{#4}}}
+
+\NewDocumentCommand\PWREF{O{} m O{} m}{{\REF{#2}}^{#1}_{#3} \GETS #4}
+\NewDocumentCommand\DWREF{O{} m O{} m}{\mathsf{W}^{#1}_{#3}\ifnotempty{#2}{\mkern0mu\REF{#2}\ifnotempty{#4}{\mkern1mu#4}}}
+\NewDocumentCommand\DWREFP{O{} m O{} m}{\PBR{\DWREF[#1]{#2}[#3]{#4}}}
+
+\NewDocumentCommand\PA{m m}{\mathtt{await}\,#1\,\EQ\,#2}
+\NewDocumentCommand\DA{m m}{\mathsf{A}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
+\NewDocumentCommand\DAP{m m}{\PBR{\DA{#1}{#2}}}
+
+\NewDocumentCommand\PAR{O{} O{}}{\,\mathbin{\mathtt{\textbf{|}}\mkern-6mu\mathtt{\textbf{|}}}\,}
+\newcommand{\LET}[2]{#1\GETS#2}
+\newcommand{\PRED}[2][\aForm]{#2 \mid #1}
+\newcommand{\PREDP}[2][\aForm]{\ABR{\PRED[#1]{#2}}}
+\newcommand{\ABR}[1]{\langle#1\rangle}
+\newcommand{\ABRbig}[1]{\bigl\langle#1\bigr\rangle}
+\newcommand{\CBR}[1]{\{#1\}}
+\newcommand{\CBRbig}[1]{\bigl\{#1\bigr\}}
+\newcommand{\PBR}[1]{(#1)}
+\newcommand{\PBRbig}[1]{\bigl(#1\bigr)}
+\newcommand{\SBR}[1]{{[}#1{]}}
+\newcommand{\SBRbig}[1]{\bigl{[}#1\bigr{]}}
+
+
+% \NewDocumentCommand\DR{O{} O{} m m}{\mathsf{R}^{#1}\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}
+% \NewDocumentCommand\DW{O{} O{} m m}{\mathsf{W}^{#1}\ifnotempty{#3}{\mkern0mu#3\ifnotempty{#4}{\mkern1mu#4}}}
+% \NewDocumentCommand \PAR {O{} O{}}{\,\mathbin{\texttt{\textbf{|}}\mkern-6mu\texttt{\textbf{|}}}\,}
 % \newcommand{\sem}[2][]{\llbracket#2\rrbracket_{#1}}
 % \NewDocumentCommand\DR{O{} O{} m m}{#2\mathsf{R}^{#1}\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}
 % \NewDocumentCommand\DW{O{} O{} m m}{#2\mathsf{W}^{#1}\ifnotempty{#3}{\mkern0mu#3\ifnotempty{#4}{\mkern1mu#4}}}
@@ -69,7 +232,7 @@
     \@bsphack%
     \csname phantomsection\endcsname% in case hyperref is used
     \def\tst{#1}%
-    \def\labelmarkup##1{\textsc{\lowercase{##1}}}% How to markup the label itself
+    \def\labelmarkup##1{\textnormal{\textsc{\lowercase{##1}}}}% How to markup the label itself
     %\def\refmarkup{\labelmarkup}% How to markup the reference
     \def\refmarkup##1{\textsc{\lowercase{##1}}}% How to markup the label itself
     \ifx\tst\empty\def\@currentlabel{\refmarkup{#2}}{\label{#3}}%
@@ -98,7 +261,7 @@
 
 \newcommand{\DSTOP}[1][]{\checkmark_{#1}} 
 \newcommand{\stopPS}{\textsf{SKIP}}
-\newcommand{\taglabel}[1]{\tag{\textsc{\lowercase{#1}}}\label{#1}}
+\newcommand{\taglabel}[2][]{\tag{$\textsc{\lowercase{#2}}_{\textsc{\lowercase{#1}}}$}\label{#2#1}}
 \newcommand{\taglabelp}[1]{\tag{\textsc{\lowercase{#1}}$'$}\label{#1p}}
 \newcommand{\taglabelpp}[1]{\tag{\textsc{\lowercase{#1}}$''$}\label{#1pp}}
 \newcommand{\ignore}[1]{}
@@ -154,17 +317,40 @@
 \newcommand{\external}{}
 \newcommand{\externally}{}
 
+\newcommand{\xLIR}{{\textsc{lir}}}
+\newcommand{\xRecycle}{{\textsc{alpha}}}
+\newcommand{\xDGR}{{\textsc{dgr}}}
+\newcommand{\xRRD}{{\textsc{rrd}}}
+\newcommand{\xRMW}{{\textsc{rmw}}}
+\newcommand{\xFENCE}{{\textsc{fence}}}
+\newcommand{\xIF}{{\textsc{if}}}
+\newcommand{\xADDR}{{\textsc{addr}}}
+\newcommand{\xCO}{{\textsc{co}}}
+\newcommand{\xRASC}{{\textsc{sync}}}
+% \newcommand{\xDGR}{{\text{DGR}}}
+% \newcommand{\xRRD}{{\text{RRD}}}
+% \newcommand{\xIF}{{\text{If}}}
+% \newcommand{\xADDR}{{\text{Addr}}}
+% \newcommand{\xCO}{{\text{Co}}}
+% \newcommand{\xRASC}{{\text{RASC}}}
+
 \newcommand{\amode}{\mu}
+\newcommand{\bmode}{\nu}
 \newcommand{\fmode}{\nu}
-% \newcommand{\REL}{^{\mathsf{ra}}}
-% \newcommand{\ACQ}{^{\mathsf{ra}}}
-% \newcommand{\RLX}{^{\mathsf{rlx}}}
-%\newcommand{\mSC}{^{\mathsf{sc}}}
+\newcommand{\mWK}{{\mathsf{wk}}}
 \newcommand{\mRA}{{\mathsf{ra}}}
+\newcommand{\mSC}{{\mathsf{sc}}}
 \newcommand{\mRLX}{{\mathsf{rlx}}}
 \newcommand{\mREL}{{\mathsf{rel}}}
 \newcommand{\mACQ}{{\mathsf{acq}}}
-\newcommand{\mSC}{{\mathsf{sc}}}
+\newcommand{\mFSC}{{\mathsf{fsc}}}
+
+\newcommand{\ascope}{\varsigma}
+\newcommand{\sCTA}{{\mathsf{cta}}}
+\newcommand{\sGPU}{{\mathsf{gpu}}}
+\newcommand{\sSYS}{{\mathsf{sys}}}
+
+\newcommand{\aSym}{\mathsf{s}}
 
 %\newcommand{\amsqed}{\tag*{\QEDSYMBOL}\NoEndMark}
 
@@ -212,17 +398,28 @@
 \newcommand{\testP}[2]{{\tt test}^{#1}_{#2}}
 \newcommand{\freshaval}{\aVal_{{\tt fr}}}
 
+\newcommand{\jjr}[1]{\cite[#1]{DBLP:journals/pacmpl/JagadeesanJR20}}%[JJR\ifnotempty{#1}{, #1}]}
 \newcommand{\RMW}{{\sc rmw}}
 \newcommand{\RMWs}{{\sc rmw}s}
 \newcommand{\drf}{{\sc drf}}
-\newcommand{\drfsc}{{\sc sc-drf}}
+\newcommand{\drfsc}{{\sc drf-sc}}
+\newcommand{\drfra}{{\sc drf-ra}}
+\newcommand{\drfpf}{{\sc drf-pf}}
+\newcommand{\ldrfsc}[1]{\text{\ifemptyelse{#1}{{\sc l}}{\ensuremath{\{#1\}}{\sc -}}{\sc drf-sc}}}
+\newcommand{\ldrfra}[1]{\text{\ifemptyelse{#1}{{\sc l}}{\ensuremath{\{#1\}}{\sc -}}{\sc drf-ra}}}
+\newcommand{\ldrfpf}[1]{\text{\ifemptyelse{#1}{{\sc l}}{\ensuremath{\{#1\}}{\sc -}}{\sc drf-pf}}}
 \newcommand{\rfub}{{\sc rfub}}
 \newcommand{\oota}{{\sc oota}}
 \newcommand{\jmm}{{\sc jmm}}
 \newcommand{\tso}{{\sc tso}}
 \newcommand{\armseven}{{\sc arm7}}
+\newcommand{\EGC}{{\sc egc}}
 \newcommand{\armeight}{{\sc arm8}}
+\newcommand{\IMM}{{\sc imm}}
+\newcommand{\PTX}{{\sc ptx}}
 \newcommand{\ppc}{{\sc power}}
+\newcommand{\rcXI}{{\sc rc11}}
+\newcommand{\cXI}{{\sc c11}}
 \newcommand{\mca}{{\sc mca}}
 \newcommand{\iriw}{{\sc iriw}}
 
@@ -262,10 +459,12 @@
 \newcommand{\mods}{\mathsf{Models}}
 
 \newcommand{\eqorder}{\sim}
-\newcommand{\suborder}{\sqsubseteq}
+%\newcommand{\suborder}{\sqsubseteq}
 \newcommand{\inj}{f}
 \newcommand{\hoare}[3]{\{#1\}\allowbreak\;#2\;\allowbreak\{#3\}}
-\newcommand{\fwp}{\textit{wp}}
+\newcommand{\fwlp}{\textit{wlp}}
+\newcommand{\fwp}[2]{\ensuremath{\textit{wp}_{#1}\ifnotempty{#2}{(#2)}}}
+\newcommand{\fsp}{\textit{sp}}
 
 \newcommand{\aF}{\xi}
 \newcommand{\FA}{\mathsf{A}}
@@ -280,6 +479,10 @@
 \newcommand{\restrict}[1]{\mathbin{|}_{#1}}
 \newcommand{\textand}{\;\allowbreak\text{and}\allowbreak\;}
 \newcommand{\textif}{\;\allowbreak\text{if}\allowbreak\;}
+\newcommand{\textiff}{\;\allowbreak\text{iff}\allowbreak\;}
+\newcommand{\textwhere}{\;\allowbreak\text{where}\allowbreak\;}
+\newcommand{\textwhen}{\;\allowbreak\text{when}\allowbreak\;}
+\newcommand{\textotherwise}{\;\allowbreak\text{otherwise}\allowbreak\;}
 \newcommand{\textimplies}{\; \allowbreak\text{implies}\allowbreak\;}
 \newcommand{\textor}{\; \allowbreak\text{or}\allowbreak\;}
 
@@ -291,6 +494,7 @@
 \newcommand{\refapp}[1]{Appendix~\ref{app:#1}}
 
 \newenvironment{noenv}{\ignorespaces}{\ignorespacesafterend}
+\newcommand{\aGrp}{G}
 \newcommand{\aCmd}{C}
 \newcommand{\bCmd}{D}
 \newcommand{\eCmd}{E}
@@ -318,6 +522,8 @@
 \newcommand{\aReg}{r}
 \newcommand{\bReg}{s}
 \newcommand{\cReg}{t}
+\newcommand{\uReg}[1]{\mathit{s}_{#1}}
+\newcommand{\uRegs}[1]{\mathcal{S}_{#1}}
 
 \newcommand{\LR}{\mathcal{L}}
 \newcommand{\aLR}{\ell}
@@ -337,9 +543,9 @@
 
 \newcommand{\Val}{\mathcal{V}}
 \newcommand{\aVal}{v}
-\newcommand{\bVal}{u}
+\newcommand{\bVal}{w}
 \newcommand{\cVal}{\ell}
-%\newcommand{\dVal}{u}
+\newcommand{\dVal}{k}
 
 \newcommand{\Exp}{\mathcal{M}}
 \newcommand{\aExp}{M}
@@ -352,10 +558,13 @@
 \newcommand{\Formulae}{\Phi}
 \newcommand{\aForm}{\phi}
 \newcommand{\bForm}{\psi}
-\newcommand{\cForm}{\chi}
+\newcommand{\cForm}{\theta}
 \newcommand{\dForm}{\xi}
-\newcommand{\TRUE}{\mathsf{true}}
-\newcommand{\FALSE}{\mathsf{false}}
+\newcommand{\TRUE}{\mathsf{tt}}
+\newcommand{\FALSE}{\mkern.6mu\mathsf{ff}\mkern.6mu}
+\newcommand{\Bool}{\mathsf{Bool}}
+\newcommand{\aTr}[3][]{\tau^{#2}_{#1}\ifnotempty{#3}{(#3)}}
+\newcommand{\trd}[2]{\tau_{#1}\ifnotempty{#2}{(#2)}}
 
 \newcommand{\Int}{\mathsf{SilentAct}}
 \newcommand{\Ext}{\mathsf{Ext}}
@@ -376,7 +585,7 @@
 \newcommand{\DRmode}[2]{\mathsf{R}^{\amode}\ifnotempty{#1}{\mkern1mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DWmode}[2]{\mathsf{W}^{\amode}\ifnotempty{#1}{\mkern0mu#1\ifnotempty{#2}{\mkern1mu#2}}}
 \newcommand{\DRreg}[4][]{\mathsf{R}^{#1}\ifnotempty{#2}{\mkern1mu#2\ifnotempty{#3}{\mkern1mu#3\ifnotempty{#4}{\mkern1mu#4}}}}
-\newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
+% \newcommand{\DF}[1][\mathsf{acqrel}]{\tau\mathsf{F}^{#1}}
 \newcommand{\DFS}[1]{\smash{\mathsf{F}^{#1}}}
 % \newcommand{\DFS}[1]{\smash{\mathsf{F}_{\mathsf{S}}^{#1}}}
 \newcommand{\DFR}[1]{\smash{\mathsf{F}_{\mathsf{R}}^{#1}}}

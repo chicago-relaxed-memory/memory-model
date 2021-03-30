@@ -202,7 +202,7 @@ fails if either $\mRA$ access is relaxed.
 Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
   $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they \emph{conflict}
 (Def.~\ref{def:rf}) at
-some location in $L$, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
+some location in $L$ and at least one is relaxed, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
 $\aEv\xhb\bEv$.  
 % A pomset has a \emph{data race} if there are conflicting events that are
 % unordered by $\rhb$.

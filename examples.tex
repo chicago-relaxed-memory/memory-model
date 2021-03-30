@@ -40,11 +40,11 @@ Here is why that is not possible:
 
 Test case 8 asks whether:
 \begin{displaymath}
-   x\GETS 0\SEMI
-   y\GETS 0\SEMI
-  (\IF{x<2}\THEN y\GETS 1\FI 
+   \PW{x}{0}\SEMI
+   \PW{y}{0}\SEMI
+  (\IF{x<2}\THEN \PW{y}{1}\FI 
   \PAR
-  x\GETS y)
+  \PW{x}{y})
 \end{displaymath}
 may read $1$ for both $x$ and $y$.  This behavior is allowed, since
 ``interthread analysis could determine that $x$ and $y$ are always either $0$
@@ -70,10 +70,10 @@ Where we require $(\DW{x}{0})\lt(\DR{x}{1})$ but not $(\DR{x}{1})\lt(\DW{y}{1})$
 To see why this execution exists, consider the left thread with syntax sugar
 removed:
 \begin{displaymath}
-  r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI
+  \PR{x}{r}\SEMI \IF{r<2}\THEN \PW{y}{1}\FI
 \end{displaymath}
 \begin{math}
-  \sem{\IF{r<2}\THEN y\GETS 1\FI}
+  \sem{\IF{r<2}\THEN \PW{y}{1}\FI}
 \end{math}
 includes
 \begin{math}
@@ -84,7 +84,7 @@ includes
 % \end{tikzdisplay}
 Thus, by the definition of prefixing read,
 \begin{math}
-  \sem{r\GETS x\SEMI \IF{r<2}\THEN y\GETS 1\FI}
+  \sem{\PR{x}{r}\SEMI \IF{r<2}\THEN \PW{y}{1}\FI}
 \end{math}
 includes
 \begin{math}
@@ -170,13 +170,13 @@ Here is why that is not possible:
 
 Test case 9 asks whether:
 \begin{displaymath}
-   x\GETS 0\SEMI
-   y\GETS 0\SEMI
-  (\IF{x<2}\THEN y\GETS 1\FI 
+   \PW{x}{0}\SEMI
+   \PW{y}{0}\SEMI
+  (\IF{x<2}\THEN \PW{y}{1}\FI 
   \PAR
-  x\GETS y
+  \PW{x}{y}
   \PAR
-  y\GETS 2\SEMI)
+  \PW{y}{2}\SEMI)
 \end{displaymath}
 may read $1$ for both $x$ and $y$.  This behavior is also allowed.  This is
 ``similar to test case $8$, except that $x$ is not always $0$ or
@@ -213,8 +213,8 @@ Test case 14 asks whether:
 \begin{displaymath}
    a\GETS 0\SEMI
    b\GETS 0\SEMI
-   y\GETS 0\SEMI
-  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
+   \PW{y}{0}\SEMI
+  (\IF{a}\THEN b\GETS 1\ELSE \PW{y}{1}\FI 
   \PAR
   \WHILE(y+b==0) \THEN\SKIP\FI\; a\GETS1)
 \end{displaymath}
@@ -229,8 +229,8 @@ Unrolling the loop once, we have:
 \begin{displaymath}
    a\GETS 0\SEMI
    b\GETS 0\SEMI
-   y\GETS 0\SEMI
-  (\IF{a}\THEN b\GETS 1\ELSE y\GETS 1\FI 
+   \PW{y}{0}\SEMI
+  (\IF{a}\THEN b\GETS 1\ELSE \PW{y}{1}\FI 
   \PAR
   \IF{y\lor b}\THEN a\GETS 1\FI)
 \end{displaymath}
@@ -280,7 +280,7 @@ from the initialization of $b$.
 % relations introduced by sequential and concurrent access.
 % The program
 % \begin{math}
-%   (x\GETS 0\SEMI y\GETS x+1)
+%   (\PW{x}{0}\SEMI \PW{y}{x}+1)
 % \end{math}
 % %\verb`(x := 0; y := x+1;)`
 % has execution:
@@ -290,7 +290,7 @@ from the initialization of $b$.
 % \end{tikzdisplay}
 % but
 % \begin{math}
-%   (x\GETS 1\PAR y\GETS x+1)
+%   (\PW{x}{1}\PAR \PW{y}{x}+1)
 % \end{math}
 % %\verb`(x := 1; || y := x+1;)`
 % has:
@@ -307,7 +307,7 @@ from the initialization of $b$.
 
 % This can be used to construct a counter-example to thread inlining, based on~\cite[Ex~11]{Manson:2005:JMM:1047659.1040336}:
 % \begin{displaymath}
-%   (x \GETS 0\SEMI \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI) \PAR (y \GETS x) \PAR (x \GETS y)
+%   (\PW{x}{0}\SEMI \IF{x} \THEN \PW{z}{1} \ELSE  \PW{x}{1} \FI) \PAR (\PW{y}{x}) \PAR (\PW{x}{y})
 % \end{displaymath}
 % % \begin{verbatim}
 % %   x := 0; if (x == 1) { z := 1; } else { x := 1; } || y := x; || x := y;
@@ -332,7 +332,7 @@ from the initialization of $b$.
 % \end{tikzdisplay}
 % Inlining the thread \verb|(y := x)| gives~\cite[Ex~12]{Manson:2005:JMM:1047659.1040336}:
 % \begin{displaymath}
-%   (x \GETS 0\SEMI \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI \SEMI y \GETS x) \PAR (x \GETS y)
+%   (\PW{x}{0}\SEMI \IF{x} \THEN \PW{z}{1} \ELSE  \PW{x}{1} \FI \SEMI \PW{y}{x}) \PAR (\PW{x}{y})
 % \end{displaymath}
 % % \begin{verbatim}
 % %   x := 0; if (x == 1) { z := 1; } else { x := 1; } y := x; || x := y;
@@ -353,7 +353,7 @@ from the initialization of $b$.
 % \end{tikzdisplay}
 % To see why this execution exists, consider the program fragment:
 % \begin{displaymath}
-%   \IF{x} \THEN z \GETS 1 \ELSE  x \GETS 1 \FI \SEMI y \GETS x
+%   \IF{x} \THEN \PW{z}{1} \ELSE  \PW{x}{1} \FI \SEMI \PW{y}{x}
 % \end{displaymath}
 % % \begin{verbatim}
 % %   if (x == 1) { z := 1; } else { x := 1; } y := x;
@@ -369,7 +369,7 @@ from the initialization of $b$.
 % Desugaring, we have:
 % \begin{displaymath}
 %   r_1 \GETS x\SEMI \IF{r_1} \THEN
-%     z \GETS 1\SEMI r_2 \GETS x\SEMI y \GETS r_2
+%     \PW{z}{1}\SEMI r_2 \GETS x\SEMI y \GETS r_2
 %   \ELSE
 %     x \GETS 1\SEMI r_3 \GETS x\SEMI y \GETS r_3
 %   \FI
