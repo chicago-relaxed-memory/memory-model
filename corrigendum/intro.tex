@@ -1,0 +1,303 @@
+\section{Introduction}
+\label{sec:intro}
+\citet{Manson:2005:JMM:1047659.1040336} identify the central problem in the
+design of software relaxed memory models: ``The memory model must strike a
+balance between ease-of-use for programmers and implementation flexibility
+for system designers.''  
+
+There are two aspects to ``ease of use.''  First, programs should support
+\emph{compositional} and \emph{local} reasoning; in this paper, we emphasize
+temporal safety
+properties~\cite{PnueliSafety,Misra:1981:PNP:1313338.1313770,StarkSafety,Abadi:1993:CS:151646.151649}.
+Second, relaxing memory consistency should not change the behavior of correctly
+synchronized programs; this property is known as \emph{sequential consistency
+  for data race free programs} (\drfsc)~\cite{DBLP:journals/tpds/AdveH93,
+  DBLP:conf/isca/AdveH90}.
+
+There are also two aspects of ``implementation flexibility.''  First, relaxed
+atomic access should not require hardware synchronization (at least for the
+word size of the machine).  Second, the model
+should facilitate compiler transformations, such as the reordering of independent
+statements; ideally the model should support all %valid
+optimizations of
+synchronization\hyp{}free single\hyp{}threaded code.
+
+Sailing between this Scylla and Charybdis has proven very difficult.  Three
+lines of code can leave the top experts in the field flabbergasted.  The
+solutions that have been proposed are understandable to mechanical proof
+assistants, but humans have been left behind.
+
+In this paper, we combine two ideas that humans can understand: \emph{preconditions}
+\cite{Hoare:1969:ABC:363235.363259} and \emph{labelled partial orders} (aka \emph{pomsets})
+\cite{GISCHER1988199,Plotkin:1997:TSP:266557.266600}.  The resulting model
+mostly satisfies the desiderata.  We sacrifice only implementability on
+``non-\mca'' processors, such as \ppc\ and \armseven{}. As a result, however,
+there is only one order relation to visualize.
+
+Perhaps you believe the problem has already been solved?  Let us try to
+convince you otherwise.
+
+To get a sense of the difficulties involved,
+consider that the existence of an execution in a relaxed memory model may
+depend on code that was \emph{not} executed. Let $r$--$s$ be registers and
+$b$, $x$--$z$ be shared memory locations.  Consider the following program, where
+all memory locations are initialized to $0$:
+\begin{align*}
+  \tag{\ref{OOTA?}}
+  \PW{y}{x}
+  \PAR&
+  \PR{y}{r}\SEMI\IF{r}\THEN 
+  \PW{x}{r}\SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+  \intertext{Most programmers would be surprised to learn that this program allows an
+    execution that sets $z$ to $1$. To see why, imagine that a compiler does type
+    inference and finds that $x$ and $y$ are booleans, with value either $0$ or
+    $1$.  This enables the program to be optimized to the following:}
+  \PW{y}{x}
+  \PAR&
+  \PR{y}{r}\SEMI\IF{r}\THEN 
+  \PW{x}{1}\SEMI \PW{z}{1} \ELSE \PW{x}{1} \FI
+  \intertext{Since $\PW{x}{1}$ occurs in both branches of the conditional, the compiler can
+    then lift it, and reorder with the independent read of $y$, yielding:}
+  \PW{y}{x}
+  \PAR&
+  \PW{x}{1}\SEMI
+  \PR{y}{r}\SEMI\IF{r}\THEN \PW{z}{1} \FI
+  \intertext{Then $z$ is $1$ at then end of an execution where the first thread is interleaved
+    immediately after executing $\PW{x}{1}$.
+    Without the conditional in \eqref{OOTA?}, it is obvious that the program should not write $1$:}
+  \tag{\ref{OOTA3}}
+  \PW{\bLoc}{\aLoc} \PAR&
+  \PR{y}{r}\SEMI \PW{x}{r}  \SEMI \PW{z}{r}
+\end{align*}
+In \ref{OOTA3}, the constant $1$ arises ``Out Of Thin Air'' (\oota)
+\cite{DBLP:conf/esop/BattyMNPS15}.  As a result, any model of relaxed memory
+that supports common compiler optimizations, as above, must take into account
+code that was not executed.  This is why many models of relaxed memory
+include some form of speculative execution, with the goal of allowing the
+outcome $z{=}1$ for \eqref{OOTA?}, but not \ref{OOTA3}.
+
+The control flow variant of \ref{OOTA3} is:
+\begin{displaymath}
+  \label{cyc}\tag{\textsc{oota2}}
+  \IF{x}\THEN \PW{y}{1} \FI \!\PAR\! \IF{y}\THEN \PW{x}{1} \SEMI \PW{z}{1}\FI
+\end{displaymath}
+This program is data-race-free. Thus, allowing an execution that writes $1$
+would violate \drfsc{}.
+
+\oota{} behaviors can be quite subtle.
+Consider the following variants of \eqref{OOTA?}:
+\begin{align}
+  \tag{\ref{OOTA!}}
+  \PW{y}{x}
+  \PAR&
+  \PR{y}{r}\SEMI \IF{r}\THEN 
+  \PW{x}{r}\SEMI \PW{z}{r} \ELSE \PW{x}{2} \FI
+  \\
+  \tag{\ref{OOTA4}}
+  \PW{y}{x}
+  \PAR&
+  \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+  \PAR
+  \PW{b}{1}
+\end{align}
+Following the reasoning above, \ref{OOTA!} has an execution where
+$z{=}2$, but it does not have an execution where $z{=}1$.   Neither does
+\ref{OOTA4}.  In this case, it not sound to assume that  $1$ is
+written on both sides of the conditional, invalidating the first optimization
+given for \eqref{OOTA?} above.
+
+\citeauthor{DBLP:conf/java/Pugh99} [\citeyear{DBLP:conf/java/Pugh99},
+\textsection2.3] initiated the modern study of relaxed memory by noting that
+Java 1.1 failed to validate Common Subexpression Elimination (CSE) in the
+presence of aliasing. For example, given that $\aReg_2{\neq}\bReg$, is it valid
+to transform the program on the left to that on the right?
+\begin{align*}
+  ({r_1\GETS \aLoc \SEMI
+    s\GETS \bLoc \SEMI  
+    r_2\GETS \aLoc\SEMI\aCmd})
+  &&
+  ({r_1\GETS \aLoc \SEMI     
+    r_2\GETS r_1\SEMI
+    s\GETS \bLoc \SEMI\aCmd})
+\end{align*}
+The resulting Java Memory Model (JMM) \cite{Manson:2005:JMM:1047659.1040336}
+greatly advanced the state of the art.
+
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s
+monumental study of the JMM
+revealed a surprising limitation. Consider the following program
+\citep[Fig.~8]{DBLP:journals/toplas/Lochbihler13}, where again
+all memory locations are initialized to $0$:
+\begin{gather}
+  \tag{\textsc{oota5}}\label{OOTA1}
+  \PW{y}{x}
+  \PAR
+  \PR{y}{\aReg} \SEMI \IF{b} \THEN \LET{\aReg}{\NEW \classD} \SEMI \PW{x}{\aReg} \SEMI \PW{z}{\aReg} \ELSE \LET{\bReg}{\NEW \classC} \SEMI \PW{x}{\aReg} \FI  
+  \PAR %\\[-1ex] \PAR&
+  \PW{b}{1}
+\end{gather}
+\ref{OOTA1} ``is type correct if it declares $x$, $y$ and $r$ of type
+$\classD$. However, it has a legal execution where they reference a $\classC$
+object.''  The JMM allows $(\PR{y}{\aReg})$ to see the object created by
+$\NEW$, by bouncing it through $(\PW{x}{\aReg})$ and $(\PW{y}{x})$.  In the
+\emph{commitment order} of the JMM, this allows the address of the
+allocated object to be read $(\PR{y}{\aReg})$ before its type is determined
+$(\IF{b})$.
+
+This type of \emph{bait-and-switch} behavior forced
+\citeauthor{DBLP:journals/toplas/Lochbihler13} to partition memory by type in
+order to prove type safety.  This formal device means that memory cannot be
+used at different types over time, making practical memory reclamation
+impossible.  Even partitioning memory to achieve type safety, there are
+implications for the Java security architecture
+\cite[\textsection5.4]{DBLP:journals/toplas/Lochbihler13}.
+
+In both \ref{OOTA4} and \ref{OOTA1}, the \oota{} outcome occurs by
+\emph{baiting} with the \texttt{else} branch, then \emph{switching} to the
+\texttt{then} branch, based on a coin flip $(\IF{b})$.  As confirmed by
+\cite{kang,soham}, the promising semantics \cite{DBLP:conf/popl/KangHLVD17}
+and related models
+\citep{DBLP:conf/esop/JagadeesanPR10,DBLP:journals/pacmpl/ChakrabortyV19,Manson:2005:JMM:1047659.1040336}
+all allow \oota{} behaviors of \ref{OOTA4}.\footnote{Call the threads
+  \texttt{s}, \texttt{t}, and \texttt{u}.  To get the result in the promising
+  semantics, first execute \texttt{u} to get message \texttt{<b:1@1>}.  Then
+  \texttt{t} promises \texttt{<x:1@1>}, which it can fulfill by reading
+  \texttt{b}$=$\texttt{0}.  Then execute \texttt{s} to get message \texttt{<y:1@1>}.
+  Then execute \texttt{t}, reading \texttt{b}$=$\texttt{1} and \texttt{y}$=$\texttt{1} and
+  fulfill the promise by writing \texttt{<x:1@1>}. The execution is exactly
+  the same in our speculative semantics \cite{DBLP:conf/esop/JagadeesanPR10},
+  removing timestamps and replacing the word \emph{promise} by \emph{speculation}.}  Due
+to the similarity of \ref{OOTA4} and \ref{OOTA1}, it is reasonable to
+conclude that these models \emph{cannot support both type safety and
+  realistic memory reclamation}.
+
+The C11 Memory Model \cite{Batty:2011:MCC:1926385.1926394} does not attempt
+to validate CSE, at least not for relaxed atomic access (consider the case
+where $x$ and $y$ are aliased above).  C11 \emph{does} allow the
+transformation for \emph{plain} access, but this comes with the threat of
+\emph{undefined behavior} should any plain access ever possibly engage in a
+data race \cite{undefined}.  C11 also allows \oota{} behaviors, exploiting
+causality cycles.  Undefined/\oota{} behavior is antithetical to the goals of
+safe languages.
+
+Strong models, including Sequential Consistency
+(SC)~\citep{Lamport:1979:MMC:1311099.1311750}, RC11
+\citep{DBLP:conf/pldi/LahavVKHD17}, and others
+\citep{Dolan:2018:BDR:3192366.3192421,DBLP:conf/pldi/LahavVKHD17,DBLP:conf/lics/JeffreyR16,Boehm:2014:OGA:2618128.2618134},
+support compositional reasoning.  However, all of these models invalidate
+reordering of independent statements.  All require fences after relaxed
+reads, even on \armeight.
+
+\myparagraph{Our Model}
+
+In our approach, a program is a set of executions.  Each execution is a
+\emph{pomset}: a partial order over a set of read and write events.  The
+order is intended to be read as a \emph{dependency} relation.  The dependency
+relation is dynamic, varying between executions.  Events that are not related
+in an execution are \emph{independent} and can be seen by a sequential
+observer in either order.
+
+Cross thread dependencies arise from conflicting actions on the same
+variable: Roughly, we order any two actions on the same location, at least
+one of which is a write.  In the parlance of hardware memory
+models~\citep{alglave}: $\rcoe$, $\rfre$, and $\rrfex$ are included in the
+global dependency ordering.  Thus, our model realizes \emph{multi-copy
+  atomicity} (\mca): when a write becomes visible to one thread it must
+become visible to all\nofootnote{\mca\ is traditionally explored in hardware
+  memory models.  \tso\ (see, e.g.~\cite{DBLP:journals/cacm/SewellSONM10})
+  and recent architectures, such as \armeight\ (see,
+  e.g.~\cite{DBLP:journals/pacmpl/PulteFDFSS18}, RISC-V.  ), are \mca, but
+  not older architectures, such as \ppc\ (see,
+  e.g.~\cite{DBLP:conf/pldi/SarkarSAMW11}) or \armseven\ (see,
+  e.g.~\cite{DBLP:conf/popl/AlglaveFIMSSN09}).}
+\citep{DBLP:journals/pacmpl/PulteFDFSS18}.  As envisioned in
+\cite[\textsection3.3]{AlglaveThesis}, this allows us to capture cross-thread
+dependencies in a single partial order.
+
+Our key insight is that \emph{\mca{} permits a single, global notion of time,
+  manifest in the pomset order}.
+
+Within a thread, the dependency calculation can be viewed as the computation
+of \emph{preserved program order}, called $\rppo$ in hardware models.  In our
+software model, $\rppo$ captures the \emph{essential dependencies} between
+events in the same thread.  Consider the following program fragments:
+\begin{align*}
+  & \aCmd_1: \PW{\aLoc}{1} \SEMI \PW{\bLoc}{1}
+  \\[-1ex] & \aCmd_2: \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN\ \PW{\bLoc}{1} \ELSE \PW{\bLoc}{1}  \FI
+  \\[-1ex] & \aCmd_3: \PW{\aLoc}{1} \SEMI \aReg \GETS \aLoc \SEMI \IF{\aReg} \THEN \PW{\bLoc}{1} \FI
+\end{align*}
+Each of these fragments satisfy the \citeauthor{Hoare:1969:ABC:363235.363259} triple $\hoare{\TRUE}{\aCmd_i}{\bLoc =1}$; thus, in each
+case, the write of $y$ is independent of any code that precedes it in program
+order. While $\aCmd_1$ reflects syntactic independence, $\aCmd_2$ reflects
+the independence derived by case analysis, and $\aCmd_3$ reflects the
+independence deduced from partial evaluation, in the restricted form of
+constant propagation.
+
+Our key insight is to that \emph{logic is better than syntax} to capture such
+dependencies.
+
+The logical perspective provides a clear intuition as to why certain compiler
+transformations should be valid.  Such intuitions are not always readily
+available in relaxed memory models.  For example, \emph{value range
+  analysis}---used in the discussion of \eqref{OOTA?}---is difficult in many
+models.  As another example, models such as \armeight{} distinguish
+\emph{internal} reads, which are fulfilled by a write of the same thread,
+from \emph{external} ones, which are fulfilled cross-thread.  Unlike
+external reads, internal reads are not necessarily recorded in
+the dependency relation.  As exemplified by $\aCmd_3$, this allows a compiler
+to reorder the fulfilling write with subsequent code that depends on the
+read.  Neither value range analysis nor internal reads require special
+treatment in our model.
+
+In \textsection\ref{sec:model} and \textsection\ref{sec:refine}, we define the model.  We show that the model:
+\begin{itemize}
+\item validates expected litmus cases and compiler optimizations
+  (\textsection\ref{sec:props}-\ref{sec:refine}).
+
+\item captures all C11 concurrency features  %, including relaxed, release-acquire and SC atomics, fences, and RMW
+  (\textsection\ref{sec:variants}),
+
+\item allows compositional reasoning for temporal safety, disallowing \oota{} behavior %properties
+  (\textsection\ref{sec:logic}),
+
+\item is implementable on \armeight/\tso\ {\em without} extra synchronization for
+  relaxed access\nofootnote{Compilation to \armseven\ or \ppc\
+    requires extra synchronization.} (\textsection\ref{sec:arm}), and
+
+\item  satisfies the \emph{local} \drfsc\ criterion \cite{Dolan:2018:BDR:3192366.3192421} (\textsection\ref{sec:sc}).
+
+\end{itemize}
+We conclude by discussing relating work (\textsection\ref{sec:related}) and limitations (\textsection\ref{sec:limits}).
+
+\citet{Batty17} observed that ``the current crop of relaxed memory models can
+only be used to calculate the behavior of a whole program\ldots'' and argued
+that instead, we should ``consider a program as an aggregate of components
+over different models, composed together.''  Our work is inspired by this
+call for \emph{compositionality} in models of relaxed concurrency.
+
+Our model is compositional in the normal sense of a denotational semantics:
+for example, the denotation $\sem{C_1\!{\PAR}\! C_2}$ is computed from
+$\sem{C_1}$ and $\sem{C_2}$.  The model obeys laws such as scope
+extrusion---$\sem{\aCmd\!{\PAR}\! \VAR\aLoc\SEMI\bCmd} =
+\sem{\VAR\aLoc\SEMI(\aCmd\!{\PAR}\!\bCmd)}$ when $\aLoc\not\in\free(\aCmd)$---and
+case analysis---$\sem{\aCmd} = \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI}$.
+This kind of algebraic reasoning is not supported by current models.
+
+Our model also supports compositional reasoning about \emph{data races}
+(\textsection\ref{sec:sc}), isolating races in space and time.  Spatial
+separation ensures that a race on one location does not invalidate \drfsc{}
+at other locations.  Temporal separation ensures that \drfsc{} can be applied
+within a properly synchronized region, unaffected by races that precede or
+follow.
+
+Finally, our model supports compositional reasoning about \emph{temporal
+  safety properties} (\textsection\ref{sec:logic}).  Consider that each
+thread of \ref{OOTA4} satisfies the following invariant: \emph{A write of $1$
+  to $y$ must be preceded by a read of $1$ from $x$, and if $1$ is written to
+  $z$ then a write of $1$ to $x$ must be preceded by a read of $1$ from $y$.}
+Compositionality allows us to conclude that whole program satisfies this
+property.  As noted above, this reasoning \emph{fails} in models based on
+promises, speculations, or commitments.
+Compositionality for temporal safety is a \emph{verifiable} criterion for claiming that a model
+rejects \oota{} executions.
+

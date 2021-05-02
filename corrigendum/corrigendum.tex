@@ -1,15 +1,8 @@
 \RequirePackage{amssymb}  %% bizarre error previous def of Bbbk if after documentclass
 \documentclass[acmsmall,screen]{acmart}\settopmatter{printfolios=true}
 \hypersetup{bookmarksnumbered,bookmarksopen=true,bookmarksdepth=3}
-%\makeatletter\if@ACM@anonymous\acmSubmissionID{{}}\fi\makeatother %Including this in anonymous so page breaks are right for version with institutions
 \settopmatter{printfolios=true}
 \AtEndPreamble{%
-  % \theoremstyle{acmdefinition}
-  % \theoremstyle{plain}
-  % \newtheorem{theorem}{Theorem}[section]
-  % \newtheorem{proposition}[theorem]{Proposition}
-  % \theoremstyle{acmdefinition}
-  % \newtheorem{definition}[theorem]{Definition}
   \theoremstyle{acmdefinition}
   \newtheorem{remark}[theorem]{Remark}
   \newtheorem{candidate}[theorem]{Candidate}
@@ -35,29 +28,19 @@
 \acmMonth{11}
 \startPage{1}
 
-% \begin{makeatletter}
-%   \gdef\@copyrightpermission{%
-%     This paper is published under the Creative Commons Attribution~4.0
-%     International (CC-BY~4.0) license.
-%   }
-% \end{makeatletter}
-% \acmYear{2020}
-% \acmDOI{XX.XXXX/XXXXXXX.XXXXXXX}
 
 \usepackage{macros}
 \begin{document}
 
-\title{Pomsets with Preconditions:
-A Simple Model of Relaxed Memory}
+%\title{Pomsets with Preconditions: A Simple Model of Relaxed Memory (Corrigendum)}
+\title{Pomsets with Preconditions (Corrigendum)}
 \author{Radha Jagadeesan}
 \orcid{0000-0002-4525-1589}
 \affiliation{
-  %\department{School of Computing}
   \institution{DePaul University}
   \city{Chicago}
   \country{USA}
 }
-%\email{rjagadeesan@cs.depaul.edu}
 
 \author{Alan Jeffrey}
 \orcid{0000-0001-6342-0318}
@@ -66,27 +49,15 @@ A Simple Model of Relaxed Memory}
   \city{Chicago}
   \country{USA}
 }
-%\email{ajeffrey@mozilla.com}
 
 \author{James Riely}
 \orcid{0000-0002-8731-1463}
 \affiliation{
-  %\department{School of Computing}
   \institution{DePaul University}
   \city{Chicago}
   \country{USA}
 }
-%\email{jriely@cs.depaul.edu}
 
-
-\titlenote{
-%  This paper has been greatly improved by the comments of the anonymous reviewers.
-  Jagadeesan and Riely were supported by the National Science Foundation under
-  grant No.~CCR-1617175.}
-  % It is based upon work supported by the National Science Foundation under
-  % Grant No. CCR-1617175. Any opinions, findings, and conclusions or
-  % recommendations expressed in this material are those of the author and do
-  % not necessarily reflect the views of the NSF.}
 \begin{abstract}
 \input{abstract.tex}
 \end{abstract}
@@ -126,13 +97,10 @@ A Simple Model of Relaxed Memory}
 \input{short.tex}
 \input{outro.tex}
 \clearpage
-\begin{small}
 \bibliography{bib}
 \appendix
 \input{appendix.tex}
 \input{popo.tex}
-\end{small}
-\end{document}
 \end{document}
 
 % Local Variables:

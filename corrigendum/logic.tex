@@ -1,0 +1,381 @@
+\section{Understanding ``Out Of Thin Air'' using Temporal Logic}
+\label{sec:logic}
+
+A significant challenge for a software memory model is to relax order enough
+to allow efficient implementation without admitting anomalous
+behaviors---called \emph{out of thin air} (\oota) in the literature
+\cite{vacuous,DBLP:conf/esop/BattyMNPS15,BoehmOOTA}.  The most famous example
+is \ref{OOTA3} from \textsection\ref{sec:intro}.  Here we inline
+initialization in order to fit the format of our proof rules:
+\begin{align}
+  \label{OOTA3} \tag{\textsc{oota1}}
+  \PW{y}{0}\SEMI 
+  \PW{y}{x}
+  \!\PAR\!
+  \PW{x}{0}\SEMI
+  \PR{y}{r}\SEMI \PW{x}{r}  
+  &&
+  \smash{\hbox{\begin{tikzinline}[node distance=1.2em]
+        \event{rx}{\DR{x}{1}}{}
+        \event{wy}{\DW{y}{1}}{right=of rx}
+        \po{rx}{wy}
+        \event{y0}{\DW{y}{0}}{left=of rx}
+        \event{x0}{\DW{x}{0}}{right=2em of wy}
+        \event{ry}{\DR{y}{1}}{right=2em of x0}
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \po{ry}{wx}
+        \rf[out=10,in=170]{wy}{ry}
+        \rf[out=170,in=10]{wx}{rx}
+        \wk[out=-15,in=-165]{y0}{wy}
+        \wk[out=-15,in=-165]{x0}{wx}
+      \end{tikzinline}}}
+\end{align}
+Although Java does not allow \oota{} behaviors of \ref{OOTA3},
+\citet{DBLP:journals/toplas/Lochbihler13} showed that it does allow \oota\
+behaviors of \ref{OOTA1}, also from \textsection\ref{sec:intro}.  In
+\cite{DBLP:conf/lics/JeffreyR16}, we described a logic that rules out
+\ref{OOTA3} but not \ref{OOTA1} or its variant \ref{OOTA4}.  In this section,
+we provide a more accurate test of \oota{} behaviors by enhancing our
+previous logic with temporal features.
+
+On first read, we suggest that readers skip to the examples and the
+discussion that follows, coming back to the definitions as necessary.
+Example~\ref{ex:thin} discusses the canonical \oota{} example \ref{OOTA3};
+the analysis is trivial and well-known \cite{DBLP:conf/lics/JeffreyR16,
+  DBLP:conf/popl/KangHLVD17}.  Example~\ref{ex:lochb} is more interesting.
+There, we discuss \ref{OOTA4}, which is a variant of
+\citeauthor{DBLP:journals/toplas/Lochbihler13}'s \ref{OOTA1}.
+
+The logic given here is not meant to be definitive; in
+\textsection\ref{sec:limits}, we discuss \oota{} examples that appear to
+require non-trivial extensions
+\cite{DBLP:conf/esop/SvendsenPDLV18,DBLP:journals/pacmpl/ChakrabortyV19}.
+
+\noparagraph{Definitions}
+We adapt past linear temporal logic (\pLTL)
+\cite{Lichtenstein:1985:GP:648065.747612} to pomsets by dropping the previous
+instant operator and adopting strict versions of the temporal operators.
+The atoms of our logic are write and read events.
+Given a pomset $\aPS$ and event $\aEv$, define:\nofootnote{Let $\FALSE$, $\lor$,
+  $\Rightarrow$ and $\once$ as usual;
+  for example,
+  $\once\afo = \lnot(\always\lnot\afo)$.}
+\begin{displaymath}
+  \renewcommand{\arraycolsep}{.2ex}
+  \begin{array}{lrll}
+    \aPS,\aEv &\models& \DW{\aLoc}{\aVal} &\text{ if } \labelingAct(\aEv) = \DW{\aLoc}{\aVal} \text{ and } \TRUE \text{ implies } \labelingForm(\aEv) \\
+    \aPS,\aEv &\models& \DR{\aLoc}{\aVal} &\text{ if } \labelingAct(\aEv) = \DR{\aLoc}{\aVal} \text{ and } \TRUE \text{ implies } \labelingForm(\aEv) \\
+    \aPS,\aEv &\models& \afo\land\bfo &\text{ if } \aPS,\aEv \models  \afo \text{ and } \aPS,\aEv \models  \bfo \\
+    \aPS,\aEv &\models& \TRUE\\
+    \aPS,\aEv &\models& \lnot\afo &\text{ if } \aPS,\aEv \not\models \afo \\
+    \aPS,\aEv &\models& \always\afo &\text{ if } \forall \bEv \lt \aEv.\; \aPS,\bEv \models \afo\\
+    \aPS,\aEv &\models& \once\afo &\text{ if } \exists \bEv \lt \aEv.\;  \aPS,\bEv \models \afo 
+  \end{array} 
+\end{displaymath}
+
+Define $\FALSE$, $\lor$, and $\Rightarrow$ as usual.
+
+Let $\aPS \models \afo$ if
+$\aPS,\aEv \models\afo$, for all $\aEv \in \Event$.
+
+Let $\aPSS\models \afo$
+if $\aPS \models\afo$, for all $\aPS \in \aPSS$.
+
+Let
+\begin{math}
+  \afo, \aPSS \models \bfo  \text{ if } \{ \aPS \mid \aPS \models \afo \} \parallel \aPSS \models \bfo.
+\end{math}
+
+Let $\afo$ be \emph{downclosed} when
+$\{ \aPS \mid \aPS \models \afo \}$ is.
+
+The past operators do not include the current instant, and so
+do \emph{not} satisfy
+$(\always\afo\Rightarrow\once\afo)$. The order-minimal elements always validate
+$\always\afo$ and invalidate
+$\once\afo$.
+However, we can prove the following:
+\begin{align*}
+  \tag{Induction}
+  \aPS \models& (\always\afo \Rightarrow\afo) \Rightarrow\afo
+  \\[-1ex]
+  \tag{Coinduction}
+  \aPS \models& (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+  \\[-1ex]
+  \tag{Weakening}
+  \aPS \models& (\afo \Rightarrow\once{\bfo}) \Rightarrow (\once\afo \Rightarrow\once{\bfo})
+\end{align*}
+
+We present two additional proof rules. 
+The first provides a logical view of \emph{$\aLoc$-closure} (Def.~\ref{def:rf}):
+\begin{displaymath}
+  \frac{
+    \afo \text{ is independent of } \aLoc
+    \qquad
+    \aPS \models (\DR{\aLoc}{\aVal} \Rightarrow \once \DW{\aLoc}{\aVal}) \Rightarrow \afo
+  }{
+    \nu \aLoc \DOT \aPS \models \afo
+  }
+\end{displaymath}
+
+The second rule describes concurrent composition, in the style of~\citet{Abadi:1993:CS:151646.151649}.  To simplify the presentation, we
+consider the special case with a single invariant.
+
+\begin{proposition}%[Composition]
+  Let $\afo$ be downclosed.  Let $\aPSS_1, \aPSS_2$ be
+  augmentation\hyp{}closed. %\footnote{$\aPS'$ is an augmentation of $\aPS$ if
+  Then:
+  \begin{displaymath}
+    \frac{
+      \afo, \aPSS_1 \models\afo
+      \qquad
+      \afo, \aPSS_2 \models\afo
+    }{\aPSS_1 \parallel \aPSS_2 \models \afo}
+  \end{displaymath}
+\end{proposition}
+\begin{proof}[Proof sketch]
+  We will show that all downsets in the downset closures of
+  $\aPSS_1 \parallel \aPSS_2$ satisfy the required property.  Proof proceeds
+  by induction on downsets of $\aPS \in \aPSS_1 \parallel \aPSS_2$.
+  The case for empty downset  follows from assumption that  $\afo$ is downset closed.  
+  For the inductive case, consider %$\aPS$ in the downset closure of $\aPSS_1 \parallel \aPSS_2$, i.e.
+  $\aPS \in \aPS_1 \parallel \aPS_2$ where
+  $\aPS_i \in \aPSS_i$.  Since $\aPSS_1$ and $\aPSS_2$ are augmentation
+  closed, we can assume that the restriction of $\aPS$ to the events of
+  $\aPS_i$ coincides with $\aPS_i$, for $i=1,2$.
+  Consider a downset $\aPS'$ derived by removing a maximal element $\aEv$ from
+  $\aPS$.  Suppose $\aEv$ comes from $\aPS_1$ (the other case is
+  symmetric). Since $\aPS_2$ is a downset of $\aPS'$ and $\aPS' \models \afo$
+  by induction hypothesis, we deduce that $\aPS_2 \models \afo$.
+  Since $\aPS_1 \in \aPSS_1$, by assumption $\afo, \aPSS_1 \models\afo$ we
+  deduce that $\aPS \models \afo$.
+\end{proof}
+
+\begin{example}
+  \label{ex:thin}
+  \noparagraph{Basic Examples}
+  With all variables initialized to $0$, we show that \ref{OOTA3}
+  satisfies
+  \begin{math}
+    \lnot\DW{x}{1}.
+  \end{math}
+
+  We start with the invariant:
+  \begin{displaymath}
+    [\DW{x}{1}\Rightarrow\once\DR{y}{1}]
+    \land
+    [\DW{y}{1}\Rightarrow\once\DR{x}{1}]
+  \end{displaymath}
+  This invariant holds for each thread; thus, it holds for the
+  aggregate program by composition.  Closing $y$ yields
+  \begin{math}
+    \DR{y}{1} \Rightarrow \once\DW{y}{1}.
+  \end{math}
+  Weakening the right conjunct: % yields
+  \begin{math}
+    \once\DW{y}{1}\Rightarrow\once\DR{x}{1}.
+  \end{math}
+  Chaining these together: %yields
+  \begin{math}
+    \DR{y}{1} \Rightarrow \once\DR{x}{1}.
+  \end{math}
+  Weakening:  %yields
+  \begin{math}
+    \once\DR{y}{1} \allowbreak\Rightarrow \once\DR{x}{1}. 
+  \end{math}
+  Chaining into the left conjunct:  %yields
+  \begin{math}
+    \DW{x}{1} \Rightarrow \once\DR{x}{1}. 
+  \end{math}
+  Closing $x$, 
+  weakening, 
+  then chaining: %, yields
+  \begin{math}
+    \DW{x}{1} \Rightarrow \once\DW{x}{1}. 
+  \end{math}
+  By coinduction, 
+  \begin{math}
+    \lnot\DW{x}{1}.
+  \end{math}
+\end{example}
+
+\begin{example}
+  \label{ex:lochb}
+  \noparagraph{Lochbihler's Example} %The essential temporal property of
+  Because our language lacks object creation, we cannot consider
+  \citeauthor{DBLP:journals/toplas/Lochbihler13}'s example (\ref{OOTA1}) directly.  Instead we study \ref{OOTA4}, which has the same
+  temporal structure.
+  The essential temporal property of
+  \ref{OOTA4} is: \emph{A write of $1$ to $y$ must be preceded by a read of
+    $1$ from $x$, and if $1$ is written to $z$ then a write of $1$ to $x$
+    must be preceded by a read of $1$ from $y$.}
+  We show an attempted execution that violates this invariant, eliding
+  initialization:
+  \begin{gather}
+    \label{OOTA4}\tag{\textsc{oota4}}
+    \begin{gathered}
+      \PW{y}{x}
+      \PAR
+      \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+      \PAR
+      \PW{b}{1}
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{rx}{\DR{x}{1}}{}
+          \event{wy}{\DW{y}{1}}{right=of rx}
+          \po{rx}{wy}
+          \event{ry}{\DR{y}{1}}{right=3em of wy} 
+          \event{wx}{\DW{x}{1}}{right=of ry}
+          \event{wz}{\DW{z}{1}}{right=of wx}
+          \event{rb}{\DR{b}{1}}{right=of wz}
+          \event{wb1}{\DW{b}{1}}{right=3em of rb}
+          \po{ry}{wx}
+          \rf{wb1}{rb}
+          \rf{wy}{ry}
+          \rf[out=-170,in=-10]{wx}{rx}
+          \po{rb}{wz}
+          \po[out=15,in=165]{ry}{wz}
+        \end{tikzinline}}
+    \end{gathered}  
+  \end{gather}
+  As we discussed in \textsection\ref{sec:pop} there is a dependency from
+  $(\DR{y}{1})$ to $(\DW{x}{1})$; thus, the outcome is disallowed.  This
+  outcome is also disallowed by our event structures model
+  \citep[\textsection9]{DBLP:journals/lmcs/JeffreyR19}, although the logic
+  given in that paper is insufficient to establish this fact.  The outcome is
+  \emph{allowed} by \citet{Manson:2005:JMM:1047659.1040336}, \citet{DBLP:conf/esop/JagadeesanPR10},
+  \citet{DBLP:conf/popl/KangHLVD17}, and
+  \citet{DBLP:journals/pacmpl/ChakrabortyV19}.
+
+  To establish that this outcome is disallowed here, we prove 
+  \begin{math}
+    \lnot\DW{z}{1},
+  \end{math}
+  starting with invariant:
+  \begin{align*}
+    [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
+    \land
+    [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
+  \end{align*}
+  Closing $y$ and chaining into the left conjunct:
+  \begin{math}
+    \once\DR{y}{1} \Rightarrow \once\DR{x}{1}.
+  \end{math}
+  Chaining into the right conjunct:
+  \begin{displaymath}
+    \notonce\DW{z}{1} \Rightarrow (\once\DR{x}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{x}{1}))
+  \end{displaymath}
+  Closing $x$:
+  \begin{math}
+    \notonce\DW{z}{1} \Rightarrow (\once\DW{x}{1} \land \always(\DW{x}{1} \Rightarrow \once\DW{x}{1}).
+  \end{math}
+  Applying coinduction to the right conjunct:
+  \begin{displaymath}
+    \notonce\DW{z}{1} \Rightarrow (\once\DW{x}{1} \land \always(\lnot \DW{x}{1}))
+  \end{displaymath}
+  Simplifying:
+  \begin{math}
+    \notonce\DW{z}{1} \Rightarrow \FALSE,
+  \end{math}
+  as required.
+\end{example}
+
+Many examples are superficially similar, but in fact have fewer dependencies,
+such as \eqref{OOTA?} from \textsection\ref{sec:intro}.
+
+\noparagraph{RFUB: Register assignment From an Unexecuted Branch}
+\citeauthor{BoehmOOTA}'s [\citeyear{BoehmOOTA}] \ref{RFUB} example presents
+another potential form of \oota{} behavior.
+Our analysis shows that there is no \oota{} behavior in
+\ref{RFUB}, only a false dependency:
+\begin{gather*}
+  \tag{\textsc{rfub}}\label{RFUB}
+  \sem{\PR{y}{r}\SEMI \PW{x}{r}}
+  \not\supseteq
+  \sem{\PR{y}{r}\SEMI \IF{r \NOTEQ 1} \THEN \PW{z}{1}\SEMI \LET{r}{1}\FI \SEMI \PW{x}{r}}
+\end{gather*}
+The left command is half of \ref{OOTA3}. %, from \textsection\ref{sec:logic}.
+The right command is dubbed \rfub{}, for \emph{Register assignment From an
+  Unexecuted Branch}.  \citeauthor{BoehmOOTA} observes that in the context
+$\PW{x}{y} \PAR \hole{}$, these programs have different behaviors.  Yet the
+\oota{} example on the left never writes $1$.  Why should the unexecuted
+branch change that?  Because of the conditional, the write to $x$ in
+\ref{RFUB} is independent of the read from $y$.  It useful to considering the
+Hoare logic formulas satisfied by the two threads above: we have
+$\hoare{\TRUE}{\ref{RFUB}}{x=1}$ for the right thread of \ref{RFUB}, but not
+$\hoare{\TRUE}{\ref{OOTA3}}{x=1}$ for the right thread of \ref{OOTA3}.  The
+change in the thread from \ref{OOTA3} to \ref{RFUB} is not a valid refinement
+under Hoare logic; thus, it is expected that \ref{RFUB} may have additional
+behaviors.
+
+Understanding \oota{} behavior is notoriously difficult, even for the
+greatest minds in the field!  % We believe that \emph{logic} is the only tool
+This example shows the wisdom of using existing tools, such as preconditions
+and Hoare logic, to model new problems, such as relaxed memory.
+
+\begin{comment}
+  \color{red} Need to sort this out.
+  Alan proposes:
+\begin{verbatim}
+     (W y 2) => <>(R x 1)
+     (W y 1) => <>(R x 0)
+     (W x 1) => <>(R y 1)
+   <>(W x 1) => not(<>(W x 2))  --- which should be???  <>(W x 0) => not(<>(W x 1))
+\end{verbatim}
+
+  2020/09/30: This seems to go bad because of initialization...
+  The formula
+\begin{verbatim}
+<>Wx0 => not(<>Wx1)
+\end{verbatim}
+  does not hold for
+\begin{verbatim}
+x=0; x=y
+\end{verbatim}
+
+  2020/09/10:  I am worried about the compositionality of this predicate:
+\begin{verbatim}
+I think
+   <>(W x 0 => not(<>(W x 1)))
+holds for 
+   x=0; r=y 
+and
+   x=1
+but not
+   x=0; r=y || x=1
+as shown by the execution
+   Wx1 < Wx0 < Ry0
+\end{verbatim}
+  
+  It is impossible to fulfill $(\DR{y}{1})$ in the following
+  \cite[RNG]{DBLP:conf/esop/SvendsenPDLV18}:
+  \begin{align*}
+    \taglabel{OOTA5}
+    ( \PW{y}{x{+}1}
+    \PAR
+    \PW{x}{y} ) && \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{rx}{\DR{x}{1}}{}
+        \event{wy}{\DW{y}{2}}{right=of rx}
+        \po{rx}{wy}
+        \event{ry}{\DR{y}{1}}{right=3em of wy}
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \po{ry}{wx}
+        \rf[out=170,in=10]{wx}{rx}
+      \end{tikzinline}}
+  \end{align*}
+  The proof proceeds as before, starting with the following invariant:
+  \begin{gather*}
+    [\DW{y}{2} \Rightarrow \once\DR{x}{1}] \land
+    [\once\DW{x}{1} \Rightarrow \once\DR{y}{1}] \land
+    [\once\DW{y}{1} \Rightarrow \once\DR{x}{0}] \land
+    [\once\DW{x}{0} \Rightarrow \lnot(\once\DW{x}{1})]
+  \end{gather*}
+\begin{verbatim}
+  Wy2 => <>Rx1  /\  <>Wx1 => <>Ry1  /\  <>Wy1 => <>Rx0  
+close x and y                                          
+  Wy2 => <>Wx1  /\  <>Wx1 => <>Wy1  /\  <>Wy1 => <>Wx0  
+chain
+  Wy1 => <>Wx0  
+chain with <>Wx0 => not(<>Wx1)
+\end{verbatim}
+\end{comment}

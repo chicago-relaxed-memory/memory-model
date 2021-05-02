@@ -15,7 +15,7 @@ to the semantics in \textsection\ref{sec:refine}.
 
 
 
-%Pugh, not 19/20 which have join.  Not 16 on coherence.
+% Pugh, not 19/20 which have join.  Not 16 on coherence.
 
 \citet{PughWebsite} developed a set of litmus tests for the java memory
 model.  Our model gives the expected result for all but cases 16, 19 and 20
@@ -32,77 +32,77 @@ Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[
 \begin{align*}
   \taglabel{SB/LB}
   \begin{gathered}
-  \PW{x}{0}\SEMI
-  \PW{y}{0}\SEMI
-  (
-  \PW{x}{1}\SEMI\PR{y}{\aReg}
-  \PAR
-  \PW{y}{1}\SEMI \PR{x}{\aReg})
-  \\[-1.5ex]
-  \hbox{\begin{tikzinline}[node distance=.9em]
-      \event{wx0}{\DW{x}{0}}{}
-      \event{wy0}{\DW{y}{0}}{right=of wx0}
-      \event{wx}{\DW{x}{1}}{right=3em of wy0}
-      \event{ry}{\DR{y}{0}}{right=of wx}
-      \event{wy}{\DW{y}{1}}{right=3em of ry}
-      \event{rx}{\DR{x}{0}}{right=of wy}
-      %\wk[out=15,in=165]{wx0}{wx}
-      %\wk[out=15,in=165]{wy0}{wy}
-      \rf[out=15,in=165]{wy0}{ry}
-      \rf[out=10,in=170]{wx0}{rx}
-      \wk{ry}{wy}
-      \wk[out=-165,in=-15]{rx}{wx}
-      % \po{rx}{wy}
-      % \pox{wy}[below]{rx}
-      % \pox{wx}{ry}
-    \end{tikzinline}}
-  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
-  %     \event{wx0}{\DW{x}{0}}{}
-  %     \event{wy0}{\DW{y}{0}}{below=of wx0}
-  %     \event{wx}{\DW{x}{1}}{right=of wx0}
-  %     \event{wy}{\DW{y}{1}}{right=of wy0}
-  %     \event{ry}{\DR{y}{0}}{right=of wx}
-  %     \event{rx}{\DR{x}{0}}{right=of wy}
-  %     \wk{wx0}{wx}
-  %     \wk{wy0}{wy}
-  %     \rf{wy0}{ry}
-  %     \rf{wx0}{rx}
-  %     \wk[out=-150,in=15]{ry}{wy}
-  %     \wk[out=150,in=-15]{rx}{wx}
-  %     % \po{rx}{wy}
-  %     % \pox{wy}[below]{rx}
-  %     % \pox{wx}{ry}
-  %   \end{tikzinline}}
-\end{gathered}
-&&
+    \PW{x}{0}\SEMI
+    \PW{y}{0}\SEMI
+    (
+    \PW{x}{1}\SEMI\PR{y}{\aReg}
+    \PAR
+    \PW{y}{1}\SEMI \PR{x}{\aReg})
+    \\[-1.5ex]
+    \hbox{\begin{tikzinline}[node distance=.9em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{wy0}{\DW{y}{0}}{right=of wx0}
+        \event{wx}{\DW{x}{1}}{right=3em of wy0}
+        \event{ry}{\DR{y}{0}}{right=of wx}
+        \event{wy}{\DW{y}{1}}{right=3em of ry}
+        \event{rx}{\DR{x}{0}}{right=of wy}
+        % \wk[out=15,in=165]{wx0}{wx}
+        % \wk[out=15,in=165]{wy0}{wy}
+        \rf[out=15,in=165]{wy0}{ry}
+        \rf[out=10,in=170]{wx0}{rx}
+        \wk{ry}{wy}
+        \wk[out=-165,in=-15]{rx}{wx}
+        % \po{rx}{wy}
+        % \pox{wy}[below]{rx}
+        % \pox{wx}{ry}
+      \end{tikzinline}}
+    % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+    %   \event{wx0}{\DW{x}{0}}{}
+    %   \event{wy0}{\DW{y}{0}}{below=of wx0}
+    %   \event{wx}{\DW{x}{1}}{right=of wx0}
+    %   \event{wy}{\DW{y}{1}}{right=of wy0}
+    %   \event{ry}{\DR{y}{0}}{right=of wx}
+    %   \event{rx}{\DR{x}{0}}{right=of wy}
+    %   \wk{wx0}{wx}
+    %   \wk{wy0}{wy}
+    %   \rf{wy0}{ry}
+    %   \rf{wx0}{rx}
+    %   \wk[out=-150,in=15]{ry}{wy}
+    %   \wk[out=150,in=-15]{rx}{wx}
+    %     %   \po{rx}{wy}
+    %     %   \pox{wy}[below]{rx}
+    %     %   \pox{wx}{ry}
+    % \end{tikzinline}}
+  \end{gathered}
+  &&
   \begin{gathered}
-  \PR{y}{\aReg}\SEMI \PW{x}{1}
-  \PAR
-  \PR{x}{\aReg}\SEMI \PW{y}{1}
-  \\
-  \hbox{\begin{tikzinline}[node distance=.9em]
-      \event{ry}{\DR{y}{1}}{}
-      \event{wx}{\DW{x}{1}}{right=of ry}
-      \event{rx}{\DR{x}{1}}{right=3em of wx}
-      \event{wy}{\DW{y}{1}}{right=of rx}
-      \rf{wx}{rx}
-      \rf[out=-165,in=-15]{wy}{ry}
-      % \pox{rx}[below]{wy}
-      % \pox{ry}{wx}
-      % \po{rx}{wy}
-    \end{tikzinline}}
-  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
-  %     \event{ry}{\DR{y}{1}}{}
-  %     \event{rx}{\DR{x}{1}}{below=of ry}
-  %     \event{wx}{\DW{x}{1}}{right=of ry}
-  %     \event{wy}{\DW{y}{1}}{right=of rx}
-  %     \rf{wy}{ry}
-  %     \rf{wx}{rx}
-  %     % \pox{rx}[below]{wy}
-  %     % \pox{ry}{wx}
-  %     % \po{rx}{wy}
-  %   \end{tikzinline}}
-\end{gathered}
+    \PR{y}{\aReg}\SEMI \PW{x}{1}
+    \PAR
+    \PR{x}{\aReg}\SEMI \PW{y}{1}
+    \\
+    \hbox{\begin{tikzinline}[node distance=.9em]
+        \event{ry}{\DR{y}{1}}{}
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \event{rx}{\DR{x}{1}}{right=3em of wx}
+        \event{wy}{\DW{y}{1}}{right=of rx}
+        \rf{wx}{rx}
+        \rf[out=-165,in=-15]{wy}{ry}
+        % \pox{rx}[below]{wy}
+        % \pox{ry}{wx}
+        % \po{rx}{wy}
+      \end{tikzinline}}
+    % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+    %   \event{ry}{\DR{y}{1}}{}
+    %   \event{rx}{\DR{x}{1}}{below=of ry}
+    %   \event{wx}{\DW{x}{1}}{right=of ry}
+    %   \event{wy}{\DW{y}{1}}{right=of rx}
+    %   \rf{wy}{ry}
+    %   \rf{wx}{rx}
+    %     %   \pox{rx}[below]{wy}
+    %     %   \pox{ry}{wx}
+    %     %   \po{rx}{wy}
+    % \end{tikzinline}}
+  \end{gathered}
 \end{align*}
 Because there are no intra-thread dependencies, the desired outcomes are allowed, as shown.
 % All of the cross-thread order is required by the definition of fulfillment.
@@ -114,29 +114,29 @@ Because there are no intra-thread dependencies, the desired outcomes are allowed
 \myparagraph{Publication}
 \ref{rf3}--\ref{rf4} and \ref{5b}--\ref{5c} ensure correct publication,
 prohibiting stale reads:
-%from seeing stale values:
+% from seeing stale values:
 % example, they disallow the following candidate execution, which sees a stale
 % value for $x$:
 \begin{gather}
   \taglabel{Pub1}
   \begin{gathered}
-  \PW{x}{0}\SEMI %\PW{y}{0}\SEMI
-  \PW{x}{1}\SEMI \PW[\mRA]{y}{1} \PAR \PR[\mRA]{y}{r}\SEMI \PR{x}{s}
-  \\[-.4ex]
-  \nonumber
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{wx0}{\DW{x}{0}}{}
-      \event{wx1}{\DW{x}{1}}{right=of wx0}
-      \event{wy1}{\DWRel{y}{1}}{right=of wx1}
-      \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-      \event{rx0}{\DR{x}{0}}{right=of ry1}
-      \sync{wx1}{wy1}
-      \sync{ry1}{rx0}
-      \rf{wy1}{ry1}
-      %\rf[out=10,in=170]{wx0}{rx0}
-      \wk{wx0}{wx1}
-    \end{tikzinline}}
-\end{gathered}
+    \PW{x}{0}\SEMI %\PW{y}{0}\SEMI
+    \PW{x}{1}\SEMI \PW[\mRA]{y}{1} \PAR \PR[\mRA]{y}{r}\SEMI \PR{x}{s}
+    \\[-.4ex]
+    \nonumber
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{wx1}{\DW{x}{1}}{right=of wx0}
+        \event{wy1}{\DWRel{y}{1}}{right=of wx1}
+        \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+        \event{rx0}{\DR{x}{0}}{right=of ry1}
+        \sync{wx1}{wy1}
+        \sync{ry1}{rx0}
+        \rf{wy1}{ry1}
+        % \rf[out=10,in=170]{wx0}{rx0}
+        \wk{wx0}{wx1}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather}
 This pomset is disallowed, since $(\DR x0)$ fails to satisfy \ref{rf4}:
 $(\DW x0) \lt (\DW x1) \lt (\DR x0)$.  Attempting to satisfy this
@@ -163,24 +163,24 @@ coherence between relaxed atomics in order to forbid this:
 \begin{gather*}
   \taglabel{Co2}
   \begin{gathered}
-  \PW{x}{1}\SEMI \PW{x}{2}
-  \PAR
-  \PW{y}{x} \SEMI \PW{z}{x}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a}{\DW{x}{1}}{}
-      \event{b}{\DW{x}{2}}{right=of a}
-      \wk{a}{b}
-      \event{c}{\DR{x}{2}}{right=3em of b}
-      \event{d}{\DW{y}{2}}{right=of c}
-      \po{c}{d}
-      \event{e}{\DR{x}{1}}{right=of d}
-      \event{f}{\DW{z}{1}}{right=of e}
-      \po{e}{f}
-      \rf{b}{c}
-      \rf[out=10,in=170]{a}{e}
-    \end{tikzinline}}
-\end{gathered}
+    \PW{x}{1}\SEMI \PW{x}{2}
+    \PAR
+    \PW{y}{x} \SEMI \PW{z}{x}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW{x}{1}}{}
+        \event{b}{\DW{x}{2}}{right=of a}
+        \wk{a}{b}
+        \event{c}{\DR{x}{2}}{right=3em of b}
+        \event{d}{\DW{y}{2}}{right=of c}
+        \po{c}{d}
+        \event{e}{\DR{x}{1}}{right=of d}
+        \event{f}{\DW{z}{1}}{right=of e}
+        \po{e}{f}
+        \rf{b}{c}
+        \rf[out=10,in=170]{a}{e}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 Here, the reader sees $2$ then $1$, although they are written in the reverse
 order.
@@ -191,69 +191,69 @@ However, our model is more coherent than Java, which permits the following:
 \begin{gather*}
   \taglabel{TC16}
   \begin{gathered}
-  \PR{x}{r}\SEMI \PW{x}{1}
-  \PAR
-  \PR{x}{s}\SEMI \PW{x}{2}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a1}{\DR{x}{2}}{}
-      \event{a2}{\DW{x}{1}}{right=of a1}
-      \wk{a1}{a2}
-      \event{b1}{\DR{x}{1}}{right=3em of a2}
-      \event{b2}{\DW{x}{2}}{right=of b1}
-      \wk{b1}{b2}
-      \rf{a2}{b1}
-      \rf[out=-165,in=-15]{b2}{a1}
-    \end{tikzinline}}
-\end{gathered}
+    \PR{x}{r}\SEMI \PW{x}{1}
+    \PAR
+    \PR{x}{s}\SEMI \PW{x}{2}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DR{x}{2}}{}
+        \event{a2}{\DW{x}{1}}{right=of a1}
+        \wk{a1}{a2}
+        \event{b1}{\DR{x}{1}}{right=3em of a2}
+        \event{b2}{\DW{x}{2}}{right=of b1}
+        \wk{b1}{b2}
+        \rf{a2}{b1}
+        \rf[out=-165,in=-15]{b2}{a1}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 \begin{gather*}
   \taglabel{Co3}
   \begin{gathered}
-  \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
-  \PAR
-  \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
-  \PAR
-  \PR[\mRA]{z}{r} \SEMI 
-  \PR[\mRA]{y}{r} \SEMI 
-  \PR{x}{r} \SEMI 
-  \PR{x}{r}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a1}{\DW{x}{1}}{}
-      \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
-      \sync{a1}{a2}
-      \event{b1}{\DW{x}{2}}{right=3em of a2}
-      \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
-      \sync{b1}{b2}
-      \event{c1}{\DR[\mRA]{\,z}{1}}{right=3em of b2}
-      \event{c2}{\DR[\mRA]{y}{1}}{right=of c1}
-      \event{c3}{\DR{x}{2}}{right=of c2}
-      \event{c4}{\DR{x}{1}}{right=of c3}
-      \sync{c1}{c2}
-      \sync{c2}{c3}
-      \sync[out=20,in=160]{c2}{c4}
-      \rf[out=8,in=172]{a2}{c2}
-      \rf{b2}{c1}
-      \wk[out=19,in=161]{a1}{b1}
-      \wk[out=-172,in=-8]{c4}{b1}
-    \end{tikzinline}}
-\end{gathered}
+    \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
+    \PAR
+    \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
+    \PAR
+    \PR[\mRA]{z}{r} \SEMI 
+    \PR[\mRA]{y}{r} \SEMI 
+    \PR{x}{r} \SEMI 
+    \PR{x}{r}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DW{x}{1}}{}
+        \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
+        \sync{a1}{a2}
+        \event{b1}{\DW{x}{2}}{right=3em of a2}
+        \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
+        \sync{b1}{b2}
+        \event{c1}{\DR[\mRA]{\,z}{1}}{right=3em of b2}
+        \event{c2}{\DR[\mRA]{y}{1}}{right=of c1}
+        \event{c3}{\DR{x}{2}}{right=of c2}
+        \event{c4}{\DR{x}{1}}{right=of c3}
+        \sync{c1}{c2}
+        \sync{c2}{c3}
+        \sync[out=20,in=160]{c2}{c4}
+        \rf[out=8,in=172]{a2}{c2}
+        \rf{b2}{c1}
+        \wk[out=19,in=161]{a1}{b1}
+        \wk[out=-172,in=-8]{c4}{b1}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 % \begin{gather*}
 %   \taglabel{Co3}
 %   \begin{gathered}
-%   \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
-%   \PAR
-%   \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
-%   \PAR
-%   \PR[\mRA]{y}{r} \SEMI 
-%   \PR[\mRA]{z}{r} \SEMI 
-%   \PR{x}{r} \SEMI 
-%   \PR{x}{r}
-%   \\[-1ex]
-%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%     \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
+%     \PAR
+%     \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
+%     \PAR
+%     \PR[\mRA]{y}{r} \SEMI 
+%     \PR[\mRA]{z}{r} \SEMI 
+%     \PR{x}{r} \SEMI 
+%     \PR{x}{r}
+%     \\[-1ex]
+%     \hbox{\begin{tikzinline}[node distance=1.5em]
 %       \event{a1}{\DW{x}{1}}{}
 %       \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
 %       \sync{a1}{a2}
@@ -273,7 +273,7 @@ We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
 %       \wk{a1}{b1}
 %       \wk[out=-165,in=-15]{c4}{b1}
 %     \end{tikzinline}}
-% \end{gathered}
+%   \end{gathered}
 % \end{gather*}
 The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required to fulfill
 $(\DR{x}{1})$. The outcome is disallowed due to the cycle. %by fulfillment.
@@ -290,22 +290,22 @@ races (\textsection\ref{sec:sc}).
 %   \PR{x}{r}
 %   \\[-1ex]
 %   \hbox{\begin{tikzinline}[node distance=1.5em]
-%       \event{a}{\DW{x}{1}}{}
-%       \event{b}{\DW[\mRA]{y}{1}}{right=of a}
-%       \sync{a}{b}
-%       \event{c}{\DW{x}{2}}{below=of a}
-%       \event{d}{\DR[\mSC]{y}{1}}{right=of c}
-%       \po{c}{d}
-%       \event{e}{\DR{x}{2}}{right=of d}
-%       \po{d}{e}
-%       \event{f}{\DR{x}{1}}{right=of e}
-%       \po[out=10,in=170]{d}{f}
-%       \rf{b}{d}
-%       %\rf[out=-10,in=-170]{c}{e}
-%       \wk{a}{c}
-%       %\rf[out=15,in=150]{a}{f}
-%       \wk[out=-165,in=-15]{f}{c}
-%     \end{tikzinline}}
+%     \event{a}{\DW{x}{1}}{}
+%     \event{b}{\DW[\mRA]{y}{1}}{right=of a}
+%     \sync{a}{b}
+%     \event{c}{\DW{x}{2}}{below=of a}
+%     \event{d}{\DR[\mSC]{y}{1}}{right=of c}
+%     \po{c}{d}
+%     \event{e}{\DR{x}{2}}{right=of d}
+%     \po{d}{e}
+%     \event{f}{\DR{x}{1}}{right=of e}
+%     \po[out=10,in=170]{d}{f}
+%     \rf{b}{d}
+%       %     \rf[out=-10,in=-170]{c}{e}
+%     \wk{a}{c}
+%       %     \rf[out=15,in=150]{a}{f}
+%     \wk[out=-165,in=-15]{f}{c}
+%   \end{tikzinline}}
 % \end{gather*}
 
 % \todo{We will also clarify that the "expected result" for TC16 is not the same as it is in Java. We disallow this execution due to the cycle
@@ -317,137 +317,137 @@ architectures.
 % \begin{gather*}
 %   \renewcommand{\arraycolsep}{1pt}
 %   \hbox{\small
-%     $\begin{array}{ccccc}
+%   $\begin{array}{ccccc}
 %     &\PW{x}{0}\SEMI \PW{x}{1}
 %     &\PAR&
 %     \PR{x}{r} \SEMI \PR{y}{s}
-%     %\IF{x}\THEN \PR{y}{r} \FI
+%     %     \IF{x}\THEN \PR{y}{r} \FI
 %     \\
 %     \PAR
 %     &\PW{y}{0}\SEMI \PW{y}{1}
 %     &\PAR&
 %     \PR{y}{r} \SEMI \PR{x}{s}
-%     %\IF{y}\THEN \PR{x}{s} \FI
+%     %     \IF{y}\THEN \PR{x}{s} \FI
 %   \end{array}$}
 %   \quad
 %   \hbox{\begin{tikzinlinesmall}[node distance=.5em and 1em]
-%   \event{wx0}{\DW{x}{0}}{}
-%   \event{wx1}{\DW{x}{1}}{right=of wx0}
-%   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
-%   \event{wy1}{\DW{y}{1}}{right=of wy0}
-%   \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
-%   \event{rx0}{\DR{x}{0}}{right=of ry1}
-%   \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
-%   \event{ry0}{\DR{y}{0}}{right=of rx1}
-%   \wk{wx0}{wx1}
-%   \wk{wy0}{wy1}
-%   \rf{wx1}{rx1}
-%   \rf[bend left]{wy0}{ry0}
-%   \rf{wy1}{ry1}
-%   \rf[bend right]{wx0}{rx0}
-%   \wk{rx0}{wx1}
-%   \wk{ry0}{wy1}
-%     \end{tikzinlinesmall}}
+%     \event{wx0}{\DW{x}{0}}{}
+%     \event{wx1}{\DW{x}{1}}{right=of wx0}
+%     \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
+%     \event{wy1}{\DW{y}{1}}{right=of wy0}
+%     \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+%     \event{rx0}{\DR{x}{0}}{right=of ry1}
+%     \event{rx1}{\DR{x}{1}}{right=2.5 em of wx1}
+%     \event{ry0}{\DR{y}{0}}{right=of rx1}
+%     \wk{wx0}{wx1}
+%     \wk{wy0}{wy1}
+%     \rf{wx1}{rx1}
+%     \rf[bend left]{wy0}{ry0}
+%     \rf{wy1}{ry1}
+%     \rf[bend right]{wx0}{rx0}
+%     \wk{rx0}{wx1}
+%     \wk{ry0}{wy1}
+%   \end{tikzinlinesmall}}
 % \end{gather*}
 \begin{scope}
-\allowdisplaybreaks
-\begin{gather*}
-  % \taglabel{IRIW}
-  % %\\[-2.5ex]
-  % \renewcommand{\arraycolsep}{1pt}
-  % \begin{array}{ccccc}
-  %   &\PW{x}{0}\SEMI \PW{x}{1}
-  %   &\PAR&
-  %   \PR[\mRA]{x}{r} \SEMI \PR{y}{s}
-  %   %\IF{x}\THEN \PR{y}{r} \FI
-  %   \\
-  %   \PAR
-  %   &\PW{y}{0}\SEMI \PW{y}{1}
-  %   &\PAR&
-  %   \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
-  %   %\IF{y}\THEN \PR{x}{s} \FI
-  % \end{array}
-  % \quad
-  % \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
-  % \event{wx0}{\DW{x}{0}}{}
-  % \event{wx1}{\DW{x}{1}}{right=of wx0}
-  % \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
-  % \event{wy1}{\DW{y}{1}}{right=of wy0}
-  % \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
-  % \event{rx0}{\DR{x}{0}}{right=of ry1}
-  % \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
-  % \event{ry0}{\DR{y}{0}}{right=of rx1}
-  % \wk{wx0}{wx1}
-  % \wk{wy0}{wy1}
-  % \rf{wx1}{rx1}
-  % \rf[bend left]{wy0}{ry0}
-  % \rf{wy1}{ry1}
-  % \rf[bend right]{wx0}{rx0}
-  % \wk{rx0}{wx1}
-  % \wk{ry0}{wy1}
-  % \sync{rx1}{ry0}
-  % \sync{ry1}{rx0}
-  %   \end{tikzinlinesmall}}}
-  %\\[2ex]
-  \taglabel{MCA1}
-  \begin{gathered}
-  \IF{z}\THEN \PW{x}{0} \FI \SEMI \PW{x}{1}
-  {\PAR}
-  \IF{x}\THEN \PW{y}{0} \FI \SEMI \PW{y}{1}
-  {\PAR}
-  \IF{y}\THEN \PW{z}{0} \FI \SEMI \PW{z}{1}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a1}{\DR{z}{1}}{}
-  \event{a2}{\DW{x}{0}}{right=of a1}
-  \po{a1}{a2}
-  \event{a3}{\DW{x}{1}}{right=of a2}
-  \wk{a2}{a3}
-  \event{b1}{\DR{x}{1}}{right=3em of a3}
-  \event{b2}{\DW{y}{0}}{right=of b1}
-  \po{b1}{b2}
-  \event{b3}{\DW{y}{1}}{right=of b2}
-  \wk{b2}{b3}
-  \event{c1}{\DR{y}{1}}{right=3em of b3}
-  \event{c2}{\DW{z}{0}}{right=of c1}
-  \po{c1}{c2}
-  \event{c3}{\DW{z}{1}}{right=of c2}
-  \wk{c2}{c3}
-  \rf{a3}{b1}
-  \rf{b3}{c1}
-  \rf[out=173,in=7]{c3}{a1}  
-    \end{tikzinline}}
-\end{gathered}
-\\[1ex]
-  \taglabel{MCA2}
-  \begin{gathered}
-  \PW{x}{0}\SEMI \PW{x}{1}
-  \PAR
-  \PW{y}{x}
-  \PAR
-  \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{wx1}{\DW{x}{1}}{right=of wx0}
-  \wk{wx0}{wx1}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx1}
-  \event{wy1}{\DW{y}{1}}{right=of rx1}
-  \po{rx1}{wy1}
-  \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
-  \event{rx0}{\DR{x}{0}}{right=of ry1}
-  \rf{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \sync{ry1}{rx0}
-  \wk[out=170,in=10]{rx0}{wx1}
-  \end{tikzinline}}
-  \end{gathered}
-\end{gather*}
+  \allowdisplaybreaks
+  \begin{gather*}
+    % \taglabel{IRIW}
+    % % \\[-2.5ex]
+    % \renewcommand{\arraycolsep}{1pt}
+    % \begin{array}{ccccc}
+    %   &\PW{x}{0}\SEMI \PW{x}{1}
+    %   &\PAR&
+    %   \PR[\mRA]{x}{r} \SEMI \PR{y}{s}
+    %   %   \IF{x}\THEN \PR{y}{r} \FI
+    %   \\
+    %   \PAR
+    %   &\PW{y}{0}\SEMI \PW{y}{1}
+    %   &\PAR&
+    %   \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
+    %   %   \IF{y}\THEN \PR{x}{s} \FI
+    % \end{array}
+    % \quad
+    % \smash{\hbox{\begin{tikzinlinesmall}[baseline=-10pt,node distance=.5em and 1em]
+    %   \event{wx0}{\DW{x}{0}}{}
+    %   \event{wx1}{\DW{x}{1}}{right=of wx0}
+    %   \event{wy0}{\DW{y}{0}}{below=2ex of wx0}
+    %   \event{wy1}{\DW{y}{1}}{right=of wy0}
+    %   \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+    %   \event{rx0}{\DR{x}{0}}{right=of ry1}
+    %   \event{rx1}{\DRAcq{x}{1}}{right=2.5 em of wx1}
+    %   \event{ry0}{\DR{y}{0}}{right=of rx1}
+    %   \wk{wx0}{wx1}
+    %   \wk{wy0}{wy1}
+    %   \rf{wx1}{rx1}
+    %   \rf[bend left]{wy0}{ry0}
+    %   \rf{wy1}{ry1}
+    %   \rf[bend right]{wx0}{rx0}
+    %   \wk{rx0}{wx1}
+    %   \wk{ry0}{wy1}
+    %   \sync{rx1}{ry0}
+    %   \sync{ry1}{rx0}
+    % \end{tikzinlinesmall}}}
+    % \\[2ex]
+    \taglabel{MCA1}
+    \begin{gathered}
+      \IF{z}\THEN \PW{x}{0} \FI \SEMI \PW{x}{1}
+      {\PAR}
+      \IF{x}\THEN \PW{y}{0} \FI \SEMI \PW{y}{1}
+      {\PAR}
+      \IF{y}\THEN \PW{z}{0} \FI \SEMI \PW{z}{1}
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{z}{1}}{}
+          \event{a2}{\DW{x}{0}}{right=of a1}
+          \po{a1}{a2}
+          \event{a3}{\DW{x}{1}}{right=of a2}
+          \wk{a2}{a3}
+          \event{b1}{\DR{x}{1}}{right=3em of a3}
+          \event{b2}{\DW{y}{0}}{right=of b1}
+          \po{b1}{b2}
+          \event{b3}{\DW{y}{1}}{right=of b2}
+          \wk{b2}{b3}
+          \event{c1}{\DR{y}{1}}{right=3em of b3}
+          \event{c2}{\DW{z}{0}}{right=of c1}
+          \po{c1}{c2}
+          \event{c3}{\DW{z}{1}}{right=of c2}
+          \wk{c2}{c3}
+          \rf{a3}{b1}
+          \rf{b3}{c1}
+          \rf[out=173,in=7]{c3}{a1}  
+        \end{tikzinline}}
+    \end{gathered}
+    \\[1ex]
+    \taglabel{MCA2}
+    \begin{gathered}
+      \PW{x}{0}\SEMI \PW{x}{1}
+      \PAR
+      \PW{y}{x}
+      \PAR
+      \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wx1}{\DW{x}{1}}{right=of wx0}
+          \wk{wx0}{wx1}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx1}
+          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \po{rx1}{wy1}
+          \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
+          \event{rx0}{\DR{x}{0}}{right=of ry1}
+          \rf{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \sync{ry1}{rx0}
+          \wk[out=170,in=10]{rx0}{wx1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}
 \end{scope}
 These candidate executions are invalid, due to cycles.
 \ref{MCA1} is an example of \emph{write subsumption}
 \cite[\textsection 3]{DBLP:journals/pacmpl/PulteFDFSS18}.
- In \ref{MCA2}, $(\DW{x}{1})$ is delivered to the second thread, but not
+In \ref{MCA2}, $(\DW{x}{1})$ is delivered to the second thread, but not
 the third; this is similar to the well know \iriw{} (Independent
 Reads of Independent Writes) litmus test, which is also disallowed by \mca{}
 architectures if the reads within each thread are ordered. 
@@ -486,7 +486,7 @@ be introduced between the reads. See example \ref{addr2}
 % \citet{PughWebsite} developed a set of twenty {causality test cases} in the
 % process of revising the Java Memory Model (JMM)
 % \cite{Manson:2005:JMM:1047659.1040336}.
-% %Using hand calculation, we have confirmed that
+% % Using hand calculation, we have confirmed that
 % Our model gives the desired result for all twenty cases,
 % unrolling loops as necessary.
 % % confirmed that our model gives the desired result these test cases, with the
@@ -520,24 +520,24 @@ be introduced between the reads. See example \ref{addr2}
 %   \end{math}
 %   where $\aPS\in\sem{\aCmd}[\aLoc/\aReg]$ and $\aForm_k$ are
 %   disjoint\footnote{For $i$, $j$ in $K$: if $\aForm_i \land \aForm_j$ is
-%     satisfiable then $i=j$.}.
-% \begin{align*}
+%   satisfiable then $i=j$.}.
+%   \begin{align*}
 %     \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
 %     \textstyle\bigcup_K\; \parallel_{k\in K}(\aForm_k \mid \DRmode\aLoc{\aVal_k}) \prefix \aPS_k
 %     \\[-.5ex] & \mkern2mu\cup
-%     %(\iDRmode{\aLoc}{}) \prefix
+%     %     (\iDRmode{\aLoc}{}) \prefix
 %     \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
 %     \sem{\aCmd}[\aLoc/\aReg]
-%     %\text{ else $\emptyset$}
+%     %     \text{ else $\emptyset$}
 %     \\
 %     \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
 %     \parallel_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
 %     \\[-.5ex] & \mkern2mu\cup
-%     %(\iDWmode{\aLoc}{}) \prefix
+%     %     (\iDWmode{\aLoc}{}) \prefix
 %     \text{if $\amode\mathbin\neq\mRLX$ then }\text{$\emptyset$ else }
 %     (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
-%     %\text{ else $\emptyset$}
-% \end{align*}
+%     %     \text{ else $\emptyset$}
+%   \end{align*}
 % \end{definition}
 
 \myparagraph{Internal Reads and Value Range Analysis}
@@ -550,36 +550,36 @@ allowed, as it is in our model:
 \begin{gather*}
   \taglabel{TC1}
   \begin{gathered}
-  \PW{x}{0} \SEMI
-  (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
-  \PAR
-  \PW{x}{y})
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-  \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \po{ry1}{wx1}
-  \rf[out=-168,in=-12]{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \wk[out=10,in=170]{wx0}{wx1}
-  \wk{wx0}{rx1}
-    \end{tikzinline}}
-  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
-  % \event{wy1}{0\geq0\mid\DW{y}{1}}{}
-  % \event{rx1}{\DR{x}{1}}{left=of wy1}
-  % \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
-  % \event{ry1}{\DR{y}{1}}{below=of rx1}
-  % \event{wx1}{\DW{x}{1}}{right=of ry1}
-  % \po{ry1}{wx1}
-  % \rf[out=140,in=-20]{wx1}{rx1}
-  % \rf{wy1}{ry1}
-  % \wk[out=10,in=155]{wx0}{wx1}
-  % \wk{wx0}{rx1}
-  %   \end{tikzinline}}
-\end{gathered}
+    \PW{x}{0} \SEMI
+    (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
+    \PAR
+    \PW{x}{y})
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+        \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+        \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+        \event{wx1}{\DW{x}{1}}{right=of ry1}
+        \po{ry1}{wx1}
+        \rf[out=-168,in=-12]{wx1}{rx1}
+        \rf{wy1}{ry1}
+        \wk[out=10,in=170]{wx0}{wx1}
+        \wk{wx0}{rx1}
+      \end{tikzinline}}
+    % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+    %   \event{wy1}{0\geq0\mid\DW{y}{1}}{}
+    %   \event{rx1}{\DR{x}{1}}{left=of wy1}
+    %   \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
+    %   \event{ry1}{\DR{y}{1}}{below=of rx1}
+    %   \event{wx1}{\DW{x}{1}}{right=of ry1}
+    %   \po{ry1}{wx1}
+    %   \rf[out=140,in=-20]{wx1}{rx1}
+    %   \rf{wy1}{ry1}
+    %   \wk[out=10,in=155]{wx0}{wx1}
+    %   \wk{wx0}{rx1}
+    % \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 In this example, $(\DW{x}{0})$ ``fulfills'' the read of $x$ that is used in
 the guard of the conditional.  This is possible when prefixing $(\DR{x}{1})$
@@ -594,42 +594,42 @@ the introduction of concurrent writes, as in \ref{TC9}:
 \begin{gather*}
   \taglabel{TC9}
   \begin{gathered}
-  \PW{x}{0} \SEMI
-  (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
-  \PAR
-  \PW{x}{y}
-  \PAR
-  \PW{x}{-2})
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{wx0}{\DW{x}{0}}{}
-  \event{rx1}{\DR{x}{1}}{right=3em of wx0}
-  \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
-  \event{ry1}{\DR{y}{1}}{right=3em of wy1}
-  \event{wx1}{\DW{x}{1}}{right=of ry1}
-  \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
-  \po{ry1}{wx1}
-  \rf[out=-168,in=-12]{wx1}{rx1}
-  \rf{wy1}{ry1}
-  \wk[out=10,in=170]{wx0}{wx1}
-  \wk{wx0}{rx1}
-  \wk{wx1}{wx2}
-    \end{tikzinline}}
-  % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
-  % \event{wy1}{0\geq0\mid\DW{y}{1}}{}
-  % \event{rx1}{\DR{x}{1}}{left=of wy1}
-  % \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
-  % \event{ry1}{\DR{y}{1}}{below=of rx1}
-  % \event{wx1}{\DW{x}{1}}{right=of ry1}
-  % \event{wx2}{\DW{x}{{-2}}}{below right=-.2em and 2em of wy1}
-  % \po{ry1}{wx1}
-  % \rf[out=140,in=-20]{wx1}{rx1}
-  % \rf{wy1}{ry1}
-  % \wk[out=10,in=155]{wx0}{wx1}
-  % \wk{wx0}{rx1}
-  % \wk{wx1}{wx2}
-  %   \end{tikzinline}}
-\end{gathered}
+    \PW{x}{0} \SEMI
+    (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
+    \PAR
+    \PW{x}{y}
+    \PAR
+    \PW{x}{-2})
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+        \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+        \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+        \event{wx1}{\DW{x}{1}}{right=of ry1}
+        \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
+        \po{ry1}{wx1}
+        \rf[out=-168,in=-12]{wx1}{rx1}
+        \rf{wy1}{ry1}
+        \wk[out=10,in=170]{wx0}{wx1}
+        \wk{wx0}{rx1}
+        \wk{wx1}{wx2}
+      \end{tikzinline}}
+    % \hbox{\begin{tikzinline}[node distance=1.5em and 2em]
+    %   \event{wy1}{0\geq0\mid\DW{y}{1}}{}
+    %   \event{rx1}{\DR{x}{1}}{left=of wy1}
+    %   \event{wx0}{\DW{x}{0}}{below left=-.2em and 2em of rx1}
+    %   \event{ry1}{\DR{y}{1}}{below=of rx1}
+    %   \event{wx1}{\DW{x}{1}}{right=of ry1}
+    %   \event{wx2}{\DW{x}{{-2}}}{below right=-.2em and 2em of wy1}
+    %   \po{ry1}{wx1}
+    %   \rf[out=140,in=-20]{wx1}{rx1}
+    %   \rf{wy1}{ry1}
+    %   \wk[out=10,in=155]{wx0}{wx1}
+    %   \wk{wx0}{rx1}
+    %   \wk{wx1}{wx2}
+    % \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 The calculation of this pomset is unchanged from \ref{TC1}.
 
@@ -645,32 +645,32 @@ satisfy the precondition:
 \begin{gather*}
   \taglabel{TC2}
   \begin{gathered}
-  \PR{x}{r}\SEMI
-  \PR{x}{s}\SEMI
-  \IF{r{=}s}\THEN \PW{y}{1}\FI
-  \PAR
-  \PW{x}{y}
-  \\[-1ex]
-  \nonumber
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a1}{\DR{x}{1}}{}
-  \event{a2}{\DR{x}{1}}{right=of a1}
-  \event{a3}{(x{=}x)\land(1{=}1)\mid\DW{y}{1}}{right=of a2}
-  % \po{a2}{a3}
-  % \po[out=15,in=165]{a1}{a3}
-  \event{b1}{\DR{y}{1}}{right=3em of a3}
-  \event{b2}{\DW{x}{1}}{right=of b1}
-  \rf{a3}{b1}
-  \po{b1}{b2}
-  \rf[out=169,in=11]{b2}{a2}
-  \rf[out=169,in=11]{b2}{a1}
-    \end{tikzinline}}
-\end{gathered}
+    \PR{x}{r}\SEMI
+    \PR{x}{s}\SEMI
+    \IF{r{=}s}\THEN \PW{y}{1}\FI
+    \PAR
+    \PW{x}{y}
+    \\[-1ex]
+    \nonumber
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DR{x}{1}}{}
+        \event{a2}{\DR{x}{1}}{right=of a1}
+        \event{a3}{(x{=}x)\land(1{=}1)\mid\DW{y}{1}}{right=of a2}
+        % \po{a2}{a3}
+        % \po[out=15,in=165]{a1}{a3}
+        \event{b1}{\DR{y}{1}}{right=3em of a3}
+        \event{b2}{\DW{x}{1}}{right=of b1}
+        \rf{a3}{b1}
+        \po{b1}{b2}
+        \rf[out=169,in=11]{b2}{a2}
+        \rf[out=169,in=11]{b2}{a1}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 Note that in 
 \begin{math}
   \sem{\PR{x}{s}\SEMI
-  \IF{r{=}s}\THEN \PW{y}{1}\FI},
+    \IF{r{=}s}\THEN \PW{y}{1}\FI},
 \end{math}
 the precondition on $(\DW{y}{1})$ must imply $(r{=}x \land r{=}1)$.  The
 first is imposed by \ref{5a}, the second by \ref{4c}, ensuring that the two
@@ -684,33 +684,33 @@ ignoring concurrent blocking writes.
 \begin{gather*}
   \taglabel{Internal1}
   \begin{gathered}
-  \PW{x}{1} \SEMI
-  \PW[\mRA]{a}{1} \SEMI
-  \IF{z^\mRA}\THEN  \PW{y}{x} \FI
-  \PAR
-  \IF{a^\mRA}\THEN  \PW{x}{2}\SEMI \PW[\mRA]{z}{1} \FI
-  \\
-  \hbox{\begin{tikzinline}[node distance=1.2em]
-  \event{a1}{\DW{x}{1}}{}
-  \event{a2}{\DWRel{a}{1}}{right=of a1}
-  \sync{a1}{a2}
-  \event{b3}{\DRAcq{a}{1}}{below right=0em and 3em of a2}
-  %\event{b3}{\DRAcq{a}{1}}{right=3em of a2}
-  \rf{a2}{b3}
-  \event{b4}{\DW{x}{2}}{right=of b3}
-  \sync{b3}{b4}
-  \event{b5}{\DWRel{z}{1}}{right=of b4}
-  \sync{b4}{b5}
-  \event{a6}{\DRAcq{b}{1}}{above right=0em and 3em of b5}
-  %\event{a6}{\DRAcq{z}{1}}{right=3em of b5}
-  \rf{b5}{a6}
-  \event{a7}{\DR{x}{1}}{right=of a6}
-  \sync{a6}{a7}
-  \event{a8}{1{=}1\mid\DW{y}{1}}{right=of a7}
-  \graypo{a7}{a8}
-  \sync[out=-18,in=-162]{a6}{a8}
-    \end{tikzinline}}
-\end{gathered}
+    \PW{x}{1} \SEMI
+    \PW[\mRA]{a}{1} \SEMI
+    \IF{z^\mRA}\THEN  \PW{y}{x} \FI
+    \PAR
+    \IF{a^\mRA}\THEN  \PW{x}{2}\SEMI \PW[\mRA]{z}{1} \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1.2em]
+        \event{a1}{\DW{x}{1}}{}
+        \event{a2}{\DWRel{a}{1}}{right=of a1}
+        \sync{a1}{a2}
+        \event{b3}{\DRAcq{a}{1}}{below right=0em and 3em of a2}
+        % \event{b3}{\DRAcq{a}{1}}{right=3em of a2}
+        \rf{a2}{b3}
+        \event{b4}{\DW{x}{2}}{right=of b3}
+        \sync{b3}{b4}
+        \event{b5}{\DWRel{z}{1}}{right=of b4}
+        \sync{b4}{b5}
+        \event{a6}{\DRAcq{b}{1}}{above right=0em and 3em of b5}
+        % \event{a6}{\DRAcq{z}{1}}{right=3em of b5}
+        \rf{b5}{a6}
+        \event{a7}{\DR{x}{1}}{right=of a6}
+        \sync{a6}{a7}
+        \event{a8}{1{=}1\mid\DW{y}{1}}{right=of a7}
+        \graypo{a7}{a8}
+        \sync[out=-18,in=-162]{a6}{a8}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 Here $(\DR{x}{1})$ violates \ref{rf4}.  The precondition $(1{=}1)$ is
 imposed by \ref{4c}.  The pomset becomes inconsistent if we change
@@ -724,40 +724,40 @@ Internal reads are notoriously difficult to get right.  Consider \cite[Ex 3.6]{D
 \begin{gather*}
   \taglabel{Internal2}
   \begin{gathered}
-  \PR{x}{\aReg}\SEMI
-  \PW[\mRA]{y}{1}\SEMI
-  \PR{y}{\bReg}\SEMI
-  \PW{z}{\bReg}
-  %\PW{z}{y}
-  \PAR
-  \PW{x}{z}
-  \\[-1ex]
-  \nonumber
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-  \event{a1}{\DR{x}{1}}{}
-  \event{a2}{\DWRel{y}{1}}{right=of a1}
-  \sync{a1}{a2}
-  \event{a3}{\DR{y}{1}}{right=of a2}
-  \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
-  \rf{a2}{a3}
-  %\po{a3}{a4}
-  \event{b1}{\DR{z}{1}}{right=3em of a4}
-  \event{b2}{\DW{x}{1}}{right=of b1}
-  %\po[out=10,in=170]{a2}{a4}
-  \po{b1}{b2}
-  \rf{a4}{b1}
-  \rf[out=170,in=10]{b2}{a1}
-    \end{tikzinline}}
-\end{gathered}
+    \PR{x}{\aReg}\SEMI
+    \PW[\mRA]{y}{1}\SEMI
+    \PR{y}{\bReg}\SEMI
+    \PW{z}{\bReg}
+    % \PW{z}{y}
+    \PAR
+    \PW{x}{z}
+    \\[-1ex]
+    \nonumber
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DR{x}{1}}{}
+        \event{a2}{\DWRel{y}{1}}{right=of a1}
+        \sync{a1}{a2}
+        \event{a3}{\DR{y}{1}}{right=of a2}
+        \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
+        \rf{a2}{a3}
+        % \po{a3}{a4}
+        \event{b1}{\DR{z}{1}}{right=3em of a4}
+        \event{b2}{\DW{x}{1}}{right=of b1}
+        % \po[out=10,in=170]{a2}{a4}
+        \po{b1}{b2}
+        \rf{a4}{b1}
+        \rf[out=170,in=10]{b2}{a1}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 This behavior is allowed in our model, as it is in \armeight.
-%Revisiting \eqref{Internal2}, %the example,
+% Revisiting \eqref{Internal2}, %the example,
 Note that $\sem{\PW{z}{\bReg}}$ includes $(\bReg{=}1\mid \DW{z}{1})$.
 Prepending a read,
 % of Definition~\ref{def:rw:local},
 $\sem{\PR{y}{\bReg} \SEMI \PW{z}{\bReg}}$ may update the precondition to
 $(y{=}1\mid \DW{z}{1})$ without introducing order.
-%Crucially, there is no explicit read event.
+% Crucially, there is no explicit read event.
 Further prepending
 $(\DWRel{y}{1})$ results in $(1{=}1\mid \DW{z}{1})$.
 
@@ -776,34 +776,34 @@ proof of correctness for implementing our semantics on \armeight{}
 % allowed by our semantics, enabling efficient compilation to \armeight:
 % \begin{gather}
 %   \label{inlining}
-%   % \PR{x}{\aReg}\SEMI
-%   % \PW[\mRA]{y}{1}\SEMI
-%   % \PW{z}{y}
-%   % \PAR
-%   % \PW{x}{z}
-%   % \\
+%   %   \PR{x}{\aReg}\SEMI
+%   %   \PW[\mRA]{y}{1}\SEMI
+%   %   \PW{z}{y}
+%   %   \PAR
+%   %   \PW{x}{z}
+%   %   \\
 %   \hbox{\begin{tikzinline}[node distance=.5em and 1em]
-%   \event{a1}{\DR{x}{1}}{}
-%   \event{a2}{\DWRel{y}{1}}{right=of a1}
-%   \po{a1}{a2}
-%   \internal{a3}{\DR{y}{1}}{right=of a2}
-%   \event{a4}{\DW{z}{1}}{right=of a3}
-%   %\rf{a2}{a3}
-%   \graypo{a3}{a4}
-%   \event{b1}{\DR{z}{1}}{right=of a4}
-%   \event{b2}{\DW{x}{1}}{right=of b1}
-%   %\po[out=10,in=170]{a2}{a4}
-%   \po{b1}{b2}
-%   \rf{a4}{b1}
-%   \rf[out=170,in=10]{b2}{a1}
-%     \end{tikzinline}}
+%     \event{a1}{\DR{x}{1}}{}
+%     \event{a2}{\DWRel{y}{1}}{right=of a1}
+%     \po{a1}{a2}
+%     \internal{a3}{\DR{y}{1}}{right=of a2}
+%     \event{a4}{\DW{z}{1}}{right=of a3}
+%   %     \rf{a2}{a3}
+%     \graypo{a3}{a4}
+%     \event{b1}{\DR{z}{1}}{right=of a4}
+%     \event{b2}{\DW{x}{1}}{right=of b1}
+%   %     \po[out=10,in=170]{a2}{a4}
+%     \po{b1}{b2}
+%     \rf{a4}{b1}
+%     \rf[out=170,in=10]{b2}{a1}
+%   \end{tikzinline}}
 % \end{gather}
 
 
 
 
 \myparagraph{SC access}
-%This example is also disallowed if we use $\mSC$ rather than $\mRA$.
+% This example is also disallowed if we use $\mSC$ rather than $\mRA$.
 \ref{5d} ensures that program order between SC operations is always
 preserved.  Combined with \ref{rf3}--\ref{rf4}, this is
 sufficient to establish that programs with only SC access have only SC
@@ -819,28 +819,28 @@ $(\DW[\mSC]{x}{2})$ to $(\DW{y}{1})$---recall that SC writes are \emph{releases}
 \begin{gather*}
   \taglabel{SC1}
   \begin{gathered}
-  \PR{y}{r}\SEMI \PW[\mSC]{x}{1}\SEMI \PR{x}{s}
-  \PAR
-  % \PW{y}{0}\SEMI
-  \PW[\mSC]{x}{2} \SEMI \PW{y}{1}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a}{\DR{y}{1}}{}
-      \event{b}{\DW[\mSC]{x}{1}}{right=of a}
-      \sync{a}{b}
-      \event{bb}{\DR{x}{2}}{right=of b}
-      \wk{b}{bb}
-      % \event{c}{\DW{y}{0}}{right=2em of bb}
-      % \event{d}{\DW[\mSC]{x}{2}}{right=of c}
-      % \po{c}{d}
-      \event{d}{\DW[\mSC]{x}{2}}{right=3em of bb}
-      \event{e}{\DW{y}{1}}{right=of d}
-      %\rf[out=170,in=10]{d}{bb}
-      \rf{d}{bb}
-      \rf[out=-170,in=-10]{e}{a}
-      \wk[in=165,out=15]{b}{d}
-    \end{tikzinline}}
-\end{gathered}
+    \PR{y}{r}\SEMI \PW[\mSC]{x}{1}\SEMI \PR{x}{s}
+    \PAR
+    % \PW{y}{0}\SEMI
+    \PW[\mSC]{x}{2} \SEMI \PW{y}{1}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DR{y}{1}}{}
+        \event{b}{\DW[\mSC]{x}{1}}{right=of a}
+        \sync{a}{b}
+        \event{bb}{\DR{x}{2}}{right=of b}
+        \wk{b}{bb}
+        % \event{c}{\DW{y}{0}}{right=2em of bb}
+        % \event{d}{\DW[\mSC]{x}{2}}{right=of c}
+        % \po{c}{d}
+        \event{d}{\DW[\mSC]{x}{2}}{right=3em of bb}
+        \event{e}{\DW{y}{1}}{right=of d}
+        % \rf[out=170,in=10]{d}{bb}
+        \rf{d}{bb}
+        \rf[out=-170,in=-10]{e}{a}
+        \wk[in=165,out=15]{b}{d}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 This execution is disallowed by
 \citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}, preventing them from
@@ -854,26 +854,26 @@ difficulty in Javascript \cite[\textsection27]{ecma2019}:
 \begin{gather*}
   \taglabel{SC2}
   \begin{gathered}
-  \PW[\mSC]{x}{1} \SEMI \PR[\mSC]{y}{r}
-  \PAR
-  \PW[\mSC]{y}{1} \SEMI \PW[\mSC]{y}{2} \SEMI \PW{x}{2} \SEMI \PR[\mSC]{x}{s}
-  \\[-1ex]
-  \hbox{\begin{tikzinline}[node distance=1.5em]
-      \event{a}{\DW[\mSC]{x}{1}}{}
-      \event{b}{\DR[\mSC]{y}{1}}{right=of a}
-      \event{c}{\DW[\mSC]{y}{1}}{right=3em of b}
-      \event{d}{\DW[\mSC]{y}{2}}{right=of c}
-      \event{e}{\DW{x}{2}}{right=of d}
-      \event{f}{\DR[\mSC]{x}{1}}{right=of e}
-      \sync{a}{b}
-      \sync{c}{d}
-      \sync[out=15,in=165]{d}{f}
-      \rf{c}{b}
-      \rf[out=-8,in=-172]{a}{f}
-      \wk[in=10,out=170]{e}{a}
-      \wk{e}{f}
-    \end{tikzinline}}
-\end{gathered}
+    \PW[\mSC]{x}{1} \SEMI \PR[\mSC]{y}{r}
+    \PAR
+    \PW[\mSC]{y}{1} \SEMI \PW[\mSC]{y}{2} \SEMI \PW{x}{2} \SEMI \PR[\mSC]{x}{s}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW[\mSC]{x}{1}}{}
+        \event{b}{\DR[\mSC]{y}{1}}{right=of a}
+        \event{c}{\DW[\mSC]{y}{1}}{right=3em of b}
+        \event{d}{\DW[\mSC]{y}{2}}{right=of c}
+        \event{e}{\DW{x}{2}}{right=of d}
+        \event{f}{\DR[\mSC]{x}{1}}{right=of e}
+        \sync{a}{b}
+        \sync{c}{d}
+        \sync[out=15,in=165]{d}{f}
+        \rf{c}{b}
+        \rf[out=-8,in=-172]{a}{f}
+        \wk[in=10,out=170]{e}{a}
+        \wk{e}{f}
+      \end{tikzinline}}
+  \end{gathered}
 \end{gather*}
 This execution is allowed both by our semantics and by \armeight{} (using
 \texttt{stlr} for SC writes and \texttt{ldar} for SC reads).  However, it is
@@ -905,8 +905,8 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 %   \BNFDEF& \SKIP
 %   \mkern-2mu\BNFSEP\mkern-2mu \FENCE^{\fmode}
 %   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS\aExp
-%   % \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
-%   % \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
+%   %   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \aLoc^{\amode} 
+%   %   \mkern-2mu\BNFSEP\mkern-2mu \aLoc^{\amode}\GETS\aExp
 %   \mkern-2mu\BNFSEP\mkern-2mu \aReg\GETS \REF{\cExp}^{\amode} 
 %   \mkern-2mu\BNFSEP\mkern-2mu \REF{\cExp}^{\amode}\GETS\aExp
 %   \\[-.5ex]
@@ -930,25 +930,25 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 
 % \begin{lemma}%\label{freadssatcomp}[Compositionality of $\freadsat$]
 %   Let $\bCtxt$ be a context
-%   % \footnote{%
+%   %   \footnote{%
 %   %   The results of this section hold for contexts of the example language
 %   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
-%   %   % \begin{math}
-%   %   %   \begin{array}[t]{rcl}
-%   %   %     \aCtxt,\,\bCtxt
-%   %   %     &\BNFDEF& \hole{}
-%   %   %     \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
-%   %   %     \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
-%   %   %     \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
-%   %   %     \\[-.5ex]
-%   %   %     &\BNFSEP&\aCtxt \PAR \bCmd
-%   %   %     \BNFSEP \aCmd \PAR \bCtxt
-%   %   %     \BNFSEP \VAR\aLoc\SEMI \aCtxt
-%   %   %     \\[-.5ex]
-%   %   %     &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
-%   %   %     \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
-%   %   %   \end{array}
-%   %   % \end{math}
+%   %   %   \begin{math}
+%   %   %     \begin{array}[t]{rcl}
+%   %   %       \aCtxt,\,\bCtxt
+%   %   %       &\BNFDEF& \hole{}
+%   %   %       \BNFSEP \aReg\GETS\aExp\SEMI \aCtxt
+%   %   %       \BNFSEP \aReg\GETS\aLoc^{\amode}\SEMI \aCtxt 
+%   %   %       \BNFSEP \aLoc^{\amode}\GETS\aExp\SEMI \aCtxt
+%   %   %       \\[-.5ex]
+%   %   %       &\BNFSEP&\aCtxt \PAR \bCmd
+%   %   %       \BNFSEP \aCmd \PAR \bCtxt
+%   %   %       \BNFSEP \VAR\aLoc\SEMI \aCtxt
+%   %   %       \\[-.5ex]
+%   %   %       &\BNFSEP& \IF{\aExp} \THEN \aCtxt \ELSE \bCmd \FI
+%   %   %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
+%   %   %     \end{array}
+%   %   %   \end{math}
 %   %   The results of this section hold for contexts of the example language
 %   %   given in \textsection\ref{sec:model} and extended in \textsection\ref{sec:variants}.
 %   %   The results also hold for the more general contexts of
@@ -968,13 +968,13 @@ Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
 %   %       \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCtxt \FI
 %   %     \end{array}
 %   %   \end{displaymath}}
-% and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
-% \begin{displaymath}
-%   \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
-% \end{displaymath}
+%   and $\readc\sem{\aCmd} \supseteq \readc\sem{\aCmd'}$:
+%   \begin{displaymath}
+%     \readc\sem{\bCtxt\hole{\aCmd}} \supseteq \readc\sem{\bCtxt\hole{\aCmd'}}
+%   \end{displaymath}
 % \end{lemma}
 
-%
+% 
 
 The semantics validates many peephole optimizations.  Most apply only to
 relaxed access.
@@ -994,56 +994,56 @@ relaxed access.
 \end{align*}
 % \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
 % have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
-%     \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
+% \GETS \aLoc)}}{{\free(\bLoc \GETS \bExp)}}$. 
 % \ref{RR} requires either $\aReg\neq\bReg$ or
-%   $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
+% $\aLoc=\bLoc$.  \ref{WW} and \ref{RW} require that two sides of the
 % semicolon have disjoint ids; for example, \ref{RW} requires
 % $\disjoint{{\free(\PR{\aLoc}{\aReg})}}{{\free(\bLoc \GETS \bExp)}}$.
 \ref{5} imposes no order between events in \ref{RR}--\ref{RW}.  %Note that \ref{RR} allows aliasing.
 Using augmentation closure, \ref{5} also validates roach-motel reorderings \cite{SevcikThesis}.  For
 example, on read/write pairs:
-  \begin{align*}
-    \tag{\textsc{roach1}}\label{AcqW}
-    \sem{x^\amode \GETS \aExp \SEMI\PR{y}{\bReg} \SEMI\aCmd} &\supseteq
-    \sem{\PR{y}{\bReg}  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
-    &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
-    \\
-    \tag{\textsc{roach2}}\label{RelW}
-    \sem{x \GETS \aExp \SEMI\PR[\amode]{y}{\bReg} \SEMI\aCmd} &\supseteq
-    \sem{\PR[\amode]{y}{\bReg}  \SEMI x\GETS \aExp \SEMI \aCmd} 
-    &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
-  \end{align*}
+\begin{align*}
+  \tag{\textsc{roach1}}\label{AcqW}
+  \sem{x^\amode \GETS \aExp \SEMI\PR{y}{\bReg} \SEMI\aCmd} &\supseteq
+  \sem{\PR{y}{\bReg}  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
+  &&\text{if }
+  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+  \\
+  \tag{\textsc{roach2}}\label{RelW}
+  \sem{x \GETS \aExp \SEMI\PR[\amode]{y}{\bReg} \SEMI\aCmd} &\supseteq
+  \sem{\PR[\amode]{y}{\bReg}  \SEMI x\GETS \aExp \SEMI \aCmd} 
+  &&\text{if }
+  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+\end{align*}
 
-  Redundant load elimination \eqref{RL} follows
-  from \ref{1}, taking $\bEv\in\Event$, regardless of the access mode:
+Redundant load elimination \eqref{RL} follows
+from \ref{1}, taking $\bEv\in\Event$, regardless of the access mode:
 \begin{align*}
   \taglabel{RL}
   \sem{\PR[\amode]{\aLoc}{\aReg} \SEMI \PR[\amode]{\aLoc}{\bReg}\SEMI\aCmd} &\supseteq 
   \sem{\PR[\amode]{\aLoc}{\aReg} \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
 \end{align*}
-%\ref{RL} holds regardless of the access mode.
-  % Reads on the same location are ordered in our model; thus, read optimizations
+% \ref{RL} holds regardless of the access mode.
+% Reads on the same location are ordered in our model; thus, read optimizations
 % are limited by the power of aliasing analysis
 % \cite[\textsection2.3]{DBLP:conf/java/Pugh99}.  If $\aLoc\neq\bLoc$, then:
 
-  Since \ref{5b} does not impose order between reads of the same
-  location, \ref{RR} can allow the possibility that $\aLoc=\bLoc$.  As a
-  result, read optimizations are not limited by the power of aliasing
-  analysis.  By composing \ref{RR} and \ref{RL}, we validate \ref{CSE}:
+Since \ref{5b} does not impose order between reads of the same
+location, \ref{RR} can allow the possibility that $\aLoc=\bLoc$.  As a
+result, read optimizations are not limited by the power of aliasing
+analysis.  By composing \ref{RR} and \ref{RL}, we validate \ref{CSE}:
 \begin{align*}
   \taglabel{CSE}
   \sem{r_1\GETS \aLoc \SEMI
-  s\GETS \bLoc \SEMI  
-  r_2\GETS \aLoc\SEMI\aCmd}
+    s\GETS \bLoc \SEMI  
+    r_2\GETS \aLoc\SEMI\aCmd}
   \supseteq
   \sem{r_1\GETS \aLoc \SEMI     
     r_2\GETS r_1\SEMI
     s\GETS \bLoc \SEMI\aCmd}
-    &&\textif \aReg_2\neq\bReg&&\hbox{}
+  &&\textif \aReg_2\neq\bReg&&\hbox{}
 \end{align*}
-%However, this fails if $\aLoc=\bLoc$.
+% However, this fails if $\aLoc=\bLoc$.
 
 
 % \begin{displaymathsmall}
@@ -1070,14 +1070,14 @@ example, on read/write pairs:
 % Let $\aCmd$ be
 % synchronization-free, with disjoint ids as before:
 % \begin{align*}
-%   % \taglabelp{RL}
-%   % \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
-%   % \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
-%   % \\
-%   % \taglabelp{SF} 
-%   % \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
-%   % \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
-%   % \\
+%   %   \taglabelp{RL}
+%   %   \sem{\aReg \GETS \aLoc  \SEMI \bReg \GETS \aLoc  \SEMI \aCmd} &\supseteq
+%   %   \sem{\aReg \GETS \aLoc \SEMI \aCmd[\aReg/\bReg]}
+%   %   \\
+%   %   \taglabelp{SF} 
+%   %   \sem{\aLoc \GETS \aExp \SEMI \bReg \GETS \aLoc \SEMI \aCmd} &\supseteq 
+%   %   \sem{\aLoc \GETS \aExp \SEMI \aCmd[\aExp/\bReg]}  
+%   %   \\
 %   \taglabel{A}
 %   \sem{\aCmd \SEMI \bReg \GETS \aLoc^\mRA} &\supseteq
 %   \sem{\bReg \GETS \aLoc^\mRA\SEMI  \aCmd}
@@ -1093,25 +1093,25 @@ example, on read/write pairs:
 %     \tag{R-Acq}
 %     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA \SEMI \aCmd} &\supseteq
 %     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
-% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
 %     \\
 %     \tag{W-Acq} 
 %     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA \SEMI\aCmd} &\supseteq
 %     \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp \SEMI \aCmd} 
 %     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
 %     \\
-% \tag{Rel-R} 
-% \sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
+%     \tag{Rel-R} 
+%     \sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} \SEMI \aCmd} &\supseteq
 %     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp \SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
 %     \\
 %     \tag{Rel-W}
 %     \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI \aCmd} &\supseteq
 %     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp \SEMI \aCmd}
 %   \end{align*}
-% \begin{proof}
-% The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
-% \end{proof}
+%   \begin{proof}
+%     The proof follows from noticing that the pomsets in the semantics of the right hand sides are augmentations of a pomset on the left hand side.  
+%   \end{proof}
 % \end{lemma}
 
 % Again, we suppose that $\aCmd$ is an assignment sequence and disjoint
@@ -1148,18 +1148,18 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %     \IF{r=1}\THEN \PW{x}{r}\SEMI \PW{x}{1} \ELSE \PW{x}{1}\FI
 %     \\
 %     \hbox{\begin{tikzinline}[node distance=1.5em]
-%         \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
-%         \event{b}{s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
-%       \end{tikzinline}}
+%       \event{a}{s \mathbin{\mid}\DR{x}{0}}{}
+%       \event{b}{s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
+%     \end{tikzinline}}
 %   \end{gathered}
 %   &&
 %   \begin{gathered}
 %     \IF{\lnot s}\THEN \cmdR \FI
 %     \\
 %     \hbox{\begin{tikzinline}[node distance=1.5em]
-%         \event{a}{\lnot s \mathbin{\mid}\DR{x}{0}}{}
-%         \event{b}{\lnot s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
-%       \end{tikzinline}}
+%       \event{a}{\lnot s \mathbin{\mid}\DR{x}{0}}{}
+%       \event{b}{\lnot s \land r\mathbin{\mid}\DR{x}{0}}{right=of a}
+%     \end{tikzinline}}
 %   \end{gathered}
 % \end{align*}
 
@@ -1172,84 +1172,84 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %   $\labelingAct^0=\labelingAct^1 =\labelingAct^2$, and
 %   $\labelingForm^0(\aEv)$ implies 
 %   $\labelingForm^1(\aEv)\lor \labelingForm^2(\aEv)$.
-%   % We say that $\aPSS$ is \emph{disjunction closed} if
-%   % $\aPS^0\in\aPSS$ whenever there are $\{\aPS^1,\,\aPS^2\}\subseteq \aPSS$
-%   % such that $\aPS^0$ is a disjunct of $\aPS^1$ and $\aPS^2$.
+%   %   We say that $\aPSS$ is \emph{disjunction closed} if
+%   %   $\aPS^0\in\aPSS$ whenever there are $\{\aPS^1,\,\aPS^2\}\subseteq \aPSS$
+%   %   such that $\aPS^0$ is a disjunct of $\aPS^1$ and $\aPS^2$.
 % \end{definition}
 % In proving disjunction closure, the difficult case is prefixing.
 
 % \ref{DC} requires that $\aExp$ be a tautology.
 
 % Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
-%reorderings hold.
-%  \begin{align*}
+% reorderings hold.
 % \begin{align*}
-%    \tag{R-R}
-%    \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} 
-%\SEMI \aCmd} &=
-%    \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
- %   \\
- %   \tag{R-W}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
-%\SEMI \aCmd} &=
-%    \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
-%    \\
- %   \tag{W-W}
- %   \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI 
-%\aCmd} &=
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI 
-%\aCmd}
-%  \end{align*}
-% \begin{proof}
-% The semantics of sequential composition $\aCmd \SEMI \bCmd$, where 
-% the only enforced $\lt$ relationships come from conflict on locations or 
-%release or acquire actions.    The roach-motel reorderings that increase 
-%the scope of synchronization are valid because the pomsets in the 
-%semantics of the right hand sides are augmentations of a pomset on the 
-%left hand side. 
-%\end{proof}
-%\end{lemma}
+%   \begin{align*}
+%     \tag{R-R}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp} 
+%     \SEMI \aCmd} &=
+%     \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
+%     \SEMI \aCmd}
+%     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     \\
+%     \tag{R-W}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
+%     \SEMI \aCmd} &=
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \aReg \GETS \REF{\cExp} 
+%     \SEMI \aCmd}
+%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+%     \tag{W-W}
+%     \sem{\REF{\cExp} \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp \SEMI 
+%     \aCmd} &=
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp} \GETS \aExp \SEMI 
+%     \aCmd}
+%   \end{align*}
+%   \begin{proof}
+%     The semantics of sequential composition $\aCmd \SEMI \bCmd$, where 
+%     the only enforced $\lt$ relationships come from conflict on locations or 
+%     release or acquire actions.    The roach-motel reorderings that increase 
+%     the scope of synchronization are valid because the pomsets in the 
+%     semantics of the right hand sides are augmentations of a pomset on the 
+%     left hand side. 
+%   \end{proof}
+% \end{lemma}
 
 
 % \begin{lemma}%[Reorderings]
-% Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
-%reorderings hold.
- % \begin{align*}
-%    \tag{R-Acq}
- %   \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA 
-%\SEMI \aCmd} &\supseteq
- %   \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd}
-% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
- %   \\
- %   \tag{W-Acq} 
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 
-%\SEMI\aCmd} &\supseteq
-%    \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp 
-%\SEMI \aCmd} 
-%    &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
- %   \\
-% \tag{Rel-R} 
-%\sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
-%\SEMI \aCmd} &\supseteq
- %   \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp 
-%\SEMI \aCmd}
-%   &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
- %   \\
- %   \tag{Rel-W}
- %   \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
- %   \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp 
-%\SEMI \aCmd}
-%  \end{align*}
-%\begin{proof}
-%The proof follows from noticing that the pomsets in the semantics of the 
-%right hand sides are augmentations of a pomset on the left hand side.  
-%\end{proof}
-%\end{lemma}
+%   Suppose $\cExp\neq\dExp$ is a tautology.  Then the following 
+%   reorderings hold.
+%   \begin{align*}
+%     \tag{R-Acq}
+%     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA 
+%     \SEMI \aCmd} &\supseteq
+%     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
+%     \SEMI \aCmd}
+%     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     \\
+%     \tag{W-Acq} 
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 
+%     \SEMI\aCmd} &\supseteq
+%     \sem{\aReg \GETS \REF{\cExp}^\mRA  \SEMI \REF{\dExp}\GETS \bExp 
+%     \SEMI \aCmd} 
+%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+%     \tag{Rel-R} 
+%     \sem{\REF{\dExp}^\mRA \GETS \bExp \SEMI\aReg \GETS \REF{\cExp} 
+%     \SEMI \aCmd} &\supseteq
+%     \sem{ \aReg \GETS \REF{\cExp} \SEMI \REF{\dExp}^\mRA \GETS \bExp 
+%     \SEMI \aCmd}
+%     &&\textif \aReg\notin\free(\dExp) \cup\free(\bExp)
+%     \\
+%     \tag{Rel-W}
+%     \sem{\REF{\cExp}^\mRA \GETS \aExp \SEMI \REF{\dExp} \GETS \bExp %\SEMI \aCmd} &\supseteq
+%     \sem{\REF{\dExp} \GETS \bExp \SEMI \REF{\cExp}^\mRA \GETS \aExp 
+%     \SEMI \aCmd}
+%   \end{align*}
+%   \begin{proof}
+%     The proof follows from noticing that the pomsets in the semantics of the 
+%     right hand sides are augmentations of a pomset on the left hand side.  
+%   \end{proof}
+% \end{lemma}
 
 % \paragraph*{Compiler optimizations.} Reordering and peephole optimizations
 % can be combined to describe common compiler optimizations.  We illustrate
@@ -1274,20 +1274,20 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 
 % Since our model is more generous about permitted reorderings, we 
 % permit optimizations that they forbid.  Consider:
-%\begin{math}
- % (\aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS 
-%\aReg).
-%\end{math}
-%Reordering, permitted by us, but forbidden by them, yields
-%\begin{math}
-%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS 
-%\cLoc),
-%\end{math}
-%followed by the valid elimination of redundant load
-%\begin{math}
-%  (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS %
-%\cLoc).
-%\end{math}
+% \begin{math}
+%   (\aReg \GETS \aLoc \SEMI \bLoc \GETS \cLoc  \SEMI \aLoc \GETS 
+%   \aReg).
+% \end{math}
+% Reordering, permitted by us, but forbidden by them, yields
+% \begin{math}
+%   (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS 
+%   \cLoc),
+% \end{math}
+% followed by the valid elimination of redundant load
+% \begin{math}
+%   (\aReg \GETS \aLoc \SEMI \aLoc \GETS \aReg \SEMI \bLoc \GETS %
+%   \cLoc).
+% \end{math}
 
 As expected, %sequential and
 parallel composition commutes with conditionals and declarations, and
@@ -1304,38 +1304,38 @@ we have \emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
 % either $\cEv \gtN \bEv$ or $\aEv \gtN \cEv$---is replaced by an
 % existential---there is no conflicting write $\cEv$ such that
 % $\bEv<\cEv<\aEv$\footnote{Such conflicting writes are called \emph{blockers}.
-%   The universal quantification ensures that parallel threads cannot turn a
-%   non-blocker into a blocker.  In that paper, we advocated the use of
-%   \emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
-%   order for \ref{rf4}.  The pomsets studied in this paper are far simpler.}.
+% The universal quantification ensures that parallel threads cannot turn a
+% non-blocker into a blocker.  In that paper, we advocated the use of
+% \emph{three-valued pomsets}, which use strong order for \ref{rf3} and weak
+% order for \ref{rf4}.  The pomsets studied in this paper are far simpler.}.
 
 
-%$\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
+% $\nu\aLoc\DOT\aPSS\neq \nu\bLoc\DOT\aPSS[\bLoc/\aLoc]$ when $\bLoc\neq\aLoc$.
 % $\nu\aLoc\DOT(\aPSS\parallel\nu\aLoc\DOT\bPSS)$ is generally
 % not the same as
 % $\nu\aLoc\DOT(\aPSS\parallel(\nu\bLoc\DOT\bPSS[\bLoc/\aLoc]))$.
-%\todo{Scope extrusion fails for some definitions of fulfillment, see S\& P}
-%For example,  % We show sequential scope extrusion \ref{SSE}, which concerns
+% \todo{Scope extrusion fails for some definitions of fulfillment, see S\& P}
+% For example,  % We show sequential scope extrusion \ref{SSE}, which concerns
 % sequential composition and location binding:
 % \begin{math}
-%   % \taglabel{PSE}
+%   %   \taglabel{PSE}
 %   \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd}\allowbreak =
 %   \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
-%   % \\
-%   % \taglabel{SSE}
-%   % \sem{\aCmd\SEMI \VAR\aLoc\SEMI\bCmd}\allowbreak &=
-%   % \sem{\VAR\aLoc\SEMI(\aCmd\SEMI\bCmd)}
-%   % \\
-%   % \taglabel{CSE}
-%   % \sem{\IF{\aExp}\THEN\aCmd\ELSE \VAR\aLoc\SEMI\bCmd\FI}\allowbreak &=
-%   % \sem{\VAR\aLoc\SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
+%   %   \\
+%   %   \taglabel{SSE}
+%   %   \sem{\aCmd\SEMI \VAR\aLoc\SEMI\bCmd}\allowbreak &=
+%   %   \sem{\VAR\aLoc\SEMI(\aCmd\SEMI\bCmd)}
+%   %   \\
+%   %   \taglabel{CSE}
+%   %   \sem{\IF{\aExp}\THEN\aCmd\ELSE \VAR\aLoc\SEMI\bCmd\FI}\allowbreak &=
+%   %   \sem{\VAR\aLoc\SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
 % \end{math}
 % if $\aLoc$ does not appear in $\aCmd$.
 
-%\ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
+% \ref{SSE} requires that $\aLoc$ does not appear in $\aCmd$.
 
 \myparagraph{Invalid Rewrites}
-%\label{sec:invalid}
+% \label{sec:invalid}
 
 The definition of location binding does not validate renaming of locations:
 if $\aLoc\neq\bLoc$ then
@@ -1349,11 +1349,11 @@ fails to validate \emph{thread inlining}.  The given execution is impossible
 if the first thread is split, as in
 \begin{math}
   \sem{\PR{x}{\aReg}\SEMI
-  \PW[\mRA]{y}{1}\PAR
-  \PR{y}{\bReg}\SEMI
-  \PW{z}{\bReg}
-  \PAR
-  \PW{x}{z}}.
+    \PW[\mRA]{y}{1}\PAR
+    \PR{y}{\bReg}\SEMI
+    \PW{z}{\bReg}
+    \PAR
+    \PW{x}{z}}.
 \end{math}
 The write in the first thread cannot discharge the precondition in the
 second, now separate.
@@ -1365,7 +1365,7 @@ second, now separate.
 Some rewrites are invalid in a concurrent setting, such as
 relevant read introduction:
 \begin{displaymath}
-  %\tag{Read-Intro-Invalid}
+  % \tag{Read-Intro-Invalid}
   \sem{\PR{\aLoc}{\aReg} \SEMI \IF{\aReg {\neq} \aReg} \THEN \PW{y}{1} \FI}
   \not\supseteq
   \sem{\PR{\aLoc}{\aReg} \SEMI \PR{\aLoc}{\bReg}  \SEMI \IF{\aReg {\neq}\bReg} \THEN \PW{y}{1} \FI}

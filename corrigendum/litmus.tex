@@ -1,0 +1,677 @@
+\section{Properties of the Basic Model}
+\label{sec:props}
+
+It is amazing how much the semantics of \textsection\ref{sec:model} ``gets
+right'' out of the box, including value range analysis, internal reads, and
+SC access, all of which can be complex in other models.  In this section, we
+walk through several litmus tests, valid rewrites and invalid rewrites.  The
+examples show that \ref{5a}--\ref{5d} and \ref{rf3}--\ref{rf4} are
+understandable as \emph{general principles}.  The interaction of these
+principles is limited to a single, global, pomset order.  We discuss tweaks
+to the semantics in \textsection\ref{sec:refine}.
+
+\subsection{Litmus Tests}
+\label{sec:litmus}
+
+\citet{PughWebsite} developed a set of litmus tests for the java memory
+model.  Our model gives the expected result for all but cases 16, 19 and 20
+(unrolling loops): we discuss \ref{TC16} below; \textsc{tc19} and
+\textsc{tc20} involve a thread join operation, which is not expressible in
+our language.  Our model also agrees with the \oota{} examples of
+\citet[\textsection 4]{DBLP:conf/esop/BattyMNPS15} and the ``surprising and
+controversial behaviors'' of \citet[\textsection
+8]{Manson:2005:JMM:1047659.1040336}.  %See \cite{DBLP:conf/esop/PaviottiCPWOB20} for an exhaustive list of litmus tests.
+
+\myparagraph{Buffering}
+
+Consider the \emph{store buffering} and \emph{load buffering} litmus \labeltext[SB]{tests}{SB}:
+\begin{align*}
+  \taglabel{SB/LB}
+  \begin{gathered}
+    \PW{x}{0}\SEMI
+    \PW{y}{0}\SEMI
+    (
+    \PW{x}{1}\SEMI\PR{y}{\aReg}
+    \PAR
+    \PW{y}{1}\SEMI \PR{x}{\aReg})
+    \\[-1.5ex]
+    \hbox{\begin{tikzinline}[node distance=.9em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{wy0}{\DW{y}{0}}{right=of wx0}
+        \event{wx}{\DW{x}{1}}{right=3em of wy0}
+        \event{ry}{\DR{y}{0}}{right=of wx}
+        \event{wy}{\DW{y}{1}}{right=3em of ry}
+        \event{rx}{\DR{x}{0}}{right=of wy}
+        \rf[out=15,in=165]{wy0}{ry}
+        \rf[out=10,in=170]{wx0}{rx}
+        \wk{ry}{wy}
+        \wk[out=-165,in=-15]{rx}{wx}
+      \end{tikzinline}}
+  \end{gathered}
+  &&
+  \begin{gathered}
+    \PR{y}{\aReg}\SEMI \PW{x}{1}
+    \PAR
+    \PR{x}{\aReg}\SEMI \PW{y}{1}
+    \\
+    \hbox{\begin{tikzinline}[node distance=.9em]
+        \event{ry}{\DR{y}{1}}{}
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \event{rx}{\DR{x}{1}}{right=3em of wx}
+        \event{wy}{\DW{y}{1}}{right=of rx}
+        \rf{wx}{rx}
+        \rf[out=-165,in=-15]{wy}{ry}
+      \end{tikzinline}}
+  \end{gathered}
+\end{align*}
+Because there are no intra-thread dependencies, the desired outcomes are allowed, as shown.
+
+\myparagraph{Publication}
+\ref{rf3}--\ref{rf4} and \ref{5b}--\ref{5c} ensure correct publication,
+prohibiting stale reads:
+\begin{gather}
+  \taglabel{Pub1}
+  \begin{gathered}
+    \PW{x}{0}\SEMI %\PW{y}{0}\SEMI
+    \PW{x}{1}\SEMI \PW[\mRA]{y}{1} \PAR \PR[\mRA]{y}{r}\SEMI \PR{x}{s}
+    \\[-.4ex]
+    \nonumber
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{wx1}{\DW{x}{1}}{right=of wx0}
+        \event{wy1}{\DWRel{y}{1}}{right=of wx1}
+        \event{ry1}{\DRAcq{y}{1}}{right=2.5em of wy1}
+        \event{rx0}{\DR{x}{0}}{right=of ry1}
+        \sync{wx1}{wy1}
+        \sync{ry1}{rx0}
+        \rf{wy1}{ry1}
+        \wk{wx0}{wx1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather}
+This pomset is disallowed, since $(\DR x0)$ fails to satisfy \ref{rf4}:
+$(\DW x0) \lt (\DW x1) \lt (\DR x0)$.  Attempting to satisfy this
+requirement, one might order $(\DR x0)$ before $(\DW x1)$, but this would
+create a cycle.
+
+\myparagraph{Coherence}
+
+Our model of coherence does not correspond to either Java or C11.  We have
+chosen the model to validate \ref{CSE} (unlike C11 relaxed atomics) and the
+local \drfsc{} theorem (unlike Java).
+
+Since reads are not ordered by \ref{5b},
+we {allow} the following unintuitive behavior. C11 includes read-read
+coherence between relaxed atomics in order to forbid this:
+\begin{gather*}
+  \taglabel{Co2}
+  \begin{gathered}
+    \PW{x}{1}\SEMI \PW{x}{2}
+    \PAR
+    \PW{y}{x} \SEMI \PW{z}{x}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW{x}{1}}{}
+        \event{b}{\DW{x}{2}}{right=of a}
+        \wk{a}{b}
+        \event{c}{\DR{x}{2}}{right=3em of b}
+        \event{d}{\DW{y}{2}}{right=of c}
+        \po{c}{d}
+        \event{e}{\DR{x}{1}}{right=of d}
+        \event{f}{\DW{z}{1}}{right=of e}
+        \po{e}{f}
+        \rf{b}{c}
+        \rf[out=10,in=170]{a}{e}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+Here, the reader sees $2$ then $1$, although they are written in the reverse
+order.
+This behavior is allowed by Java in order to validate \ref{CSE} without requiring
+aliasing analysis.
+
+However, our model is more coherent than Java, which permits the following:
+\begin{gather*}
+  \taglabel{TC16}
+  \begin{gathered}
+    \PR{x}{r}\SEMI \PW{x}{1}
+    \PAR
+    \PR{x}{s}\SEMI \PW{x}{2}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DR{x}{2}}{}
+        \event{a2}{\DW{x}{1}}{right=of a1}
+        \wk{a1}{a2}
+        \event{b1}{\DR{x}{1}}{right=3em of a2}
+        \event{b2}{\DW{x}{2}}{right=of b1}
+        \wk{b1}{b2}
+        \rf{a2}{b1}
+        \rf[out=-165,in=-15]{b2}{a1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+We also forbid the \labeltext{following}{page:coherence2}, which Java allows:
+\begin{gather*}
+  \taglabel{Co3}
+  \begin{gathered}
+    \PW{x}{1}\SEMI \PW[\mRA]{y}{1}
+    \PAR
+    \PW{x}{2}\SEMI \PW[\mRA]{z}{1}
+    \PAR
+    \PR[\mRA]{z}{r} \SEMI 
+    \PR[\mRA]{y}{r} \SEMI 
+    \PR{x}{r} \SEMI 
+    \PR{x}{r}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DW{x}{1}}{}
+        \event{a2}{\DW[\mRA]{y}{1}}{right=of a1}
+        \sync{a1}{a2}
+        \event{b1}{\DW{x}{2}}{right=3em of a2}
+        \event{b2}{\DW[\mRA]{\,z}{1}}{right=of b1}
+        \sync{b1}{b2}
+        \event{c1}{\DR[\mRA]{\,z}{1}}{right=3em of b2}
+        \event{c2}{\DR[\mRA]{y}{1}}{right=of c1}
+        \event{c3}{\DR{x}{2}}{right=of c2}
+        \event{c4}{\DR{x}{1}}{right=of c3}
+        \sync{c1}{c2}
+        \sync{c2}{c3}
+        \sync[out=20,in=160]{c2}{c4}
+        \rf[out=8,in=172]{a2}{c2}
+        \rf{b2}{c1}
+        \wk[out=19,in=161]{a1}{b1}
+        \wk[out=-172,in=-8]{c4}{b1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+The order from $(\DR{x}{1})$ to $(\DW{x}{2})$ is required to fulfill
+$(\DR{x}{1})$. The outcome is disallowed due to the cycle. %by fulfillment.
+If this outcome were allowed, then racing writes would be visible, even after
+a full synchronization; this would invalidate local reasoning about data
+races (\textsection\ref{sec:sc}).
+
+\myparagraph{MCA} We present a few examples that are hallmarks of \mca{}
+architectures.  
+\begin{scope}
+  \allowdisplaybreaks
+  \begin{gather*}
+    \taglabel{MCA1}
+    \begin{gathered}
+      \IF{z}\THEN \PW{x}{0} \FI \SEMI \PW{x}{1}
+      {\PAR}
+      \IF{x}\THEN \PW{y}{0} \FI \SEMI \PW{y}{1}
+      {\PAR}
+      \IF{y}\THEN \PW{z}{0} \FI \SEMI \PW{z}{1}
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{a1}{\DR{z}{1}}{}
+          \event{a2}{\DW{x}{0}}{right=of a1}
+          \po{a1}{a2}
+          \event{a3}{\DW{x}{1}}{right=of a2}
+          \wk{a2}{a3}
+          \event{b1}{\DR{x}{1}}{right=3em of a3}
+          \event{b2}{\DW{y}{0}}{right=of b1}
+          \po{b1}{b2}
+          \event{b3}{\DW{y}{1}}{right=of b2}
+          \wk{b2}{b3}
+          \event{c1}{\DR{y}{1}}{right=3em of b3}
+          \event{c2}{\DW{z}{0}}{right=of c1}
+          \po{c1}{c2}
+          \event{c3}{\DW{z}{1}}{right=of c2}
+          \wk{c2}{c3}
+          \rf{a3}{b1}
+          \rf{b3}{c1}
+          \rf[out=173,in=7]{c3}{a1}  
+        \end{tikzinline}}
+    \end{gathered}
+    \\[1ex]
+    \taglabel{MCA2}
+    \begin{gathered}
+      \PW{x}{0}\SEMI \PW{x}{1}
+      \PAR
+      \PW{y}{x}
+      \PAR
+      \PR[\mRA]{y}{r} \SEMI \PR{x}{s}
+      \\[-1ex]
+      \hbox{\begin{tikzinline}[node distance=1.5em]
+          \event{wx0}{\DW{x}{0}}{}
+          \event{wx1}{\DW{x}{1}}{right=of wx0}
+          \wk{wx0}{wx1}
+          \event{rx1}{\DR{x}{1}}{right=3em of wx1}
+          \event{wy1}{\DW{y}{1}}{right=of rx1}
+          \po{rx1}{wy1}
+          \event{ry1}{\DRAcq{y}{1}}{right=3em of wy1}
+          \event{rx0}{\DR{x}{0}}{right=of ry1}
+          \rf{wx1}{rx1}
+          \rf{wy1}{ry1}
+          \sync{ry1}{rx0}
+          \wk[out=170,in=10]{rx0}{wx1}
+        \end{tikzinline}}
+    \end{gathered}
+  \end{gather*}
+\end{scope}
+These candidate executions are invalid, due to cycles.
+\ref{MCA1} is an example of \emph{write subsumption}
+\cite[\textsection 3]{DBLP:journals/pacmpl/PulteFDFSS18}.
+In \ref{MCA2}, $(\DW{x}{1})$ is delivered to the second thread, but not
+the third; this is similar to the well know \iriw{} (Independent
+Reads of Independent Writes) litmus test, which is also disallowed by \mca{}
+architectures if the reads within each thread are ordered. 
+
+If $y^\mRA$ is changed to $y^\mRLX$ in \ref{MCA2}, then there would be no order
+from $(\DR[\mRLX]{y}{1})$ to $(\DR{x}{0})$, and the execution would be
+allowed.  Since read-read dependencies do not appear in pomset order, the
+execution would still be allowed if a control or address dependency were to
+be introduced between the reads. See example \ref{addr2}
+(\textsection\ref{sec:limits}) for further discussion.
+
+\myparagraph{Internal Reads and Value Range Analysis}
+The JMM causality test cases \citep{PughWebsite} are justified via
+compiler analysis, possibly in collusion with the scheduler: If every 
+observed value can be shown to satisfy a precondition, then the precondition
+can be dropped.  For
+example, \ref{TC1} determines that the following execution should be
+allowed, as it is in our model:
+\begin{gather*}
+  \taglabel{TC1}
+  \begin{gathered}
+    \PW{x}{0} \SEMI
+    (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
+    \PAR
+    \PW{x}{y})
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+        \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+        \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+        \event{wx1}{\DW{x}{1}}{right=of ry1}
+        \po{ry1}{wx1}
+        \rf[out=-168,in=-12]{wx1}{rx1}
+        \rf{wy1}{ry1}
+        \wk[out=10,in=170]{wx0}{wx1}
+        \wk{wx0}{rx1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+In this example, $(\DW{x}{0})$ ``fulfills'' the read of $x$ that is used in
+the guard of the conditional.  This is possible when prefixing $(\DR{x}{1})$
+performs the substitution $[x/r]$, but does not weaken the resulting
+precondition $(x\geq0\mid\DW{y}{1})$.  Subsequently prefixing $(\DW{x}{0})$
+substitutes $[0/x]$, resulting in the tautological precondition
+$(0\geq0\mid\DW{y}{1})$.  Note that the execution does not have an action
+$(\DR{x}{0})$.
+
+Our semantics is robust with respect to
+the introduction of concurrent writes, as in \ref{TC9}:
+\begin{gather*}
+  \taglabel{TC9}
+  \begin{gathered}
+    \PW{x}{0} \SEMI
+    (\PR{x}{r}\SEMI\IF{r\geq0}\THEN \PW{y}{1} \FI
+    \PAR
+    \PW{x}{y}
+    \PAR
+    \PW{x}{-2})
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{wx0}{\DW{x}{0}}{}
+        \event{rx1}{\DR{x}{1}}{right=3em of wx0}
+        \event{wy1}{0\geq0\mid\DW{y}{1}}{right=of rx1}
+        \event{ry1}{\DR{y}{1}}{right=3em of wy1}
+        \event{wx1}{\DW{x}{1}}{right=of ry1}
+        \event{wx2}{\DW{x}{{-2}}}{right=3em of wx1}
+        \po{ry1}{wx1}
+        \rf[out=-168,in=-12]{wx1}{rx1}
+        \rf{wy1}{ry1}
+        \wk[out=10,in=170]{wx0}{wx1}
+        \wk{wx0}{rx1}
+        \wk{wx1}{wx2}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+The calculation of this pomset is unchanged from \ref{TC1}.
+
+Examples such as \ref{TC9} present substantial difficulties in other models.
+When thought of in terms of compiler optimizations, \ref{TC9} is justified by
+global value analysis in collusion with the thread scheduler.  This execution
+is disallowed by our event structure model \cite{DBLP:conf/lics/JeffreyR16}.
+It is allowed by \citet{Pichon-Pharabod:2016:CSR:2837614.2837616}, at the
+cost of introducing \emph{dead reads}.
+
+The reasoning for \ref{TC2} is similar, but in this case no value is necessary to
+satisfy the precondition:
+\begin{gather*}
+  \taglabel{TC2}
+  \begin{gathered}
+    \PR{x}{r}\SEMI
+    \PR{x}{s}\SEMI
+    \IF{r{=}s}\THEN \PW{y}{1}\FI
+    \PAR
+    \PW{x}{y}
+    \\[-1ex]
+    \nonumber
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DR{x}{1}}{}
+        \event{a2}{\DR{x}{1}}{right=of a1}
+        \event{a3}{(x{=}x)\land(1{=}1)\mid\DW{y}{1}}{right=of a2}
+        \event{b1}{\DR{y}{1}}{right=3em of a3}
+        \event{b2}{\DW{x}{1}}{right=of b1}
+        \rf{a3}{b1}
+        \po{b1}{b2}
+        \rf[out=169,in=11]{b2}{a2}
+        \rf[out=169,in=11]{b2}{a1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+Note that in 
+\begin{math}
+  \sem{\PR{x}{s}\SEMI
+    \IF{r{=}s}\THEN \PW{y}{1}\FI},
+\end{math}
+the precondition on $(\DW{y}{1})$ must imply $(r{=}x \land r{=}1)$.  The
+first is imposed by \ref{5a}, the second by \ref{4c}, ensuring that the two
+reads see the same value.
+
+Using \armeight{} terminology, these executions involve \emph{internal
+  reads}, which are fulfilled by a sequentially preceding write.  Read
+actions always generate an event that must be fulfilled, and therefore cannot
+be ignored, even if they are unused.  This fact prevents internal reads from
+ignoring concurrent blocking writes.
+\begin{gather*}
+  \taglabel{Internal1}
+  \begin{gathered}
+    \PW{x}{1} \SEMI
+    \PW[\mRA]{a}{1} \SEMI
+    \IF{z^\mRA}\THEN  \PW{y}{x} \FI
+    \PAR
+    \IF{a^\mRA}\THEN  \PW{x}{2}\SEMI \PW[\mRA]{z}{1} \FI
+    \\
+    \hbox{\begin{tikzinline}[node distance=1.2em]
+        \event{a1}{\DW{x}{1}}{}
+        \event{a2}{\DWRel{a}{1}}{right=of a1}
+        \sync{a1}{a2}
+        \event{b3}{\DRAcq{a}{1}}{below right=0em and 3em of a2}
+        \rf{a2}{b3}
+        \event{b4}{\DW{x}{2}}{right=of b3}
+        \sync{b3}{b4}
+        \event{b5}{\DWRel{z}{1}}{right=of b4}
+        \sync{b4}{b5}
+        \event{a6}{\DRAcq{b}{1}}{above right=0em and 3em of b5}
+        \rf{b5}{a6}
+        \event{a7}{\DR{x}{1}}{right=of a6}
+        \sync{a6}{a7}
+        \event{a8}{1{=}1\mid\DW{y}{1}}{right=of a7}
+        \graypo{a7}{a8}
+        \sync[out=-18,in=-162]{a6}{a8}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+Here $(\DR{x}{1})$ violates \ref{rf4}.  The precondition $(1{=}1)$ is
+imposed by \ref{4c}.  The pomset becomes inconsistent if we change
+$(\DR{x}{1})$ to $(\DR{x}{2})$, since the precondition would change to $(2{=}1)$.
+
+Internal reads are notoriously difficult to get right.  Consider \cite[Ex 3.6]{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{gather*}
+  \taglabel{Internal2}
+  \begin{gathered}
+    \PR{x}{\aReg}\SEMI
+    \PW[\mRA]{y}{1}\SEMI
+    \PR{y}{\bReg}\SEMI
+    \PW{z}{\bReg}
+    \PAR
+    \PW{x}{z}
+    \\[-1ex]
+    \nonumber
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a1}{\DR{x}{1}}{}
+        \event{a2}{\DWRel{y}{1}}{right=of a1}
+        \sync{a1}{a2}
+        \event{a3}{\DR{y}{1}}{right=of a2}
+        \event{a4}{1{=}1\mid\DW{z}{1}}{right=of a3}
+        \rf{a2}{a3}
+        \event{b1}{\DR{z}{1}}{right=3em of a4}
+        \event{b2}{\DW{x}{1}}{right=of b1}
+        \po{b1}{b2}
+        \rf{a4}{b1}
+        \rf[out=170,in=10]{b2}{a1}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+This behavior is allowed in our model, as it is in \armeight.
+Note that $\sem{\PW{z}{\bReg}}$ includes $(\bReg{=}1\mid \DW{z}{1})$.
+Prepending a read,
+$\sem{\PR{y}{\bReg} \SEMI \PW{z}{\bReg}}$ may update the precondition to
+$(y{=}1\mid \DW{z}{1})$ without introducing order.
+Further prepending
+$(\DWRel{y}{1})$ results in $(1{=}1\mid \DW{z}{1})$.
+
+Our model drops order into actions that depend on a read that can be
+fulfilled {internally}, by a prefixed write.  This is natural consequence of
+substitution.  The \armeight{} model has to jump through some hoops to ensure
+that internal reads are handled correctly.  \armeight{} takes the symmetric
+approach: rather than dropping order \emph{out of} an internal read,
+\armeight{} drops the order \emph{into} it.  This difference complicates the
+proof of correctness for implementing our semantics on \armeight{}
+(\textsection\ref{sec:arm}).
+
+\myparagraph{SC access}
+\ref{5d} ensures that program order between SC operations is always
+preserved.  Combined with \ref{rf3}--\ref{rf4}, this is
+sufficient to establish that programs with only SC access have only SC
+executions; for example, the executions of \ref{SB/LB} are banned when the
+all actions are $\mSC$.  It is also immediate that SC
+actions can be totally ordered, using any linearization of pomset order.
+Just as SC access in \armeight{} is simplified by \mca, it is simplified here
+by the global pomset order.
+
+SC access is not as strict as volatile access in Java.  For example, our
+model allows the following, since there is no order from
+$(\DW[\mSC]{x}{2})$ to $(\DW{y}{1})$---recall that SC writes are \emph{releases}.
+\begin{gather*}
+  \taglabel{SC1}
+  \begin{gathered}
+    \PR{y}{r}\SEMI \PW[\mSC]{x}{1}\SEMI \PR{x}{s}
+    \PAR
+    \PW[\mSC]{x}{2} \SEMI \PW{y}{1}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DR{y}{1}}{}
+        \event{b}{\DW[\mSC]{x}{1}}{right=of a}
+        \sync{a}{b}
+        \event{bb}{\DR{x}{2}}{right=of b}
+        \wk{b}{bb}
+        \event{d}{\DW[\mSC]{x}{2}}{right=3em of bb}
+        \event{e}{\DW{y}{1}}{right=of d}
+        \rf{d}{bb}
+        \rf[out=-170,in=-10]{e}{a}
+        \wk[in=165,out=15]{b}{d}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+This execution is disallowed by
+\citet[\textsection8.2]{Dolan:2018:BDR:3192366.3192421}, preventing them from
+using \texttt{stlr} to implement volatile writes on \armeight{}. Our
+implementation strategy does use \texttt{stlr} for SC writes, as is standard.
+For further discussion, see examples \ref{past} and \ref{future} in
+\textsection\ref{sec:sc}.
+
+\citet[\textsection3.1]{DBLP:conf/pldi/WattPPBDFPG20} noticed a similar
+difficulty in Javascript \cite[\textsection27]{ecma2019}:
+\begin{gather*}
+  \taglabel{SC2}
+  \begin{gathered}
+    \PW[\mSC]{x}{1} \SEMI \PR[\mSC]{y}{r}
+    \PAR
+    \PW[\mSC]{y}{1} \SEMI \PW[\mSC]{y}{2} \SEMI \PW{x}{2} \SEMI \PR[\mSC]{x}{s}
+    \\[-1ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW[\mSC]{x}{1}}{}
+        \event{b}{\DR[\mSC]{y}{1}}{right=of a}
+        \event{c}{\DW[\mSC]{y}{1}}{right=3em of b}
+        \event{d}{\DW[\mSC]{y}{2}}{right=of c}
+        \event{e}{\DW{x}{2}}{right=of d}
+        \event{f}{\DR[\mSC]{x}{1}}{right=of e}
+        \sync{a}{b}
+        \sync{c}{d}
+        \sync[out=15,in=165]{d}{f}
+        \rf{c}{b}
+        \rf[out=-8,in=-172]{a}{f}
+        \wk[in=10,out=170]{e}{a}
+        \wk{e}{f}
+      \end{tikzinline}}
+  \end{gathered}
+\end{gather*}
+This execution is allowed both by our semantics and by \armeight{} (using
+\texttt{stlr} for SC writes and \texttt{ldar} for SC reads).  However, it is
+not allowed by Javascript 2019.  In Javascript, the rules relating SC and
+relaxed access are subtle.  As result of these interactions, Javascript 2019
+fails to satisfy \drfsc{} \cite{DBLP:journals/pacmpl/WattRP19}.  The rules
+are even more complex in C11; see \ref{SC3} and \ref{SC4} in
+\textsection\ref{sec:variants} for a discussion of SC fences in C11.
+In our model, only \ref{5d} is required to explain SC access.
+
+\subsection{Valid and Invalid Rewrites}
+\label{sec:valid}
+
+When $\sem{\aCmd} \supseteq \sem{\aCmd'}$, we say that $\aCmd'$ is a
+\emph{valid transformation} of $\aCmd$.  In this subsection, we show the
+validity of specific optimizations.  
+Let $\free(\aCmd)$ be the set of locations and registers that occur in $\aCmd$.
+
+The semantics validates many peephole optimizations.  Most apply only to
+relaxed access.
+\begin{align*}
+  \taglabel{RR}
+  \sem{\PR{\aLoc}{\aReg} \SEMI \PR{\bLoc}{\bReg}\SEMI\aCmd} &=
+  \sem{\PR{\bLoc}{\bReg}\SEMI \PR{\aLoc}{\aReg}\SEMI\aCmd} &&\text{if } \aReg\neq\bReg
+  \\
+  \taglabel{WW}
+  \sem{\aLoc \GETS \aExp \SEMI \bLoc  \GETS \bExp\SEMI\aCmd} &=
+  \sem{\bLoc  \GETS \bExp\SEMI \aLoc \GETS \aExp\SEMI\aCmd} &&\text{if } \aLoc\neq\bLoc
+  \\
+  \taglabel{RW}
+  \sem{\aLoc \GETS \aExp  \SEMI \PR{\bLoc}{\bReg} \SEMI\aCmd} &=
+  \sem{\PR{\bLoc}{\bReg} \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
+  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+\end{align*}
+\ref{5} imposes no order between events in \ref{RR}--\ref{RW}.  %Note that \ref{RR} allows aliasing.
+Using augmentation closure, \ref{5} also validates roach-motel reorderings \cite{SevcikThesis}.  For
+example, on read/write pairs:
+\begin{align*}
+  \tag{\textsc{roach1}}\label{AcqW}
+  \sem{x^\amode \GETS \aExp \SEMI\PR{y}{\bReg} \SEMI\aCmd} &\supseteq
+  \sem{\PR{y}{\bReg}  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
+  &&\text{if }
+  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+  \\
+  \tag{\textsc{roach2}}\label{RelW}
+  \sem{x \GETS \aExp \SEMI\PR[\amode]{y}{\bReg} \SEMI\aCmd} &\supseteq
+  \sem{\PR[\amode]{y}{\bReg}  \SEMI x\GETS \aExp \SEMI \aCmd} 
+  &&\text{if }
+  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+\end{align*}
+
+Redundant load elimination \eqref{RL} follows
+from \ref{1}, taking $\bEv\in\Event$, regardless of the access mode:
+\begin{align*}
+  \taglabel{RL}
+  \sem{\PR[\amode]{\aLoc}{\aReg} \SEMI \PR[\amode]{\aLoc}{\bReg}\SEMI\aCmd} &\supseteq 
+  \sem{\PR[\amode]{\aLoc}{\aReg} \SEMI \bReg  \GETS \aReg\SEMI\aCmd}
+\end{align*}
+
+Since \ref{5b} does not impose order between reads of the same
+location, \ref{RR} can allow the possibility that $\aLoc=\bLoc$.  As a
+result, read optimizations are not limited by the power of aliasing
+analysis.  By composing \ref{RR} and \ref{RL}, we validate \ref{CSE}:
+\begin{align*}
+  \taglabel{CSE}
+  \sem{r_1\GETS \aLoc \SEMI
+    s\GETS \bLoc \SEMI  
+    r_2\GETS \aLoc\SEMI\aCmd}
+  \supseteq
+  \sem{r_1\GETS \aLoc \SEMI     
+    r_2\GETS r_1\SEMI
+    s\GETS \bLoc \SEMI\aCmd}
+  &&\textif \aReg_2\neq\bReg&&\hbox{}
+\end{align*}
+
+Many laws hold for the conditional, such as dead code elimination \eqref{DC}
+and code lifting \eqref{CL}:
+\begin{align*}
+  \taglabel{DC}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI} &=
+  \sem{\aCmd}
+  &&\textif \aExp \text{ is a tautology}
+  \\
+  \taglabel{CL}
+  \sem{\IF{\aExp}\THEN\aCmd\ELSE\aCmd\FI} &\supseteq
+  \sem{\aCmd}
+\end{align*}
+Code lifting also applies to program fragments inside a conditional.  For example:
+\begin{align*}
+  \sem{\IF{\aExp}\THEN x\GETS \bExp \SEMI\aCmd\ELSE x\GETS \bExp \SEMI\bCmd\FI} &\supseteq
+  \sem{x\GETS \bExp \SEMI \IF{\aExp}\THEN\aCmd\ELSE\bCmd\FI}
+\end{align*}
+We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
+
+As expected, %sequential and
+parallel composition commutes with conditionals and declarations, and
+conditionals and declarations commute with each other.  For example,
+we have \emph{scope extrusion}~\cite{Milner:1999:CMS:329902}:
+\begin{align*}
+  \taglabel{SE}
+  \sem{\aCmd\PAR \VAR\aLoc\SEMI\bCmd} &=
+  \sem{\VAR\aLoc\SEMI(\aCmd\PAR\bCmd)}
+  &&\text{if } \aLoc\not\in\free(\aCmd)
+\end{align*}
+
+\myparagraph{Invalid Rewrites}
+
+The definition of location binding does not validate renaming of locations:
+if $\aLoc\neq\bLoc$ then
+$\sem{\VAR\bLoc\SEMI\aCmd}\neq\sem{\VAR\aLoc\SEMI\aCmd[\aLoc/\bLoc]}$, even
+if $\aCmd$ does not mention~$\aLoc$.  This is consistent with support for
+address calculation, which is required by realistic memory allocators.
+
+\ref{Internal2} shows that---like most relaxed models---our model
+fails to validate \emph{thread inlining}.  The given execution is impossible
+if the first thread is split, as in
+\begin{math}
+  \sem{\PR{x}{\aReg}\SEMI
+    \PW[\mRA]{y}{1}\PAR
+    \PR{y}{\bReg}\SEMI
+    \PW{z}{\bReg}
+    \PAR
+    \PW{x}{z}}.
+\end{math}
+The write in the first thread cannot discharge the precondition in the
+second, now separate.
+
+Some rewrites are invalid in a concurrent setting, such as
+relevant read introduction:
+\begin{displaymath}
+  \sem{\PR{\aLoc}{\aReg} \SEMI \IF{\aReg {\neq} \aReg} \THEN \PW{y}{1} \FI}
+  \not\supseteq
+  \sem{\PR{\aLoc}{\aReg} \SEMI \PR{\aLoc}{\bReg}  \SEMI \IF{\aReg {\neq}\bReg} \THEN \PW{y}{1} \FI}
+\end{displaymath}
+Observationally, these are distinguished by the context %
+\begin{math}
+  \hole{} \PAR \PW{x}{1}\PAR \PW{x}{2}.
+\end{math}
+
+Write introduction is also invalid, even when duplicating an existing write:
+\begin{displaymath}
+  \sem{\PW{\aLoc}{1}} 
+  \not\supseteq
+  \sem{\PW{\aLoc}{1} \SEMI \PW{\aLoc}{1}}
+\end{displaymath}
+These are distinguished by the context:
+\begin{math}
+  \hole{} \PAR
+  \PR{x}{r} \SEMI
+  \PW{x}{2} \SEMI
+  \PR{x}{s}\SEMI
+  \IF{\aReg {=} \bReg} \THEN \PW{\cLoc}{1} \FI.
+\end{math}
+
