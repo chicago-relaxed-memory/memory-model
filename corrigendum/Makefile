@@ -1,7 +1,6 @@
-paper:
-	rm  -f main.pdf
-	latexmk --pvc --pdf --halt-on-error main.tex
-	killall Skim
+corrigendum:
+	rm  -f corrigendum.pdf
+	latexmk --pvc --pdf --halt-on-error corrigendum.tex
 clean:
 	latexmk -c
 publish:

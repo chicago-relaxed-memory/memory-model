@@ -1,0 +1,81 @@
+Relaxed memory models must simultaneously achieve efficient implementability
+and thread-compositional reasoning.  Is that why they have become so
+complicated?  We argue that the answer is no: It is possible to achieve these
+goals by combining an idea from the 60s (preconditions) with an idea from the
+ 80s (pomsets), at least for \textsc{x64} and \armeight.  We show that the
+resulting model (1) supports compositional reasoning for temporal safety
+properties, (2) supports all expected sequential compiler optimizations,
+(3) satisfies the \drfsc\ criterion, and (4) compiles to \textsc{x64} and \armeight{}
+microprocessors without requiring extra fences on relaxed accesses.
+
+\endinput
+
+Relaxed memory models must simultaneously achieve efficient implementability and thread-compositional reasoning.  Is that why they have become so complicated?  We argue that the answer is no: It is possible to achieve these goals by combining an idea from the 60s (preconditions) with an idea from the 80s (pomsets), at least for X64 and ARMv8.  We show that the resulting model (1) supports compositional reasoning for temporal safety properties, (2) supports all expected sequential compiler optimizations, (3) satisfies the DRF-SC criterion, and (4) compiles to X64 and ARMv8 microprocessors without requiring extra fences on relaxed accesses.
+
+
+
+DePaul Abstract:
+
+A memory model is a contract between a programmer and a system implementor
+which indicates the allowed outcomes of any given program.  Some of the
+things allowed on your computer might surprise you!
+
+In your first systems class you learned a simple model of virtual memory: a
+nice flat address space.  You also learned that this is a lie!  Memory
+systems are remarkably complicated.  The situation is even more complex when
+you consider the aggressive optimization performed by current compilers.
+Although system designers are able to hide much of this complexity, they
+can't hide it all without killing performance.  For fifteen years,
+researchers have been looking for a model that is understandable to
+programmers while still allowing efficient implementation.
+
+In this talk, we present a (relatively) simple model that does almost
+everything we want.  The model combines an idea from the 60s (preconditions)
+with an idea from the 80s (pomsets).  We show that the resulting model (1)
+supports compositional reasoning for temporal safety properties, (2) supports
+all reasonable sequential compiler optimizations, (3) allows programmers to
+use a simplistic model for race-free programs, and (4) compiles to X64 and
+ARMv8 microprocessors without requiring extra fences on relaxed accesses.
+
+
+
+
+
+Video material description:
+
+This is a video presentation of our OOPSLA 2020 paper.  The paper presents a
+model of relaxed memory using partial orders and preconditions.
+
+The talk is a meditation on the notion of "Thin Air Reads" in relaxed memory
+models.  We argue that the whole concept of "out of thin air" is too nebulous
+to be useful.  Instead, we should concern ourselves with finding
+compositional proof rules for expressive logics.
+
+If Goldilocks were to visit the house of relaxed memory models, she would
+find Promises too hot (allowing thin air reads) and Event structures too cold
+(disallowing efficient implementation).  Pomsets with Preconditions are "just
+right".
+
+
+
+
+
+Info for session chairs:
+
+This is our third major paper on relaxed memory.  In the talk I will argue
+that: Promises/speculation (2010) are too hot, allowing thin air reads.
+Event structures (2016) are too cold, disallowing efficient implementation.
+Pomsets with Preconditions (2020) are "just right".
+
+
+
+
+Twitter-length summary:
+
+Goldilocks visits relaxed memory: Promises are too hot (allowing thin air).
+Event structures are too cold (disallowing efficient implementation).
+Pomsets with Preconditions are "just right".
+
+Goldilocks visits relaxed memory: Promises too hot. Event structures too cold. Pomsets with Preconditions "just right".
+https://2020.splashcon.org/details/splash-2020-oopsla/70/Pomsets-with-Preconditions-A-Simple-Model-of-Relaxed-Memory
+@jriely @asajeffrey

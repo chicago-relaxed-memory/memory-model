@@ -990,7 +990,7 @@ relaxed access.
   \taglabel{RW}
   \sem{\aLoc \GETS \aExp  \SEMI \PR{\bLoc}{\bReg} \SEMI\aCmd} &=
   \sem{\PR{\bLoc}{\bReg} \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
-  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+  \aLoc\neq\bLoc \textAnd \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
 \end{align*}
 % \ref{WW}, \ref{RW} and \ref{RR} require that two sides of the semicolon
 % have disjoint ids; for example, \ref{RW} requires $\disjoint{{\free(\aReg
@@ -1007,13 +1007,13 @@ example, on read/write pairs:
   \sem{x^\amode \GETS \aExp \SEMI\PR{y}{\bReg} \SEMI\aCmd} &\supseteq
   \sem{\PR{y}{\bReg}  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
   &&\text{if }
-  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+  \aLoc\neq\bLoc \textAnd \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
   \\
   \tag{\textsc{roach2}}\label{RelW}
   \sem{x \GETS \aExp \SEMI\PR[\amode]{y}{\bReg} \SEMI\aCmd} &\supseteq
   \sem{\PR[\amode]{y}{\bReg}  \SEMI x\GETS \aExp \SEMI \aCmd} 
   &&\text{if }
-  \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
+  \aLoc\neq\bLoc \textAnd \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\PR{\bLoc}{\bReg})}}
 \end{align*}
 
 Redundant load elimination \eqref{RL} follows
@@ -1093,7 +1093,7 @@ analysis.  By composing \ref{RR} and \ref{RL}, we validate \ref{CSE}:
 %     \tag{R-Acq}
 %     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA \SEMI \aCmd} &\supseteq
 %     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
-%     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     &&\textif \aReg\notin\free(\dExp) \textAnd \bReg\notin\free(\cExp)
 %     \\
 %     \tag{W-Acq} 
 %     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA \SEMI\aCmd} &\supseteq
@@ -1189,7 +1189,7 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %     \SEMI \aCmd} &=
 %     \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
 %     \SEMI \aCmd}
-%     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     &&\textif \aReg\notin\free(\dExp) \textAnd \bReg\notin\free(\cExp)
 %     \\
 %     \tag{R-W}
 %     \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
@@ -1224,7 +1224,7 @@ We discuss the inverse of \ref{CL} in \textsection\ref{sec:refine}.
 %     \SEMI \aCmd} &\supseteq
 %     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
 %     \SEMI \aCmd}
-%     &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%     &&\textif \aReg\notin\free(\dExp) \textAnd \bReg\notin\free(\cExp)
 %     \\
 %     \tag{W-Acq} 
 %     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 

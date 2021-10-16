@@ -218,7 +218,7 @@ example, the rules for relaxed writes are as follows:
 %     \tag{R-Acq}
 %     \sem{\aReg \GETS \REF{\cExp} \SEMI \bReg \GETS \REF{\dExp}^\mRA \SEMI \aCmd} &\supseteq
 %     \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} \SEMI \aCmd}
-% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+% &&\textif \aReg\notin\free(\dExp) \textAnd \bReg\notin\free(\cExp)
 %     \\
 %     \tag{W-Acq} 
 %     \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA \SEMI\aCmd} &\supseteq
@@ -271,7 +271,7 @@ and case analysis \eqref{CA}, which follows from disjunction closure
 %\SEMI \aCmd} &=
 %    \sem{\bReg \GETS \REF{\dExp} \SEMI \aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd}
-%    &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+%    &&\textif \aReg\notin\free(\dExp) \textAnd \bReg\notin\free(\cExp)
  %   \\
  %   \tag{R-W}
  %   \sem{\aReg \GETS \REF{\cExp} \SEMI \REF{\dExp} \GETS \bExp 
@@ -306,7 +306,7 @@ and case analysis \eqref{CA}, which follows from disjunction closure
 %\SEMI \aCmd} &\supseteq
  %   \sem{\bReg \GETS \REF{\dExp}^\mRA\SEMI \aReg \GETS \REF{\cExp} 
 %\SEMI \aCmd}
-% &&\textif \aReg\notin\free(\dExp) \textand \bReg\notin\free(\cExp)
+% &&\textif \aReg\notin\free(\dExp) \textAnd \bReg\notin\free(\cExp)
  %   \\
  %   \tag{W-Acq} 
  %   \sem{\REF{\dExp} \GETS \bExp \SEMI\aReg \GETS \REF{\cExp}^\mRA 

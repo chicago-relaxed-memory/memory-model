@@ -1,0 +1,251 @@
+\documentclass[t,aspectratio=169]{beamer} %tlmgr install translator
+\usepackage{media9}
+
+\usepackage{macros}
+\usepackage{talk2}
+
+%\includeonlyframes{oota-pomsets}  
+\usepackage{pdfcomment}
+% \setbeameroption{show notes on second screen}
+\newcommand<>{\pdfnote}[1]{%
+  \only#2{\marginnote{\pdfcomment[icon=note,hspace=10pt,color=white,hoffset=30cm]{#1}}}%
+  \note#2[item]{#1}%
+}
+\usecolortheme{seahorse}
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{\insertframenumber/\inserttotalframenumber}
+\setbeamertemplate{itemize item}[circle]
+\setbeamertemplate{itemize subitem}[circle]
+\setbeamertemplate{itemize subsubitem}[circle]
+
+
+\begin{comment}
+  
+  While developing slides, use
+  \includeonlyframes{current}  
+
+  Then latex will only process slides with
+  \begin{frame}[label=y]
+  \end{frame}  
+  
+  \begin{frame}
+    \frametitle{}
+    \begin{itemize}
+    \item 
+    \end{itemize}
+  \end{frame}
+  \begin{itemize}
+  \item 
+  \end{itemize}
+
+  \begin{framecenter}
+  \end{framecenter}
+
+  Great Beamer guide here:
+  https://www.overleaf.com/learn/latex/Beamer_Presentations:_A_Tutorial_for_Beginners_(Part_4)—Overlay_Specifications
+
+  How to present on mac without blurring:
+  Use firefox, or Presentation.app
+  https://tex.stackexchange.com/questions/431423/os-x-blurry-beamer-presentations-on-sierra-high-sierra
+
+  With Presentation.app:
+  \usepackage{pdfcomment}
+  \newcommand{\pdfnote}[1]{\marginnote{\pdfcomment[icon=note]{#1}}}
+
+  To convert from PDF to KeyNOTE: use the automator suggestion here
+  https://apple.stackexchange.com/questions/95856/import-multiple-pages-from-a-pdf-as-separate-slides-in-keynote
+  I put the automator app here: https://www.dropbox.com/sh/1o36nes45cydmbx/AADPVWpeEBZj2vemVXkGKQXVa?dl=0
+  - Copy that to your machine somewhere.
+  - In the finder, drop talk.pdf onto "PDF Save Pages as Images.app".
+  - This will create a bunch of png files on the desktop
+  - Now, open keynote with a blank document.
+  - In the finder, select the files, drop onto the leftmost "slides" pane of Keynote.
+
+  Another display option is to use http://dspdfviewer.danny-edel.de
+
+  For Beamer notes:
+  \usepackage{pgfpages}
+  \setbeameroption{show notes on second screen}
+
+  Skim is not great for this:
+
+  To give a presentation with the Skim reader (http://skim-app.sourceforge.net) %on OSX so
+  that you see the notes on your laptop and the slides on the projector, do %the following:
+  
+  1. Generate just the presentation (hide notes) and save to slides.pdf
+  2. Generate onlt the notes (show only nodes) and save to notes.pdf
+  3. With Skim open both slides.pdf and notes.pdf
+  4. Click on slides.pdf to bring it to front.
+  5. In Skim, under "View -> Presentation Option -> Synhcronized Noted Document"
+  select notes.pdf.
+  6. Now as you move around in slides.pdf the notes.pdf file will follow you.
+  7. Arrange windows so that notes.pdf is in full screen mode on your laptop
+  and slides.pdf is in presentation mode on the projector.
+  You can use the keys "t" and "d" to get different things on the presenter screen
+
+  \pause
+  \onslide<>
+
+  \visible<>{during}                 \begin{visibleenv}<>during\end{visibleenv}
+  \invisible<>{other}                \begin{invisibleenv}<>other \end{invisibleenv}
+  
+  \onslide<>{during}
+  \uncover<>{during}                 \begin{uncoverenv}<>during\end{uncoverenv}
+  
+  \only<>{during}                    \begin{onlyenv}<>during\end{onlyenv}
+  \alt<>{during}{other}              \begin{altenv}<>{during-before}{during-after}{other-before}{other-after}text\end{altenv}
+  \temporal<>{before}{during}{after}
+  \setbeamercovered{transparent=35}
+
+
+  \begin{itemize}[<+-| alert@+>]
+  \end{itemize}
+
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+    \end{column}
+  \end{columns}
+
+\end{comment}
+
+\title{Pomsets with Preconditions}
+\subtitle{A Simple Model of Relaxed Memory}
+\author{Radha Jagadeesan$^\dagger$ \and \alert{Alan Jeffrey}$^*$ \and \alert{James Riely}$^\dagger$}
+% \date{\href{https://www.cs.kent.ac.uk/research/groups/plas/seminarcalendar.html?view_by=month\&date=20201019\&category=\&tag=plas}{PLaS seminar, University of Kent}\\19 October 2020}
+\date{OOPSLA\\November 2020}
+\institute{$^\dagger$DePaul University \and $^*$Roblox}
+
+
+
+
+\begin{document}
+\begin{frame}[label=title]
+  \maketitle
+\end{frame}
+
+\begin{frame}
+  \frametitle{A Simple Task!}
+  A model of memory that supports:
+  \begin{itemize}
+  \item<+-> concurrency (with data races)
+  % \item<+-> data races
+  \item<+-> hardware reorderings
+  \item<+-> compiler reorderings
+  \item<+-> temporal reasoning (compositionally)
+  \item<+-> a few other things:
+    \begin{itemize}
+    \item java causality test cases
+    \item if-introduction (aka, case analysis)
+    \item redundant read elimination
+    \item implementation on x86-64 and Arm8
+    \item address calculation
+    \item release/acquire and SC access
+    \item fences and RMWs
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{What does this mean?}
+  \huge
+  \begin{displaymath}
+    \PW{x}{0}
+    \SEMI
+    \PR{x}{r}
+    \SEMI
+    \PW{y}{r+1}
+  \end{displaymath}
+  \pause
+  \begin{displaymatharray}{rll}
+    \hoare{\TRUE}{&\PW{x}{0}&}{x=0}\\\pause
+    \hoare{x=0}{&\PR{x}{r}&}  {r=0}\\\pause
+    \hoare{r=0}{&\PW{y}{r+1}&}{y=1}
+  \end{displaymatharray}
+  \pause
+  \bigX
+\end{frame}
+\end{document}
+\begin{frame}
+  \frametitle{What about concurrency? ($r$ is a register)}
+  \huge
+  \begin{displaymath}
+    \PW{x}{0}
+    \SEMI
+    \PR{x}{r}
+    \SEMI
+    \PW{y}{r+1}
+    \PAR
+    \PW{x}{5}
+  \end{displaymath}
+  \pause
+  \begin{displaymath}
+    \scalebox{2}{    
+      \begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW{x}{0}}{}
+        \event{b}{\DR{x}{\alt<-4>{5}{0}}}{right=of a}
+        \event{c}{\DW{y}{\alt<-4>{6}{1}}}{right=of b}
+        \event{d}{\DW{x}{5}}{right=3em of c}      
+        \visible<1-3>{\po{a}{b}}
+        \po{b}{c}
+        \visible<3-4>{\rf[out=-160,in=-20]{d}{b}}
+        \visible<4-4>{\wk[out=20,in=160]{a}{d}}
+        \visible<5->{\rfi{a}{b}}
+        \visible<5->{\wk[out=20,in=160]{b}{d}}
+      \end{tikzinline}}
+  \end{displaymath}
+
+  \onslide<6->
+  \normalsize
+  Read fulfillment:
+  \begin{itemize}
+  \item ordered w.r.t.~every write of same reference
+  \item takes value of immediate prior 
+  \end{itemize}
+\end{frame}
+
+\imagepage{images/what-if.jpg}{}
+%\imagepage{images/ss.gif}{}
+
+\begin{frame}
+  \frametitle{What store buffering?}
+  \huge
+  \begin{displaymath}
+    \PW{x}{0}
+    \SEMI
+    \PW{x}{1}
+    \SEMI
+    \PR{y}{0}
+    \PAR
+    \PW{y}{0}
+    \SEMI
+    \PW{y}{1}
+    \SEMI
+    \PR{x}{0}
+  \end{displaymath}
+  \begin{displaymath}
+    \scalebox{1.70}{    
+      \begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DW{x}{0}}{}
+        \event{b}{\DW{x}{1}}{right=of a}
+        \event{c}{\DR{y}{0}}{right=of b}
+        \event{d}{\DW{y}{0}}{right=3em of c}
+        \event{e}{\DW{y}{1}}{right=of d}
+        \event{f}{\DR{x}{0}}{right=of e}
+        \po{a}{b}
+        \po{b}{c}
+        \po{d}{e}
+        \po{e}{f}
+      \end{tikzinline}}
+  \end{displaymath}
+\end{frame}
+
+
+\end{document}
+
+% Local Variables:
+% mode: latex
+% TeX-master: t
+% End:
+        

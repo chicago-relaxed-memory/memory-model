@@ -1,3 +1,4 @@
+\renewcommand{\PAR}{\,\mathbin{\mathtt{\textbf{|}}\mkern-2mu\mathtt{\textbf{|}}}\,}
 \renewcommand{\fmode}{\kappa}
 %https://tex.stackexchange.com/questions/3915/image-on-full-slide-in-beamer-package
 % \usepackage{textpos}
@@ -35,13 +36,13 @@
 % \newcommand{\CMARK}{\makebox[0pt][l]{\color{green!80!black}\Smiley[1]{}}}
 % \newcommand{\XMARK}{\makebox[0pt][l]{\color{red!80!black}\Sadey[1]{}}}
 
-\usepackage{pifont}
-\newcommand{\qmark}{{\color{blue!80!black}\text{?}}}
-\newcommand{\cmark}{{\color{green!80!black}\text{\ding{51}}}}
-\newcommand{\xmark}{{\color{red!80!black}\text{\ding{55}}}}
-\newcommand{\QMARK}{\makebox[0pt][l]{\;\;\;\;\qmark}}
-\newcommand{\CMARK}{\makebox[0pt][l]{\;\;\;\;\cmark}}
-\newcommand{\XMARK}{\makebox[0pt][l]{\;\;\;\;\xmark}}
+% \usepackage{pifont}
+% \newcommand{\qmark}{{\color{blue!80!black}\text{?}}}
+% \newcommand{\cmark}{{\color{green!80!black}\text{\ding{51}}}}
+% \newcommand{\xmark}{{\color{red!80!black}\text{\ding{55}}}}
+% \newcommand{\QMARK}{\makebox[0pt][l]{\;\;\;\;\qmark}}
+% \newcommand{\CMARK}{\makebox[0pt][l]{\;\;\;\;\cmark}}
+% \newcommand{\XMARK}{\makebox[0pt][l]{\;\;\;\;\xmark}}
 
 \newcommand{\textgreen}[1]{{\color{green!80!black}#1}}
 \newcommand{\textred}[1]{{\color{red!80!black}#1}}
@@ -77,6 +78,21 @@
   \setbeamerfont{itemize/enumerate body}{size={\fontsize{10}{12}}}
   \setbeamerfont{itemize/enumerate subbody}{size={\fontsize{9}{11}}}
 }
+
+\newcommand{bigX}{\begin{tikzpicture}[overlay]
+    \node[xshift=-1.5cm,yshift=-2cm](ll) at (current page.south west) {};
+    \node[xshift=-1.5cm,yshift=-2cm](ul) at (current page.north west) {};
+    \node[xshift=-.5cm,yshift=-2cm](ur) at (current page.north east) {};
+    \node[xshift=-.5cm,yshift=-2cm](lr) at (current page.south east) {};
+    \draw[red,line width=1cm](ul)to(lr);
+    \draw[red,line width=1cm](ur)to(ll);
+  \end{tikzpicture}}
+
+  % \begin{tikzpicture}[remember picture,overlay]
+  %   \node[xshift=-2cm,yshift=-2cm] at (current page.north east){%
+  %     \includegraphics[width=2cm]{photo.png}
+  %   };
+  % \end{tikzpicture}
 
 % Local Variables:
 % mode: latex

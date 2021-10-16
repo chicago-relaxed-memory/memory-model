@@ -1,0 +1,623 @@
+\section{Fences, Read-Modify-Write, and Address Calculation}
+\label{sec:variants}
+
+We extend the model to include additional features: fences, read-modify-write
+actions (\RMWs), and address calculation. The proofs given later in the paper
+extend to include these features.
+
+\myparagraph{Fences}
+
+Syntactic fences
+``$\FENCE^{\fmode} \SEMI \aCmd$'' have corresponding  actions: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
+$(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
+is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
+
+$(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
+$(\DFS{\modeSC})$ is both a release and an acquire.
+\begin{align*}
+  \sem{\FENCE^{\fmode}\SEMI \aCmd} & \eqdef
+  (\DFS{\fmode}) \prefix \sem{\aCmd}
+\end{align*}
+With no further changes, syntactic fences would impose exactly the same order
+as synchronization actions.  This is sufficient to simulate $\modeSC$
+accesses, since $\modeSC$ fences are very strong.  However, it is
+insufficient to simulate $\modeRA$ accesses.
+% Consider a variant of \ref{Pub1}:
+% \begin{gather*}
+%   \label{Pub2}\tag{Pub2}
+%   x\GETS0\SEMI %y\GETS0\SEMI
+%   x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+%   \PAR
+%   r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%       \event{wx0}{\DW{x}{0}}{}
+%       \event{wx1}{\DW{x}{1}}{right=of wx0}
+%       \event{fr}{\DFS{\modeREL}}{right=of wx1}
+%       \event{wy1}{\DW{y}{1}}{right=of fr}
+%       \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+%       \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+%       \event{rx0}{\DR{x}{0}}{right=of fa}
+%       \sync{wx1}{fr}
+%       %\sync{fr}{wy1}
+%       %\sync{ry1}{fa}
+%       \sync{fa}{rx0}
+%       \rf{wy1}{ry1}
+%       \rf[out=10,in=170]{wx0}{rx0}
+%       \wk{wx0}{wx1}
+%     \end{tikzinline}}
+% \end{gather*}
+% The semantics of syntactic fences
+% is subtly different from the fencing behavior of
+% $\modeRA$/$\modeSC$-accesses in C11. 
+%To ensure the order that invalidates this execution candidate,
+Thus we add the following requirements to Definition \ref{def:prefix}:%  of
+% \emph{prefixing}:
+\begin{enumerate}
+\item[{\labeltextsc[P5e]{(P5e)}{5e}}] if $\bEv$ reads, and $\aEv$ is an acquiring fence, then
+  $\bEv \le' \aEv$, and
+\item[{\labeltextsc[P5f]{(P5f)}{5f}}] if $\bEv$ is a releasing fence, and $\aEv$ writes, then
+  $\bEv \le' \aEv$.
+\end{enumerate}
+Consider the following variant of \ref{Pub1}:
+\begin{gather*}
+  \taglabel{Pub2}
+  \begin{gathered}
+  x\GETS0\SEMI %y\GETS0\SEMI
+  x\GETS 1\SEMI \FENCE^\modeREL\SEMI y \GETS1
+  \PAR
+  r\GETS y \SEMI \FENCE^\modeACQ\SEMI s\GETS x
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+      \event{wx0}{\DW{x}{0}}{}
+      \event{wx1}{\DW{x}{1}}{right=of wx0}
+      \event{fr}{\DFS{\modeREL}}{right=of wx1}
+      \event{wy1}{\DW{y}{1}}{right=of fr}
+      \event{ry1}{\DR{y}{1}}{right=2.5em of wy1}
+      \event{fa}{\DFS{\modeACQ}}{right=of ry1}
+      \event{rx0}{\DR{x}{0}}{right=of fa}
+      \sync{wx1}{fr}
+      \sync{fr}{wy1}
+      \sync{ry1}{fa}
+      \sync{fa}{rx0}
+      \rf{wy1}{ry1}
+      %\rf[out=10,in=170]{wx0}{rx0}
+      \wk{wx0}{wx1}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+\ref{5f} requires that $(\DFS{\modeREL})\le(\DW{y}{1})$.  \ref{5e} requires
+that $(\DR{y}{1})\le(\DFS{\modeACQ})$.  The other order involving fences is
+required by \ref{5c}.  The attempted execution is
+\emph{invalid}: the stale read $(\DR{x}{0})$ violates \ref{rf4}.
+
+% Fences can simulate release/acquire access:
+% \begin{gather*}  
+%   x\GETS1\SEMI
+%   \FENCE^{\modeREL}\SEMI
+%   y\GETS1
+%   \PAR
+%   r\GETS y\SEMI
+%   \FENCE^{\modeACQ}\SEMI
+%   s\GETS x
+%   \\[-1ex]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%       \event{a1}{\DW{x}{1}}{}
+%       \event{a2}{\DFS{\modeREL}}{right=of a1}
+%       \po{a1}{a2}
+%       \event{a3}{\DW{y}{1}}{right=of a2}
+%       \po{a2}{a3}
+%       \event{b1}{\DR{y}{1}}{right=3em of a3}
+%       \event{b2}{\DFS{\modeACQ}}{right=of b1}
+%       \po{b1}{b2}
+%       \event{b3}{\DR{x}{0}}{right=of b2}
+%       \po{b2}{b3}
+%       \rf{a3}{b1}
+%       \wkx[out=-170,in=-10]{b3}{a1}
+%     \end{tikzinline}}
+% \end{gather*}
+As for \ref{RL}, redundant fence elimination \eqref{RF} follows from \ref{1},
+regardless of the access mode.
+\begin{align*}
+  \taglabel{RF}
+  \sem{\FENCE^\fmode \SEMI \FENCE^\fmode\SEMI\aCmd} &\supseteq 
+  \sem{\FENCE^\fmode \SEMI \aCmd}
+\end{align*}
+
+Our semantics does not suffer from overly weak fencing (\ref{SC3}) or a lack
+of fence cumulativity (\ref{SC4}).  The following examples, from
+\citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}, are allowed by both the
+original C11 and the model of \citet{DBLP:conf/popl/BattyDW16}.  We omit
+$0$\hyp{}initialization in these examples:
+\begin{gather*}
+  \taglabel{SC3}
+  \begin{gathered}
+    x\GETS1
+    \PAR
+    r\GETS x\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{b1}{\DR{x}{1}}{right=3em of a1}
+  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \sync{b1}{b2}
+  \event{b3}{\DR{y}{0}}{right=of b2}
+  \sync{b2}{b3}
+  \event{c1}{\DW{y}{1}}{right=3em of b3}
+  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \sync{c1}{c2}
+  \event{c3}{\DR{x}{0}}{right=of c2}
+  \sync{c2}{c3}
+  \wk{b3}{c1}
+  \rf{a1}{b1}
+  \wk[out=-170,in=-10]{c3}{a1}
+    \end{tikzinline}}
+\end{gathered}
+\\
+  \taglabel{SC4}
+  \begin{gathered}
+    x\GETS1\SEMI   
+    z\REL\GETS1\SEMI   
+    \PAR
+    r\ACQ\GETS z\SEMI   
+    \FENCE^{\modeSC}\SEMI
+    r\GETS y  
+    \PAR
+    y\GETS 1 \SEMI
+    \FENCE^{\modeSC}\SEMI
+    r\GETS x  
+    \\[-.1ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{a1}{\DW{x}{1}}{}
+  \event{a2}{\DWRel{z}{1}}{right=of a1}
+  \sync{a1}{a2}
+  \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
+  \event{b2}{\DFS{\modeSC}}{right=of b1}
+  \sync{b1}{b2}
+  \event{b3}{\DR{y}{0}}{right=of b2}
+  \sync{b2}{b3}
+  \event{c1}{\DW{y}{1}}{right=2em of b3}
+  \event{c2}{\DFS{\modeSC}}{right=of c1}
+  \sync{c1}{c2}
+  \event{c3}{\DR{x}{0}}{right=of c2}
+  \sync{c2}{c3}
+  \wk{b3}{c1}
+  \rf{a2}{b1}
+  \wk[out=-170,in=-10]{c3}{a1}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+The executions are disallowed, due to the evident cycles.  While these
+results are immediate in our model, it is worth noting that they are anything
+but immediate in the various models of C11.
+% A series of papers have been
+% devoted to debugging SC access in C11. 
+% and \citet{DBLP:conf/pldi/LahavVKHD17}
+% devote entire papers to debugging the model of SC access in C11.
+% It is a testament to the
+% complexity of C11 that it allows these executions.
+
+% \myparagraph{Silent Actions and Fences.}
+
+% For the actions of a data model, we require that there is a set
+% $\Int\subseteq\Act$ such that
+% $\Int\cap\fdom(\rreads)=\Int\cap\fdom(\rwrites)=\emptyset$.  We say $\aAct$
+% is \emph{silent} if $\aAct\in\Int$.
+
+% By definition, silent actions neither read nor write.
+
+% To model the fencing behavior of local reads and writes, our example language
+% includes silent actions for \emph{read fences} $(\DFR{\amode})$ and
+% \emph{write fences} $(\DFW[\aLoc]{\amode})$.  For modes $\modeRA$ and
+% $\modeSC$, read fences are acquires and write fences are releases.  As with
+% all actions, fences are ordered with respect to preceding acquired and
+% following releases.  For mode $\modeRLX$, the fences do nothing.  We
+% emphasize that \emph{write fences} are silent, and thus do not interfere with
+% \emph{write actions} when fulfilling a read.
+
+% For use in \textsection\ref{sec:opt}, we annotate write fences with the
+% location of the local write.  We extend the notion of \emph{conflict}
+% (Def.~\ref{def:prefix}) to include write fence actions, thus ordering
+% $(\DFW[\aLoc]{\amode})$ with respect to reads and writes on
+% $\aLoc$\nofootnote{Using this version of write fences, one could rephrase the
+%   write rules to move cover filtering from silent local writes to explicit
+%   ``visible'' writes in Definition \ref{def:cover}---and the matching items
+%   in \textsection\ref{sec:variants} and Definition \ref{def:semi:seq}
+%   (6b). In this case, we would choose $(\relfilt{\aLoc} \aPSS)$ be the set
+%   $\aPSS'\subseteq\aPSS$ such that $\aPS'\in\aPSS'$ when for every
+%   $\cEv',\,\aEv'\in\Event'$, if $\labelingAct(\cEv')=(\DFW[\aLoc]{\amode})$,
+%   $\aEv'$ is a release, and $\cEv'\le\aEv'$, then there is some
+%   $\bEv'\in\Event'$ such that $\bEv$ (visibly) writes $\aLoc$ and
+%   $\cEv'\lt\bEv'\le\aEv'$.  This has the same effect, but results in a
+%   slightly different semantics. The choice between the two is arbitrary.}.
+% The additional order is harmless, since write fences do not interfere with
+% fulfillment.
+% % Finally, we also modify write fence actions so that they
+% % name the variable that was written: $\DFW[\aLoc]{\amode}$.  These new actions
+% % remain silent.  
+
+% We also include syntactic fences of the form
+% ``$\FENCE^{\fmode} \SEMI \aCmd$.''  The semantics of syntactic fences
+% is subtly different from the fencing behavior of
+% $\modeRA$/$\modeSC$-accesses in C11.  Thus we include separate actions for syntactic
+% fences: $(\DFS{\fmode})$.  The \emph{syntactic fence mode}
+% $(\fmode \!\!\BNFDEF\!\! \modeREL \!\BNFSEP\! \modeACQ \!\BNFSEP\! \modeSC)$
+% is either \emph{release}, \emph{acquire}, or \emph{sequentially-consistent}.
+% $(\DFS{\modeREL})$ is a release. $(\DFS{\modeACQ})$ is an acquire.
+% $(\DFS{\modeSC})$ is both a release and an acquire.
+
+% The additional order of syntactic fences is captured by adding the following
+% to Definition \ref{def:prefix} of \emph{prefixing}:
+% \begin{enumerate}
+% \item[5e.] if $\bEv$ reads and $\labelingAct(\aEv)=(\DFS{\modeACQ})$, then
+%   $\aEv \lt' \bEv$, and
+% \item[5f.] if $\labelingAct(\bEv)=(\DFS{\modeREL})$ and $\aEv$ writes, then
+%   $\bEv \lt' \aEv$.
+% \end{enumerate}
+% The semantic rules are:
+% \begin{align*}
+%   \sem{\FENCE^{\fmode}\SEMI \aCmd} & =
+%   (\DFS{\fmode}) \prefix \sem{\aCmd}
+%   \\
+%   \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & =
+%   \textstyle\bigcup_\aVal\; (\DRmode\aLoc\aVal) \prefix \sem{\aCmd}[\aLoc/\aReg]  
+%   \\[-.5ex] &
+%   \mkern2mu\cup
+%   \,\mathhl{(\DFR{\amode}) \;\prefix}\,\;
+%   \sem{\aCmd}[\aLoc/\aReg]
+%   \\
+%   \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & =
+%   \;\;\textstyle\parallel_\aVal (\aExp=\aVal \mid \DWmode\aLoc\aVal) \prefix \sem{\aCmd}[\aExp/\aLoc]
+%   \\[-.5ex] &
+%   \mkern2mu\cup
+%   \,\mathhl{(\DFW[\aLoc]{\amode}) \;\prefix}\,\;
+%   (\relfilt{\aLoc} \sem{\aCmd}[\aExp/\aLoc])
+% \end{align*}
+% Our semantics does not suffer the weaknesses of C11 fences, noted by
+% \citet[Figs.~5 and 6]{DBLP:conf/pldi/LahavVKHD17}. We omit $0$\hyp{}initialization
+% in these examples:
+% \begin{gather*}
+%     x\GETS1
+%     \PAR
+%     r\GETS x\SEMI   
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS y  
+%     \PAR
+%     y\GETS 1 \SEMI
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS x  
+%     \\[-.1ex]
+%   \hbox{\begin{tikzinline}[node distance=1.5em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{b1}{\DR{x}{1}}{right=3em of a1}
+%   \event{b2}{\DFS{\modeSC}}{right=of b1}
+%   \po{b1}{b2}
+%   \event{b3}{\DR{y}{0}}{right=of b2}
+%   \po{b2}{b3}
+%   \event{c1}{\DW{y}{1}}{right=3em of b3}
+%   \event{c2}{\DFS{\modeSC}}{right=of c1}
+%   \po{c1}{c2}
+%   \event{c3}{\DR{x}{0}}{right=of c2}
+%   \po{c2}{c3}
+%   \wk{b3}{c1}
+%   \rf{a1}{b1}
+%   \wk[out=-170,in=-10]{c3}{a1}
+%     \end{tikzinline}}
+%   \\
+%     x\GETS1\SEMI   
+%     z\REL\GETS1\SEMI   
+%     \PAR
+%     r\ACQ\GETS z\SEMI   
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS y  
+%     \PAR
+%     y\GETS 1 \SEMI
+%     \FENCE^{\modeSC}\SEMI
+%     r\GETS x  
+%     \\[-.1ex]
+%   \hbox{\begin{tikzinline}[node distance=.7em]
+%   \event{a1}{\DW{x}{1}}{}
+%   \event{a2}{\DWRel{z}{1}}{right=of a1}
+%   \po{a1}{a2}
+%   \event{b1}{\DRAcq{z}{1}}{right=2em of a2}
+%   \event{b2}{\DFS{\modeSC}}{right=of b1}
+%   \po{b1}{b2}
+%   \event{b3}{\DR{y}{0}}{right=of b2}
+%   \po{b2}{b3}
+%   \event{c1}{\DW{y}{1}}{right=2em of b3}
+%   \event{c2}{\DFS{\modeSC}}{right=of c1}
+%   \po{c1}{c2}
+%   \event{c3}{\DR{x}{0}}{right=of c2}
+%   \po{c2}{c3}
+%   \wk{b3}{c1}
+%   \rf{a2}{b1}
+%   \wk[out=-170,in=-10]{c3}{a1}
+%     \end{tikzinline}}
+% \end{gather*}
+% The executions are disallowed, due to cycles.  It is a testament to the
+% complexity of C11 that it allows these executions.
+
+\myparagraph{Read-Modify-Write} We discuss \RMW\ operations that work on a
+single location in memory, such as \emph{fetch-and-add} ($\FADD$) and
+\emph{compare-and-swap} ($\CAS$).  These operations can be modeled using read/write
+actions or using an additional relation between events.  The second approach
+is more general and less obvious, therefore we explain it here.
+
+In Definition \ref{def:mmpomset}, we require that a \emph{(memory model) pomset}
+be a tuple $(\Event, {\le}, \labeling, \rrmw)$, where ${\rrmw}\subseteq{\le}$
+relates the two events of a successful \RMW.  Additionally, we require that:
+\begin{itemize}
+\item If $\cEv$, $\aEv$ write the same $x$, $\cEv\gtN \aEv$ and $\bEv \xrmw \aEv$ then  $\cEv\gtN \bEv$.
+\item If $\cEv$, $\aEv$ write the same $x$, $\bEv\gtN \cEv$ and $\bEv \xrmw \aEv$ then  $\aEv\gtN \cEv$.
+\end{itemize}
+% In Definition~\ref{def:downset}, we require that downsets are \RMW\
+% closed:
+% $\Event'\subseteq\{ \bEv \in \Event \mid \exists\aEv\in\Event'.\; \aEv\xrmw\bEv\}$.
+
+% ${\le'}={\le}\restrict{\Event'}$, 
+% ${\xrmw'}={\xrmw}\restrict{\Event'}$, and
+% ${\labeling'}={\labeling}\restrict{\Event'}$.  
+
+The constituent events of an \RMW{} may coalesce with other events and other
+\RMW{}s, but we prevent coalescing of separate \RMW{}s in the semantics of
+$\!\PAR\!$ and prefixing.  We elide the obvious and tedious semantic rules that
+generate $\rrmw$.
+
+% \begin{scope}
+% \renewcommand{\aEv}{r}
+% In Definition \ref{def:rf}, require that when $\bEv$ \emph{fulfills $\aEv$ on
+%   $\aLoc$}:
+% \begin{itemize}
+% %\item there is no pair $(r,w)\in{\rrmw}$ such that $r\gtN\bEv\gtN w$, and
+% \item if
+%   $\aEv \gtN \bEv$,
+%   $\bEv$ writes to $\aLoc$, and
+%   $(\aEv,w)\in{\rrmw}$, 
+%   then $w \gtN \bEv$.
+% \end{itemize}
+% \end{scope}
+This definition ensures atomicity, disallowing executions such as
+\cite[Ex.~3.2]{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{gather*}
+  \taglabel{RMW1}
+  \begin{gathered}
+  \aLoc\GETS0\SEMI\bReg\GETS \FADD^{\modeRLX,\modeRLX}(\aLoc,1)
+  \PAR
+  x\GETS 2\SEMI s\GETS x
+  \\
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{a2}{\DR{x}{0}}{}
+  \event{a1}{\DW{x}{0}}{left=of a2}
+  \rf{a1}{a2}
+  \event{a3}{\DW{x}{2}}{right=of a2}
+  \wk{a2}{a3}
+  \event{b2}{\DW{x}{1}}{right=of a3}
+  \event{b3}{\DR{x}{1}}{right=of b2}
+  \rmw[out=-15,in=-165]{a2}[below]{b2}
+  \wk{a3}{b2}
+  \rf{b2}{b3}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+
+By using two actions rather than one, the definition allows examples such as the
+following, which is allowed by \armeight{} 
+\cite[Ex.~3.10]{DBLP:journals/pacmpl/PodkopaevLV19}:
+\begin{gather*}
+  \taglabel{RMW2}
+  \begin{gathered}
+  r \GETS y\SEMI
+  z \GETS r
+  \PAR
+  r\GETS z\SEMI
+  x\GETS 0\SEMI
+  s\GETS \FADD^{\modeRLX,\modeRA}(x,1) \SEMI
+  y\GETS s{+}1
+  \\[-1ex]
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{a1}{\DR{y}{1}}{}
+  \event{a2}{\DW{z}{1}}{right=of a1}
+  \po{a1}{a2}
+  \event{b1}{\DR{z}{1}}{right=3em of a2}
+  \rf{a2}{b1}
+  \event{b2}{\DW{x}{0}}{right=of b1}
+  \event{b3}{\DR{x}{0}}{right=of b2}
+  \rf{b2}{b3}
+  \event{b4}{\DWRel{x}{1}}{right=2em of b3}
+  \rmw{b3}{b4}
+  \event{b5}{\DW{y}{1}}{right=of b4}
+  \sync[out=-15,in=-165]{b1}{b4}
+  \po[out=-20,in=-160]{b3}{b5}
+  \rf[out=170,in=10]{b5}{a1}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+
+\myparagraph{Address Calculation}
+
+In the definition of a data model, we require
+that locations have the form $\aLoc\!\!\BNFDEF\!\!\REF{\cVal}$, where $\cVal$
+is a value.  Expressions may include neither memory locations nor the
+operator $\REF{\cExp}^{\amode}$.
+In our example language, we update the syntax of commands:
+\begin{gather*}
+  \aCmd
+  \BNFDEF \cdots
+  \BNFSEP \aReg\GETS\REF{\cExp}^{\amode}\SEMI \aCmd 
+  \BNFSEP \REF{\cExp}^{\amode}\GETS\aExp\SEMI \aCmd
+\end{gather*}
+Address calculation can be encoded using the conditional.  We give the
+semantics simply by expanding this encoding.  Applying this technique to Candidate
+\ref{cand:ord}, we arrive at the following:
+% \begin{align*}
+%   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+%   \textstyle\parallel_\cVal\bigcup_\aVal\; (\;\mathhl{\cExp=\cVal} \mid \DRmode{\REF{\cVal}}\aVal) \prefix \;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\REF{\cVal}/\aReg]
+%   % \\[-.5ex] & \mkern2mu\cup
+%   % \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\;\mathhl{\cExp=\cVal}\mid\DFR{\amode}) \prefix
+%   % \sem{\aCmd}[\REF{\cVal}/\aReg]
+%   \\
+%   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+%   \\[-1ex]
+%   &\mkern-68mu\hbox to 0pt{$\begin{aligned}
+%     &\textstyle\parallel_\cVal\bigcup_\aVal\;(\;\mathhl{\cExp=\cVal} \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix (\;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\aExp/\REF{\cVal}])
+%     \\[-.5ex]  \cup\!&
+%     \textstyle\parallel_{\cVal}\phantom{\bigcup_\aVal}\; %(\;\mathhl{\cExp=\cVal}\mid\DFW[\REF{\cVal}]{\amode}) \prefix
+%     (\relfilt{\REF{\cVal}} (\;\mathhl{\cExp=\cVal} \guard \sem{\aCmd}[\aExp/\REF{\cVal}]))
+%   \end{aligned}$}
+%   % \\[-9.5ex]
+%   % \sem{\;\mathhl{\REF{\cExp}^\amode}\GETS\aExp\SEMI \aCmd} & =
+%   % \\[6ex]
+% \end{align*}
+  \begin{align*}
+  \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & \eqdef
+    \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
+    \textstyle\bigcup_\aVal\;
+    (\DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd} [\REF{\cVal}]/\aReg]
+    \bigr)
+    \\
+  \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
+    \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
+    \bigl(\textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]\bigr)
+  \end{align*}
+  The same technique to can be applied to Definition \ref{def:cover}---we
+  elide the lengthy but obvious definition. For degenerate programs that include only
+  constant references (every expression $\REF{\cExp}^\amode$ satisfies
+  $\cExp=\cVal$, for some $\cVal$), the resulting definition produces exactly
+  the same executions as before.
+%   \begin{align*}
+%     \sem{\aReg\GETS\aLoc^\modeRLXquiet\SEMI \aCmd} &\eqdef
+%     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard \bigl(
+%     \sem{\aCmd}[\REF{\cVal}]/\aReg]
+%     \cup
+%     \textstyle\bigcup_\aVal\;
+%     (\DR[\modeRLXquiet]\REF{\cVal}]\aVal) \prefix \Rdis{\REF{\cVal}]}{\aVal}\sem{\aCmd} [\REF{\cVal}]/\aReg]
+%     \bigr)
+%     \\
+%     \sem{\REF{\cVal}]^\modeRLXquiet\GETS\aExp\SEMI \aCmd} & \eqdef
+%     \;\textstyle\parallel_\cVal (\cExp=\cVal) \guard 
+%     \begin{aligned}[t]
+%       \bigl(\textstyle\bigcup_\aVal\;& (\aExp=\aVal \mid \DW[\modeRLXquiet]\REF{\cVal}]\aVal) \prefix \Wdis{\REF{\cVal}]}{\aExp}\sem{\aCmd}[\aExp/\REF{\cVal}]]
+%       \\[-.5ex]
+%       \cup\;\;\;\; &\relfilt[]{\REF{\cVal}]} \sem{\aCmd}[\aExp/\REF{\cVal}]]
+%       \bigr)
+%     \end{aligned}
+% \end{align*}
+
+% \begin{aligned}
+%   \sem{\aReg\GETS\REF{\cExp}^\amode\SEMI \aCmd} & =
+%   \textstyle\bigcup_{\cVal,\aVal}\; (\cExp=\cVal \mid \DRmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\REF{\cVal}/\aReg]  
+%   \\[-.5ex] & \mkern2mu\cup
+%   \textstyle\bigcup_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFR{\amode}) \prefix
+%   \sem{\aCmd}[\REF{\cVal}/\aReg]
+%   \\
+%   \sem{\REF{\cExp}^\amode\GETS\aExp\SEMI \aCmd} & =
+%   \\[-1ex]
+%   &\mkern-65mu\hbox to 0pt{$\begin{aligned}
+%     &\textstyle\parallel_{\cVal,\aVal}\;(\cExp=\cVal \land \aExp=\aVal \mid \DWmode{\REF{\cVal}}\aVal) \prefix \sem{\aCmd}[\aExp/\REF{\cVal}]
+%     \\[-.5ex]  \cup\!&
+%     \textstyle\parallel_{\cVal\phantom{,\aVal}}\; (\cExp=\cVal\mid\DFW{\amode}) \prefix
+%     (\relfilt{\REF{\cVal}} \sem{\aCmd}[\aExp/\REF{\cVal}])    
+%   \end{aligned}$}
+% \end{aligned}
+
+The rewrites listed in \textsection\ref{sec:props}-\ref{sec:refine} remain valid, with the
+following generalization: For address expressions $\REF{\aExp}$ and
+$\REF{\bExp}$, replace $\aLoc=\bLoc$ by provable equality of $\aExp$ and
+$\bExp$, and $\aLoc\neq\bLoc$ by provable inequality.  % Operations on sets can
+% be defined similarly.
+
+In Definition \ref{def:cover}, we were able to ensure disjunction closure by
+performing targeted, local weakening via $\Rdis{\aLoc}{\aVal}$.  This is much
+more difficult to do with address calculation, since a single bit of syntax
+can refer to multiple locations.  Consider that
+  \begin{math}
+    \sem{[r] \GETS 0\SEMI [0]\GETS \BANG r}
+  \end{math}
+includes both of the following pomsets (``$\BANG$'' is logical
+negation---``$\BANG \aExp$'' evaluates to $1$ if
+$\aExp$ is $0$, and $0$ otherwise):
+\begin{align*}
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{d}{a}{r\EQ0\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{e}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      \wk[out=-15,in=-165]{a}{b}
+    \end{tikzinline}}%\;\;\cdots
+  &&
+  %\\[-1.5ex]\intertext{and:}\\[-5ex]
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{c}{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
+      \eventl{d}{b}{r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
+    \end{tikzinline}}%\;\;\cdots
+\end{align*}
+Thus, the disjunction closure also includes both of the following: % By using \!$\PAR$\!, it also includes:
+\begin{align*}
+  %\label{alanAddress}
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{d}{a}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{}
+      \eventl{e}{b}{r\EQ0\mathbin{\mid}\DW{[0]}{1}}{right=of a}
+      \wk[out=-15,in=-165]{a}{b}
+      %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
+    \end{tikzinline}}%\;\;\cdots
+  &&
+  \hbox{\begin{tikzinline}[node distance=2em]
+      \eventl{c}{a}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{}
+      \eventl{d}{b}{r\EQ0\lor r\EQ1\mathbin{\mid}\DW{[0]}{0}}{right=of a}
+      %\co{a}{b}
+      %\event{c}{r\EQ1\mathbin{\mid}\DW{[1]}{0}}{right=of b}
+    \end{tikzinline}}%\;\;\cdots
+\end{align*}
+In this example, the $d$ events that coalesce come from inconsistent executions.
+This is possible because the $d$ events originate from different commands.
+
+
+\labeltext{Because}{page:strengthening} we do not enforce order between
+reads, there is some danger that address calculations could introduce
+anomalous behaviors that arise \emph{out of thin air} (\oota).  Consider the following program, where
+initially $x=0$, $y=0$, $\REF{0}=0$, $\REF{1}=2$, and $\REF{2}=1$.  It should
+only be possible to read $0$, disallowing the attempted execution below:
+\begin{gather*}
+  \label{strengthening}\tag{\textsc{addr1}}
+  \begin{gathered}
+  \aReg\GETS y\SEMI \bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg
+  \PAR
+  \aReg\GETS x\SEMI \bReg\GETS \REF{\aReg}\SEMI y\GETS \bReg
+  %x\GETS\REF{y} \PAR y\GETS\REF{x}
+  \\
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{a1}{\DR{y}{2}}{}
+  \event{a2}{\DR{\REF{2}}{1}}{right=of a1}
+  \event{a3}{\DW{x}{1}}{right=of a2}
+  \po{a2}{a3}
+  \po[out=10,in=170]{a1}{a3}
+  \event{b1}{\DR{x}{1}}{right=3em of a3}
+  \event{b2}{\DR{\REF{1}}{2}}{right=of b1}
+  \event{b3}{\DW{y}{2}}{right=of b2}
+  \po{b2}{b3}
+  \po[out=10,in=170]{b1}{b3}
+  \rf[out=-170,in=-10]{b3}{a1}
+  \rf{a3}{b1}
+    \end{tikzinline}}
+\end{gathered}
+\end{gather*}
+Although no order is enforced between reads, the read-to-write order induced
+by the semantics is sufficient to prohibit this \oota{} behavior.  Note the
+intermediate state of $\sem{\bReg\GETS \REF{\aReg}\SEMI x\GETS \bReg}$:
+\begin{gather*}
+  \hbox{\begin{tikzinline}[node distance=1.5em]
+  \event{a2}{\aReg{=}2\mid\DR{\REF{2}}{1}}{}
+  \event{a3}{\aReg{=}2\land 1{=}1\mid\DW{x}{1}}{right=of a2}
+  \po{a2}{a3}
+    \end{tikzinline}}
+\end{gather*}
+The precondition $(\aReg{=}2\mid\DW{x}{1})$ is required by causal strengthening
+(Def.~\ref{def:mmpomset}). % : if $\bEv\le\aEv$ then $\labelingForm(\aEv)$
+% implies $\labelingForm(\bEv)$.
+
+
+

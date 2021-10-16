@@ -167,7 +167,7 @@ A \emph{data model} consists of:
 \end{itemize}
 
 Let $\aSub$ range over substitutions of the form
-$[\aLoc/\aReg]$ or $[\bExp/\aLoc]$.
+$[\bExp/\aReg]$ or $[\bExp/\aLoc]$.
 
 We require that data models satisfy the following:
 \begin{itemize}
@@ -179,12 +179,7 @@ We require that data models satisfy the following:
   equalities %of the form
   $(\aExp=\aVal)$, % and $(\REF{\aExp}=\aLoc)$,
 \item formulae are closed under negation, conjunction, disjunction, and
-  substitution,\!\footnote{Since formulae are closed under substitutions of the
-    form $\aForm[\aLoc/\aReg]$, they must include equalities of the form
-    $(\aEExp=\aVal)$ where $\aEExp$ is an \emph{extended expression} that
-    includes memory locations.  By composition, formulae must also be closed
-    under that substitutions of the form
-    $\aForm[\aExp/\aReg]=\aForm[\aLoc/\aReg][\aExp/\aLoc]$.} and
+  substitution, and
 \item there is a relation $\vDash$ between formulae, with the expected semantics.
 \end{itemize}
 
@@ -240,7 +235,7 @@ We use expressions as formulae, coercing $\aExp$ to $\aExp\neq 0$.
 
 Formulae are \emph{open}, in that
 occurrences of register names and memory locations are subject to
-substitutions of the form $\aForm[\aLoc/\aReg]$ and $\aForm[\bExp/\aLoc]$.
+substitutions of the form $\aForm[\bExp/\aReg]$ and $\aForm[\bExp/\aLoc]$.
 Actions are not subject to substitution.
 
 \begin{definition}
@@ -393,13 +388,6 @@ We define the language by prefixing individual reads and writes.  % In
   \BNFSEP \IF{\aExp} \THEN \aCmd \ELSE \bCmd \FI
 \end{align*}
 
-We use common syntax sugar, such as \emph{extended expressions}, $\aEExp$,
-which include memory locations.  For example, if $\aEExp$ includes a single
-occurrence of $\aLoc$, then $\bLoc\GETS\aEExp\SEMI \aCmd$ is shorthand for
-$\aReg\GETS\aLoc\SEMI\bLoc\GETS\aEExp[\aReg/\aLoc]\SEMI \aCmd$.  Each
-occurrence of $\aLoc$ in an extended expression corresponds to an separate
-read.
-
 We write
 $\IF{\aExp} \THEN \aCmd \FI$ as shorthand for
 $\IF{\aExp} \THEN \aCmd\ELSE \SKIP\FI$ and
@@ -432,9 +420,11 @@ Here, we also use it to define address calculation
   \begin{align*}
     \aEv \not\in \Event^2,\; \labelingAct'(\aEv) &= \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),
     \\[-1ex]
-    \aEv \not\in \Event^1,\; \labelingAct'(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv),\textor
+    \aEv \not\in \Event^1,\; \labelingAct'(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv),
     \\[-1ex]
-    \labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv).
+    \DSTOP\neq\labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv), \textor
+    \\[-1ex]
+    \DSTOP=\labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \land \labelingForm^2(\aEv).
   \end{align*}
   We then define:
   \begin{align*}
@@ -596,7 +586,7 @@ $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
   \label{cand:ord}
   \label{def:pre-sc}
   \label{def:prefix}
-  Let $(\aForm \mid \aAct) \prefix \aPSS$ be the set
+  Let $\aAct \prefix \aPSS$ be the set
   $\PRE{\aPSS'}$ %$\aPSS'$ 
   where
   $\aPS'\in\aPSS'$ when 
@@ -606,30 +596,35 @@ $\PRE{\aPSS}=\{\aPS'\mid\aPS'$ is a downset of some $\aPS \in \aPSS\}$.
   {\labeltextsc[P3]{(P3a)}{3}}  $\labelingAct'(\aEv) = \labelingAct(\aEv)$, 
   \labeltextsc[P3b]{(P3b)}{3b} $\labelingAct'(\bEv) = \aAct$,
   \begin{enumerate}
-  \item[{\labeltextsc[P4a]{(P4a)}{4a}}]{\labeltextsc[P4]{}{4}}%
-    if $\bEv\in\Event$ then $\labelingForm'(\bEv)$ implies
-    $\aForm\lor\labelingForm(\bEv)$, otherwise $\labelingForm'(\bEv)$ implies $\aForm$,
-  \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
-    if $\bEv$ does not read then either $\aEv=\bEv$ or
-    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$, 
-  \item[{\labeltextsc[P4c]{(P4c)}{4c}}]
-    if $\bEv$ reads $\aVal$ from $\aLoc$ then either $\aEv=\bEv$ or
-    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)[\aVal/\aLoc]$,
-  \item[{\labeltextsc[P5a]{(P5a)}{5a}}]\labeltextsc[P5]{}{5}%
-    if $\bEv$ reads and $\aEv$ writes then either $\aEv=\bEv$ or $\labelingForm'(\aEv)$
-    implies $\labelingForm(\aEv)$ or $\bEv\le'\aEv$,
-  \item[{\labeltextsc[P5b]{(P5b)}{5b}}]
+  \item[{\labeltextsc[P5b]{(P5b)}{5b}}]\labeltextsc[P5]{}{5}%
     if $\bEv$ and $\aEv$ are \external actions in conflict then $\bEv\le'\aEv$, %$\bEv \gtN' \aEv$,
   \item[{\labeltextsc[P5c]{(P5c)}{5c}}]
     if $\bEv$ is an acquire or $\aEv$ is a release then $\bEv \le' \aEv$, and
   \item[{\labeltextsc[P5d]{(P5d)}{5d}}]
     if $\bEv$ is an SC write and $\aEv$ is an SC read then $\bEv \le' \aEv$.
   \end{enumerate}
+  For $(\aReg \mid \DRmode\aLoc\aVal) \prefix \aPSS$ we additionally require
+  \begin{enumerate}
+  \item[{\labeltextsc[P4c]{(P4c)}{4c}}]{\labeltextsc[P4]{}{4}}%
+    $\labelingForm'(\aEv)$ implies $\uReg{\aEv}{=}\aVal\limplies\labelingForm(\aEv)[\uReg{\aEv}/\aReg]$, and
+  \item[{\labeltextsc[P5a]{(P5a)}{5a}}]
+    if $\aEv$ writes then either $\bEv\le'\aEv$ or $\labelingForm'(\aEv)$
+    implies $\uReg{\aEv}{=}\aLoc\limplies\labelingForm(\aEv)[\uReg{\aEv}/\aReg]$.
+  \end{enumerate}
+  For $(\aForm \mid \DWmode\aLoc\aVal) \prefix \aPSS$ we additionally require
+  \begin{enumerate}
+  \item[{\labeltextsc[P4a]{(P4a)}{4a}}]{\labeltextsc[P4]{}{4}}%
+    if $\bEv\in\Event$ then $\labelingForm'(\bEv)$ implies
+    $\aForm\lor\labelingForm(\bEv)$, otherwise $\labelingForm'(\bEv)$ implies $\aForm$,
+  \item[{\labeltextsc[P4b]{(P4b)}{4b}}]
+    either $\aEv=\bEv$ or
+    $\labelingForm'(\aEv)$ implies $\labelingForm(\aEv)$.
+  \end{enumerate}
   We then define:
   \begin{gather*}
     \begin{aligned}[t]
       \sem{\aReg\GETS\aLoc^\amode\SEMI \aCmd} & \eqdef \textstyle\bigcup_\aVal\;
-      (\DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
+      (\aReg \mid \DRmode\aLoc\aVal) \prefix \sem{\aCmd} [\aLoc/\aReg]
       \\
       \sem{\aLoc^\amode\GETS\aExp\SEMI \aCmd} & \eqdef
       \textstyle\bigcup_\aVal\; (\aExp=\aVal \mid \DWmode\aLoc\aVal)

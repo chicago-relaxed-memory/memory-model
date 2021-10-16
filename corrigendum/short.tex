@@ -2,10 +2,11 @@
 \label{sec:arm}
 
 We show that our semantics compiles efficiently to \armeight{}
-\cite{deacon-git,DBLP:journals/pacmpl/PulteFDFSS18} using the translation
+\cite{deacon-git,DBLP:journals/pacmpl/PulteFDFSS18}.  With one exception, we use the translation
 strategy of \citet{DBLP:journals/pacmpl/PodkopaevLV19}, which was extended to
 SC access by \citet[\textsection5]{imm-sc}: Relaxed access is implemented using
-\texttt{ldr}/\texttt{str}, non-relaxed access using \texttt{ldar}/\texttt{stlr},
+\texttt{ldr}/\texttt{str}, non-relaxed reads using \texttt{dmb}.\texttt{sy};\texttt{ldar}, non-relaxed
+writes using \texttt{stlr},
 acquire and other fences using
 \texttt{dmb}.\texttt{ld}/\texttt{dmb}.\texttt{sy}.
 
@@ -31,6 +32,8 @@ formally, let $\bEv\xdobi\aEv$ when $\bEv\xdob\aEv$ and
 $\bEv\notin\fcodom(\rrfi), \aEv \notin\fcodom(\rrfi)$.
 Let $\robi$ be defined as for $\rob$, simply replacing $\rdob$ with $\rdobi$.
 
+We remove all relaxed internal reads from the event set.
+
 For pomset order, we then take ${\gtN}=({\robi}\cup{\reco})^*$.
 
 \begin{theorem}
@@ -38,7 +41,8 @@ For pomset order, we then take ${\gtN}=({\robi}\cup{\reco})^*$.
   is a top-level memory model pomset.
 \end{theorem}
 
-The proof for compilation into \tso\ is very similar.  The necessary
+The proof for compilation into \tso\ is very similar, and also requires a
+full fence before an acquiring read.  The necessary
 properties hold for \tso, where $\rob$ is replaced by (the transitive closure
 of) the \tso\ propagation relation \citep{alglave}.
 
@@ -122,9 +126,10 @@ Let ${\rhb}=({\rpox}\cup{\rsw})^+$ be the \emph{happens-before} relation.  In
 fails if either $\mRA$ access is relaxed.
 
 Let $L\subseteq\Loc$ be a set of locations.  We say that $\bEv$ \emph{has an
-  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when they \emph{conflict}
+  $L$-race with} $\aEv$ (notation $\bEv\lrace{L}\aEv$) when at least one is
+relaxed, they \emph{conflict}
 (Def.~\ref{def:rf}) at
-some location in $L$ and at least one is relaxed, but are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
+some location in $L$, and they are unordered by $\rhb$: neither $\bEv\xhb\aEv$ nor
 $\aEv\xhb\bEv$.  
 
 \paragraph{Generators}
@@ -160,7 +165,7 @@ $\aVal'$, $\aVal$.
 \paragraph{Stability}
 We say that $\aPS$ is \emph{$L$-stable in $\aCmd$} if
 (1) $\aPS\in\semmin{\aCmd}$, 
-(2) $\aPS$ is $\rpox$-convex (nothing missing in program order), and
+(2) $\aPS$ is $\rpox$-convex (nothing missing in program order),
 (3) there is no $\aCmd$-extension of $\aPS$ with a \emph{crossing} $L$-race:
 that is, there is no $\bEv\in\Event$, no $\aPS'$ $\aCmd$-extending
 $\aPS$, and no $\aEv\in\Event'\setminus\Event$ such that $\bEv\lrace{L}\aEv$.

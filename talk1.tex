@@ -1,6 +1,6 @@
 \documentclass[t,aspectratio=169]{beamer} %tlmgr install translator
 \usepackage{macros}
-\usepackage{talk}
+\usepackage{talk1}
 
 %\includeonlyframes{oota-pomsets}  
 \usepackage{pdfcomment}
@@ -920,17 +920,17 @@
     ${\le'}\supseteq{\le^1}\cup{\le^2}$, and $(\forall\aEv\in\Event')$ either
     \begin{gather*}
       \begin{aligned}
-        \aEv \not\in \Event^2,\; \labelingAct'(\aEv) &= \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),
+        \aEv \not\in \Event^2,\; \labelingAct'(\aEv) &= \labelingAct^1(\aEv) \textAnd \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),
         \\[-1ex]
-        \aEv \not\in \Event^1,\; \labelingAct'(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv),\textor
+        \aEv \not\in \Event^1,\; \labelingAct'(\aEv) &= \labelingAct^2(\aEv) \textAnd \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv),\textor
         \\[-1ex]
-        \labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)
+        \labelingAct'(\aEv) = \labelingAct^1(\aEv) &= \labelingAct^2(\aEv) \textAnd \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv)
       \end{aligned}
     \end{gather*}
     % \begin{itemize}
-    % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),$
-    % \item $\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),$ or
-    % \item $\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textand \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
+    % \item $\labelingAct'(\aEv) = \labelingAct^1(\aEv) = \labelingAct^2(\aEv) \textAnd \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv) \lor \labelingForm^2(\aEv),$
+    % \item $\aEv \not\in \Event^2,\; \labelingAct'(\aEv) = \labelingAct^1(\aEv) \textAnd \labelingForm'(\aEv) \textimplies \labelingForm^1(\aEv),$ or
+    % \item $\aEv \not\in \Event^1,\; \labelingAct'(\aEv) = \labelingAct^2(\aEv) \textAnd \labelingForm'(\aEv) \textimplies \labelingForm^2(\aEv)$.
     % \end{itemize}
   \end{itemize}
 \end{frame}
@@ -1945,19 +1945,19 @@
     % \tag{RW}
     \sem{\aLoc \GETS \aExp  \SEMI \bReg  \GETS \bLoc \SEMI\aCmd} &=
     \sem{\bReg  \GETS \bLoc \SEMI\aLoc \GETS \aExp\SEMI\aCmd} &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+    \aLoc\neq\bLoc \textAnd \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
     % \tag{roach1}
     \sem{x^\amode \GETS \aExp \SEMI\bReg \GETS y \SEMI\aCmd} &\supseteq
     \sem{\bReg \GETS y  \SEMI x^\amode\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+    \aLoc\neq\bLoc \textAnd \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
     % \tag{roach2}
     \sem{x \GETS \aExp \SEMI\bReg \GETS y^\amode \SEMI\aCmd} &\supseteq
     \sem{\bReg \GETS y^\amode  \SEMI x\GETS \aExp \SEMI \aCmd} 
     &&\text{if }
-    \aLoc\neq\bLoc \textand \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
+    \aLoc\neq\bLoc \textAnd \bReg\not\in\free(\aExp)%\disjoint{{\free(\aLoc \GETS \aExp)}}{{\free(\bReg  \GETS \bLoc)}}
     \\
     % \tag{RF}
     \sem{\FENCE^\amode \SEMI \FENCE^\amode\SEMI\aCmd} &\supseteq 
