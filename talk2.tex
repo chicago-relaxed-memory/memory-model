@@ -1,5 +1,5 @@
 \documentclass[t,aspectratio=169]{beamer} %tlmgr install translator
-\usepackage{media9}
+%\usepackage{media9}
 
 \usepackage{macros}
 \usepackage{talk2}
@@ -166,7 +166,7 @@
   \pause
   \bigX
 \end{frame}
-\end{document}
+
 \begin{frame}
   \frametitle{What about concurrency? ($r$ is a register)}
   \huge
@@ -198,11 +198,13 @@
 
   \onslide<6->
   \normalsize
-  Read fulfillment:
+  Complete pomset: $\forall\DR{x}{v}$
   \begin{itemize}
-  \item ordered w.r.t.~every write of same reference
-  \item takes value of immediate prior 
+  \item $\exists\DW{x}{v}<\DR{x}{v}$
+  \item $\forall\DW{x}{v'}$ either $\DW{x}{v'}\leq\DW{x}{v}$ or $\DR{x}{1}<\DW{x}{v'}$
   \end{itemize}
+  \onslide<7->
+  \bigX
 \end{frame}
 
 \imagepage{images/what-if.jpg}{}
