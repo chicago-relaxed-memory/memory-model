@@ -383,27 +383,81 @@
 
 \begin{frame}
   \frametitle{Temporal Reasoning?}
-  \huge
-  \begin{displaymath}
-    \IF{\PR{x}{}}\THEN\PW{y}{1}\FI
-    \PAR
-    \IF{\PR{y}{}}\THEN\PW{x}{1}\FI
-  \end{displaymath}
-  \begin{displaymath}
-    \scalebox{1.70}{    
-      \begin{tikzinline}[node distance=1ex and 1.5em]
-        \event{a}{\DR{x}{1}}{}
-        \event{b}{\DW{y}{1}}{right=of a}
-        \event{c}{\DR{y}{1}}{below=of a}
-        \event{d}{\DW{x}{1}}{right=of c}
-        \po{a}{b}
-        \po{c}{d}
-        \rf{d}{a}
-        \rf{b}{c}
-      \end{tikzinline}}
-  \end{displaymath}
+  \Large
+  \begin{columns}
+    \begin{column}{.48\textwidth}      
+      \begin{displaymath}
+        \IF{\PR{x}{}}\THEN\PW{y}{1}\FI
+        \PAR
+        \IF{\PR{y}{}}\THEN\PW{x}{1}\FI
+      \end{displaymath}
+      \begin{displaymath}
+        \scalebox{1.50}{    
+          \begin{tikzinline}[node distance=1ex and 1.5em]
+            \event{a}{\DR{x}{1}}{}
+            \event{b}{\DW{y}{1}}{right=of a}
+            \event{c}{\DR{y}{1}}{below=of a}
+            \event{d}{\DW{x}{1}}{right=of c}
+            \po{a}{b}
+            \po{c}{d}
+            \rf{d}{a}
+            \rf{b}{c}
+          \end{tikzinline}}
+      \end{displaymath}
+    \end{column}
+    \pause
+    \begin{column}{.48\textwidth}      
+      \begin{displaymath}
+        [\DW{x}{1}\Rightarrow\once\DR{y}{1}]
+        \land
+        [\DW{y}{1}\Rightarrow\once\DR{x}{1}]
+      \end{displaymath}
+      \pause
+      \begin{displaymath}
+        [\DR{x}{1}\Rightarrow\once\DW{x}{1}]
+        \land
+        [\DR{y}{1}\Rightarrow\once\DW{y}{1}]
+      \end{displaymath}
+      \pause
+      \begin{displaymath}
+        \DW{x}{1}\Rightarrow\once\DW{x}{1}
+      \end{displaymath}
+      \pause
+      \begin{displaymath}
+        \aPS \models (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
+      \end{displaymath}
+  \end{column}
+  \end{columns}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Temporal Reasoning?}
+  \Large
+  \begin{gather*}
+    \PW{y}{\PR{x}{}}
+    \PAR
+    \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+    \PAR
+    \PW{b}{1}
+    \\[-.5ex]
+    \hbox{\begin{tikzinline}[node distance=1.5em]
+        \event{rx}{\DR{x}{1}}{}
+        \event{wy}{\DW{y}{1}}{right=of rx}
+        \po{rx}{wy}
+        \event{ry}{\DR{y}{1}}{right=3em of wy} 
+        \event{wx}{\DW{x}{1}}{right=of ry}
+        \event{wz}{\DW{z}{1}}{right=of wx}
+        \event{rb}{\DR{b}{1}}{right=of wz}
+        \event{wb1}{\DW{b}{1}}{right=3em of rb}
+        \po{ry}{wx}
+        \rf{wb1}{rb}
+        \rf{wy}{ry}
+        \rf[out=-170,in=-10]{wx}{rx}
+        \po{rb}{wz}
+        \po[out=15,in=165]{ry}{wz}
+      \end{tikzinline}}
+  \end{gather*}  
+\end{frame}
 \imagepage{images/what-if.jpg}{}
 
 \end{document}
