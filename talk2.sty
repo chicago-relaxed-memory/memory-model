@@ -79,14 +79,14 @@
   \setbeamerfont{itemize/enumerate subbody}{size={\fontsize{9}{11}}}
 }
 
-\newcommand{\bigX}{%
+\newcommand{\bigX}[1]{%
   \begin{tikzpicture}[overlay]%
-    \node[xshift=-1.5cm,yshift=-2cm](ll) at (current page.south west) {};%
-    \node[xshift=-1.5cm,yshift=-2cm](ul) at (current page.north west) {};%
-    \node[xshift=-.5cm,yshift=-2cm](ur) at (current page.north east) {};%
-    \node[xshift=-.5cm,yshift=-2cm](lr) at (current page.south east) {};%
-    \draw[red,line width=1cm](ul)to(lr);%
-    \draw[red,line width=1cm](ur)to(ll);%
+      \node[xshift=-1.5cm,yshift=#1](ll) at (current page.south west) {};%
+      \node[xshift=-1.5cm,yshift=#1](ul) at (current page.north west) {};%
+      \node[xshift=-.5cm,yshift=#1](ur) at (current page.north east) {};%
+      \node[xshift=-.5cm,yshift=#1](lr) at (current page.south east) {};%
+      \draw[red,line width=1cm](ul)to(lr);%
+      \draw[red,line width=1cm](ur)to(ll);%
   \end{tikzpicture}}
 
   % \begin{tikzpicture}[remember picture,overlay]

@@ -164,7 +164,7 @@
     \hoare{r=0}{&\PW{y}{r+1}&}{y=1}
   \end{displaymatharray}
   \pause
-  \bigX
+  \bigX{-20mm}
 \end{frame}
 
 \begin{frame}
@@ -186,13 +186,20 @@
         \event{a}{\DW{x}{0}}{}
         \event{b}{\DR{x}{\alt<-4>{5}{0}}}{right=of a}
         \event{c}{\DW{y}{\alt<-4>{6}{1}}}{right=of b}
-        \event{d}{\DW{x}{5}}{right=3em of c}      
+        \event{d}{\DW{x}{5}}{below=of a}      
         \visible<1-3>{\po{a}{b}}
         \po{b}{c}
-        \visible<3-4>{\rf[out=-160,in=-20]{d}{b}}
-        \visible<4-4>{\wk[out=20,in=160]{a}{d}}
+        \visible<3-4>{\rf{d}{b}}
+        \visible<4-4>{\wk{a}{d}}
         \visible<5->{\rfi{a}{b}}
-        \visible<5->{\wk[out=20,in=160]{b}{d}}
+        \visible<5->{\wk{b}{d}}
+        % \event{d}{\DW{x}{5}}{right=3em of c}      
+        % \visible<1-3>{\po{a}{b}}
+        % \po{b}{c}
+        % \visible<3-4>{\rf[out=-160,in=-20]{d}{b}}
+        % \visible<4-4>{\wk[out=20,in=160]{a}{d}}
+        % \visible<5->{\rfi{a}{b}}
+        % \visible<5->{\wk[out=20,in=160]{b}{d}}
       \end{tikzinline}}
   \end{displaymath}
 
@@ -201,48 +208,145 @@
   Complete pomset: $\forall\DR{x}{v}$
   \begin{itemize}
   \item $\exists\DW{x}{v}<\DR{x}{v}$
-  \item $\forall\DW{x}{v'}$ either $\DW{x}{v'}\leq\DW{x}{v}$ or $\DR{x}{1}<\DW{x}{v'}$
+  \item $\forall\DW{x}{u}$ either $\DW{x}{u}\leq\DW{x}{v}$ or $\DR{x}{1}<\DW{x}{u}$
   \end{itemize}
   \onslide<7->
-  \bigX
+  \bigX{-3mm}
 \end{frame}
 
-\imagepage{images/what-if.jpg}{}
-%\imagepage{images/ss.gif}{}
 
 \begin{frame}
-  \frametitle{What store buffering?}
+  \frametitle{What about store buffering?  (x86-64)}
+  \only<3->{\bigX{-68mm}}
   \huge
   \begin{displaymath}
     \PW{x}{0}
     \SEMI
     \PW{x}{1}
     \SEMI
-    \PR{y}{0}
+    \PR{y}{r}
     \PAR
     \PW{y}{0}
     \SEMI
     \PW{y}{1}
     \SEMI
-    \PR{x}{0}
+    \PR{x}{s}
   \end{displaymath}
   \begin{displaymath}
-    \scalebox{1.70}{    
+    \scalebox{2}{    
       \begin{tikzinline}[node distance=1.5em]
         \event{a}{\DW{x}{0}}{}
         \event{b}{\DW{x}{1}}{right=of a}
         \event{c}{\DR{y}{0}}{right=of b}
-        \event{d}{\DW{y}{0}}{right=3em of c}
+        \event{d}{\DW{y}{0}}{below=of a}
         \event{e}{\DW{y}{1}}{right=of d}
         \event{f}{\DR{x}{0}}{right=of e}
-        \po{a}{b}
-        \po{b}{c}
-        \po{d}{e}
-        \po{e}{f}
+        \only<1>{
+          \po{a}{b}
+          \po{b}{c}
+          \po{d}{e}
+          \po{e}{f}
+        }
+        \rf{a}{f}
+        \rf{d}{c}
+        % \rf[out=10,in=170]{a}{f}
+        % \rf[out=-170,in=-10]{d}{c}
       \end{tikzinline}}
   \end{displaymath}
 \end{frame}
 
+\begin{frame}
+  \frametitle{What about SC-DRF and thin air?}
+  \only<3->{\bigX{-68mm}}
+  \huge
+  \begin{displaymath}
+    \IF{\PR{x}{}}\THEN\PW{y}{1}\FI
+    \PAR
+    \IF{\PR{y}{}}\THEN\PW{x}{1}\FI
+  \end{displaymath}
+  \begin{displaymath}
+    \scalebox{1.70}{    
+      \begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DR{x}{1}}{}
+        \event{b}{\DW{y}{1}}{right=of a}
+        \event{c}{\DR{y}{1}}{below=of a}
+        \event{d}{\DW{x}{1}}{right=of c}
+        \only<2->{
+          \po{a}{b}
+          \po{c}{d}
+        }
+        \rf{d}{a}
+        \rf{b}{c}
+      \end{tikzinline}}
+  \end{displaymath}
+  \pause
+  solution: syntax dependencies
+\end{frame}
+
+\begin{frame}
+  \frametitle{What about compilers?}
+  \huge
+  \begin{displaymath}
+    \PR{x}{r}\SEMI \PW{y}{(r*0)+1}
+    \PAR
+    \PR{y}{s}\SEMI \PW{x}{s}
+  \end{displaymath}
+  \begin{displaymath}
+    \scalebox{1.70}{    
+      \begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DR{x}{1}}{}
+        \event{b}{\DW{y}{1}}{right=of a}
+        \event{c}{\DR{y}{1}}{below=of a}
+        \event{d}{\DW{x}{1}}{right=of c}
+        \only<1>{
+          \po{a}{b}
+        }
+        \po{c}{d}
+        \rf{d}{a}
+        \rf{b}{c}
+      \end{tikzinline}}
+  \end{displaymath}
+  \pause
+  solution: Semantic dependencies.
+
+  But how do you do that?
+\end{frame}
+
+\begin{frame}
+  \frametitle{Pomsets w/ preconditions}
+  \only<2->{\bigX{-68mm}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{What about control dependencies?}
+  \only<2->{\bigX{-68mm}}
+  \huge
+\end{frame}
+
+\begin{frame}
+  \frametitle{What about temporal reasoning?}
+  \huge
+  \begin{displaymath}
+    \IF{\PR{x}{}}\THEN\PW{y}{1}\FI
+    \PAR
+    \IF{\PR{y}{}}\THEN\PW{x}{1}\FI
+  \end{displaymath}
+  \begin{displaymath}
+    \scalebox{1.70}{    
+      \begin{tikzinline}[node distance=1.5em]
+        \event{a}{\DR{x}{1}}{}
+        \event{b}{\DW{y}{1}}{right=of a}
+        \event{c}{\DR{y}{1}}{below=of a}
+        \event{d}{\DW{x}{1}}{right=of c}
+        \po{a}{b}
+        \po{c}{d}
+        \rf{d}{a}
+        \rf{b}{c}
+      \end{tikzinline}}
+  \end{displaymath}
+\end{frame}
+
+\imagepage{images/what-if.jpg}{}
 
 \end{document}
 
