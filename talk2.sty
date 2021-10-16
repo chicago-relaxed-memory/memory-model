@@ -1,3 +1,14 @@
+% the following allows \pause in amsmath environments
+% https://topanswers.xyz/tex?q=1126
+\renewrobustcmd{\beamer@@pause}[1][]{%
+  \unless\ifmeasuring@%
+  \ifblank{#1}%
+    {\stepcounter{beamerpauses}}%
+    {\setcounter{beamerpauses}{#1}}%
+  \onslide<\value{beamerpauses}->\relax%
+  \fi%
+}
+
 \renewcommand{\PAR}{\,\mathbin{\mathtt{\textbf{|}}\mkern-2mu\mathtt{\textbf{|}}}\,}
 \renewcommand{\fmode}{\kappa}
 %https://tex.stackexchange.com/questions/3915/image-on-full-slide-in-beamer-package
@@ -66,6 +77,7 @@
   {\colorbox{#1}{$\scriptscriptstyle#2$}}}}%
 
 \newcommand{\qcite}[1]{\textcolor{gray}{#1}}
+\newcommand{\reg}[1]{\textcolor{gray}{#1}}
 
 \newenvironment{framecenter}{\vfill\begin{center}\usebeamerfont*{frametitle}\usebeamercolor[fg]{frametitle}\ignorespaces}
 {\end{center}\vfill\ignorespacesafterend}
@@ -79,16 +91,33 @@
   \setbeamerfont{itemize/enumerate subbody}{size={\fontsize{9}{11}}}
 }
 
-\newcommand{\bigX}[1]{%
-  \begin{tikzpicture}[overlay]%
-      \node[xshift=-1.5cm,yshift=#1](ll) at (current page.south west) {};%
-      \node[xshift=-1.5cm,yshift=#1](ul) at (current page.north west) {};%
-      \node[xshift=-.5cm,yshift=#1](ur) at (current page.north east) {};%
-      \node[xshift=-.5cm,yshift=#1](lr) at (current page.south east) {};%
+\newcommand{\bigX}{%
+  \begin{tikzpicture}[overlay,remember picture]%
+      \node[xshift=-4mm,yshift=-.5mm](ll) at (current page.south west) {};%
+      \node[xshift=-4mm,yshift=-.5mm](ul) at (current page.north west) {};%
+      \node[xshift=4mm,yshift=-.5mm](ur) at (current page.north east) {};%
+      \node[xshift=4mm,yshift=-.5mm](lr) at (current page.south east) {};%
       \draw[red,line width=1cm](ul)to(lr);%
       \draw[red,line width=1cm](ur)to(ll);%
   \end{tikzpicture}}
 
+\usepackage{anyfontsize}
+\newcommand{\sol}[2][5]{
+  \begin{tikzpicture}[overlay,remember picture]%
+    \node[rotate=#1, fill=green!10, rectangle, rounded corners] at (current page.center) {\color{green!90!black}\fontsize{48}{58}\selectfont #2};%
+  \end{tikzpicture}  
+}
+\newcommand{\probX}[2][-5]{
+  \bigX
+  \begin{tikzpicture}[overlay,remember picture]%
+    \node[rotate=#1, fill=red!10, rectangle, rounded corners] at (current page.center) {\color{red!90!black}\fontsize{48}{58}\selectfont #2};%
+  \end{tikzpicture}  
+}
+\newcommand{\prob}[2][-5]{
+  \begin{tikzpicture}[overlay,remember picture]%
+    \node[rotate=#1, fill=red!10, rectangle, rounded corners] at (current page.center) {\color{red!90!black}\fontsize{48}{58}\selectfont #2};%
+  \end{tikzpicture}  
+}
   % \begin{tikzpicture}[remember picture,overlay]
   %   \node[xshift=-2cm,yshift=-2cm] at (current page.north east){%
   %     \includegraphics[width=2cm]{photo.png}

@@ -148,7 +148,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{What does this mean?}
+  \frametitle{\alt<-2>{What does this mean?}{Preconditions!}}
   \huge
   \begin{displaymath}
     \PW{x}{0}
@@ -157,6 +157,8 @@
     \SEMI
     \PW{y}{r+1}
   \end{displaymath}
+  \only<2>{\sol{Preconditions!}}
+  \pause
   \pause
   \begin{displaymatharray}{rll}
     \hoare{\TRUE}{&\PW{x}{0}&}{x=0}\\\pause
@@ -164,13 +166,15 @@
     \hoare{r=0}{&\PW{y}{r+1}&}{y=1}
   \end{displaymatharray}
   \pause
-  \bigX{-20mm}
+  \probX{Concurrency?}
+  \pause
+  \sol{Ordered Events!}
 \end{frame}
 
 \begin{frame}
-  \frametitle{What about concurrency? ($r$ is a register)}
+  \frametitle{Ordered Events!}
   \huge
-  \begin{displaymath}
+  \begin{gather*}
     \PW{x}{0}
     \SEMI
     \PR{x}{r}
@@ -178,21 +182,19 @@
     \PW{y}{r+1}
     \PAR
     \PW{x}{5}
-  \end{displaymath}
-  \pause
-  \begin{displaymath}
+    \\
     \scalebox{2}{    
-      \begin{tikzinline}[node distance=1.5em]
+      \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DW{x}{0}}{}
-        \event{b}{\DR{x}{\alt<-4>{5}{0}}}{right=of a}
-        \event{c}{\DW{y}{\alt<-4>{6}{1}}}{right=of b}
+        \event{b}{\DR{x}{\alt<-3>{5}{0}}}{right=of a}
+        \event{c}{\DW{y}{\alt<-3>{6}{1}}}{right=of b}
         \event{d}{\DW{x}{5}}{below=of a}      
-        \visible<1-3>{\po{a}{b}}
+        \visible<1-2>{\po{a}{b}}
         \po{b}{c}
-        \visible<3-4>{\rf{d}{b}}
-        \visible<4-4>{\wk{a}{d}}
-        \visible<5->{\rfi{a}{b}}
-        \visible<5->{\wk{b}{d}}
+        \visible<2-3>{\rf{d}{b}}
+        \visible<3>{\wk{a}{d}}
+        \visible<4->{\rfi{a}{b}}
+        \visible<4->{\wk{b}{d}}
         % \event{d}{\DW{x}{5}}{right=3em of c}      
         % \visible<1-3>{\po{a}{b}}
         % \po{b}{c}
@@ -201,23 +203,23 @@
         % \visible<5->{\rfi{a}{b}}
         % \visible<5->{\wk[out=20,in=160]{b}{d}}
       \end{tikzinline}}
-  \end{displaymath}
+  \end{gather*}
 
-  \onslide<6->
   \normalsize
+  \only<-2>{($r$ is a thread-local register)}
+  \onslide<3->
   Complete pomset: $\forall\DR{x}{v}$
   \begin{itemize}
   \item $\exists\DW{x}{v}<\DR{x}{v}$
   \item $\forall\DW{x}{u}$ either $\DW{x}{u}\leq\DW{x}{v}$ or $\DR{x}{1}<\DW{x}{u}$
   \end{itemize}
-  \onslide<7->
-  \bigX{-3mm}
+  \onslide<5->
+  \probX{Hardware Reordering?}
 \end{frame}
 
 
 \begin{frame}
-  \frametitle{What about store buffering?  (x86-64)}
-  \only<3->{\bigX{-68mm}}
+  \frametitle{\alt<-4>{Hardware Reordering?}{Deordering!}}
   \huge
   \begin{displaymath}
     \PW{x}{0}
@@ -234,30 +236,43 @@
   \end{displaymath}
   \begin{displaymath}
     \scalebox{2}{    
-      \begin{tikzinline}[node distance=1.5em]
+      \begin{tikzinline}[node distance=2ex and 1.5em]
         \event{a}{\DW{x}{0}}{}
         \event{b}{\DW{x}{1}}{right=of a}
         \event{c}{\DR{y}{0}}{right=of b}
         \event{d}{\DW{y}{0}}{below=of a}
         \event{e}{\DW{y}{1}}{right=of d}
         \event{f}{\DR{x}{0}}{right=of e}
-        \only<1>{
+        \only<1->{
           \po{a}{b}
-          \po{b}{c}
           \po{d}{e}
+        }
+        \only<1-4>{
+          \po{b}{c}
           \po{e}{f}
         }
-        \rf{a}{f}
-        \rf{d}{c}
+        \only<2->{
+          \rf{a}{f}
+          \wk{f}{b}
+        }
+        \only<3->{
+          \rf{d}{c}
+          \wk{c}{e}
+        }
         % \rf[out=10,in=170]{a}{f}
         % \rf[out=-170,in=-10]{d}{c}
       \end{tikzinline}}
   \end{displaymath}
+  \only<4>{\sol{Deorder!}}
+
+  \onslide<6->
+  \probX{SC-DRF?}
+  \onslide<7->
+  \prob[10]{Thin Air?}
 \end{frame}
 
 \begin{frame}
-  \frametitle{What about SC-DRF and thin air?}
-  \only<3->{\bigX{-68mm}}
+  \frametitle{\alt<-3>{SC-DRF?  Thin Air?}{Syntactic Dependencies!}}
   \huge
   \begin{displaymath}
     \IF{\PR{x}{}}\THEN\PW{y}{1}\FI
@@ -266,12 +281,12 @@
   \end{displaymath}
   \begin{displaymath}
     \scalebox{1.70}{    
-      \begin{tikzinline}[node distance=1.5em]
+      \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DR{x}{1}}{}
         \event{b}{\DW{y}{1}}{right=of a}
         \event{c}{\DR{y}{1}}{below=of a}
         \event{d}{\DW{x}{1}}{right=of c}
-        \only<2->{
+        \only<4->{
           \po{a}{b}
           \po{c}{d}
         }
@@ -279,12 +294,14 @@
         \rf{b}{c}
       \end{tikzinline}}
   \end{displaymath}
-  \pause
-  solution: syntax dependencies
+  \only<2-3>{\sol{Dependencies!}}
+  \only<3>{\sol[-10]{Syntactic Dependencies!}}
+  \onslide<5->
+  \probX{Compiler Reordering?}
 \end{frame}
 
 \begin{frame}
-  \frametitle{What about compilers?}
+  \frametitle{\alt<-2>{Compiler Reordering?}{Semantic Dependencies!}}
   \huge
   \begin{displaymath}
     \PR{x}{r}\SEMI \PW{y}{(r*0)+1}
@@ -293,12 +310,12 @@
   \end{displaymath}
   \begin{displaymath}
     \scalebox{1.70}{    
-      \begin{tikzinline}[node distance=1.5em]
+      \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DR{x}{1}}{}
         \event{b}{\DW{y}{1}}{right=of a}
         \event{c}{\DR{y}{1}}{below=of a}
         \event{d}{\DW{x}{1}}{right=of c}
-        \only<1>{
+        \only<-3>{
           \po{a}{b}
         }
         \po{c}{d}
@@ -306,25 +323,66 @@
         \rf{b}{c}
       \end{tikzinline}}
   \end{displaymath}
-  \pause
-  solution: Semantic dependencies.
-
-  But how do you do that?
+  \only<2>{\sol{Semantic Dependencies!}}
+  \only<5->{\probX{How?}}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Pomsets w/ preconditions}
-  \only<2->{\bigX{-68mm}}
-\end{frame}
-
-\begin{frame}
-  \frametitle{What about control dependencies?}
-  \only<2->{\bigX{-68mm}}
+  \frametitle{Pomsets with Preconditions}
   \huge
+  \begin{displaymath}
+    \visible<3->{\PR{x}{r}\SEMI}
+    \PW{y}{(r*0)+1}
+    \visible<4->{\PAR}
+    \visible<5->{\PR{y}{s}\SEMI}
+    \visible<4->{\PW{x}{s}}
+  \end{displaymath}
+  \begin{displaymath}
+    \scalebox{1.70}{    
+      \begin{tikzinline}[node distance=1ex and 1.5em]
+        \visible<3->{\event{a}{\DR{x}{1}\reg{r}}{}}
+        \event{b}{\alt<1>{(r*0)+1 = 1}{\TRUE}\bigmid\DW{y}{1}}{right=of a}
+        \visible<5->{\event{c}{\DR{y}{1}\reg{s}}{below=of a}}
+        \visible<4->{\event{d}{\alt<-5>{s\mkern2mu}{1}=1\bigmid\DW{x}{1}}{right=of c}}
+        \visible<6->{\po{c}{d}}
+        \visible<7->{
+          \rf{d}{a}
+          \rf{b}{c}
+        }
+      \end{tikzinline}}
+  \end{displaymath}
+  \only<8->{\probX{Control Independencies?}}
 \end{frame}
 
 \begin{frame}
-  \frametitle{What about temporal reasoning?}
+  \frametitle{\alt<-2>{Control Independencies?}{Merging!}}
+  \huge
+  \begin{displaymath}
+    \PR{x}{r}
+    \SEMI
+    \IF{r\neq 0}\THEN\PW{y}{1}\FI
+    \SEMI
+    \IF{r = 0}\THEN\PW{y}{1}\FI
+  \end{displaymath}
+  \begin{displaymath}
+    \scalebox{1.70}{    
+      \begin{tikzinline}[node distance=1ex and 1.5em]
+        \event{a}{\DR{x}{1}\reg{r}}{}
+        \alt<-3>{
+          \event{b}{r\neq 0\bigmid\DW{y}{1}}{right=of a}
+          \event{c}{r=0\bigmid\DW{y}{1}}{right=of b}
+        }{
+          \event{b}{r\neq 0 \lor r=0\bigmid\DW{y}{1}}{right=of a}
+        }
+      \end{tikzinline}}
+  \end{displaymath}
+  \only<2>{\sol{Merging!}}
+  \onslide<5->
+  \prob{Temporal Reasoning?}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Temporal Reasoning?}
   \huge
   \begin{displaymath}
     \IF{\PR{x}{}}\THEN\PW{y}{1}\FI
@@ -333,7 +391,7 @@
   \end{displaymath}
   \begin{displaymath}
     \scalebox{1.70}{    
-      \begin{tikzinline}[node distance=1.5em]
+      \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DR{x}{1}}{}
         \event{b}{\DW{y}{1}}{right=of a}
         \event{c}{\DR{y}{1}}{below=of a}
