@@ -129,11 +129,11 @@
   \frametitle{A Simple Task!}
   A model of memory that supports:
   \begin{itemize}
-  \item<+-> concurrency (with data races)
+  \item<+-> shared-memory concurrency (with data races)
   % \item<+-> data races
   \item<+-> hardware reorderings
   \item<+-> compiler reorderings
-  \item<+-> temporal reasoning (compositionally)
+  \item<+-> temporal invariant reasoning
   \item<+-> a few other things:
     \begin{itemize}
     \item java causality test cases
@@ -211,7 +211,7 @@
   Complete pomset: $\forall\DR{x}{v}$
   \begin{itemize}
   \item $\exists\DW{x}{v}<\DR{x}{v}$
-  \item $\forall\DW{x}{u}$ either $\DW{x}{u}\leq\DW{x}{v}$ or $\DR{x}{1}<\DW{x}{u}$
+  \item $\forall\DW{x}{u}$ either $\DW{x}{u}\leq\DW{x}{v}$ or $\DR{x}{v}<\DW{x}{u}$
   \end{itemize}
   \onslide<5->
   \probX{Hardware Reordering?}
@@ -377,12 +377,12 @@
       \end{tikzinline}}
   \end{displaymath}
   \only<2>{\sol{Merging!}}
-  \onslide<5->
-  \prob{Temporal Reasoning?}
+  \onslide<5->{\prob{Temporal Reasoning?}}
+  \onslide<6->{\sol{Temporal Reasoning!}}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Temporal Reasoning?}
+  \frametitle{Temporal Reasoning!}
   \Large
   \begin{columns}
     \begin{column}{.48\textwidth}      
@@ -424,6 +424,7 @@
       \end{displaymath}
       \pause
       \begin{displaymath}
+        \llap{Coinduction: }
         \aPS \models (\afo \Rightarrow\once{\afo}) \Rightarrow\lnot \afo
       \end{displaymath}
   \end{column}
@@ -431,7 +432,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Temporal Reasoning?}
+  \frametitle{Bait and switch}
   \Large
   \begin{gather*}
     \PW{y}{\PR{x}{}}
@@ -439,8 +440,8 @@
     \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
     \PAR
     \PW{b}{1}
-    \\[-.5ex]
-    \hbox{\begin{tikzinline}[node distance=1.5em]
+    \\
+    \onslide<2->{\hbox{\begin{tikzinline}[node distance=1.5em]
         \event{rx}{\DR{x}{1}}{}
         \event{wy}{\DW{y}{1}}{right=of rx}
         \po{rx}{wy}
@@ -452,13 +453,80 @@
         \po{ry}{wx}
         \rf{wb1}{rb}
         \rf{wy}{ry}
-        \rf[out=-170,in=-10]{wx}{rx}
+        \rf[out=-160,in=-20]{wx}{rx}
         \po{rb}{wz}
-        \po[out=15,in=165]{ry}{wz}
-      \end{tikzinline}}
+        \po[out=30,in=150]{ry}{wz}
+    \end{tikzinline}}}
+    \\
+    \onslide<2->{\scriptstyle
+  [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
+  \land
+  [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
+}
   \end{gather*}  
+
+  \normalsize
+  \onslide<3->{Needed for invariant reasoning, e.g. type safety!\\
+    (Example is simplified from Lohbieler's type unsafety for JMM.)}
+  
 \end{frame}
+
 \imagepage{images/what-if.jpg}{}
+
+\begin{frame}
+  \frametitle{Speculative models}
+  \Large
+  \begin{gather*}
+    \PW{y}{\PR{x}{}}
+    \PAR
+    \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+    \PAR
+    \PW{b}{1}
+  \end{gather*}  
+  \normalsize
+  \pause
+  Many speculative models:
+  \begin{itemize}
+  \item Java Memory Model [Pugh \emph{et al.} 2005]
+  \item Speculative operational semantics [Jagadeesan, Pitcher and Riely 2010]
+  \item Event structures with AE-justification [Jeffrey and Riely 2016]
+  \item Promising semantics [Kang \emph{et al.} 2017]
+  \item \dots
+  \end{itemize}
+  \pause
+  All fall for bait and switch.
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other things!}
+
+  See the paper for\dots
+    \begin{itemize}
+    \item java causality test cases
+    \item if-introduction (aka, case analysis)
+    \item redundant read elimination
+    \item implementation on x86-64 and Arm8
+    \item address calculation
+    \item release/acquire and SC access
+    \item fences and RMWs
+    \end{itemize}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Conclusions}
+
+  A memory model which supports
+  \begin{itemize}
+  \item shared-memory concurrency (with data races)
+  \item hardware reorderings
+  \item compiler reorderings
+  \item temporal invariant reasoning
+  \item other things
+  \end{itemize}
+  
+\end{frame}
 
 \end{document}
 
