@@ -127,9 +127,9 @@
 
 \begin{frame}
   \frametitle{A Simple Task!}
-  A model of memory that supports:
+  A model of imperative programming that supports:
   \begin{itemize}
-  \item<+-> shared-memory concurrency (with data races)
+  \item<+-> shared-memory concurrency %(with data races)
   % \item<+-> data races
   \item<+-> hardware reorderings
   \item<+-> compiler reorderings
@@ -157,24 +157,36 @@
     \SEMI
     \PW{y}{r+1}
   \end{displaymath}
+  \vspace{-2ex}
   \only<2>{\sol{Preconditions!}}
-  \pause
-  \pause
+  \alt<-8>{
   \begin{displaymatharray}{rll}
-    \hoare{\TRUE}{&\PW{x}{0}&}{x=0}\\\pause
-    \hoare{x=0}{&\PR{x}{r}&}  {r=0}\\\pause
-    \hoare{r=0}{&\PW{y}{r+1}&}{y=1}
+    \visible<7->{\alt<7>{\hoare{}{&\PW{x}{0}&}  {x=0}}{\hoare{\TRUE}{&\PW{x}{0}&}  {x=0}}}\\
+    \visible<5->{\alt<5>{\phantom{\{x=0\}}\hoare{}{&\PR{x}{r}&}  {r=0}}{\hoare{x=0}  {&\PR{x}{r}&}  {r=0}}}\\
+    \visible<3->{\alt<3>{\hoare{}{&\PW{y}{r+1}&}{y=1}}{\hoare{r=0}  {&\PW{y}{r+1}&}{y=1}}}
   \end{displaymatharray}
-  \pause
+  }{
+  \begin{displaymatharray}{rll}
+    \dij{\TRUE}{&\mkern-8mu\PW{x}{0}\mkern-8mu&}  {x=0}\mkern50mu\\
+    \dij{(x=0)}{&\mkern-8mu\PR{x}{r}\mkern-8mu&}  {r=0}\\
+    \dij{(r=0)}{&\mkern-8mu\PW{y}{r+1}\mkern-8mu&}{y=1}
+  \end{displaymatharray}
+  }
+  \normalsize
+  \onslide<3->
+  \vspace{1.5cm}
+  
+  [Hoare 1969] \only<9->{[Dijkstra 1975]}
+  \onslide<10->
   \probX{Concurrency?}
-  \pause
-  \sol{Ordered Events!}
+  \onslide<11->
+  \sol{Ordered Events!}  
 \end{frame}
 
 \begin{frame}
   \frametitle{Ordered Events!}
   \huge
-  \begin{gather*}
+  \begin{displaymath}
     \PW{x}{0}
     \SEMI
     \PR{x}{r}
@@ -182,19 +194,22 @@
     \PW{y}{r+1}
     \PAR
     \PW{x}{5}
-    \\
+  \end{displaymath}
+  \vspace{-2ex}
+  \onslide<2->
+  \begin{displaymath}
     \scalebox{2}{    
       \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DW{x}{0}}{}
-        \event{b}{\DR{x}{\alt<-3>{5}{0}}}{right=of a}
-        \event{c}{\DW{y}{\alt<-3>{6}{1}}}{right=of b}
+        \event{b}{\DR{x}{\alt<-4>{5}{0}}}{right=of a}
+        \event{c}{\DW{y}{\alt<-4>{6}{1}}}{right=of b}
         \event{d}{\DW{x}{5}}{below=of a}      
-        \visible<1-2>{\po{a}{b}}
+        \visible<2-3>{\po{a}{b}}
         \po{b}{c}
-        \visible<2-3>{\rf{d}{b}}
-        \visible<3>{\wk{a}{d}}
-        \visible<4->{\rfi{a}{b}}
-        \visible<4->{\wk{b}{d}}
+        \visible<3-4>{\rf{d}{b}}
+        \visible<4>{\wk{a}{d}}
+        \visible<5->{\rfi{a}{b}}
+        \visible<5->{\wk{b}{d}}
         % \event{d}{\DW{x}{5}}{right=3em of c}      
         % \visible<1-3>{\po{a}{b}}
         % \po{b}{c}
@@ -203,17 +218,23 @@
         % \visible<5->{\rfi{a}{b}}
         % \visible<5->{\wk[out=20,in=160]{b}{d}}
       \end{tikzinline}}
-  \end{gather*}
+  \end{displaymath}
+  \normalsize
 
   \normalsize
-  \only<-2>{($r$ is a thread-local register)}
-  \onslide<3->
+  \only<-3>{
+    \vspace{2cm}
+    [Gischer 1988] [Brookes 1993] 
+      % ($r$ is a thread-local register)
+    }
+   \onslide<4->
+    \vspace{1cm}
   Complete pomset: $\forall\DR{x}{v}$
   \begin{itemize}
   \item $\exists\DW{x}{v}<\DR{x}{v}$
   \item $\forall\DW{x}{u}$ either $\DW{x}{u}\leq\DW{x}{v}$ or $\DR{x}{v}<\DW{x}{u}$
   \end{itemize}
-  \onslide<5->
+  \onslide<6->
   \probX{Hardware Reordering?}
 \end{frame}
 
@@ -243,7 +264,7 @@
         \event{d}{\DW{y}{0}}{below=of a}
         \event{e}{\DW{y}{1}}{right=of d}
         \event{f}{\DR{x}{0}}{right=of e}
-        \only<1->{
+        \only<1-4>{
           \po{a}{b}
           \po{d}{e}
         }
@@ -280,7 +301,7 @@
     \IF{\PR{y}{}}\THEN\PW{x}{1}\FI
   \end{displaymath}
   \begin{displaymath}
-    \scalebox{1.70}{    
+    \scalebox{2}{    
       \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DR{x}{1}}{}
         \event{b}{\DW{y}{1}}{right=of a}
@@ -309,7 +330,7 @@
     \PR{y}{s}\SEMI \PW{x}{s}
   \end{displaymath}
   \begin{displaymath}
-    \scalebox{1.70}{    
+    \scalebox{2}{    
       \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DR{x}{1}}{}
         \event{b}{\DW{y}{1}}{right=of a}
@@ -331,20 +352,20 @@
   \frametitle{Pomsets with Preconditions}
   \huge
   \begin{displaymath}
-    \visible<3->{\PR{x}{r}\SEMI}
-    \PW{y}{(r*0)+1}
+    \visible<6->{\PR{x}{r}\SEMI}
+    \visible<4->{\PW{y}{(r*0)+1}}
     \visible<4->{\PAR}
-    \visible<5->{\PR{y}{s}\SEMI}
-    \visible<4->{\PW{x}{s}}
+    \visible<2->{\PR{y}{s}\SEMI}
+    \visible<1->{\PW{x}{s}}
   \end{displaymath}
   \begin{displaymath}
-    \scalebox{1.70}{    
-      \begin{tikzinline}[node distance=1ex and 1.5em]
-        \visible<3->{\event{a}{\DR{x}{1}\reg{r}}{}}
-        \event{b}{\alt<1>{(r*0)+1 = 1}{\TRUE}\bigmid\DW{y}{1}}{right=of a}
-        \visible<5->{\event{c}{\DR{y}{1}\reg{s}}{below=of a}}
-        \visible<4->{\event{d}{\alt<-5>{s\mkern2mu}{1}=1\bigmid\DW{x}{1}}{right=of c}}
-        \visible<6->{\po{c}{d}}
+    \scalebox{2}{    
+      \begin{tikzinline}[node distance=2ex and 2em]
+        \visible<6->{\event{a}{\DR{x}{1}\reg{r}}{}}
+        \visible<4->{\event{b}{(r*0)+1 = 1\bigmid\DW{y}{1}}{right=of a}}
+        \visible<2->{\event{c}{\DR{y}{1}\reg{s}}{below=of a}}
+        \visible<1->{\event{d}{\alt<-2>{s\mkern2mu}{1}=1\bigmid\DW{x}{1}}{right=of c}}
+        \visible<3->{\po{c}{d}}
         \visible<7->{
           \rf{d}{a}
           \rf{b}{c}
@@ -365,7 +386,7 @@
     \IF{r = 0}\THEN\PW{y}{1}\FI
   \end{displaymath}
   \begin{displaymath}
-    \scalebox{1.70}{    
+    \scalebox{2}{    
       \begin{tikzinline}[node distance=1ex and 1.5em]
         \event{a}{\DR{x}{1}\reg{r}}{}
         \alt<-3>{
@@ -392,7 +413,7 @@
         \IF{\PR{y}{}}\THEN\PW{x}{1}\FI
       \end{displaymath}
       \begin{displaymath}
-        \scalebox{1.50}{    
+        \scalebox{1.6}{    
           \begin{tikzinline}[node distance=1ex and 1.5em]
             \event{a}{\DR{x}{1}}{}
             \event{b}{\DW{y}{1}}{right=of a}
@@ -437,11 +458,13 @@
   \begin{gather*}
     \PW{y}{\PR{x}{}}
     \PAR
-    \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+    \hightight{\PR{y}{r}} \SEMI \IF{b}\THEN  \hightight{\PW{x}{r}} \SEMI \PW{z}{r} \ELSE \hightight{\PW{x}{1}} \FI
     \PAR
     \PW{b}{1}
     \\
-    \onslide<2->{\hbox{\begin{tikzinline}[node distance=1.5em]
+    \visible<2->{
+    \scalebox{1.4}{    
+    \hbox{\begin{tikzinline}[node distance=1.5em]
         \event{rx}{\DR{x}{1}}{}
         \event{wy}{\DW{y}{1}}{right=of rx}
         \po{rx}{wy}
@@ -450,58 +473,71 @@
         \event{wz}{\DW{z}{1}}{right=of wx}
         \event{rb}{\DR{b}{1}}{right=of wz}
         \event{wb1}{\DW{b}{1}}{right=3em of rb}
-        \po{ry}{wx}
+        \alt<-2>{\po[dotted]{ry}{wx}}{\po{ry}{wx}}
         \rf{wb1}{rb}
         \rf{wy}{ry}
         \rf[out=-160,in=-20]{wx}{rx}
         \po{rb}{wz}
         \po[out=30,in=150]{ry}{wz}
-    \end{tikzinline}}}
+      \begin{pgfonlayer}{background}
+        %\node at ([shift={(45:.7)}]ry) [fill=yellow,rotate=45,align=left] {$\phantom{\smash{xxxxxxxxx}}$};
+        \node at ([shift={(0:.7)}]ry) [fill=yellow,align=left] {$\phantom{\smash{xxxxx}}$};
+      \end{pgfonlayer}
+    \end{tikzinline}}}}
     \\
-    \onslide<2->{\scriptstyle
-  [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
-  \land
-  [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]
-}
+    \visible<3->{
+    [\once\DW{y}{1} \Rightarrow \once\DR{x}{1}]
+    \land
+    [\notonce\DW{z}{1} \Rightarrow (\once\DR{y}{1} \land \always(\DW{x}{1} \Rightarrow \once\DR{y}{1}))]}
   \end{gather*}  
 
+  \onslide<4->
+  \vspace{1cm}
   \normalsize
-  \onslide<3->{Needed for invariant reasoning, e.g. type safety!\\
-    (Example is simplified from Lohbieler's type unsafety for JMM.)}
+  Allow: \;Breaks safety [Lochbihler 2013] \\
+  \onslide<5->
+  Forbid: Breaks optimization [Cho et al PLDI 2021]\\
+  \hspace{1em} (Read introduction + if introduction)
+\end{frame}
+
+%\imagepage{images/what-if.jpg}{}
+
+% \begin{frame}
+%   \frametitle{Speculative models}
+%   \Large
+%   \begin{gather*}
+%     \PW{y}{\PR{x}{}}
+%     \PAR
+%     \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
+%     \PAR
+%     \PW{b}{1}
+%   \end{gather*}  
+%   \normalsize
+%   \pause
   
-\end{frame}
+%   Many speculative models:
+%   \begin{itemize}
+%   \item Java Memory Model [Pugh \emph{et al.} 2005]
+%   \item Speculative operational semantics [Jagadeesan, Pitcher and Riely 2010]
+%   \item Event structures with AE-justification [Jeffrey and Riely 2016]
+%   \item Promising semantics [Kang \emph{et al.} 2017]
+%   \item \dots
+%   \end{itemize}
+%   \pause
+%   All fall for bait and switch.
 
-\imagepage{images/what-if.jpg}{}
+% \end{frame}
 
 \begin{frame}
-  \frametitle{Speculative models}
-  \Large
-  \begin{gather*}
-    \PW{y}{\PR{x}{}}
-    \PAR
-    \PR{y}{r} \SEMI \IF{b}\THEN  \PW{x}{r} \SEMI \PW{z}{r} \ELSE \PW{x}{1} \FI
-    \PAR
-    \PW{b}{1}
-  \end{gather*}  
-  \normalsize
-  \pause
-  Many speculative models:
+  \frametitle{Contribution}
+  A model of imperative programming that supports:
   \begin{itemize}
-  \item Java Memory Model [Pugh \emph{et al.} 2005]
-  \item Speculative operational semantics [Jagadeesan, Pitcher and Riely 2010]
-  \item Event structures with AE-justification [Jeffrey and Riely 2016]
-  \item Promising semantics [Kang \emph{et al.} 2017]
-  \item \dots
-  \end{itemize}
-  \pause
-  All fall for bait and switch.
-
-\end{frame}
-
-\begin{frame}
-  \frametitle{Other things!}
-
-  See the paper for\dots
+  \item shared-memory concurrency %(with data races)
+  % \item<+-> data races
+  \item hardware reorderings
+  \item compiler reorderings
+  \item temporal invariant reasoning
+  \item other things:
     \begin{itemize}
     \item java causality test cases
     \item if-introduction (aka, case analysis)
@@ -511,22 +547,37 @@
     \item release/acquire and SC access
     \item fences and RMWs
     \end{itemize}
-  
-\end{frame}
-
-\begin{frame}
-  \frametitle{Conclusions}
-
-  A memory model which supports
-  \begin{itemize}
-  \item shared-memory concurrency (with data races)
-  \item hardware reorderings
-  \item compiler reorderings
-  \item temporal invariant reasoning
-  \item other things
   \end{itemize}
-  
 \end{frame}
+% \begin{frame}
+%   \frametitle{Other things!}
+
+%   See the paper for\dots
+%     \begin{itemize}
+%     \item java causality test cases
+%     \item if-introduction (aka, case analysis)
+%     \item redundant read elimination
+%     \item implementation on x86-64 and Arm8
+%     \item address calculation
+%     \item release/acquire and SC access
+%     \item fences and RMWs
+%     \end{itemize}
+  
+% \end{frame}
+
+% \begin{frame}
+%   \frametitle{Conclusions}
+
+%   A memory model which supports
+%   \begin{itemize}
+%   \item shared-memory concurrency (with data races)
+%   \item hardware reorderings
+%   \item compiler reorderings
+%   \item temporal invariant reasoning
+%   \item other things
+%   \end{itemize}
+  
+% \end{frame}
 
 \end{document}
 

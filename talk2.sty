@@ -9,6 +9,12 @@
   \fi%
 }
 
+\newcommand{\LOGIC}[1]{{\color{blue!90}#1}}
+\renewcommand{\dij}[3]{\ifnotempty{#1}{\LOGIC{#1}\Rightarrow}\textit{wp}(#2)\LOGIC{(#3)}}
+\renewcommand{\hoare}[3]{\ifnotempty{#1}{\LOGIC{\{#1\}}}\allowbreak\;#2\;\allowbreak\LOGIC{\{#3\}}}
+
+
+
 % \renewcommand{\PAR}{\,\mathbin{\mathtt{\textbf{|}}\mkern-2mu\mathtt{\textbf{|}}}\,}
 \renewcommand{\PAR}{\:\mathbin{\|}\:}
 \renewcommand{\fmode}{\kappa}

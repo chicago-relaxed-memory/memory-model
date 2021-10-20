@@ -459,7 +459,8 @@
 \newcommand{\eqorder}{\sim}
 %\newcommand{\suborder}{\sqsubseteq}
 \newcommand{\inj}{f}
-\newcommand{\hoare}[3]{\ifnotempty{1}{\{#1\}}\allowbreak\;#2\;\allowbreak\{#3\}}
+\newcommand{\dij}[3]{\ifnotempty{#1}{#1=}\textit{wp}(#2)(#3)}
+\newcommand{\hoare}[3]{\ifnotempty{#1}{\{#1\}}\allowbreak\;#2\;\allowbreak\{#3\}}
 \newcommand{\fwlp}{\textit{wlp}}
 \newcommand{\fwp}[2]{\ensuremath{\textit{wp}_{#1}\ifnotempty{#2}{(#2)}}}
 \newcommand{\fsp}{\textit{sp}}
